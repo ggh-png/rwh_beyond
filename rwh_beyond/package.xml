@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rwh_beyond</name><version>0.1.0</version>
+  <description>Lifecycle component server for RWH custom services.</description>
+  <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_lifecycle</depend>
+  <depend>rclcpp_components</depend>
+  <depend>nav2_util</depend>
+  <depend>lifecycle_msgs</depend>
+  <depend>rwh_beyond_msgs</depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

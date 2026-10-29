@@ -1,0 +1,6 @@
+# Read-only lifecycle state query; this service never commands the robot.
+---
+uint8 state_id
+string state_label
+bool active
+string node_namespace

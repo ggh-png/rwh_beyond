@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rwh_beyond_bringup</name><version>0.1.0</version>
+  <description>RWH launch files, complete Nav2 configuration and sensor transforms.</description>
+  <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_python</buildtool_depend>
+  <depend>rwh_beyond</depend>
+  <depend>rwh_beyond_msgs</depend>
+  <depend>rclpy</depend>
+  <depend>ament_index_python</depend>
+  <depend>launch</depend>
+  <depend>launch_ros</depend>
+  <depend>nav2_bringup</depend>
+  <depend>nav2_common</depend>
+  <depend>tf2_ros</depend>
+  <depend>python3-yaml</depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

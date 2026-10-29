@@ -1,0 +1,15 @@
+RWH Beyond
+Copyright 2026 RWH contributors
+
+Architecture reference:
+Open Navigation's opennav_coverage, Jazzy branch, commit
+194250501889ce8896c5ee8b80a4d1317750be0e.
+Copyright Open Navigation LLC and contributors. Apache-2.0.
+No coverage algorithms, Fields2Cover code, or coverage interfaces are included.
+
+The Nav2 parameter snapshot under rwh_beyond_bringup/params/upstream/ is from
+nav2_bringup 1.3.13 (ROS Jazzy), part of Navigation2:
+https://github.com/ros-navigation/navigation2
+Copyright Navigation2 contributors, including Intel Corporation and Open
+Navigation LLC. Licensed under Apache-2.0. The active nav2_params.yaml is an
+adaptation of that configuration. See docs/upstream.md for provenance.
