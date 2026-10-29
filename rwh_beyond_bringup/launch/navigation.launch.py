@@ -1,76 +1,363 @@
-"""Use repository-owned full parameters with the official nav2_bringup launch."""
+# Copyright (c) 2018 Intel Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import os
-import tempfile
-import yaml
+
 from ament_index_python.packages import get_package_share_directory
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
-from launch.actions import RegisterEventHandler
+from launch.actions import DeclareLaunchArgument, GroupAction, OpaqueFunction, SetEnvironmentVariable
 from launch.conditions import IfCondition
-from launch.event_handlers import OnShutdown
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
-from rwh_beyond_bringup.parameters import render_parameters
-from rwh_beyond_bringup.scan_tf import make_scan_tf_node
-
-
-def setup(context):
-    def value(name):
-        return LaunchConfiguration(name).perform(context)
-    namespace = value('namespace').strip('/')
-    map_path = os.path.abspath(os.path.expanduser(value('map')))
-    if not os.path.isfile(map_path):
-        raise ValueError('Map YAML does not exist: ' + map_path)
-    with open(value('params_file'), encoding='utf-8') as stream:
-        source = yaml.safe_load(stream)
-    parameters = render_parameters(source, namespace, value('use_sim_time') == 'true', value('cmd_vel_type'))
-    with open(value('sensor_tf_file'), encoding='utf-8') as stream:
-        sensor = yaml.safe_load(stream)
-    if value('publish_scan_tf'):
-        sensor.setdefault('scan_static_tf', {})['enabled'] = value('publish_scan_tf') == 'true'
-    transforms = make_scan_tf_node(sensor, namespace, value('use_sim_time') == 'true')
-    with tempfile.NamedTemporaryFile(mode='w', prefix='rwh-nav2-', suffix='.yaml', delete=False) as stream:
-        yaml.safe_dump(parameters, stream, sort_keys=False)
-        path = stream.name
-
-    def cleanup(_context):
-        if os.path.exists(path):
-            os.unlink(path)
-        return []
-
-    share = get_package_share_directory('rwh_beyond_bringup')
-    return [*transforms,
-        RegisterEventHandler(OnShutdown(on_shutdown=[OpaqueFunction(function=cleanup)])),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(
-            get_package_share_directory('nav2_bringup'), 'launch', 'bringup_launch.py')),
-            launch_arguments={
-                'namespace': namespace, 'use_namespace': 'True' if namespace else 'False',
-                'map': map_path, 'params_file': path, 'slam': 'False', 'use_localization': 'True',
-                'use_sim_time': value('use_sim_time'), 'autostart': value('autostart'),
-                'use_composition': 'False', 'use_respawn': 'False',
-            }.items()),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(share, 'launch', 'server.launch.py')),
-            condition=IfCondition(LaunchConfiguration('start_server')),
-            launch_arguments={
-                'namespace': namespace, 'autostart': value('autostart'),
-                'use_sim_time': value('use_sim_time'),
-                'server_params_file': value('server_params_file'),
-            }.items())]
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch_ros.actions import LoadComposableNodes, PushROSNamespace, SetParameter
+from launch_ros.actions import Node
+from launch_ros.descriptions import ComposableNode, ParameterFile
+from nav2_common.launch import ReplaceString, RewrittenYaml
+from rwh_beyond_bringup.launch_configuration import prepare_navigation
 
 
 def generate_launch_description():
-    share = get_package_share_directory('rwh_beyond_bringup')
-    return LaunchDescription([
-        DeclareLaunchArgument('map', description='Existing map YAML on the external PC'),
-        DeclareLaunchArgument('namespace', default_value='a200_0724'),
-        DeclareLaunchArgument('params_file', default_value=os.path.join(share, 'params', 'nav2_params.yaml')),
-        DeclareLaunchArgument('sensor_tf_file', default_value=os.path.join(share, 'params', 'sensor_tf.yaml')),
-        DeclareLaunchArgument('server_params_file', default_value=os.path.join(share, 'params', 'rwh_beyond.yaml')),
-        DeclareLaunchArgument('use_sim_time', default_value='false', choices=['true', 'false']),
-        DeclareLaunchArgument('autostart', default_value='false', choices=['true', 'false']),
-        DeclareLaunchArgument('start_server', default_value='true', choices=['true', 'false']),
-        DeclareLaunchArgument('cmd_vel_type', default_value='', choices=['', 'twist', 'twist_stamped'],
-                             description='Empty: use the checked-in full configuration unchanged'),
-        DeclareLaunchArgument('publish_scan_tf', default_value='', choices=['', 'true', 'false']),
-        OpaqueFunction(function=setup),
-    ])
+    # Get the launch directory
+    bringup_dir = get_package_share_directory('rwh_beyond_bringup')
+
+    namespace = LaunchConfiguration('namespace')
+    use_sim_time = LaunchConfiguration('use_sim_time')
+    autostart = LaunchConfiguration('autostart')
+    params_file = ReplaceString(source_file=LaunchConfiguration('params_file'),
+        replacements={'<robot_namespace>': LaunchConfiguration('_nav_topic_prefix')})
+    use_composition = LaunchConfiguration('use_composition')
+    container_name = LaunchConfiguration('container_name')
+    container_name_full = PathJoinSubstitution(['/', namespace, container_name])
+    use_respawn = LaunchConfiguration('use_respawn')
+    log_level = LaunchConfiguration('log_level')
+
+    lifecycle_nodes = [
+        'controller_server',
+        'smoother_server',
+        'planner_server',
+        'route_server',
+        'behavior_server',
+        'velocity_smoother',
+        'collision_monitor',
+        'bt_navigator',
+        'waypoint_follower',
+        'docking_server',
+    ]
+
+    # Map fully qualified names to relative ones so the node's namespace can be prepended.
+    # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
+    # https://github.com/ros/geometry2/issues/32
+    # https://github.com/ros/robot_state_publisher/pull/30
+    # TODO(orduno) Substitute with `PushNodeRemapping`
+    #              https://github.com/ros2/launch_ros/issues/56
+    remappings = [('/tf', 'tf'), ('/tf_static', 'tf_static')]
+
+    # Create our own temporary YAML files that include substitutions
+    param_substitutions = {'autostart': autostart}
+
+    configured_params = ParameterFile(
+        RewrittenYaml(
+            source_file=params_file,
+            root_key=namespace,
+            param_rewrites=param_substitutions,
+            convert_types=True,
+        ),
+        allow_substs=True,
+    )
+
+    stdout_linebuf_envvar = SetEnvironmentVariable(
+        'RCUTILS_LOGGING_BUFFERED_STREAM', '1'
+    )
+
+    declare_namespace_cmd = DeclareLaunchArgument(
+        'namespace', default_value='a200_0724', description='Top-level namespace'
+    )
+
+    declare_use_sim_time_cmd = DeclareLaunchArgument(
+        'use_sim_time',
+        default_value='false',
+        description='Use simulation (Gazebo) clock if true',
+    )
+
+    declare_params_file_cmd = DeclareLaunchArgument(
+        'params_file',
+        default_value=os.path.join(bringup_dir, 'params', 'nav2_params.yaml'),
+        description='Full path to the ROS2 parameters file to use for all launched nodes',
+    )
+
+    declare_autostart_cmd = DeclareLaunchArgument(
+        'autostart',
+        default_value='true',
+        description='Automatically startup the nav2 stack',
+    )
+
+    declare_use_composition_cmd = DeclareLaunchArgument(
+        'use_composition',
+        default_value='False',
+        description='Use composed bringup if True',
+    )
+
+    declare_container_name_cmd = DeclareLaunchArgument(
+        'container_name',
+        default_value='nav2_container',
+        description='the name of conatiner that nodes will load in if use composition',
+    )
+
+    declare_use_respawn_cmd = DeclareLaunchArgument(
+        'use_respawn',
+        default_value='False',
+        description='Whether to respawn if a node crashes. Applied when composition is disabled.',
+    )
+
+    declare_log_level_cmd = DeclareLaunchArgument(
+        'log_level', default_value='info', description='log level'
+    )
+
+    load_nodes = GroupAction(
+        condition=IfCondition(PythonExpression(['not ', use_composition])),
+        actions=[
+            SetParameter('use_sim_time', use_sim_time),
+            Node(
+                package='nav2_controller',
+                executable='controller_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
+            ),
+            Node(
+                package='nav2_smoother',
+                executable='smoother_server',
+                name='smoother_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package='nav2_planner',
+                executable='planner_server',
+                name='planner_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package='nav2_route',
+                executable='route_server',
+                name='route_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package='nav2_behaviors',
+                executable='behavior_server',
+                name='behavior_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
+            ),
+            Node(
+                package='nav2_bt_navigator',
+                executable='bt_navigator',
+                name='bt_navigator',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package='nav2_waypoint_follower',
+                executable='waypoint_follower',
+                name='waypoint_follower',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package='nav2_velocity_smoother',
+                executable='velocity_smoother',
+                name='velocity_smoother',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings
+                + [('cmd_vel', 'cmd_vel_nav')],
+            ),
+            Node(
+                package='nav2_collision_monitor',
+                executable='collision_monitor',
+                name='collision_monitor',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package='opennav_docking',
+                executable='opennav_docking',
+                name='docking_server',
+                output='screen',
+                respawn=use_respawn,
+                respawn_delay=2.0,
+                parameters=[configured_params],
+                arguments=['--ros-args', '--log-level', log_level],
+                remappings=remappings,
+            ),
+            Node(
+                package='nav2_lifecycle_manager',
+                executable='lifecycle_manager',
+                name='lifecycle_manager_navigation',
+                output='screen',
+                arguments=['--ros-args', '--log-level', log_level],
+                parameters=[{'autostart': autostart}, {'node_names': lifecycle_nodes}],
+            ),
+        ],
+    )
+
+    load_composable_nodes = GroupAction(
+        condition=IfCondition(use_composition),
+        actions=[
+            SetParameter('use_sim_time', use_sim_time),
+            LoadComposableNodes(
+                target_container=container_name_full,
+                composable_node_descriptions=[
+                    ComposableNode(
+                        package='nav2_controller',
+                        plugin='nav2_controller::ControllerServer',
+                        name='controller_server',
+                        parameters=[configured_params],
+                        remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
+                    ),
+                    ComposableNode(
+                        package='nav2_smoother',
+                        plugin='nav2_smoother::SmootherServer',
+                        name='smoother_server',
+                        parameters=[configured_params],
+                        remappings=remappings,
+                    ),
+                    ComposableNode(
+                        package='nav2_planner',
+                        plugin='nav2_planner::PlannerServer',
+                        name='planner_server',
+                        parameters=[configured_params],
+                        remappings=remappings,
+                    ),
+                    ComposableNode(
+                        package='nav2_route',
+                        plugin='nav2_route::RouteServer',
+                        name='route_server',
+                        parameters=[configured_params],
+                        remappings=remappings,
+                    ),
+                    ComposableNode(
+                        package='nav2_behaviors',
+                        plugin='behavior_server::BehaviorServer',
+                        name='behavior_server',
+                        parameters=[configured_params],
+                        remappings=remappings + [('cmd_vel', 'cmd_vel_nav')],
+                    ),
+                    ComposableNode(
+                        package='nav2_bt_navigator',
+                        plugin='nav2_bt_navigator::BtNavigator',
+                        name='bt_navigator',
+                        parameters=[configured_params],
+                        remappings=remappings,
+                    ),
+                    ComposableNode(
+                        package='nav2_waypoint_follower',
+                        plugin='nav2_waypoint_follower::WaypointFollower',
+                        name='waypoint_follower',
+                        parameters=[configured_params],
+                        remappings=remappings,
+                    ),
+                    ComposableNode(
+                        package='nav2_velocity_smoother',
+                        plugin='nav2_velocity_smoother::VelocitySmoother',
+                        name='velocity_smoother',
+                        parameters=[configured_params],
+                        remappings=remappings
+                        + [('cmd_vel', 'cmd_vel_nav')],
+                    ),
+                    ComposableNode(
+                        package='nav2_collision_monitor',
+                        plugin='nav2_collision_monitor::CollisionMonitor',
+                        name='collision_monitor',
+                        parameters=[configured_params],
+                        remappings=remappings,
+                    ),
+                    ComposableNode(
+                        package='opennav_docking',
+                        plugin='opennav_docking::DockingServer',
+                        name='docking_server',
+                        parameters=[configured_params],
+                        remappings=remappings,
+                    ),
+                    ComposableNode(
+                        package='nav2_lifecycle_manager',
+                        plugin='nav2_lifecycle_manager::LifecycleManager',
+                        name='lifecycle_manager_navigation',
+                        parameters=[
+                            {'autostart': autostart, 'node_names': lifecycle_nodes}
+                        ],
+                    ),
+                ],
+            ),
+        ],
+    )
+
+    # Create the launch description and populate
+    ld = LaunchDescription()
+
+    # Set environment variables
+    ld.add_action(stdout_linebuf_envvar)
+
+    # Declare the launch options
+    ld.add_action(declare_namespace_cmd)
+    ld.add_action(declare_use_sim_time_cmd)
+    ld.add_action(declare_params_file_cmd)
+    ld.add_action(declare_autostart_cmd)
+    ld.add_action(declare_use_composition_cmd)
+    ld.add_action(declare_container_name_cmd)
+    ld.add_action(declare_use_respawn_cmd)
+    ld.add_action(declare_log_level_cmd)
+    # Add the actions to launch all of the navigation nodes
+    ld.add_action(OpaqueFunction(function=prepare_navigation))
+    ld.add_action(GroupAction([PushROSNamespace(namespace=['/', namespace]),
+                               load_nodes, load_composable_nodes]))
+
+    return ld

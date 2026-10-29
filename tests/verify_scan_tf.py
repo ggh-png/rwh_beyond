@@ -24,7 +24,7 @@ def main():
                 ['ros2', 'run', 'tf2_ros', 'static_transform_publisher',
                  '0.402', '0', '0.156', '0', '0', '3.141592', 'base_link', 'cloud',
                  '--ros-args', '-r', '/tf_static:=/reference/tf_static'],
-                ['ros2', 'launch', 'rwh_beyond_bringup', 'scan_tf.launch.py', 'namespace:=a200_0724'],
+                ['ros2', 'launch', 'rwh_beyond_bringup', 'sensor.launch.py', 'namespace:=a200_0724', 'start_driver:=false'],
             ]:
                 processes.append(subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT,
                                                   start_new_session=True))

@@ -13,9 +13,13 @@ class ConfigurationTests(unittest.TestCase):
         self.config = yaml.safe_load((self.share / 'params/nav2_params.yaml').read_text())
 
     def test_all_upstream_sections_are_present(self):
-        upstream = yaml.safe_load((self.share / 'params/upstream/nav2_params.jazzy-1.3.13.yaml').read_text())
-        self.assertEqual(set(upstream), set(self.config))
-        self.assertEqual(len(self.config), 15)
+        expected = {'amcl', 'bt_navigator', 'controller_server', 'local_costmap', 'global_costmap',
+                    'map_saver', 'planner_server', 'smoother_server', 'behavior_server',
+                    'waypoint_follower', 'route_server', 'velocity_smoother', 'collision_monitor',
+                    'docking_server', 'loopback_simulator', 'sensor_config', 'slam_toolbox', 'beyond_server'}
+        # Verify the original sections remain, alongside the integrated node settings.
+        self.assertEqual(set(self.config), expected)
+        self.assertEqual(list((self.share / 'params').rglob('*.yaml')), [self.share / 'params/nav2_params.yaml'])
 
     def test_tuning_edits_are_preserved(self):
         controller = self.config['controller_server']['ros__parameters']['FollowPath']
@@ -35,7 +39,8 @@ class ConfigurationTests(unittest.TestCase):
         self.assertEqual(result['amcl']['ros__parameters']['scan_topic'], '/a200_0724/scan')
         self.assertEqual(result['velocity_smoother']['ros__parameters']['odom_topic'],
                          '/a200_0724/platform/odom/filtered')
-        sensor = yaml.safe_load((self.share / 'params/sensor_tf.yaml').read_text())
+        sensor = self.config['sensor_config']['ros__parameters']
+        sensor['scan_static_tf']['enabled'] = False
         self.assertIsNone(transform_arguments(sensor))
         sensor['scan_static_tf']['enabled'] = True
         arguments = transform_arguments(sensor)

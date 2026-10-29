@@ -1,7 +1,0 @@
-# Transform supplied by the user; keep disabled if cloud TF already exists.
-scan_frame: cloud
-scan_static_tf:
-  enabled: false
-  parent_frame: base_link
-  translation: [0.402, 0.0, 0.156]
-  rotation_rpy: [3.141592, 0.0, 0.0]  # roll, pitch, yaw in radians

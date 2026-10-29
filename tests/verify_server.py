@@ -39,8 +39,8 @@ def main():
             assert status.node_namespace == '/service_test', status
 
     commands = [
-        ['ros2', 'launch', 'rwh_beyond_bringup', 'server.launch.py',
-         'namespace:=service_test', 'autostart:=false'],
+        ['ros2', 'run', 'rwh_beyond', 'rwh_beyond_server', '--ros-args',
+         '-r', '__ns:=/service_test', '-r', '__node:=beyond_server'],
         ['ros2', 'run', 'rclcpp_components', 'component_container',
          '--ros-args', '-r', '__node:=rwh_component_container'],
     ]

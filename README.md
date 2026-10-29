@@ -1,197 +1,166 @@
 # rwh_beyond
 
-ROS 2 Jazzy / Nav2 기반 Husky 외부 PC navigation과 커스텀 서비스 확장을 위한
-워크스페이스입니다. `opennav_coverage` Jazzy의 **서버 / 인터페이스 / bringup**
-분리를 참고했고, coverage 기능과 Fields2Cover 의존성은 포함하지 않습니다.
-
-## 저장소 구조
-
-참고 프로젝트처럼 ROS 패키지를 저장소 루트에 둡니다. 저장소 루트에서 바로
-`colcon build`할 수 있고, 다른 workspace의 `src/` 아래에 clone해도 됩니다.
+ROS 2 Jazzy 기반 Husky 외부 PC navigation과 커스텀 서비스 확장을 위한 workspace입니다.
+`opennav_coverage`의 서버 / 인터페이스 / bringup 분리를 참고했으며 coverage는 포함하지 않습니다.
 
 ```text
-rwh_beyond/
-├── rwh_beyond/                   # ament_cmake, C++ lifecycle/component server
-│   ├── include/rwh_beyond/beyond_server.hpp
-│   ├── src/beyond_server.cpp
-│   ├── src/main.cpp
-│   ├── CMakeLists.txt
-│   └── package.xml
-├── rwh_beyond_msgs/              # rosidl, 커스텀 msg/srv/action 정의
-│   └── srv/GetStatus.srv
-├── rwh_beyond_bringup/           # launch 및 전체 파라미터, Python 실행 유틸리티
-│   ├── launch/
-│   │   ├── navigation.launch.py
-│   │   ├── server.launch.py
-│   │   └── scan_tf.launch.py
-│   ├── params/
-│   │   ├── nav2_params.yaml      # 실제 사용, 전체 편집 가능
-│   │   ├── rwh_beyond.yaml       # 커스텀 서버 파라미터
-│   │   ├── sensor_tf.yaml        # base_link → cloud
-│   │   └── upstream/            # Nav2 기본 YAML 원본 전체
-│   └── rwh_beyond_bringup/       # namespace 처리, TF, 읽기 전용 토픽 검사
-├── tests/
-└── docs/upstream.md              # 구조 매핑과 원본 버전/해시
+rwh_beyond/                         # C++ lifecycle/component 서버
+rwh_beyond_msgs/                    # 커스텀 서비스 GetStatus.srv
+rwh_beyond_bringup/
+  launch/
+    bringup.launch.py              # navigation + localization/SLAM + sensor + RViz
+    navigation.launch.py
+    localization.launch.py
+    slam.launch.py
+    sensor.launch.py
+    rviz.launch.py
+  rviz/navigation.rviz             # RViz 화면 설정
+  params/nav2_params.yaml           # 파라미터는 이 파일 하나만 사용
+  maps/real_map_0505.yaml            # 지도 메타데이터
+  maps/real_map_0505.pgm             # 지도 이미지
 ```
 
-`rwh_beyond::BeyondServer`는 `nav2_util::LifecycleNode`이며 shared library,
-standalone executable, ROS component로 빌드됩니다. 현재 서비스는 읽기 전용
-`GetStatus` 하나입니다. 로봇 이동/coverage 동작을 구현하지 않습니다. BT나 navigator
-plugin은 실제 기능이 필요해질 때 별도 패키지로 추가합니다.
-
-## 전체 Nav2 파라미터
-
-`rwh_beyond_bringup/params/nav2_params.yaml`을 직접 수정합니다. 실행마다 설치된
-Nav2 기본 파일을 읽어 일부 값만 만드는 이전 방식은 사용하지 않습니다.
-원본 전체도 `params/upstream/`에 보관하고 버전/해시를 기록했습니다.
-
-AMCL, BT navigator, controller, local/global costmap, map saver, planner, smoother,
-behavior, waypoint, route, velocity smoother, collision monitor, docking, loopback
-simulator 등 원본 기본 YAML의 15개 섹션이 포함됩니다. simulator 섹션이 있다고
-실물 launch에서 simulator가 실행되는 것은 아닙니다.
-
-launch는 다음 값만 처리합니다.
-
-- `<robot_namespace>`: `/a200_0724` 등 실제 namespace로 치환.
-- `use_sim_time`: 모든 ROS 파라미터 블록에 적용.
-- `cmd_vel_type`: 명시한 경우에만 전체 속도 체인의 stamped 여부 변경.
-
-그 외 plugin, 속도, costmap, footprint 등은 파일 값 그대로 사용합니다.
-별도 로봇 설정 파일에서 튜닝값을 다시 덮어쓰지 않습니다.
-
-## 기본 인터페이스
-
-| 항목 | 기본값 |
-| --- | --- |
-| namespace | `a200_0724` |
-| base frame | `base_link` |
-| scan | `/a200_0724/scan`, frame_id=`cloud` |
-| odometry | `/a200_0724/platform/odom/filtered` |
-| cmd_vel | `/a200_0724/cmd_vel`, `Twist` |
-| TF | `/a200_0724/tf`, `/a200_0724/tf_static` |
-
-명령 타입은 Humble Clearpath 문서 기준의 가정이며 실제 본체에서 확인해야 합니다.
-Jazzy 본체 등에서 stamped 명령을 요구하면 YAML의 `enable_stamped_cmd_vel` 값을
-일관되게 바꾸거나 launch에 `cmd_vel_type:=twist_stamped`를 지정합니다.
-
-footprint는 예제입니다. 실제 차체/상부 장착물 실측값으로 수정해야 합니다.
-기본 속도 0.25m/s, 0.5rad/s도 초기 예제값이며 실물 주행 튜닝은 별도입니다.
-
-## 빌드
+## 빌드와 실행
 
 ```bash
-sudo apt install ros-jazzy-navigation2 ros-jazzy-nav2-bringup python3-colcon-common-extensions python3-yaml
 source /opt/ros/jazzy/setup.bash
 cd ~/rwh_beyond
 rosdep install --from-paths . --ignore-src -r -y
 colcon build --symlink-install
 source install/setup.bash
+ros2 launch rwh_beyond_bringup bringup.launch.py
 ```
 
-기본 의존성은 Nav2, tf2, lifecycle/component, rosidl입니다. Clearpath navigation
-패키지나 robot.yaml 파서에 의존하지 않습니다. 본체의 드라이버, EKF, sensor,
-robot_state_publisher, twist mux, 비상정지 시스템은 본체에서 계속 동작합니다.
-
-## Navigation 실행
+기본값은 namespace `a200_0724`, 실제 시간, AMCL, SICK 센서 및 RViz 활성화입니다.
+SLAM은 `slam:=true`, RViz 비활성화는 `use_rviz:=false`로 선택합니다.
+`use_sim_time:=true`이면 실제 센서 launch는 시작하지 않습니다. 시뮬레이터의 scan/TF가 필요합니다.
 
 ```bash
-ros2 launch rwh_beyond_bringup navigation.launch.py \
-  map:=/root/wsyoon_data/real_map_0505.yaml \
-  namespace:=a200_0724 \
-  publish_scan_tf:=true autostart:=true
+ros2 launch rwh_beyond_bringup bringup.launch.py \
+  map_yaml_file:=/path/to/map.yaml \
+  params_file:=/path/to/nav2_params.yaml \
+  sensor_hostname:=172.16.0.161 \
+  use_rviz:=false
 ```
 
-공식 `nav2_bringup/bringup_launch.py`를 include하며, RWH 서버는 별도 lifecycle
-manager로 관리합니다. `start_server:=false`이면 Nav2만 실행합니다.
-기본 `autostart=false`는 초기 설정 확인용입니다.
+`map:=...`도 지원하며 `map_yaml_file`을 함께 지정하면 후자가 우선합니다.
+기본 지도는 기존 `ros/real_map_0505.*`를 패키지에 복사한 것입니다.
+지도 YAML은 지도 메타데이터이므로 `params/`가 아닌 `maps/`에 둡니다.
 
-실제로 편집 중인 파라미터 파일을 명시할 수도 있습니다.
+센서를 다른 runner에서 이미 실행 중이면 `start_sensor:=false`를 지정합니다.
+하드웨어 접속 없이 TF만 실행하려면 `start_driver:=false`를 사용합니다.
+기본 실행 방식은 일반 프로세스(`use_composition:=False`)입니다. 컴포넌트 모드는
+앞선 테스트에서 활성화됐으나 SIGINT 종료 중 crash가 관찰돼 기본으로 사용하지 않습니다.
+
+## 단일 파라미터 파일
+
+모든 튜닝은 `rwh_beyond_bringup/params/nav2_params.yaml`에서 합니다.
+Nav2 Jazzy 1.3.13 기본 YAML의 15개 섹션을 유지했고 다음 설정을 통합했습니다.
+
+- `sensor_config.ros__parameters`: SICK hostname, min/max angle, scan frame, 정적 TF
+- `slam_toolbox.ros__parameters`: SLAM 프레임, scan 토픽, 해상도 등
+- `beyond_server.ros__parameters`: 커스텀 서버 설정
+
+별도의 센서/서버 YAML과 upstream 파라미터 사본은 제거했습니다.
+외부 파일을 지정할 때도 위 섹션을 포함한 전체 파일을 전달합니다.
+Bringup은 `<robot_namespace>`와 시간 설정을 처리하며 costmap/controller 튜닝은 보존합니다.
+센서 TF 활성화 기본값은 `sensor_config.ros__parameters.scan_static_tf.enabled`를 따릅니다.
+`use_namespace:=false`이면 센서/TF/Nav2 및 토픽 치환을 전역 namespace로 맞춥니다.
+
+단독 센서 실행도 같은 파일을 사용합니다.
 
 ```bash
-ros2 launch rwh_beyond_bringup navigation.launch.py \
-  map:=/root/wsyoon_data/real_map_0505.yaml \
-  params_file:=/root/rwh_beyond/rwh_beyond_bringup/params/nav2_params.yaml \
-  autostart:=true
+ros2 launch rwh_beyond_bringup sensor.launch.py
+ros2 launch rwh_beyond_bringup sensor.launch.py params_file:=/path/to/nav2_params.yaml
 ```
 
-share 경로의 파라미터 파일은 빌드 시 설치됩니다. YAML 수정 후 재빌드하거나
-`params_file`로 원본 파일을 직접 지정합니다. 옵션 `server_params_file`과
-`sensor_tf_file`로 서버/TF 설정도 따로 지정할 수 있습니다.
+`hostname`/`sensor_hostname`, `min_ang`, `max_ang`을 명시하면 YAML 값을 덮어씁니다.
+`use_tf_publisher:=false` 또는 기존 `publish_scan_tf:=false`로 센서 TF를 끌 수 있습니다.
+SICK는 `sick_scan_xd/sick_generic_caller`와 vendor XML을 사용하는 일반 노드입니다.
+Ouster/GPS/DLIO 및 해당 프로젝트의 전용 서버는 포함하지 않습니다.
 
-## 커스텀 서버만 실행
+## 본체 인터페이스
 
-```bash
-ros2 launch rwh_beyond_bringup server.launch.py namespace:=a200_0724 autostart:=true
-ros2 service call /a200_0724/beyond_server/get_status rwh_beyond_msgs/srv/GetStatus '{}'
-```
+| 항목 | 기본값 |
+| --- | --- |
+| scan | `/a200_0724/scan`, frame `cloud` |
+| odometry | `/a200_0724/platform/odom/filtered` |
+| base frame | `base_link` |
+| cmd_vel | `/a200_0724/cmd_vel`, `geometry_msgs/msg/Twist` |
+| TF | `/a200_0724/tf`, `/a200_0724/tf_static` |
 
-`GetStatus`는 unconfigured/inactive 상태에서도 조회 가능합니다. 새 업무 서비스는
-`rwh_beyond_msgs/srv/`에 정의하고 해당 CMake에 등록한 후 `rwh_beyond`에 callback을
-구현합니다. 실제 작업을 수행하는 서비스는 lifecycle active 상태를 확인하도록
-구현합니다. 취소/진행 피드백이 필요한 긴 작업은 action을 추가하는 편이 적합합니다.
+센서 TF는 `base_link -> cloud`, 위치 `[0.402, 0, 0.156]` m,
+roll/pitch/yaw `[3.141592, 0, 0]` rad입니다. SICK 내부 TF는 `tf_publish_rate:=0`으로 끕니다.
+본체는 `odom -> base_link` TF와 odometry를 제공해야 합니다. 외부 EKF는 실행하지 않습니다.
+`map -> odom`은 AMCL 또는 SLAM 한쪽에서만 발행해야 합니다.
 
-컴포넌트 이름은 `rwh_beyond::BeyondServer`, 실행 파일은
-`ros2 run rwh_beyond rwh_beyond_server`입니다.
-
-## cloud TF
-
-사용자가 제공한 legacy 위치 인자 `0.402 0 0.156 0 0 3.141592 base_link cloud`는
-`x y z yaw pitch roll` 순서입니다. `params/sensor_tf.yaml`에는 다음을 보존했습니다.
-
-- parent `base_link`, child `cloud`
-- translation `[0.402, 0, 0.156]` m
-- roll/pitch/yaw `[3.141592, 0, 0]` rad
-
-중복 publisher를 피하도록 기본값은 꺼져 있습니다. 위 navigation의
-`publish_scan_tf:=true` 또는 아래 standalone 방식 중 하나를 사용합니다.
-
-```bash
-ros2 launch rwh_beyond_bringup scan_tf.launch.py namespace:=a200_0724
-```
-
-scan의 frame_id를 문자열만 바꾸지 않으며 실제 TF를 연결합니다. TF는 Nav2와
-같은 namespace로 발행합니다. 본체 TF가 전역 `/tf`라면 namespace를 비우고
-파라미터의 하드웨어 토픽은 필요한 절대 경로로 지정합니다.
-
-## 외부 PC와 Humble 본체
-
-Humble↔Jazzy DDS 통신은 이 저장소가 호환성을 보장하지 않습니다. 먼저 본체 버전,
-`cmd_vel` 타입, scan/odom 실제 데이터, TF, QoS와 시간 동기화를 확인해야 합니다.
-Nav2 action client/server와 RViz는 같은 Jazzy 환경에 두는 구성을 권장합니다.
-본체가 Humble인 경우 외부 PC에서 Humble Docker로 navigation 배포판을 맞추는
-방법도 고려할 수 있습니다.
-
-기존 wsyoon 이미지의 `.ros2rc`는 discovery를 LOCALHOST로 설정합니다. 외부 로봇과
-연결할 때는 컨테이너에 들어가 환경을 source한 후, 본체 domain/RMW에 맞춥니다.
+footprint와 속도 제한은 초기 예제값이며 실제 로봇에 맞는 튜닝이 필요합니다.
+Humble 본체와 Jazzy PC의 실제 DDS/QoS/TF 통신 및 주행은 아직 검증하지 않았습니다.
+기존 이미지의 localhost discovery 설정을 해제하고 본체의 domain/RMW에 맞춥니다.
 
 ```bash
 unset ROS_LOCALHOST_ONLY
 export ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET
-export ROS_DOMAIN_ID=0  # 예제: 실제 본체 값으로 변경
-ros2 daemon stop
 ros2 run rwh_beyond_bringup inspect_robot
 ```
 
-이 검사는 graph/type/QoS 조회만 하며 속도를 발행하지 않습니다. 데이터 수신을
-입증하는 검사는 별도로 필요합니다. 컨테이너 host networking, 방화벽, multicast,
-DDS profile과 양 PC의 NTP/chrony 설정도 확인합니다. `map -> odom`은 AMCL 등 한
-노드만 제공하도록 하고, 본체의 기존 navigation과 속도/TF 발행이 중복되지 않게 합니다.
-
 ## 검증
 
-Jazzy / Nav2 1.3.13 격리 컨테이너(`--network none`)에서 확인했습니다.
-실제 로봇과 센서 드라이버는 시작하지 않았습니다.
+하드웨어와 연결하지 않는 격리 환경에서 실행합니다.
 
 ```bash
 python3 tests/test_parameters.py
-python3 tests/verify_server.py
+python3 tests/verify_sensor_config.py
 python3 tests/verify_scan_tf.py
-python3 tests/verify_bringup.py --log-dir /tmp/rwh-twist --cloud-frame
-python3 tests/verify_bringup.py --log-dir /tmp/rwh-stamped --cloud-frame --cmd-vel-type twist_stamped
+python3 tests/verify_slam.py --log-dir /tmp/rwh-slam
+python3 tests/verify_bringup_entrypoint.py --log-dir /tmp/rwh-check --composition false
 ```
 
-전체 설정 유지/튜닝 보존 7건, custom service 및 lifecycle 전환, component load/unload,
-기존 cloud TF와의 수치 일치, Nav2 12개 + RWH 서버 1개 활성화를 확인합니다.
-실제 Humble 본체 통신과 실제 주행은 미검증입니다.
+[구조와 파라미터 출처](docs/upstream.md)를 참고하세요.
 
-[구조 참고 및 전체 파라미터 출처](docs/upstream.md)
+## RViz 설정
+
+`rwh_beyond_bringup/rviz/navigation.rviz`가 기본 화면 설정입니다. 첨부 설정을 기반으로
+지도, LaserScan, TF, global/local costmap, 경로와 Nav2 패널을 포함합니다.
+TF 표시 목록에 `map`, `cloud`를 추가했습니다. 화면의 fixed frame은 `map`입니다.
+설정의 `<robot_namespace>`는 launch에서 치환하며 TF frame ID에는 namespace를 붙이지 않습니다.
+
+```bash
+ros2 launch rwh_beyond_bringup rviz.launch.py
+ros2 launch rwh_beyond_bringup rviz.launch.py use_namespace:=false
+ros2 launch rwh_beyond_bringup rviz.launch.py rviz_config:=/path/to/custom.rviz
+```
+
+Bringup에서도 `use_rviz:=true`일 때 같은 파일을 사용합니다.
+
+## ros_runner 연결
+
+navigation과 SLAM은 통합 bringup으로 센서와 RViz까지 함께 실행합니다.
+`lidar`는 센서 단독 점검용입니다. 세 runner는 서로를 종료한 뒤 실행하여 센서/TF
+중복을 방지합니다. 모드 전환 시 센서와 RViz도 재시작합니다.
+
+`map_save`는 timestamp 디렉터리에 저장한 지도를 `RWH_MAP_FILE` 경로로 복사합니다.
+복사한 YAML의 image 필드도 대상 PGM 이름에 맞춥니다.
+기본 지도는 `/root/wsyoon_data/map/map.yaml`, 별도 workspace는
+`RWH_WORKSPACE`(기본 `/root/rwh_beyond`)입니다. runner 시작 전에 환경변수를 지정합니다.
+외부 EKF는 사용하지 않으며 본체 odometry와 TF가 필요합니다.
+
+```bash
+ros2 service call /ros_runner/activate_lidar std_srvs/srv/Empty '{}'
+ros2 service call /ros_runner/activate_navigation std_srvs/srv/Empty '{}'
+ros2 service call /ros_runner/activate_slam std_srvs/srv/Empty '{}'
+ros2 service call /ros_runner/activate_map_save std_srvs/srv/Empty '{}'
+ros2 service call /ros_runner/deactivate_all std_srvs/srv/Empty '{}'
+```
+
+단독 navigation/localization launch도 namespace와 토픽 placeholder를 처리합니다.
+컴포넌트 모드에서 직접 실행한다면 같은 namespace의 외부 container가 필요합니다.
+
+격리 검증에서는 실제 runner 서비스를 호출하되 테스트 사본에서만 SICK 드라이버와
+RViz를 끄고 합성 scan/TF를 발행합니다. 실제 센서·GUI·로봇 동작은 시작하지 않습니다.
+
+```bash
+python3 tests/verify_server.py
+python3 tests/verify_runner_modes.py --runner-config /path/to/ros_runner/config/runners.yaml \
+  --workspace /path/to/combined_workspace --log-dir /tmp/rwh-runner-check
+```
