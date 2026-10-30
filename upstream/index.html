@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/upstream/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>구조와 출처 - RWH · Husky 사용 가이드</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · Husky 사용 가이드</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">시작하기</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../connection/" class="nav-link">SSH와 본체 확인</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../setup/" class="nav-link">외부 PC 준비</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../operation/" class="nav-link">SLAM과 Nav2 실행</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../interfaces/" class="nav-link">TF와 토픽</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../configuration/" class="nav-link">파라미터 설정</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../runner/" class="nav-link">ros_runner 운용</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="./" class="nav-link active" aria-current="page">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../documentation/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" class="nav-link disabled">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/upstream.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#upstream" class="nav-link">Upstream와 구조 매핑</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">구조 참고</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#nav2" class="nav-link">전체 Nav2 파라미터 출처</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="upstream">Upstream와 구조 매핑<a class="headerlink" href="#upstream" title="Permanent link">&para;</a></h1>
+<h2 id="_1">구조 참고<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<ul>
+<li>URL: https://github.com/open-navigation/opennav_coverage/tree/jazzy</li>
+<li>확인한 commit: <code>194250501889ce8896c5ee8b80a4d1317750be0e</code></li>
+<li>작업 저장소는 coverage 구현을 복사/대량 rename하는 대신 필요한 구조를 새로 작성했다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>참고 프로젝트 역할</th>
+<th>RWH 역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>opennav_coverage</code>: include/src, core shared library, executable, lifecycle component</td>
+<td><code>rwh_beyond</code></td>
+</tr>
+<tr>
+<td><code>opennav_coverage_msgs</code>: 별도 rosidl interface package</td>
+<td><code>rwh_beyond_msgs</code></td>
+</tr>
+<tr>
+<td><code>opennav_coverage_demo</code>: launch/params 실행 통합</td>
+<td><code>rwh_beyond_bringup</code></td>
+</tr>
+<tr>
+<td>BT plugin / navigator plugin / row coverage</td>
+<td>현재 기능이 필요하지 않아 만들지 않음</td>
+</tr>
+</tbody>
+</table>
+<p>Fields2Cover, coverage action/msg, row planner, coverage BT XML/plugin 의존성은 없다.
+이전 <code>husky_navigation</code> 기능은 RWH로 통합했으며, RWH 패키지 이름을 사용한다.</p>
+<h2 id="nav2">전체 Nav2 파라미터 출처<a class="headerlink" href="#nav2" title="Permanent link">&para;</a></h2>
+<ul>
+<li>원본: <code>/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml</code></li>
+<li>ROS package version: <code>1.3.13</code></li>
+<li>Debian package: <code>1.3.13-1noble.20261006.042503</code></li>
+<li>별도 upstream YAML은 단일 파라미터 구성 요청에 따라 제거했다. 원본은 Nav2 <code>1.3.13</code> 소스와 이전 Git 이력에서 확인할 수 있다.</li>
+<li>SHA-256: <code>299f9002d6dcfbf661e532c99f32dda1766eab3afa3ab71a52378d80e7ef956f</code></li>
+<li>실제 사용하는 전체 파일: <code>rwh_beyond_bringup/params/nav2_params.yaml</code></li>
+</ul>
+<p>원본 YAML의 15개 파라미터 섹션을 통합 파일에 유지했다. 추가로 sensor_config, slam_toolbox, beyond_server 설정도 같은 파일에 둔다. 실제 파일은 전체 설정을 유지한 채
+Husky 토픽, base_link, Twist, footprint 및 초기 속도 제한을 한 번 반영한 구성이다.
+원본의 robot_radius 대신 footprint를 사용한다. 지도 경로는 map launch 인자로 전달한다.</p>
+<p>이는 Nav2가 제공한 기본 YAML 전체이며, 모든 플러그인의 모든 선택적 파라미터를
+열거한 API 명세는 아니다. 추가 플러그인의 옵션도 실제 YAML에 직접 추가할 수 있다.</p>
+<p>실행 중에는 설치된 Nav2 기본 YAML을 다시 읽거나 튜닝값을 다시 생성하지 않는다.
+namespace placeholder, use_sim_time 및 명시적으로 선택한 cmd_vel_type만 처리한다.
+따라서 repository YAML의 MPPI/DWB/새 플러그인/속도/footprint 튜닝이 보존된다.
+Nav2 배포 버전을 바꿀 때 해당 버전의 원본과 통합 파일을 비교해 변경점을 검토한다.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

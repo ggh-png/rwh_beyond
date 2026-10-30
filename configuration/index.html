@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/configuration/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>파라미터 설정 - RWH · Husky 사용 가이드</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · Husky 사용 가이드</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">시작하기</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../connection/" class="nav-link">SSH와 본체 확인</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../setup/" class="nav-link">외부 PC 준비</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../operation/" class="nav-link">SLAM과 Nav2 실행</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../interfaces/" class="nav-link">TF와 토픽</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="./" class="nav-link active" aria-current="page">파라미터 설정</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../runner/" class="nav-link">ros_runner 운용</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../upstream/" class="nav-link">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../interfaces/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../runner/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/configuration.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">파라미터 설정</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_2" class="nav-link">수정할 위치</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">현재 초기 설정</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">수정 후 적용</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#nav2" class="nav-link">전체 Nav2 설정의 의미</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="_1">파라미터 설정<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>운용 설정은 <code>rwh_beyond_bringup/params/nav2_params.yaml</code> <strong>하나</strong>에 모여 있습니다. 별도 센서 YAML은 없습니다. 지도 YAML은 파라미터와 다른 파일이며 <code>map_yaml_file</code> 인자로 전달합니다.</p>
+<h2 id="_2">수정할 위치<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>목적</th>
+<th>YAML 위치</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LiDAR IP / scan 각도</td>
+<td><code>sensor_config.ros__parameters.hostname</code>, <code>min_ang</code>, <code>max_ang</code></td>
+</tr>
+<tr>
+<td>scan frame / 장착 TF</td>
+<td><code>sensor_config.ros__parameters.scan_frame</code>, <code>scan_static_tf</code></td>
+</tr>
+<tr>
+<td>AMCL / 위치 추정</td>
+<td><code>amcl.ros__parameters</code></td>
+</tr>
+<tr>
+<td>주행 속도·가속도</td>
+<td><code>controller_server.ros__parameters.FollowPath</code>, <code>velocity_smoother.ros__parameters</code></td>
+</tr>
+<tr>
+<td>회전 복구 동작</td>
+<td><code>behavior_server.ros__parameters</code></td>
+</tr>
+<tr>
+<td>로봇 크기</td>
+<td>local/global costmap의 <code>footprint</code>, <code>footprint_padding</code></td>
+</tr>
+<tr>
+<td>장애물 감지 거리</td>
+<td>costmap의 scan observation 및 <code>collision_monitor</code></td>
+</tr>
+<tr>
+<td>SLAM 해상도</td>
+<td><code>slam_toolbox.ros__parameters.resolution</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>&lt;robot_namespace&gt;</code>는 launch가 <code>/a200_0724</code>로 치환합니다. namespace를 바꾸려면 우선 launch의 <code>namespace</code> 인자를 바꿉니다. 프레임 이름은 자동으로 prefix되지 않습니다.</p>
+<h2 id="_3">현재 초기 설정<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<ul>
+<li>MPPI: 전진·후진 최대 절댓값 <code>0.25 m/s</code>, 회전 최대 <code>0.5 rad/s</code>.</li>
+<li>footprint: <code>[[0.55, 0.4], [0.55, -0.4], [-0.55, -0.4], [-0.55, 0.4]]</code>, padding <code>0.03 m</code>.</li>
+<li>LiDAR 각도: 약 <code>-π/2</code>에서 <code>+π/2</code>.</li>
+<li>SLAM 해상도: <code>0.025 m/cell</code>.</li>
+<li><code>enable_stamped_cmd_vel: false</code>: 현재 출력 타입은 <code>Twist</code>.</li>
+</ul>
+<p>footprint는 초기 예제 외곽선입니다. 장착물까지 포함한 실제 로봇 외곽을 측정해 local/global costmap 양쪽에 적용합니다. 속도를 변경할 때는 MPPI, velocity smoother, behavior 설정을 함께 확인합니다.</p>
+<h2 id="_4">수정 후 적용<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p>설치 공간의 파일을 직접 고치기보다 Git 소스 파일을 수정합니다. 빌드 방식에 따라 재빌드가 필요할 수 있으며, 확실하게 적용하려면 전체 YAML 경로를 직접 전달합니다.</p>
+<pre><code class="language-bash">ros2 launch rwh_beyond_bringup bringup.launch.py \
+  params_file:=/절대경로/nav2_params.yaml \
+  map_yaml_file:=/절대경로/map.yaml
+</code></pre>
+<p>launch 시작 시 읽으므로 파일 수정 후에는 해당 launch를 재시작합니다. 파일은 Nav2뿐 아니라 <code>sensor_config</code>, <code>slam_toolbox</code>, <code>beyond_server</code> 섹션도 포함해야 합니다.</p>
+<h2 id="nav2">전체 Nav2 설정의 의미<a class="headerlink" href="#nav2" title="Permanent link">&para;</a></h2>
+<p>이 파일은 검증 이미지의 Nav2 1.3.13 기본 YAML 전체 섹션을 유지한 것입니다. 모든 플러그인의 선택적 옵션을 빠짐없이 열거한 API 명세라는 뜻은 아닙니다. route/docking 설정도 유지되지만 실제 경로 그래프나 도킹 장치 구성이 자동 완성되는 것은 아닙니다. 출처는 <a href="../upstream/">구조와 출처</a>를 참고하세요.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
