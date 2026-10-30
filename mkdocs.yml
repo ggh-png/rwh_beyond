@@ -1,0 +1,29 @@
+site_name: RWH · Husky 사용 가이드
+site_description: Husky 연결부터 외부 Jazzy PC의 SLAM과 Nav2 운용까지
+site_url: https://ggh-png.github.io/rwh_beyond/
+repo_url: https://github.com/ggh-png/rwh_beyond
+repo_name: ggh-png/rwh_beyond
+edit_uri: edit/main/docs/
+theme:
+  name: mkdocs
+  locale: en
+  color_mode: auto
+nav:
+  - 시작하기: index.md
+  - SSH와 본체 확인: connection.md
+  - 외부 PC 준비: setup.md
+  - SLAM과 Nav2 실행: operation.md
+  - TF와 토픽: interfaces.md
+  - 파라미터 설정: configuration.md
+  - ros_runner 운용: runner.md
+  - 문제 해결: troubleshooting.md
+  - 문서 관리: documentation.md
+  - 구조와 출처: upstream.md
+markdown_extensions:
+  - attr_list
+  - admonition
+  - toc:
+      permalink: true
+plugins:
+  - search:
+      lang: [en]

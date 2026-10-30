@@ -4,7 +4,6 @@
 
 - URL: https://github.com/open-navigation/opennav_coverage/tree/jazzy
 - 확인한 commit: `194250501889ce8896c5ee8b80a4d1317750be0e`
-- 원본 clone은 `/home/ggh/wsyoon/upstream-reference/opennav_coverage-jazzy`에 참고용으로만 보관한다.
 - 작업 저장소는 coverage 구현을 복사/대량 rename하는 대신 필요한 구조를 새로 작성했다.
 
 | 참고 프로젝트 역할 | RWH 역할 |
@@ -15,7 +14,7 @@
 | BT plugin / navigator plugin / row coverage | 현재 기능이 필요하지 않아 만들지 않음 |
 
 Fields2Cover, coverage action/msg, row planner, coverage BT XML/plugin 의존성은 없다.
-기존 `husky` 저장소는 그대로 보존하며 여기에는 새 패키지 이름을 사용한다.
+이전 `husky_navigation` 기능은 RWH로 통합했으며, RWH 패키지 이름을 사용한다.
 
 ## 전체 Nav2 파라미터 출처
 

@@ -1,5 +1,9 @@
 # rwh_beyond
 
+**[Husky 사용 가이드](https://ggh-png.github.io/rwh_beyond/)** — SSH 접속, 외부 PC 연결, SLAM·Nav2, TF·토픽과 문제 해결.
+
+문서 소스는 [`docs/index.md`](docs/index.md), 로컬 빌드는 `pip install -r requirements-docs.txt && mkdocs serve`를 사용합니다.
+
 ROS 2 Jazzy 기반 Husky 외부 PC navigation과 커스텀 서비스 확장을 위한 workspace입니다.
 `opennav_coverage`의 서버 / 인터페이스 / bringup 분리를 참고했으며 coverage는 포함하지 않습니다.
 
