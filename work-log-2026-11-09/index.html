@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/work-log-2026-11-09/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>PiPER MoveIt integration work log — 2026-11-09 - RWH · Husky 사용 가이드</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · Husky 사용 가이드</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">시작하기</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../connection/" class="nav-link">SSH와 본체 확인</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../setup/" class="nav-link">외부 PC 준비</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../operation/" class="nav-link">SLAM과 Nav2 실행</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../interfaces/" class="nav-link">TF와 토픽</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../configuration/" class="nav-link">파라미터 설정</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../runner/" class="nav-link">ros_runner 운용</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../upstream/" class="nav-link">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/work-log-2026-11-09.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#piper-moveit-integration-work-log-2026-11-09" class="nav-link">PiPER MoveIt integration work log — 2026-11-09</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#goal" class="nav-link">Goal</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#changes" class="nav-link">Changes</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#commands" class="nav-link">Commands</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#validation" class="nav-link">Validation</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#gripper-execution-finding" class="nav-link">Gripper execution finding</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="piper-moveit-integration-work-log-2026-11-09">PiPER MoveIt integration work log — 2026-11-09<a class="headerlink" href="#piper-moveit-integration-work-log-2026-11-09" title="Permanent link">&para;</a></h1>
+<h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
+<p>Use the VCS-managed AgileX PiPER sources from the shared ROS 2 workspace through
+<code>rwh_beyond</code>, and make both the hardware and MuJoCo MoveIt stacks selectable by
+<code>ros_runner</code>.</p>
+<h2 id="changes">Changes<a class="headerlink" href="#changes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Added <code>rwh_beyond_bringup/launch/piper_moveit.launch.py</code>.</li>
+<li>Includes the official <code>agx_arm_ctrl/start_single_agx_arm_moveit.launch.py</code>.</li>
+<li>Pins <code>arm_type:=piper</code>; forwards CAN port, end-effector, enable, speed,
+    feedback, and control-gate arguments.</li>
+<li>This is the hardware path: it starts the CAN PiPER driver and MoveIt. It
+    does not start MuJoCo.</li>
+<li>Added <code>agx_arm_ctrl</code> as an <code>rwh_beyond_bringup</code> runtime dependency.</li>
+<li>Added mutually exclusive runner entries:</li>
+<li><code>piper_moveit</code>: hardware PiPER plus official MoveIt.</li>
+<li><code>piper_moveit_sim</code>: MuJoCo PiPER plus MoveIt and RViz.</li>
+<li>Configured the MuJoCo MoveIt launch to use OMPL as the only default planning
+  pipeline. CHOMP rejected a valid gripper start state in RViz.</li>
+<li>Increased MuJoCo-only execution duration and goal-duration allowance for GUI
+  physics timing.</li>
+</ul>
+<h2 id="commands">Commands<a class="headerlink" href="#commands" title="Permanent link">&para;</a></h2>
+<pre><code class="language-bash"># Hardware: CAN driver + MoveIt
+ros2 service call /ros_runner/activate_piper_moveit std_srvs/srv/Empty '{}'
+
+# Simulation: MuJoCo + MoveIt + RViz
+ros2 service call /ros_runner/activate_piper_moveit_sim std_srvs/srv/Empty '{}'
+</code></pre>
+<p>The two runners deactivate one another before starting.</p>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Built <code>rwh_beyond_bringup</code> and <code>moma_bringup</code>.</li>
+<li>Verified the PiPER wrapper and MuJoCo simulation launch argument surfaces.</li>
+<li>Verified that <code>ros_runner</code> accepts both PiPER runner definitions.</li>
+</ul>
+<h2 id="gripper-execution-finding">Gripper execution finding<a class="headerlink" href="#gripper-execution-finding" title="Permanent link">&para;</a></h2>
+<p>The official PiPER driver publishes the physical gripper width and force through
+<code>/feedback/joint_states</code>: <code>gripper.position</code> is width in meters and
+<code>gripper.effort</code> is force in newtons. It also accepts gripper force in
+<code>/control/joint_states</code>.</p>
+<p>MoveIt's stock FollowJointTrajectory completion is position-based. A gripper
+closing onto an object can therefore report <code>GOAL_TOLERANCE_VIOLATED</code> even when
+the fingers apply a valid holding force. A behavior-tree gripper action should
+evaluate the PiPER force feedback for grasp success instead of relying solely on
+the MoveIt trajectory result.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
