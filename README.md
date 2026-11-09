@@ -164,3 +164,19 @@ python3 tests/verify_server.py
 python3 tests/verify_runner_modes.py --runner-config /path/to/ros_runner/config/runners.yaml \
   --workspace /path/to/combined_workspace --log-dir /tmp/rwh-runner-check
 ```
+
+## PiPER MoveIt 연구 저장소
+
+PiPER/MuJoCo 프로젝트와 AgileX 공식 MoveIt/driver 소스는 이 Husky/Nav2 코드와 별도 저장소로 유지하고
+vcstool manifest로 함께 가져옵니다. `agx_arm_ros`는 공식 `ros2` 브랜치와 submodule을 재귀적으로 가져옵니다.
+기존 `rwh_beyond` 패키지는 이동하거나 덮어쓰지 않습니다.
+
+```bash
+cd /root/ros2_ws
+vcs import --recursive --skip-existing src < src/rwh_beyond/moma-mj-lab.repos
+```
+
+`agx_arm_ros` source는 공개 저장소이고, `moma-mj-lab`은 GitHub private 저장소이므로 후자를 가져오려면 Git 인증이 설정되어 있어야 합니다.
+기존 PiPER 프로젝트 안의 vendor snapshot은 보존하지만 colcon은 공식 checkout의 패키지를 사용합니다.
+토픽·TF·MoveIt 통합 및 빌드는 `src/moma-mj-lab/README.md` 안내를 따릅니다.
+manifest는 두 저장소를 같은 ROS workspace에 나란히 checkout합니다.
