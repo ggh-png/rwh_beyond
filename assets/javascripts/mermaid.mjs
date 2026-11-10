@@ -1,5 +1,5 @@
 // Keep ordinary fenced Mermaid blocks readable on GitHub and render them in MkDocs.
-if (/\/bt-(architecture|nodes|operation)(?:\/|\.html|$)/.test(location.pathname)) {
+if (/\/(?:bt-(architecture|nodes|operation)|depth-bt-flow)(?:\/|\.html|$)/.test(location.pathname)) {
   document.body.classList.add("bt-document");
 }
 const blocks = document.querySelectorAll("pre code.language-mermaid");

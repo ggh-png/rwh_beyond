@@ -65,6 +65,10 @@
 </li>
                                     
 <li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth 관측과 runner 흐름</a>
+</li>
+                                    
+<li>
     <a href="../bt-nodes/" class="dropdown-item">노드 사용법</a>
 </li>
                                     
@@ -158,12 +162,77 @@ colcon build --packages-select \
   rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator \
   moma_mujoco_ros moma_bringup rwh_beyond_bringup --symlink-install
 source install/setup.bash
-ros2 launch rwh_beyond_bringup bt_demo.launch.py gui:=false rviz:=false
+ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 </code></pre>
-<p>MuJoCo·MoveIt과 navigator가 시작됩니다. <strong>Launch만으로 demo goal을 보내지는 않습니다.</strong>
-GUI를 표시하려면 <code>gui:=true rviz:=true</code>를 사용합니다.</p>
-<p><code>ros_runner</code>에서는 <code>bt_demo</code>를 실행합니다.
-<code>piper_moveit</code>, <code>piper_moveit_sim</code>, <code>bt_demo</code>는 서로 비활성화하도록 설정돼 있습니다.</p>
+<p>MuJoCo·MoveIt이 준비되면 다른 터미널에서 같은 환경을 source하고 navigator를 실행합니다.
+GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=true</code>를 사용합니다.</p>
+<pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
+source /root/ros2_ws/install/setup.bash
+ros2 launch rwh_beyond_bringup bt_demo.launch.py
+</code></pre>
+<p><code>ros_runner</code>에서 <strong><code>bt_demo</code>만 활성화</strong>하면 <code>requires: [piper_sim]</code>에 의해
+MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_sim</code>은 재사용합니다.
+BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
+<strong>자동으로 demo goal을 보내지는 않습니다.</strong></p>
+<pre><code class="language-bash">ros2 service call /ros_runner/activate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
+# navigator와 사용되지 않는 simulator 의존성 종료
+ros2 service call /ros_runner/deactivate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
+</code></pre>
+<p><code>piper_sim</code>을 중지하면 이에 의존하는 <code>bt_demo</code>도 중지됩니다.
+다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
+YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.</p>
+<h3 id="rviz">기본 RViz 화면<a class="headerlink" href="#rviz" title="Permanent link">&para;</a></h3>
+<p>시뮬레이션은 <code>scene_source:=depth</code>와 <code>moma_bringup/config/depth_planning.rviz</code>를 사용합니다.</p>
+<table>
+<thead>
+<tr>
+<th>표시</th>
+<th>Topic / 데이터</th>
+<th>기본 상태</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MotionPlanning</td>
+<td><code>/monitored_planning_scene</code>의 로봇·Octomap</td>
+<td>켜짐</td>
+</tr>
+<tr>
+<td>Planned Path</td>
+<td><code>/display_planned_path</code></td>
+<td>켜짐</td>
+</tr>
+<tr>
+<td>Depth points - robot filtered</td>
+<td><code>/camera/depth/filtered_points</code></td>
+<td>켜짐, cyan</td>
+</tr>
+<tr>
+<td>Depth points - raw</td>
+<td><code>/camera/depth/color/points</code></td>
+<td>비교용, 꺼짐</td>
+</tr>
+<tr>
+<td>RGB camera</td>
+<td><code>/camera/color/image_raw</code></td>
+<td>켜짐</td>
+</tr>
+<tr>
+<td>Depth camera</td>
+<td><code>/camera/depth/image_rect_raw</code></td>
+<td>켜짐</td>
+</tr>
+<tr>
+<td>Camera pose</td>
+<td><code>/camera/pose</code></td>
+<td>비교용, 꺼짐</td>
+</tr>
+</tbody>
+</table>
+<p>Octomap은 별도 <code>/octomap</code> display가 아니라 MotionPlanning의 Scene Geometry에 표시됩니다.
+점군·영상은 센서의 Best Effort QoS에 맞췄습니다. 겹쳐 보이면 Displays에서 점군을 끄고
+Octomap만 확인하세요. 최초 계획 전 카메라 영상과 Octomap 수신을 확인하세요.
+GUI 옵션은 runner 시작 전 <code>RWH_PIPER_SIM_GUI</code>, <code>RWH_PIPER_SIM_RVIZ</code> 환경변수로 바꿀 수 있습니다.</p>
 <table>
 <thead>
 <tr>
@@ -173,8 +242,12 @@ GUI를 표시하려면 <code>gui:=true rviz:=true</code>를 사용합니다.</p>
 </thead>
 <tbody>
 <tr>
+<td><code>piper_sim</code></td>
+<td>MuJoCo + MoveIt (GUI, RViz 및 그리퍼 설정 가능)</td>
+</tr>
+<tr>
 <td><code>bt_demo</code></td>
-<td>MuJoCo + MoveIt + BT navigator</td>
+<td><code>piper_sim</code> 자동 시작 + BT navigator 및 lifecycle manager</td>
 </tr>
 <tr>
 <td><code>piper_moveit_sim</code></td>
@@ -248,7 +321,7 @@ XML의 action 노드가 서버에 연결할 수 있어야 활성화가 완료됩
 </code></pre>
 <p>다음 순서로 파일을 불러옵니다.</p>
 <ol>
-<li><strong>노드 모델 가져오기:</strong> <code>rwh_beyond_bt/rwh_beyond_tree_nodes.xml</code></li>
+<li><strong>노드 모델 가져오기:</strong> <code>rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml</code></li>
 <li><strong>트리 열기:</strong> <code>rwh_beyond_bt/behavior_trees/demo.xml</code> 또는 <code>parameterized_demo.xml</code></li>
 </ol>
 <p>위 경로는 <code>/root/ros2_ws/src/rwh_beyond/</code> 기준입니다.</p>
@@ -290,7 +363,7 @@ XML의 action 노드가 서버에 연결할 수 있어야 활성화가 완료됩
 <pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
 source /root/ros2_ws/install/setup.bash
 ros2 run rwh_beyond_bt generate_tree_nodes_xml \
-  /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/rwh_beyond_tree_nodes.xml
+  /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
 </code></pre>
 <ul>
 <li><strong>Navigator:</strong> 프로세스를 재시작해 새 라이브러리를 로드합니다.</li>
@@ -311,8 +384,8 @@ colcon test-result --test-result-base build/rwh_beyond_bt/test_results
 </thead>
 <tbody>
 <tr>
-<td>Mock 테스트 8개</td>
-<td>mm 변환, 정수·범위 검사, 절대·상대 위치, 자세 유지, quaternion 전달·정규화</td>
+<td>Mock 테스트 13개</td>
+<td>mm 변환, 객체 생성·전달·재사용·SubTree 연결, 위치·자세와 quaternion 정규화</td>
 </tr>
 <tr>
 <td>잘못된 입력 테스트</td>

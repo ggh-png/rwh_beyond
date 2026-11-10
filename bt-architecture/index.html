@@ -65,6 +65,10 @@
 </li>
                                     
 <li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth 관측과 runner 흐름</a>
+</li>
+                                    
+<li>
     <a href="../bt-nodes/" class="dropdown-item">노드 사용법</a>
 </li>
                                     
@@ -96,7 +100,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../bt-nodes/" class="nav-link">
+                                <a rel="next" href="../depth-bt-flow/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -163,7 +167,8 @@
 <h1 id="bt">로봇 팔 BT 아키텍처<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
 <p><strong>BT XML이 작업 순서를 정하고, C++ 노드가 MoveIt과 그리퍼 controller를 호출합니다.</strong>
 Nav2 BT Navigator는 이 트리를 <code>/run_demo</code> action으로 실행합니다.
-현재 통합 launch의 실행 대상은 <strong>PiPER MuJoCo 시뮬레이션</strong>입니다.</p>
+현재 데모의 실행 대상은 <strong>PiPER MuJoCo 시뮬레이션</strong>입니다. 시뮬레이션과
+BT navigator는 별도의 launch로 실행합니다.</p>
 <table>
 <thead>
 <tr>
@@ -175,6 +180,10 @@ Nav2 BT Navigator는 이 트리를 <code>/run_demo</code> action으로 실행합
 <tr>
 <td>구성 요소와 실행 흐름</td>
 <td>이 페이지</td>
+</tr>
+<tr>
+<td>Runner 자동 기동과 depth 충돌 계획</td>
+<td><a href="../depth-bt-flow/">Depth 관측과 runner 흐름</a></td>
 </tr>
 <tr>
 <td>그리퍼 mm, 목표 좌표와 자세 입력</td>
@@ -239,7 +248,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 <tbody>
 <tr>
 <td><code>rwh_beyond_msgs</code></td>
-<td><code>RunDemo.action</code> 정의</td>
+<td><code>RunDemo.action</code>, <code>TcpPose.msg</code> 정의</td>
 </tr>
 <tr>
 <td><code>rwh_beyond_navigator</code></td>
@@ -247,11 +256,11 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tr>
 <tr>
 <td><code>rwh_beyond_bt</code></td>
-<td>BT 노드 6개, 실행 XML, Groot2 모델 XML, 생성기와 테스트</td>
+<td>BT 노드 7개, 실행 XML, Groot2 모델 XML, 생성기와 테스트</td>
 </tr>
 <tr>
 <td><code>rwh_beyond_bringup</code></td>
-<td>시뮬레이션·MoveIt·navigator 통합 launch</td>
+<td>BT navigator와 lifecycle manager launch</td>
 </tr>
 </tbody>
 </table>
@@ -274,7 +283,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tr>
 <tr>
 <td><code>ros_runner</code></td>
-<td><code>bt_demo</code> 실행 및 runner 간 상호 비활성화</td>
+<td><code>bt_demo → piper_sim</code> 자동 의존성 실행 및 로봇 실행 경로 간 상호 비활성화</td>
 </tr>
 </tbody>
 </table>
@@ -329,7 +338,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tbody>
 </table>
 <p>BT 라이브러리의 실제 파일명은 <code>librwh_beyond_bt_nodes.so</code>입니다.
-<code>BT_REGISTER_NODES</code>가 6개 노드를 등록하며, <code>BT_PLUGIN_EXPORT</code> compile definition이
+<code>BT_REGISTER_NODES</code>가 7개 노드를 등록하며, <code>BT_PLUGIN_EXPORT</code> compile definition이
 <code>BT_RegisterNodesFromPlugin</code> 심볼을 공개합니다.</p>
 <h2 id="goal">Goal을 받으면 일어나는 일<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
 <pre><code class="language-mermaid">sequenceDiagram
@@ -417,16 +426,16 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tbody>
 </table>
 <p><code>parameterized_demo.xml</code>은 같은 작업을 입력 가능한 <code>MoveTcp</code>와 <code>SetGripper</code>로
-표현한 예제입니다. 기본 트리는 <code>demo.xml</code>입니다.</p>
+표현한 예제입니다. <code>MakeTcpPose</code>가 목표 객체를 만들고 <code>MoveTcp</code>가 객체 하나를 받습니다.
+기본 트리는 <code>demo.xml</code>입니다.</p>
 <h2 id="_5">소스에서 찾아볼 위치<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <pre><code class="language-text">rwh_beyond_bt/
-├── src/action/                  # action 노드 6개
+├── src/action/                  # action 노드 7개
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp
 ├── include/rwh_beyond_bt/action/ # 공통 action 베이스
-├── behavior_trees/              # 실행할 트리
-├── rwh_beyond_tree_nodes.xml     # Groot2 노드 모델
+├── behavior_trees/              # 실행 트리와 Groot2 노드 모델 XML
 └── test/test_custom_actions.cpp  # mock 테스트
 </code></pre>
 <h2 id="_6">참고<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>

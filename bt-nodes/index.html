@@ -65,6 +65,10 @@
 </li>
                                     
 <li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth 관측과 runner 흐름</a>
+</li>
+                                    
+<li>
     <a href="./" class="dropdown-item active" aria-current="page">노드 사용법</a>
 </li>
                                     
@@ -91,7 +95,7 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../bt-architecture/" class="nav-link">
+                                <a rel="prev" href="../depth-bt-flow/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
@@ -133,7 +137,15 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#movetcp" class="nav-link">MoveTcp — 위치와 자세 지정</a>
+            <li class="nav-item" data-bs-level="2"><a href="#tcppose" class="nav-link">TcpPose — 목표를 객체 하나로 관리</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#maketcppose" class="nav-link">MakeTcpPose — 객체 만들기</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#movetcp" class="nav-link">MoveTcp — 객체로 이동하기</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -167,8 +179,13 @@
 <td>지정한 폭으로 그리퍼 이동</td>
 </tr>
 <tr>
-<td><code>MoveTcp</code></td>
+<td><code>MakeTcpPose</code></td>
 <td>위치, 자세, 기준 프레임</td>
+<td>하나의 <code>TcpPose</code> 객체 생성</td>
+</tr>
+<tr>
+<td><code>MoveTcp</code></td>
+<td><code>pose</code> 객체, TCP link</td>
 <td>MoveIt pose goal 실행</td>
 </tr>
 <tr>
@@ -233,10 +250,125 @@ Controller에는 <code>gripper=0.05</code> m로 전달합니다.
 <p><code>unit="percent"</code>를 명시하면 0~100% 개방률로 해석합니다.
 현재 모델의 최대 폭이 100 mm여서 두 단위의 숫자가 일치합니다.
 소수·범위 초과·잘못된 단위·유효하지 않은 시간은 goal 전송 전에 거부합니다.</p>
-<h2 id="movetcp">MoveTcp — 위치와 자세 지정<a class="headerlink" href="#movetcp" title="Permanent link">&para;</a></h2>
-<p><strong>base_link 기준 위치와 자세를 함께 입력:</strong></p>
-<pre><code class="language-xml">&lt;MoveTcp x=&quot;0.25&quot; y=&quot;0&quot; z=&quot;0.35&quot;
-         qx=&quot;0&quot; qy=&quot;0&quot; qz=&quot;0&quot; qw=&quot;1&quot;/&gt;
+<h2 id="tcppose">TcpPose — 목표를 객체 하나로 관리<a class="headerlink" href="#tcppose" title="Permanent link">&para;</a></h2>
+<p>위치 3개와 quaternion 4개를 따로 blackboard에 저장하는 대신,
+<strong><code>rwh_beyond_msgs/msg/TcpPose</code> 객체 하나</strong>를 저장합니다.</p>
+<pre><code class="language-mermaid">flowchart LR
+    M[&quot;MakeTcpPose&quot;] --&gt; P[&quot;target_pose 객체&quot;]
+    P --&gt; T[&quot;MoveTcp&quot;]
+</code></pre>
+<p>메시지 정의:</p>
+<pre><code class="language-text">string frame_id &quot;base_link&quot;
+geometry_msgs/Pose pose
+bool relative false
+bool keep_current_orientation false
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>frame_id</code></td>
+<td>위치와 자세의 기준 좌표계</td>
+</tr>
+<tr>
+<td><code>pose.position</code></td>
+<td>m 단위 위치 x/y/z</td>
+</tr>
+<tr>
+<td><code>pose.orientation</code></td>
+<td>기준 좌표계의 quaternion x/y/z/w</td>
+</tr>
+<tr>
+<td><code>relative</code></td>
+<td>true이면 위치를 현재 TCP 위치에 더할 offset으로 해석</td>
+</tr>
+<tr>
+<td><code>keep_current_orientation</code></td>
+<td>true이면 메시지의 quaternion을 무시하고 현재 TCP 자세 유지</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">메시지의 초기 자세</p>
+<p>ROS 메시지의 기본 quaternion은 <code>(0, 0, 0, 1)</code>인 단위 회전입니다.
+메시지를 직접 만들면 이 자세가 목표가 됩니다.
+현재 자세를 유지하려면 <code>keep_current_orientation=true</code>로 설정합니다.
+<code>MakeTcpPose</code>는 quaternion 입력을 생략하면 이 값을 true로 설정합니다.</p>
+</div>
+<h2 id="maketcppose">MakeTcpPose — 객체 만들기<a class="headerlink" href="#maketcppose" title="Permanent link">&para;</a></h2>
+<p>XML에서 <strong>한 번 생성하고 이후에는 객체 이름만 연결</strong>합니다.</p>
+<pre><code class="language-xml">&lt;Sequence&gt;
+  &lt;MakeTcpPose x=&quot;0.25&quot; y=&quot;0&quot; z=&quot;0.35&quot;
+               qx=&quot;0&quot; qy=&quot;0&quot; qz=&quot;0&quot; qw=&quot;1&quot;
+               pose=&quot;{target_pose}&quot;/&gt;
+  &lt;MoveTcp pose=&quot;{target_pose}&quot;/&gt;
+&lt;/Sequence&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>입력 / 출력</th>
+<th>필수 / 기본값</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>입력 <code>x</code>, <code>y</code>, <code>z</code></td>
+<td>필수</td>
+<td>m 단위 위치</td>
+</tr>
+<tr>
+<td>입력 <code>qx</code>, <code>qy</code>, <code>qz</code>, <code>qw</code></td>
+<td>생략 가능</td>
+<td>모두 지정하거나 모두 생략</td>
+</tr>
+<tr>
+<td>입력 <code>frame_id</code></td>
+<td><code>base_link</code></td>
+<td>위치·자세 기준 좌표계</td>
+</tr>
+<tr>
+<td>입력 <code>relative</code></td>
+<td><code>false</code></td>
+<td>상대 위치 여부</td>
+</tr>
+<tr>
+<td>출력 <code>pose</code></td>
+<td>필수</td>
+<td><code>TcpPose</code>를 저장할 blackboard key</td>
+</tr>
+</tbody>
+</table>
+<p>Quaternion을 생략하면 <code>keep_current_orientation=true</code>인 객체를 만듭니다.
+네 값을 모두 넣으면 <code>false</code>로 설정하고 quaternion을 정규화합니다.
+이 노드는 <strong>객체 생성만 수행</strong>하며 로봇을 움직이지 않습니다.
+검증에 실패하면 출력 객체를 덮어쓰지 않고 FAILURE를 반환합니다.</p>
+<h3 id="_2">현재 자세를 유지하며 상대 이동<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<pre><code class="language-xml">&lt;Sequence&gt;
+  &lt;MakeTcpPose x=&quot;0&quot; y=&quot;0&quot; z=&quot;0.30&quot; relative=&quot;true&quot; pose=&quot;{lift_pose}&quot;/&gt;
+  &lt;MoveTcp pose=&quot;{lift_pose}&quot;/&gt;
+&lt;/Sequence&gt;
+</code></pre>
+<p>기준 프레임 Z축 방향으로 0.30 m 상승하는 예제입니다.
+<code>relative</code>는 위치에만 적용되며, 입력 quaternion은 항상 <code>frame_id</code> 기준 <strong>절대 자세</strong>입니다.</p>
+<h3 id="c">다른 C++ 노드에서도 메시지를 바로 저장할 수 있습니다<a class="headerlink" href="#c" title="Permanent link">&para;</a></h3>
+<pre><code class="language-cpp">rwh_beyond_msgs::msg::TcpPose target;
+target.pose.position.x = 0.25;
+target.pose.position.z = 0.35;
+target.pose.orientation.w = 1.0;
+blackboard-&gt;set(&quot;target_pose&quot;, target);
+</code></pre>
+<p>Blackboard key를 일곱 개 만들 필요 없이 <code>{target_pose}</code> 하나를 재사용합니다.
+문자열이나 XML의 <code>&lt;SetBlackboard&gt;</code>로 넣은 임의 문자열은 이 메시지 객체를 대신하지 않습니다.
+현재 <code>RunDemo</code> action 필드는 그대로이며, 외부 ROS 메시지가 자동으로 blackboard에 들어오지는 않습니다.</p>
+<h2 id="movetcp">MoveTcp — 객체로 이동하기<a class="headerlink" href="#movetcp" title="Permanent link">&para;</a></h2>
+<pre><code class="language-xml">&lt;MoveTcp pose=&quot;{target_pose}&quot; tcp_link=&quot;tcp_link&quot;/&gt;
 </code></pre>
 <table>
 <thead>
@@ -248,78 +380,46 @@ Controller에는 <code>gripper=0.05</code> m로 전달합니다.
 </thead>
 <tbody>
 <tr>
-<td><code>x</code>, <code>y</code>, <code>z</code></td>
+<td><code>pose</code></td>
 <td>필수</td>
-<td>목표 위치, 단위 m</td>
-</tr>
-<tr>
-<td><code>qx</code>, <code>qy</code>, <code>qz</code>, <code>qw</code></td>
-<td>생략 가능</td>
-<td>목표 quaternion, x/y/z/w 순서</td>
-</tr>
-<tr>
-<td><code>frame_id</code></td>
-<td><code>base_link</code></td>
-<td>위치와 자세의 기준 좌표계</td>
+<td><code>TcpPose</code> 타입의 blackboard 객체</td>
 </tr>
 <tr>
 <td><code>tcp_link</code></td>
 <td><code>tcp_link</code></td>
 <td>제어할 TCP link</td>
 </tr>
-<tr>
-<td><code>relative</code></td>
-<td><code>false</code></td>
-<td>true이면 xyz를 현재 위치에 더함</td>
-</tr>
 </tbody>
 </table>
-<h3 id="quaternion">자세를 유지하려면 quaternion을 생략합니다<a class="headerlink" href="#quaternion" title="Permanent link">&para;</a></h3>
-<pre><code class="language-xml">&lt;MoveTcp x=&quot;0.25&quot; y=&quot;0&quot; z=&quot;0.35&quot;/&gt;
-</code></pre>
-<p>Quaternion은 <strong>네 값을 모두 입력하거나 모두 생략</strong>합니다.
-입력값은 유한해야 하며 norm이 <code>1e-12</code> 이상이어야 합니다.
-유효한 quaternion은 정규화하고, 일부 성분만 입력하거나 0 quaternion이면 거부합니다.</p>
-<h3 id="_2">상대 이동은 기준 프레임의 축을 따릅니다<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
-<pre><code class="language-xml">&lt;!-- 현재 위치에서 base_link Z축으로 0.30 m 상승 --&gt;
-&lt;MoveTcp x=&quot;0&quot; y=&quot;0&quot; z=&quot;0.30&quot; relative=&quot;true&quot;/&gt;
-</code></pre>
+<p><code>x/y/z</code>, <code>qx/qy/qz/qw</code>, <code>frame_id</code>, <code>relative</code> 개별 포트는 제거했습니다.
+기존 XML은 위 <code>MakeTcpPose → MoveTcp</code> 구성으로 옮깁니다.</p>
+<p>입력 객체는 복사해 검증하므로 <strong>정규화와 상대 좌표 계산이 원본 객체를 바꾸지 않습니다.</strong>
+객체가 없거나 타입이 다르면 goal을 보내지 않습니다.
+위치는 유한해야 하고 프레임은 비어 있으면 안 됩니다.
+명시적 자세의 quaternion은 유한하며 norm이 <code>1e-12</code> 이상이어야 합니다.</p>
 <table>
 <thead>
 <tr>
-<th>설정</th>
-<th>위치</th>
-<th>자세</th>
+<th>객체의 설정</th>
+<th>현재 TCP TF 필요 여부</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>relative="false"</code></td>
-<td>기준 프레임의 절대 위치</td>
-<td>입력 quaternion 또는 현재 자세</td>
+<td>절대 위치 + 명시적 자세</td>
+<td>불필요</td>
 </tr>
 <tr>
-<td><code>relative="true"</code></td>
-<td>현재 위치 + 기준 프레임 축 방향 offset</td>
-<td>입력 quaternion 또는 현재 자세</td>
+<td>상대 위치</td>
+<td>필요</td>
+</tr>
+<tr>
+<td>현재 자세 유지</td>
+<td>필요</td>
 </tr>
 </tbody>
 </table>
-<div class="admonition note">
-<p class="admonition-title">relative는 위치에만 적용</p>
-<p>입력 quaternion은 항상 <code>frame_id</code> 기준의 <strong>절대 자세</strong>입니다.
-현재 자세에 더하는 회전 증분으로 해석하지 않습니다.</p>
-</div>
-<p>상대 위치 또는 자세 유지에는 TF가 필요합니다.
-절대 위치와 quaternion을 모두 지정하면 현재 TCP TF를 조회하지 않습니다.
-목표 프레임과 도달 가능성은 MoveIt이 검증합니다.</p>
-<h3 id="blackboard-pose">Blackboard에서 pose를 받을 수도 있습니다<a class="headerlink" href="#blackboard-pose" title="Permanent link">&para;</a></h3>
-<pre><code class="language-xml">&lt;MoveTcp x=&quot;{target_x}&quot; y=&quot;{target_y}&quot; z=&quot;{target_z}&quot;
-         qx=&quot;{target_qx}&quot; qy=&quot;{target_qy}&quot;
-         qz=&quot;{target_qz}&quot; qw=&quot;{target_qw}&quot;/&gt;
-</code></pre>
-<p>현재 <code>RunDemo</code> goal에는 좌표 필드가 없습니다. XML에 상수를 쓰거나,
-다른 BT 노드 등으로 이 blackboard 값을 먼저 채워야 합니다.</p>
+<p>목표 프레임과 도달 가능성은 MoveIt이 검증합니다.</p>
 <h3 id="moveit">MoveIt 계획 설정<a class="headerlink" href="#moveit" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
