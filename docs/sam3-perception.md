@@ -1,5 +1,8 @@
 # SAM 3 객체 분할과 GraspGenX 연결
 
+현재 구성의 실행은 [최종 파지 실행 가이드](grasp-pipeline-guide.md)를 먼저 참고한다.
+이 페이지는 확장 과정과 단계별 실험 이력을 포함한다.
+
 ## 구조와 현재 검증 범위
 
 색상에 의존하지 않는 분할 경로를 추가했다. GPU 모델은 같은 서버의 서로 다른
@@ -12,7 +15,7 @@ flowchart LR
   D --> E[BT build_object_cloud: 로컬 ROS CPU + Depth/K]
   E --> B[BT prepare: InferGrasps POINT_CLOUD Action]
   B --> F[ZMQ 5566: 기존 GraspGenX 컨테이너]
-  F --> G[PoseStamped 후보 + 파지 점수 + 마스크]
+  F --> G[PoseStamped 후보 + 파지 점수]
   G --> H[시뮬레이션 coordinator: TF/TCP/충돌 검사]
 ```
 

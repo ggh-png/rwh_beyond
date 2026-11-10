@@ -1,6 +1,6 @@
 # BT 실행과 Groot2
 
-[전체 구조](bt-architecture.md) · [BT 노드 사용법](bt-nodes.md)
+[최종 SAM 파지 실행 가이드](grasp-pipeline-guide.md) · [전체 구조](bt-architecture.md) · [BT 노드 사용법](bt-nodes.md)
 
 ## 1. 빌드하고 실행하기
 
@@ -16,7 +16,7 @@ source install/setup.bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 ```
 
-MuJoCo·MoveIt이 준비되면 다른 터미널에서 `ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py`를 실행하고, 그다음 navigator를 실행합니다. 기본 트리는 [빨간 상자 파지](red-box-grasp.md)이며 실제 GraspGenX 서버가 필요합니다.
+MuJoCo·MoveIt이 준비되면 다른 터미널에서 `ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py`를 실행하고, 그다음 navigator를 실행합니다. 기본 트리는 [빨간 상자 파지](red-box-grasp.md)이며 실제 SAM 3와 GraspGenX 서버가 모두 필요합니다.
 GUI를 표시하려면 시뮬레이션 launch에 `gui:=true rviz:=true`를 사용합니다.
 
 ```bash
