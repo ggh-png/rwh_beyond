@@ -1,0 +1,7 @@
+<library path="rwh_beyond_navigator">
+  <class name="rwh_beyond_navigator::DemoNavigator"
+         type="rwh_beyond_navigator::DemoNavigator"
+         base_class_type="nav2_core::NavigatorBase">
+    <description>Runs the fixed arm home, lift, close, home, open behavior tree.</description>
+  </class>
+</library>

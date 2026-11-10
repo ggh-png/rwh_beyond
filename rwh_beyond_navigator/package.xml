@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rwh_beyond_navigator</name>
+  <version>0.1.0</version>
+  <description>Nav2 Behavior Tree navigator for the arm demonstration.</description>
+  <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>ament_index_cpp</depend>
+  <depend>nav2_behavior_tree</depend>
+  <depend>nav2_core</depend>
+  <depend>nav2_util</depend>
+  <depend>pluginlib</depend>
+  <depend>rclcpp</depend>
+  <depend>rclcpp_action</depend>
+  <depend>rwh_beyond_msgs</depend>
+  <exec_depend>rwh_beyond_bt</exec_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

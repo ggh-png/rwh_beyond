@@ -1,0 +1,6 @@
+string behavior_tree
+---
+uint16 error_code
+string error_msg
+---
+string current_stage

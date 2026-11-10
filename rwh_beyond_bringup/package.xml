@@ -19,6 +19,11 @@
   <exec_depend>rviz2</exec_depend>
   <exec_depend>nav2_rviz_plugins</exec_depend>
   <exec_depend>agx_arm_ctrl</exec_depend>
+  <exec_depend>moma_bringup</exec_depend>
+  <exec_depend>nav2_bt_navigator</exec_depend>
+  <exec_depend>nav2_lifecycle_manager</exec_depend>
+  <exec_depend>rwh_beyond_bt</exec_depend>
+  <exec_depend>rwh_beyond_navigator</exec_depend>
   <depend>python3-yaml</depend>
   <export><build_type>ament_python</build_type></export>
 </package>
