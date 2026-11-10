@@ -18,3 +18,12 @@ mkdocs build --strict
 `main`에 문서 변경이 push되면 GitHub Actions가 strict 빌드 후 `gh-pages` 브랜치로 배포합니다. GitHub Pages는 해당 브랜치의 루트를 게시하도록 설정합니다. 문서 수정은 `docs/`에서 하고 생성된 `site/` 또는 `gh-pages` 파일을 직접 편집하지 않습니다.
 
 [공식 MkDocs GitHub Pages 배포 안내](https://www.mkdocs.org/user-guide/deploying-your-docs/)
+
+## Mermaid 다이어그램
+
+Markdown의 `mermaid` fenced block을 사용합니다. GitHub에서는 기본 Mermaid 지원으로,
+문서 사이트에서는 `assets/javascripts/mermaid.mjs`로 렌더링합니다.
+렌더러는 버전을 고정한 CDN 모듈을 사용하므로 브라우저의 CDN 접근이 필요합니다.
+모듈을 불러오지 못하면 원래 다이어그램 코드가 남습니다. 문서 빌드는 CDN 다운로드 없이 가능합니다.
+
+[Mermaid 공식 사용 안내](https://mermaid.js.org/intro/getting-started.html)

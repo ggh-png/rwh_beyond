@@ -16,6 +16,7 @@ nav:
   - TF와 토픽: interfaces.md
   - 파라미터 설정: configuration.md
   - ros_runner 운용: runner.md
+  - 로봇 팔 BT 아키텍처: bt-architecture.md
   - 문제 해결: troubleshooting.md
   - 문서 관리: documentation.md
   - 구조와 출처: upstream.md
@@ -27,3 +28,7 @@ markdown_extensions:
 plugins:
   - search:
       lang: [en]
+
+extra_javascript:
+  - path: assets/javascripts/mermaid.mjs
+    type: module

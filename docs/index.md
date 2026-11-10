@@ -30,3 +30,8 @@ IP와 namespace는 이 장비의 값입니다. 다른 Husky에 적용할 때는 
     격리된 환경에서 launch, 합성 scan/TF, runner 모드 전환과 지도 저장을 검증했습니다. 실제 Humble 본체와 Jazzy PC 사이의 DDS 통신 및 실주행을 보장하는 결과는 아닙니다. 실기에서 토픽 타입·QoS·TF와 속도 명령 수신 여부를 확인해야 합니다.
 
 본체 토픽이 사라졌다면 [Clearpath 서비스 재시작](troubleshooting.md#clearpath)부터 확인하세요.
+
+## 로봇 팔 Behavior Tree
+
+PiPER MuJoCo·MoveIt 연동, BT 플러그인과 Groot2 편집 흐름은
+[로봇 팔 BT 아키텍처](bt-architecture.md)에서 설명합니다.
