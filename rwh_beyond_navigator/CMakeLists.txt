@@ -7,6 +7,7 @@ find_package(nav2_behavior_tree REQUIRED)
 find_package(nav2_core REQUIRED)
 find_package(nav2_util REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rwh_beyond_msgs REQUIRED)
@@ -14,7 +15,7 @@ find_package(rwh_beyond_msgs REQUIRED)
 add_library(${PROJECT_NAME} SHARED src/demo_navigator.cpp)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
-ament_target_dependencies(${PROJECT_NAME}
+ament_target_dependencies(${PROJECT_NAME} std_srvs
   ament_index_cpp nav2_behavior_tree nav2_core nav2_util pluginlib rclcpp rclcpp_action
   rwh_beyond_msgs)
 

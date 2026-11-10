@@ -1,0 +1,7 @@
+# Official CLI paths; checkpoints root contains release/gen and release/dis.
+checkpoint_root: /opt/GraspGenX/ext/graspgenx_checkpoints/release
+assets_dir: auto
+default_gripper: piper_hand
+host: 0.0.0.0
+port: 5556
+fast_inference: false

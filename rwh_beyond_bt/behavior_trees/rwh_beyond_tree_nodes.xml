@@ -12,6 +12,12 @@
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
+        <Action ID="GraspStep">
+            <input_port name="command" type="std::string">Simulation grasp stage</input_port>
+            <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Collision-validated pregrasp TCP</output_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
         <Action ID="MakeTcpPose">
             <output_port name="pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Constructed and validated TcpPose object</output_port>
             <input_port name="relative" type="bool" default="false">Interpret only position as an offset along frame axes</input_port>
@@ -25,6 +31,10 @@
             <input_port name="x" type="double">Required x in metres</input_port>
         </Action>
         <Action ID="MoveHome">
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="MoveObservation">
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>

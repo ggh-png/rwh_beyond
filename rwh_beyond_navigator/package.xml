@@ -11,6 +11,7 @@
   <depend>nav2_core</depend>
   <depend>nav2_util</depend>
   <depend>pluginlib</depend>
+  <depend>std_srvs</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
   <depend>rwh_beyond_msgs</depend>

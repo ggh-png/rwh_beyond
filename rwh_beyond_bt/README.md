@@ -12,11 +12,12 @@ after MuJoCo and MoveIt are ready:
 
 ```bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
+ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py
 ros2 launch rwh_beyond_bringup bt_demo.launch.py
 ```
 
-With `ros_runner`, start `piper_sim` first and then `bt_demo`. They are
-independent runners: stopping the simulation does not stop the navigator.
+With `ros_runner`, activate only `bt_demo`: it requires `grasp_bridge`, which
+requires `piper_sim`. Stopping the simulator also stops its dependents.
 Launching does not send a demo goal.
 
 ## Plugin layout
@@ -141,8 +142,8 @@ unavailable required TF, controller/MoveIt application errors and cancellations
 return FAILURE. There is no fallback to arbitrary joint targets.
 
 After rebuilding, restart the navigator to load the updated library and
-re-import `rwh_beyond_tree_nodes.xml` in Groot2. The default `demo.xml` and the
-four fixed-sequence nodes are unchanged.
+re-import `rwh_beyond_tree_nodes.xml` in Groot2. The default `demo.xml` is now the red-box pick tree; the original fixed
+sequence is preserved in `legacy_demo.xml`.
 
 ## Verification
 
@@ -154,7 +155,7 @@ mutation, invalid inputs, missing TF and application failure results.
 
 `rwh_beyond_bt/behavior_trees/parameterized_demo.xml` demonstrates the original
 home, +0.30 m along base_link Z, close, home, open sequence using the two new
-parameterized nodes. It is an optional tree; the navigator default is unchanged.
+parameterized nodes. It is an optional tree; the navigator defaults to the red-box pick tree.
 
 ## 오류 전달
 
@@ -170,3 +171,17 @@ MoveIt의 action feedback `state`도 `/run_demo` feedback에 포함됩니다.
 clear 후 새 점군과 Octomap을 확인할 때까지 RUNNING을 반환합니다.
 첫 성공 이후 같은 노드 인스턴스에서는 건너뛰며, `once=false`이면 새 실행마다 초기화합니다.
 Launch에서는 지도를 초기화하지 않습니다.
+
+## Simulation grasp stages
+
+`MoveObservation` plans to the calibrated MuJoCo observation joint pose.
+`GraspStep` calls the `RunGraspStep` Action with `check_ready`, `prepare`,
+`move_pregrasp`, `approach`, `attach`, or `lift`. Repeated GraspStep instances
+execute different stages, not repeated inference; inference happens only in prepare.
+The original MoveHome/OpenGripper/CloseGripper/ClearOctomap nodes remain in the tree.
+
+CloseGripper disables only its own gripper path-position/velocity tracking check
+for the expected blocked-close case. Arm tracking and collision checks remain;
+the attach stage requires independent physical object contact on both fingers.
+
+See [red-box grasp operation](../docs/red-box-grasp.md). Hardware is unsupported.

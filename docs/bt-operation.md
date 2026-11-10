@@ -10,13 +10,13 @@
 source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
 colcon build --packages-select \
-  rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator \
+  rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator rwh_beyond_grasp_bridge \
   moma_mujoco_ros moma_bringup rwh_beyond_bringup --symlink-install
 source install/setup.bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 ```
 
-MuJoCo·MoveIt이 준비되면 다른 터미널에서 같은 환경을 source하고 navigator를 실행합니다.
+MuJoCo·MoveIt이 준비되면 다른 터미널에서 `ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py`를 실행하고, 그다음 navigator를 실행합니다. 기본 트리는 [빨간 상자 파지](red-box-grasp.md)이며 실제 GraspGenX 서버가 필요합니다.
 GUI를 표시하려면 시뮬레이션 launch에 `gui:=true rviz:=true`를 사용합니다.
 
 ```bash
@@ -31,15 +31,15 @@ BT navigator와 lifecycle manager의 설정은
 `ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml`로
 지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.
 
-`ros_runner`에서 **`bt_demo`만 활성화**하면 `requires: [piper_sim]`에 의해
+`ros_runner`에서 **`bt_demo`만 활성화**하면 `bt_demo → grasp_bridge → piper_sim`에 의해
 MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_sim`은 재사용합니다.
-BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
+추론 Bridge/coordinator도 자동 시작합니다. BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
 **자동으로 demo goal을 보내지는 않습니다.**
 
 ```bash
-ros2 service call /ros_runner/activate_bt_demo std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty "{}"
 # navigator와 사용되지 않는 simulator 의존성 종료
-ros2 service call /ros_runner/deactivate_bt_demo std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/deactivate_bt_demo std_srvs/srv/Empty "{}"
 ```
 
 `piper_sim`을 중지하면 이에 의존하는 `bt_demo`도 중지됩니다.
@@ -48,7 +48,7 @@ YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설�
 
 ### 트리 안에서 Octomap 초기화
 
-Launch는 navigator와 lifecycle manager만 실행합니다. **지도 초기화는 트리 첫 노드가 수행**합니다.
+Launch는 navigator와 lifecycle manager만 실행합니다. **지도 초기화는 이동 전 ClearOctomap 노드가 수행**합니다.
 
 ```xml
 <Sequence>

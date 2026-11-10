@@ -4,6 +4,7 @@
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "nav2_core/behavior_tree_navigator.hpp"
 #include "pluginlib/class_list_macros.hpp"
+#include "std_srvs/srv/trigger.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
 
 namespace rwh_beyond_navigator
@@ -41,6 +42,7 @@ public:
       return false;
     }
 
+    cleanup_client_ = node->create_client<std_srvs::srv::Trigger>("grasp/cleanup");
     const auto enabled_param = getName() + ".enable_groot_monitoring";
     const auto port_param = getName() + ".groot_server_port";
     if (!node->has_parameter(enabled_param)) {
@@ -132,9 +134,16 @@ public:
         result->error_name.c_str(), result->error_code, result->error_source.c_str(),
         result->error_msg.c_str());
     }
+    if (final_bt_status != nav2_behavior_tree::BtStatus::SUCCEEDED &&
+      cleanup_client_ && cleanup_client_->service_is_ready())
+    {
+      (void)cleanup_client_->async_send_request(std::make_shared<std_srvs::srv::Trigger::Request>());
+    }
     // Failure can arrive on the last BT tick: always publish one final diagnostic feedback.
     bt_action_server_->publishFeedback(std::make_shared<ActionT::Feedback>(diagnostic));
   }
+private:
+  rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr cleanup_client_;
 };
 
 }  // namespace rwh_beyond_navigator

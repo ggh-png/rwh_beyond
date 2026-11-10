@@ -1,0 +1,24 @@
+graspgenx_bridge:
+  ros__parameters:
+    use_sim_time: true
+    endpoint: tcp://127.0.0.1:5566
+    timeout: 60.0
+    min_points: 100
+    max_points: 200000
+    max_grasps: 1000
+grasp_coordinator:
+  ros__parameters:
+    use_sim_time: true
+    endpoint: tcp://127.0.0.1:5566
+    simulation_only: true
+    base_frame: base_link
+    tcp_link: tcp_link
+    object_dimensions: [0.04, 0.04, 0.05]
+    pregrasp_distance: 0.08
+    lift_distance: 0.08
+    # Model +X closing -> physical PiPER +/-Y closing; official fingertip at +Z .130 m.
+    model_to_tcp_xyz: [0.0, 0.0, 0.13]
+    model_to_tcp_rpy: [0.0, 0.0, -1.5707963267948966]
+    num_grasps: 100
+    top_k: 100
+    max_candidates: 100

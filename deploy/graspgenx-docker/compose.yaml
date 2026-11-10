@@ -1,0 +1,57 @@
+name: rwh-graspgenx
+services:
+  inference:
+    image: rwh-graspgenx:44eb1d7-cu130
+    build:
+      context: .
+      args:
+        CUDA_IMAGE: ${CUDA_IMAGE:-docker.io/nvidia/cuda:13.0.2-runtime-ubuntu24.04}
+    container_name: rwh-graspgenx-${INSTANCE:-piper}
+    user: "${RUN_UID:?Set RUN_UID}:${RUN_GID:?Set RUN_GID}"
+    ports:
+      - "127.0.0.1:${HOST_PORT:-5556}:5556"
+    cpus: "${CPU_LIMIT:?Set approved CPU_LIMIT}"
+    mem_limit: "${MEMORY_LIMIT:?Set approved MEMORY_LIMIT}"
+    pids_limit: 256
+    shm_size: 256m
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp:rw,size=512m,mode=1777]
+    environment:
+      OMP_NUM_THREADS: ${OMP_NUM_THREADS:-2}
+      GRASPGENX_CPP_RUNTIME_ARTIFACTS: /data/trt
+    volumes:
+      - type: bind
+        source: ${WORKSPACE:?Set personal WORKSPACE}/models
+        target: /opt/GraspGenX/ext
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${WORKSPACE}/cache
+        target: /data/cache
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${WORKSPACE}/tensorrt_artifacts
+        target: /data/trt
+        bind: {create_host_path: false}
+      - type: bind
+        source: ${WORKSPACE}/logs
+        target: /data/logs
+        bind: {create_host_path: false}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_DEVICE:?Set administrator-approved GPU UUID/index}"]
+              capabilities: [gpu]
+    healthcheck:
+      test: [CMD, python, /opt/deploy/scripts/health_check.py]
+      interval: 60s
+      timeout: 6s
+      start_period: 15m
+      retries: 3
+    restart: "no"
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: "3"}

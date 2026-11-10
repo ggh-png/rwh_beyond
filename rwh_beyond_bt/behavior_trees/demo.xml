@@ -1,12 +1,18 @@
 <root BTCPP_format="4" main_tree_to_execute="Demo">
   <BehaviorTree ID="Demo">
     <Sequence>
+      <GraspStep server_timeout="1000" name="CheckSimulationAndModel" command="check_ready"/>
       <ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>
       <MoveHome/>
-      <MoveTcpUp/>
-      <CloseGripper/>
-      <MoveHome/>
       <OpenGripper/>
+      <!-- <MoveObservation/> -->
+      <GraspStep server_timeout="1000" name="PrepareRedBoxGrasp" command="prepare" pregrasp="{red_pregrasp}"/>
+      <GraspStep server_timeout="1000" name="MoveToRedPregrasp" command="move_pregrasp"/>
+      <GraspStep server_timeout="1000" name="ApproachRedBox" command="approach"/>
+      <CloseGripper/>
+      <GraspStep server_timeout="1000" name="VerifyAndAttachRedBox" command="attach"/>
+      <GraspStep server_timeout="1000" name="LiftAndVerifyRedBox" command="lift"/>
+      <MoveHome/>
     </Sequence>
   </BehaviorTree>
 </root>

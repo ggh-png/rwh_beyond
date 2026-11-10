@@ -9,7 +9,8 @@ ROS 2 Jazzy 기반 Husky 외부 PC navigation과 커스텀 서비스 확장을 �
 
 ```text
 rwh_beyond/                         # C++ lifecycle/component 서버
-rwh_beyond_msgs/                    # 커스텀 서비스 GetStatus.srv
+rwh_beyond_msgs/                    # 공용 msg/action/srv: RunDemo, InferGrasps 등
+rwh_beyond_grasp_bridge/            # ROS Action ↔ GraspGenX ZMQ, GPU 모델과 분리
 rwh_beyond_bringup/
   launch/
     bringup.launch.py              # navigation + localization/SLAM + sensor + RViz
@@ -184,3 +185,26 @@ vcs import --recursive --skip-existing src < src/rwh_beyond/moma-mj-lab.repos
 기존 PiPER 프로젝트 안의 vendor snapshot은 보존하지만 colcon은 공식 checkout의 패키지를 사용합니다.
 토픽·TF·MoveIt 통합 및 빌드는 `src/moma-mj-lab/README.md` 안내를 따릅니다.
 manifest는 두 저장소를 같은 ROS workspace에 나란히 checkout합니다.
+
+## GraspGenX 추론 Bridge
+
+`rwh_beyond_grasp_bridge`는 `/infer_grasps` Action을 제공하고 인터페이스는
+기존 `rwh_beyond_msgs`에서 관리한다. 객체 점군 또는 Depth/CameraInfo/마스크를
+입력받아 ZMQ 모델 서버에 요청하고 PoseStamped 후보와 점수를 반환한다.
+독립 inference launch는 이동 명령을 보내지 않는다. MuJoCo 전용 coordinator와
+BT를 함께 사용하면 시뮬레이션 파지/상승을 실행한다.
+
+```bash
+ros2 launch rwh_beyond_grasp_bridge inference.launch.py
+# GPU 모델 없이 합성 데이터로 연결 시험
+ros2 launch rwh_beyond_grasp_bridge inference.launch.py mock:=true
+```
+
+[Bridge 사용법](rwh_beyond_grasp_bridge/README.md),
+[원격/로컬 환경 진단](docs/graspgenx-integration.md)을 참고한다.
+
+로컬 RTX 3060 전용 추론 컨테이너에서 실제 모델 → ZMQ → ROS Action 후보
+수신을 검증했다. 로컬 서비스는 `tcp://127.0.0.1:5566`(robot 컨테이너 내부)를
+사용한다. [로컬 컨테이너 운영](deploy/graspgenx-docker/LOCAL_PODMAN.md)을 참고한다.
+
+[빨간 상자 파지 BT 사용법](docs/red-box-grasp.md): `bt_demo → grasp_bridge → piper_sim`, `/run_demo`로 실행.

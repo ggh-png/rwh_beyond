@@ -1,0 +1,23 @@
+# Choose exactly one source. PoseStamped preserves its frame_id/acquisition stamp.
+uint8 POINT_CLOUD=0
+uint8 DEPTH_IMAGE=1
+uint8 input_mode
+# POINT_CLOUD: segmented object XYZ, meters.
+sensor_msgs/PointCloud2 object_cloud
+# DEPTH_IMAGE: registered pinhole depth and a binary target-object mask.
+# 16UC1 is millimeters; 32FC1 is meters. RGB is not a GraspGenX input.
+sensor_msgs/Image depth_image
+sensor_msgs/CameraInfo camera_info
+# mono8/8UC1; nonzero pixels belong to ONE object, zero is background.
+sensor_msgs/Image object_mask
+string gripper_name
+int32 num_grasps
+int32 top_k
+---
+bool success
+# Prefix identifies INVALID_INPUT, TIMEOUT, SERVER_ERROR, INVALID_RESPONSE,
+# NO_CANDIDATES, CANCELED or INTERNAL_ERROR.
+string message
+rwh_beyond_msgs/GraspCandidate[] candidates
+---
+string stage

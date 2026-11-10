@@ -46,7 +46,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 | --- | --- |
 | `rwh_beyond_msgs` | `RunDemo.action`, `TcpPose.msg` 정의 |
 | `rwh_beyond_navigator` | goal 수신, XML 로드, 트리 실행, 진행 상태와 결과 전달 |
-| `rwh_beyond_bt` | BT 노드 8개, 실행 XML, Groot2 모델 XML, 생성기와 테스트 |
+| `rwh_beyond_bt` | BT 노드 10개, 실행 XML, Groot2 모델 XML, 생성기와 테스트 |
 | `rwh_beyond_bringup` | BT navigator와 lifecycle manager launch; 지도 초기화는 트리 노드가 담당 |
 
 외부 레포는 실행 기반을 제공합니다.
@@ -128,26 +128,23 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 
 ## 기본 작업 순서
 
-**home → base_link +Z 0.30 m → 닫기 → home → 열기**
+기본 `demo.xml`은 빨간 상자를 집어 들어올리는 MuJoCo 전용 트리다.
 
-| 순서 | `demo.xml` 노드 | 동작 |
-| --- | --- | --- |
-| 준비 | `ClearOctomap` | clear 후 새 관측 지도 확인, 첫 성공 이후 재사용 |
-| 1 | `MoveHome` | joint1~joint6을 0 rad로 이동 |
-| 2 | `MoveTcpUp` | 현재 TCP에서 base_link Z축으로 0.30 m 상승, 자세 유지 |
-| 3 | `CloseGripper` | 그리퍼 닫기 |
-| 4 | `MoveHome` | home 복귀 |
-| 5 | `OpenGripper` | 그리퍼 열기 |
+**준비 확인 → 지도 초기화 → home → 열기 → 관측 자세 → RGB-D/실제 모델 추론과 후보 검증
+→ pregrasp → 직선 접근 → 닫기 → 접촉 확인·부착 → 상승·물리 검증**
 
-`parameterized_demo.xml`은 같은 작업을 입력 가능한 `MoveTcp`와 `SetGripper`로
-표현한 예제입니다. `MakeTcpPose`가 목표 객체를 만들고 `MoveTcp`가 객체 하나를 받습니다.
-기본 트리는 `demo.xml`입니다.
+`GraspStep`은 `command`에 해당하는 한 단계를 실행하는 공통 플러그인으로,
+모델 추론은 `prepare`에서만 실행한다. [상세 흐름과 포트](red-box-grasp.md)를 참고한다.
+
+예전 고정 home/up/close/home/open은 `legacy_demo.xml`에 보존했다.
+`parameterized_demo.xml`은 `MakeTcpPose → MoveTcp`와 `SetGripper`로 같은 원래
+작업을 표현한 별도 예제다.
 
 ## 소스에서 찾아볼 위치
 
 ```text
 rwh_beyond_bt/
-├── src/action/                  # action 노드 8개
+├── src/action/                  # action 노드 10개
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp

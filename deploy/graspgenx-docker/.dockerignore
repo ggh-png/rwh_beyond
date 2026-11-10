@@ -1,0 +1,9 @@
+.git
+.env
+.env.*
+!.env.example
+models
+cache
+logs
+tensorrt_artifacts
+__pycache__

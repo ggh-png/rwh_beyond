@@ -5,6 +5,8 @@
 namespace rwh_beyond_bt
 {
 void register_clear_octomap(BT::BehaviorTreeFactory & factory);
+void register_grasp_step(BT::BehaviorTreeFactory & factory);
+void register_move_observation(BT::BehaviorTreeFactory & factory);
 void register_move_home(BT::BehaviorTreeFactory & factory);
 void register_move_tcp_up(BT::BehaviorTreeFactory & factory);
 void register_close_gripper(BT::BehaviorTreeFactory & factory);

@@ -1,0 +1,8 @@
+# Simulation-only stages coordinated by BT. No implicit motion in prepare/check_ready.
+string command
+---
+bool success
+string message
+rwh_beyond_msgs/TcpPose pregrasp
+---
+string stage

@@ -485,3 +485,24 @@ TEST_F(CustomActions, FailureInsideSubtreeReachesRootDiagnostics)
   EXPECT_EQ(diagnostic.error_code, -4);
   EXPECT_EQ(diagnostic.current_node, "subtree_home");
 }
+
+TEST_F(CustomActions, CloseAllowsExpectedBlockedFingerPathButOpenKeepsTracking)
+{
+  ASSERT_EQ(run("<CloseGripper/>"), BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(gripper_goal_.path_tolerance.size(), 1u);
+  EXPECT_EQ(gripper_goal_.path_tolerance[0].name, "gripper");
+  EXPECT_EQ(gripper_goal_.path_tolerance[0].position, -1.0);
+  ASSERT_EQ(run("<OpenGripper/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(gripper_goal_.path_tolerance.empty());
+}
+
+TEST_F(CustomActions, ObservationUsesSimulationJointPoseAndMoveItCollisionPlanning)
+{
+  ASSERT_EQ(run("<MoveObservation/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(arm_goal_.request.group_name, "arm");
+  ASSERT_EQ(arm_goal_.request.goal_constraints.size(), 1u);
+  const auto & joints = arm_goal_.request.goal_constraints[0].joint_constraints;
+  ASSERT_EQ(joints.size(), 6u);
+  EXPECT_NEAR(joints[1].position, 1.0279353924406198, 1e-12);
+  EXPECT_FALSE(arm_goal_.planning_options.plan_only);
+}

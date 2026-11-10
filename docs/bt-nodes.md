@@ -7,6 +7,8 @@
 
 | 노드 | 바꿀 수 있는 값 | 동작 |
 | --- | --- | --- |
+| `GraspStep` | command, pregrasp 출력 | 파지 단계별 Action 호출, prepare에서만 모델 추론 |
+| `MoveObservation` | 고정 | MuJoCo의 카메라 관측 자세로 MoveIt 이동 |
 | `ClearOctomap` | 1회 실행 여부·대기 시간·새 점군 수 | clear 후 새 관측 지도 확인 |
 | `SetGripper` | 개방 폭, 단위, 시간 | 지정한 폭으로 그리퍼 이동 |
 | `MakeTcpPose` | 위치, 자세, 기준 프레임 | 하나의 `TcpPose` 객체 생성 |
@@ -16,7 +18,7 @@
 | `MoveHome` | 고정 | joint1~joint6 = 0 rad |
 | `MoveTcpUp` | 고정 | base_link +Z 0.30 m, 현재 자세 유지 |
 
-모든 노드는 Nav2의 `server_name`, `server_timeout` 포트를 상속합니다.
+ROS Action 기반 이동/그리퍼/GraspStep 노드는 Nav2의 `server_name`, `server_timeout` 포트를 상속합니다. ClearOctomap과 MakeTcpPose는 별도 포트를 사용합니다.
 
 ## ClearOctomap — 이동 전 지도 초기화
 
@@ -211,3 +213,20 @@ Force는 MuJoCo `actuator_force`의 절댓값으로 읽습니다.
 
 이는 actuator force를 통한 접촉 추정입니다. 물체가 안정적으로 파지됐는지를
 독립적으로 검증하는 조건은 아닙니다.
+
+## GraspStep — 파지 단계별 공통 플러그인
+
+같은 노드를 여러 번 쓰지만 `command`에 따라 다른 단계를 수행한다. `prepare`에서만
+RGB-D 인식과 GraspGenX 추론을 한 번 실행한다. XML `name`으로 Groot2에서 단계를 구분한다.
+
+```xml
+<GraspStep name="PrepareRedBoxGrasp" command="prepare" server_timeout="1000" pregrasp="{red_pregrasp}"/>
+<GraspStep name="MoveToRedPregrasp" command="move_pregrasp" server_timeout="1000"/>
+<GraspStep name="ApproachRedBox" command="approach" server_timeout="1000"/>
+<CloseGripper/>
+<GraspStep name="VerifyAndAttachRedBox" command="attach" server_timeout="1000"/>
+<GraspStep name="LiftAndVerifyRedBox" command="lift" server_timeout="1000"/>
+```
+
+전체 기본 트리에는 앞에 시뮬레이터 확인·지도 준비·관측 자세 단계도 있다.
+[각 command와 충돌/취소 처리](red-box-grasp.md)를 참고한다.
