@@ -1,4 +1,7 @@
 // Keep ordinary fenced Mermaid blocks readable on GitHub and render them in MkDocs.
+if (/\/bt-(architecture|nodes|operation)(?:\/|\.html|$)/.test(location.pathname)) {
+  document.body.classList.add("bt-document");
+}
 const blocks = document.querySelectorAll("pre code.language-mermaid");
 if (blocks.length) {
   try {
@@ -11,7 +14,14 @@ if (blocks.length) {
       pre.classList.add("mermaid");
       return pre;
     });
-    mermaid.initialize({ startOnLoad: false, securityLevel: "strict" });
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "neutral",
+      themeVariables: { fontFamily: "system-ui, sans-serif", fontSize: "16px" },
+      flowchart: { useMaxWidth: false, htmlLabels: false, nodeSpacing: 28, rankSpacing: 36 },
+      sequence: { useMaxWidth: false, actorMargin: 25, messageMargin: 28 }
+    });
     await mermaid.run({ nodes });
   } catch (error) {
     console.error("Mermaid diagram rendering failed:", error);
