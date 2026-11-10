@@ -46,7 +46,7 @@ class GraspCoordinator(Node):
     def __init__(self):
         super().__init__('grasp_coordinator')
         defaults={'segmentation_backend':'sam3','segmentation_endpoint':'tcp://127.0.0.1:5567',
-            'target_text':'box','target_box':[0.0,0.0,0.0,0.0], 'selection_point':[-1,-1],
+            'target_text':'red box','target_box':[0.0,0.0,0.0,0.0], 'selection_point':[-1,-1],
             'selection_policy':'unique','endpoint':'tcp://127.0.0.1:5566','base_frame':'base_link','tcp_link':'tcp_link',
             'pregrasp_distance':0.08,'lift_distance':0.08,'object_dimensions':[0.04,0.04,0.05],
             # Model gripper +X is closing; PiPER physical closing is +/-Y.
@@ -208,7 +208,7 @@ class GraspCoordinator(Node):
         frame=self.snapshot();rgb,depth,info=frame['rgb'],frame['depth'],frame['info']
         if rgb.header.frame_id!=depth.header.frame_id:raise ValueError('RGB and depth must be registered')
         # Capture TF before inference so a slow remote response cannot expire TF history.
-        transform=self.buffer.lookup_transform(self.base,depth.header.frame_id,Time.from_msg(depth.header.stamp))
+        transform=self.buffer.lookup_transform(self.base,depth.header.frame_id,Time.from_msg(depth.header.stamp),timeout=Duration(seconds=2.0))
         camera=Pose();camera.position.x=transform.transform.translation.x;camera.position.y=transform.transform.translation.y;camera.position.z=transform.transform.translation.z;camera.orientation=transform.transform.rotation
         base_T_camera=pose_matrix(camera)
         backend=self.get_parameter('segmentation_backend').value

@@ -9,7 +9,7 @@ def generate_launch_description():
         DeclareLaunchArgument('params_file',default_value=PathJoinSubstitution([FindPackageShare('rwh_beyond_grasp_bridge'),'config','grasp_pipeline.yaml'])),
         DeclareLaunchArgument('segmentation_endpoint', default_value='tcp://127.0.0.1:5567'),
         DeclareLaunchArgument('segmentation_backend', default_value='sam3'),
-        DeclareLaunchArgument('target_text', default_value='box'),
+        DeclareLaunchArgument('target_text', default_value='red box'),
         DeclareLaunchArgument('endpoint', default_value='tcp://127.0.0.1:5566'),
         Node(package='rwh_beyond_grasp_bridge',executable='inference_action_server',
              output='screen',parameters=[LaunchConfiguration('params_file'),{'endpoint':LaunchConfiguration('endpoint'), 'segmentation_endpoint':LaunchConfiguration('segmentation_endpoint')}]),
