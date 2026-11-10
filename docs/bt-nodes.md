@@ -7,6 +7,7 @@
 
 | 노드 | 바꿀 수 있는 값 | 동작 |
 | --- | --- | --- |
+| `ClearOctomap` | 1회 실행 여부·대기 시간·새 점군 수 | clear 후 새 관측 지도 확인 |
 | `SetGripper` | 개방 폭, 단위, 시간 | 지정한 폭으로 그리퍼 이동 |
 | `MakeTcpPose` | 위치, 자세, 기준 프레임 | 하나의 `TcpPose` 객체 생성 |
 | `MoveTcp` | `pose` 객체, TCP link | MoveIt pose goal 실행 |
@@ -16,6 +17,17 @@
 | `MoveTcpUp` | 고정 | base_link +Z 0.30 m, 현재 자세 유지 |
 
 모든 노드는 Nav2의 `server_name`, `server_timeout` 포트를 상속합니다.
+
+## ClearOctomap — 이동 전 지도 초기화
+
+```xml
+<ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>
+```
+
+서비스를 한 번 호출하고 새 관측 지도까지 확인하는 비동기 action 노드입니다.
+준비 중에는 `RUNNING`, 완료 시 `SUCCESS`, timeout이나 서비스 오류 시 `FAILURE`를 반환합니다.
+`once=true`는 이 노드 인스턴스의 첫 성공 이후 초기화를 건너뜁니다.
+Groot2에서 트리 맨 앞에 배치하세요. 상세 포트와 실행 기준은 [실행 안내](bt-operation.md)를 참고하세요.
 
 ## SetGripper — 개방 폭 지정
 
@@ -129,7 +141,7 @@ blackboard->set("target_pose", target);
 
 Blackboard key를 일곱 개 만들 필요 없이 `{target_pose}` 하나를 재사용합니다.
 문자열이나 XML의 `<SetBlackboard>`로 넣은 임의 문자열은 이 메시지 객체를 대신하지 않습니다.
-현재 `RunDemo` action 필드는 그대로이며, 외부 ROS 메시지가 자동으로 blackboard에 들어오지는 않습니다.
+`RunDemo` goal은 XML 경로만 받으며, 외부 ROS 메시지가 자동으로 blackboard에 들어오지는 않습니다.
 
 ## MoveTcp — 객체로 이동하기
 

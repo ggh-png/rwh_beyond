@@ -24,6 +24,7 @@ public:
 
   void on_tick() override
   {
+    setStage("move_tcp");
     try {
       const auto input = getInput<TcpPose>("pose");
       const auto link = getInput<std::string>("tcp_link");
@@ -72,21 +73,11 @@ public:
       orientation.weight = 1.0;
       constraints.orientation_constraints = {orientation};
       goal_.request.goal_constraints = {constraints};
-      setStage("move_tcp");
     } catch (const std::exception & error) {
-      RCLCPP_ERROR(node_->get_logger(), "MoveTcp: %s", error.what());
+      fail(-1000, "INVALID_INPUT", error.what());
       should_send_goal_ = false;
     }
   }
-
-  BT::NodeStatus on_success() override
-  {
-    return result_.result &&
-           result_.result->error_code.val == moveit_msgs::msg::MoveItErrorCodes::SUCCESS ?
-           BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
-  }
-
-  BT::NodeStatus on_cancelled() override {return BT::NodeStatus::FAILURE;}
 };
 
 void register_move_tcp(BT::BehaviorTreeFactory & factory)

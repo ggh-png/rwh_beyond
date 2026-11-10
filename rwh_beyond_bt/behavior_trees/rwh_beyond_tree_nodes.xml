@@ -1,5 +1,13 @@
 <root BTCPP_format="4">
     <TreeNodesModel>
+        <Action ID="ClearOctomap">
+            <input_port name="scene_service" type="std::string" default="/get_planning_scene">MoveIt planning scene service</input_port>
+            <input_port name="cloud_topic" type="std::string" default="/camera/depth/filtered_points">Robot-filtered depth XYZ</input_port>
+            <input_port name="service_name" type="std::string" default="/clear_octomap">MoveIt clear service</input_port>
+            <input_port name="fresh_clouds" type="int" default="2">Distinct nonempty depth clouds required after clear</input_port>
+            <input_port name="timeout" type="double" default="30.000000">Total wall-time limit in seconds</input_port>
+            <input_port name="once" type="bool" default="true">Skip after successful initialization for this node instance</input_port>
+        </Action>
         <Action ID="CloseGripper">
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>

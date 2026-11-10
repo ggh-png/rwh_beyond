@@ -2,6 +2,7 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rwh_beyond_bt/register_nodes.hpp"
 #include "rwh_beyond_bt/tcp_pose.hpp"
+#include "rwh_beyond_bt/diagnostics.hpp"
 
 namespace rwh_beyond_bt
 {
@@ -30,6 +31,7 @@ public:
 
   BT::NodeStatus tick() override
   {
+    beginStage(config().blackboard, "make_tcp_pose", name());
     try {
       if (config().output_ports.count("pose") == 0) {
         throw std::invalid_argument("pose output must be mapped to a blackboard key");
@@ -74,6 +76,7 @@ public:
       return BT::NodeStatus::SUCCESS;
     } catch (const std::exception & error) {
       RCLCPP_ERROR(rclcpp::get_logger("make_tcp_pose"), "%s", error.what());
+      reportFailure(config().blackboard, -1000, "INVALID_INPUT", "MakeTcpPose", error.what());
       return BT::NodeStatus::FAILURE;
     }
   }

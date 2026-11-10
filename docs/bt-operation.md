@@ -25,6 +25,12 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch rwh_beyond_bringup bt_demo.launch.py
 ```
 
+BT navigator와 lifecycle manager의 설정은
+`rwh_beyond_bringup/params/bt_demo_params.yaml`에서 관리합니다. 값을 수정한 뒤
+`rwh_beyond_bringup`을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
+`ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml`로
+지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.
+
 `ros_runner`에서 **`bt_demo`만 활성화**하면 `requires: [piper_sim]`에 의해
 MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_sim`은 재사용합니다.
 BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
@@ -39,6 +45,48 @@ ros2 service call /ros_runner/deactivate_bt_demo std_srvs/srv/Empty "{}"
 `piper_sim`을 중지하면 이에 의존하는 `bt_demo`도 중지됩니다.
 다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
 YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.
+
+### 트리 안에서 Octomap 초기화
+
+Launch는 navigator와 lifecycle manager만 실행합니다. **지도 초기화는 트리 첫 노드가 수행**합니다.
+
+```xml
+<Sequence>
+  <ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>
+  <MoveHome/>
+  <!-- 이후 이동과 그리퍼 작업 -->
+</Sequence>
+```
+
+```mermaid
+flowchart TD
+    G["RunDemo goal / 트리 실행"] --> C["ClearOctomap"]
+    C --> E["clear 서비스 1회 호출"]
+    E --> D["초기화 이후 새 점군 2개 대기"]
+    D --> M["Octomap 재생성 확인"]
+    M --> A["MoveHome 등 다음 노드"]
+```
+
+`once=true`는 **이 BT 노드 인스턴스에서 초기화가 한 번 성공하면** 다음 실행에서 건너뜁니다.
+같은 XML을 재사용하는 반복 goal에서는 다시 clear하지 않습니다.
+XML 변경·다른 트리 로딩·navigator 재시작으로 노드가 새로 만들어지면 다시 초기화합니다.
+`once=false`이면 노드가 새로 실행될 때마다 clear하며 매 tick 반복 호출하지는 않습니다.
+실패·취소된 준비는 성공으로 기억하지 않으므로 다음 시도에서 다시 준비합니다.
+
+| BT 포트 | 기본값 | 의미 |
+| --- | --- | --- |
+| `once` | `true` | 노드 인스턴스의 성공한 초기화 재사용 |
+| `timeout` | `30.0` | 서비스 대기부터 맵 확인까지 총 wall time, 초 |
+| `fresh_clouds` | `2` | clear 이후 필요한 서로 다른 비어 있지 않은 점군 수 |
+| `service_name` | `/clear_octomap` | MoveIt clear 서비스 |
+| `cloud_topic` | `/camera/depth/filtered_points` | 로봇 제거 후 점군 |
+| `scene_service` | `/get_planning_scene` | 지도 확인 서비스 |
+
+초기화 전 timestamp의 점군은 인정하지 않습니다. Timeout·빈 지도·서비스 오류는
+`FAILURE`로 반환해 다음 이동을 막고, `/run_demo`의 실패 단계는 `clear_octomap`으로 표시합니다.
+새 관측 수신을 확인하는 것이며 작업 영역 전체의 관측 완료를 보장하지는 않습니다.
+기본 `demo.xml`과 `parameterized_demo.xml`의 맨 앞에 이 노드를 배치했습니다.
+Octomap을 사용하지 않는 트리에서는 해당 노드를 넣지 않으면 됩니다.
 
 ### 기본 RViz 화면
 
@@ -93,6 +141,63 @@ XML의 action 노드가 서버에 연결할 수 있어야 활성화가 완료됩
 
 서버 발견 대기 시간은 로봇 동작 완료 제한 시간이 아닙니다.
 
+## BT 실패 진단 {#bt-error-reporting}
+
+`RunDemo`는 현재 단계뿐 아니라 MoveIt 내부 상태와 실패 원인을 feedback/result로 전달합니다.
+MoveIt의 `error_code.val`, `message`, `source`를 사용하며,
+**result.error_code는 uint16에서 int32로 변경**해 음수 코드를 보존합니다.
+성공은 0, MoveIt·controller 실패는 원래 코드이며 `error_source`와 `error_name`으로 구분합니다.
+BT 자체 오류는 -1000 이하입니다.
+
+```text
+Feedback:
+  current_stage: move_home
+  current_node: MoveHome
+  moveit_state: MONITOR
+  error_code: -3
+  error_name: MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
+  error_source: move_action
+  error_msg: Planning scene changed during execution; the remaining trajectory became invalid. ...
+
+Result:
+  error_code: -3
+  error_name: MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
+  failed_stage: move_home
+  failed_node: MoveHome
+```
+
+위 예제는 MoveIt의 원문 메시지·source가 비어 있을 때의 fallback입니다.
+원문이 있으면 `error_msg`와 `error_source`에 그대로 전달합니다.
+`moveit_state`는 action feedback의 마지막 `state`이며 진행률 퍼센트가 아닙니다.
+실패가 마지막 tick에 발생해도 terminal result 직전에 진단 feedback을 한 번 더 발행합니다.
+새 stage/goal을 시작할 때 이전 오류를 초기화합니다.
+
+| 오류 예 | 의미 |
+| --- | --- |
+| `MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE (-3)` | 실행 중 scene 갱신으로 남은 경로가 무효화됨 |
+| `START_STATE_IN_COLLISION (-10)` | 시작 상태가 충돌 상태 |
+| `GOAL_IN_COLLISION (-12)` | 목표 상태가 충돌 상태 |
+| `NO_IK_SOLUTION (-31)` | 목표 자세의 IK 해가 없음 |
+| `GOAL_TOLERANCE_VIOLATED` | 그리퍼 controller가 목표 tolerance를 만족하지 못함 |
+| `INVALID_INPUT (-1000)` | pose·그리퍼 입력 검증 실패 |
+| `ACTION_REQUEST_FAILED (-1001)` | goal 거부·전송 실패·응답 timeout |
+| `BT_FAILED (-1002)` | 구체적인 action 오류가 남지 않은 트리 실패 |
+| `OCTOMAP_TIMEOUT (-1100)` | ClearOctomap의 서비스·새 관측·맵 확인 시간 초과 |
+| `OCTOMAP_SERVICE_ERROR (-1101)` | Octomap 서비스 처리 오류 |
+| `BT_EXCEPTION (-1003)` | TF 조회 등 BT 실행 중 예외 |
+| `ACTION_CANCELED / DEMO_CANCELED (-1004)` | action/demo 취소 |
+
+충돌 링크 쌍은 MoveGroup result의 독립 필드가 아닙니다.
+따라서 `<octomap> - gripper_link1`이 MoveIt 로그에만 있고 result.message에는 없다면
+navigator가 그 쌍을 정확히 반환할 수는 없습니다. 이 경우 -3의 의미를 설명하고 MoveIt collision 로그를 안내합니다.
+여러 goal이 섞일 수 있는 전역 로그를 원래 action result로 간주해 합치지 않습니다.
+
+**적용 시 runner와 action client를 재시작**하고 새 workspace를 source하세요.
+Action 타입이 바뀌었으므로 이전 타입을 로드한 Python client/navigator를 계속 사용할 수 없습니다.
+BT 오류 전달은 SubTree 안에서도 root blackboard를 사용합니다.
+기본 `MoveHome`, `MoveTcpUp`, `CloseGripper`, `OpenGripper`도 ROS 상태뿐 아니라
+MoveIt/controller의 application error를 확인합니다.
+
 ## 3. Groot2에서 편집하기
 
 ```bash
@@ -125,7 +230,23 @@ flowchart TD
 ```
 
 Groot2는 모델 XML로 포트를 표시합니다. 실행 구현은 navigator가 C++ 라이브러리에서
-로드합니다. 현재 launch에는 Groot2 실시간 모니터 연결을 설정하지 않았습니다.
+로드합니다.
+
+### 실시간 모니터 연결
+
+`bt_demo` navigator가 활성화되면 Groot2의 **Monitor** 모드에서 navigator가 실행되는
+호스트와 포트 `5555`로 연결합니다. 같은 호스트에서는 `127.0.0.1:5555`를 사용합니다.
+`5555`는 요청 포트이고 `5556`은 상태 전송 포트이므로 원격 연결 시 둘 다 접근 가능해야 합니다.
+연결 후 goal을 보내면 트리 노드의 상태가 실시간으로 표시됩니다.
+
+설정은 `rwh_beyond_bringup/params/bt_demo_params.yaml`의
+`run_demo.enable_groot_monitoring`과 `run_demo.groot_server_port`에서 변경합니다.
+포트는 1~65534 사이여야 하며, 변경 시 다음 포트도 사용됩니다. 비활성화하려면
+`enable_groot_monitoring: false`로 설정합니다. 설정이나 라이브러리 변경 후에는
+navigator를 재시작하세요.
+
+모니터 포트는 모든 네트워크 인터페이스에서 열리며 인증을 제공하지 않습니다.
+신뢰할 수 있는 호스트만 접속하도록 방화벽 등으로 두 포트를 제한하세요.
 
 ### C++ 노드나 포트를 바꿨을 때
 
@@ -153,8 +274,9 @@ colcon test-result --test-result-base build/rwh_beyond_bt/test_results
 
 | 검증 | 확인한 내용 |
 | --- | --- |
-| Mock 테스트 13개 | mm 변환, 객체 생성·전달·재사용·SubTree 연결, 위치·자세와 quaternion 정규화 |
+| Mock 테스트 24개 | mm 변환, 객체 생성·전달·재사용·SubTree 연결, 위치·자세와 quaternion 정규화 |
 | 잘못된 입력 테스트 | quaternion·TF·blackboard 입력 오류, application error 처리 |
+| Navigator mock 통합 테스트 | 음수 코드·원문·발생 컴포넌트·최종 feedback 전달, 다음 goal 오류 초기화 |
 | Headless 통합 실행 | lifecycle active, action server 등록, 라이브러리 로딩 |
 
 Mock 테스트는 ROS domain 87에서 실제 로봇 명령 없이 실행합니다.

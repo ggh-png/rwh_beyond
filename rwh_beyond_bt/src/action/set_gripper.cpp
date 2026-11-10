@@ -8,11 +8,11 @@
 namespace rwh_beyond_bt
 {
 
-class SetGripper : public nav2_behavior_tree::BtActionNode<FollowJointTrajectory>
+class SetGripper : public DiagnosticActionNode<FollowJointTrajectory>
 {
 public:
   SetGripper(const std::string & name, const BT::NodeConfiguration & config)
-  : BtActionNode(name, "gripper_controller/follow_joint_trajectory", config) {}
+  : DiagnosticActionNode(name, "gripper_controller/follow_joint_trajectory", config) {}
 
   static BT::PortsList providedPorts()
   {
@@ -36,6 +36,7 @@ public:
 
   void on_tick() override
   {
+    setStage("set_gripper");
     try {
       const auto opening = getInput<int>("opening");
       const auto unit = getInput<std::string>("unit");
@@ -62,20 +63,11 @@ public:
       point.positions = {aperture};
       point.time_from_start = rclcpp::Duration::from_seconds(duration.value());
       goal_.trajectory.points = {point};
-      config().blackboard->set("demo_stage", std::string("set_gripper"));
     } catch (const std::exception & error) {
-      RCLCPP_ERROR(node_->get_logger(), "SetGripper: %s", error.what());
+      fail(-1000, "INVALID_INPUT", error.what());
       should_send_goal_ = false;
     }
   }
-
-  BT::NodeStatus on_success() override
-  {
-    return result_.result && result_.result->error_code == FollowJointTrajectory::Result::SUCCESSFUL ?
-           BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
-  }
-
-  BT::NodeStatus on_cancelled() override {return BT::NodeStatus::FAILURE;}
 };
 
 void register_set_gripper(BT::BehaviorTreeFactory & factory)

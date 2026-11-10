@@ -2,6 +2,7 @@
 
 BT_REGISTER_NODES(factory)
 {
+  rwh_beyond_bt::register_clear_octomap(factory);
   rwh_beyond_bt::register_move_home(factory);
   rwh_beyond_bt::register_move_tcp_up(factory);
   rwh_beyond_bt::register_close_gripper(factory);

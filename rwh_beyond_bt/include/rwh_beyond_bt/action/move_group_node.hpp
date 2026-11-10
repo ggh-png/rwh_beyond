@@ -11,7 +11,7 @@
 #include "moveit_msgs/msg/joint_constraint.hpp"
 #include "moveit_msgs/msg/orientation_constraint.hpp"
 #include "moveit_msgs/msg/position_constraint.hpp"
-#include "nav2_behavior_tree/bt_action_node.hpp"
+#include "rwh_beyond_bt/action/diagnostic_action_node.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 #include "tf2_ros/buffer.h"
 #include "trajectory_msgs/msg/joint_trajectory_point.hpp"
@@ -20,20 +20,15 @@ namespace rwh_beyond_bt
 {
 using MoveGroup = moveit_msgs::action::MoveGroup;
 
-class MoveGroupNode : public nav2_behavior_tree::BtActionNode<MoveGroup>
+class MoveGroupNode : public DiagnosticActionNode<MoveGroup>
 {
 public:
   MoveGroupNode(
     const std::string & name, const std::string & action_name,
     const BT::NodeConfiguration & config)
-  : BtActionNode(name, action_name, config) {}
+  : DiagnosticActionNode(name, action_name, config) {}
 
 protected:
-  void setStage(const std::string & stage)
-  {
-    config().blackboard->set("demo_stage", stage);
-  }
-
   void setCommonRequest()
   {
     goal_.request.group_name = "arm";

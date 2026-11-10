@@ -9,6 +9,8 @@ find_package(nav2_behavior_tree REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(shape_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_srvs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(trajectory_msgs REQUIRED)
@@ -17,6 +19,7 @@ find_package(rwh_beyond_msgs REQUIRED)
 
 add_library(${PROJECT_NAME}_nodes SHARED
   src/register_nodes.cpp
+  src/action/clear_octomap.cpp
   src/action/move_home.cpp
   src/action/move_tcp_up.cpp
   src/action/close_gripper.cpp
@@ -30,7 +33,7 @@ target_compile_options(${PROJECT_NAME}_nodes PRIVATE -Wall -Wextra -Wpedantic)
 target_compile_definitions(${PROJECT_NAME}_nodes PRIVATE BT_PLUGIN_EXPORT)
 ament_target_dependencies(${PROJECT_NAME}_nodes
   behaviortree_cpp control_msgs geometry_msgs moveit_msgs nav2_behavior_tree rclcpp
-  rclcpp_action rwh_beyond_msgs shape_msgs tf2_geometry_msgs tf2_ros trajectory_msgs)
+  rclcpp_action rwh_beyond_msgs sensor_msgs std_srvs shape_msgs tf2_geometry_msgs tf2_ros trajectory_msgs)
 
 install(TARGETS ${PROJECT_NAME}_nodes LIBRARY DESTINATION lib)
 install(DIRECTORY behavior_trees DESTINATION share/${PROJECT_NAME})
@@ -49,6 +52,13 @@ if(BUILD_TESTING)
     BT_PLUGIN_PATH="$<TARGET_FILE:${PROJECT_NAME}_nodes>")
   add_dependencies(test_custom_actions ${PROJECT_NAME}_nodes)
   set_tests_properties(test_custom_actions PROPERTIES ENVIRONMENT "ROS_DOMAIN_ID=87")
+  ament_add_gtest(test_clear_octomap test/test_clear_octomap.cpp)
+  ament_target_dependencies(test_clear_octomap
+    behaviortree_cpp moveit_msgs rclcpp rwh_beyond_msgs sensor_msgs std_srvs)
+  target_compile_features(test_clear_octomap PRIVATE cxx_std_17)
+  target_compile_definitions(test_clear_octomap PRIVATE BT_PLUGIN_PATH="$<TARGET_FILE:${PROJECT_NAME}_nodes>")
+  add_dependencies(test_clear_octomap ${PROJECT_NAME}_nodes)
+  set_tests_properties(test_clear_octomap PROPERTIES ENVIRONMENT "ROS_DOMAIN_ID=90")
 endif()
 
 ament_package()

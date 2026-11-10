@@ -15,5 +15,11 @@
   <depend>rclcpp_action</depend>
   <depend>rwh_beyond_msgs</depend>
   <exec_depend>rwh_beyond_bt</exec_depend>
+  <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>moveit_msgs</test_depend>
+  <test_depend>lifecycle_msgs</test_depend>
+  <test_depend>python3-yaml</test_depend>
+  <test_depend>std_srvs</test_depend>
+  <test_depend>sensor_msgs</test_depend>
   <export><build_type>ament_cmake</build_type></export>
 </package>

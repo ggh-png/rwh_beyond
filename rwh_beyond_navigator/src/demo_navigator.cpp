@@ -31,20 +31,59 @@ public:
     return node->get_parameter("default_demo_bt_xml").as_string();
   }
 
+  bool configure(
+    rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node,
+    std::shared_ptr<nav2_util::OdomSmoother> /*odom_smoother*/) override
+  {
+    auto node = parent_node.lock();
+    if (!node) {
+      RCLCPP_ERROR(logger_, "Unable to configure Groot2 monitoring: navigator node expired");
+      return false;
+    }
+
+    const auto enabled_param = getName() + ".enable_groot_monitoring";
+    const auto port_param = getName() + ".groot_server_port";
+    if (!node->has_parameter(enabled_param)) {
+      node->declare_parameter(enabled_param, false);
+    }
+    if (!node->has_parameter(port_param)) {
+      node->declare_parameter(port_param, 1667);
+    }
+    const auto enabled = node->get_parameter(enabled_param).as_bool();
+    const auto port = node->get_parameter(port_param).as_int();
+    if (port < 1 || port > 65534) {
+      RCLCPP_ERROR(
+        logger_, "Invalid %s: %lld (must be between 1 and 65534)", port_param.c_str(),
+        static_cast<long long>(port));
+      return false;
+    }
+    bt_action_server_->setGrootMonitoring(enabled, static_cast<unsigned>(port));
+    if (enabled) {
+      RCLCPP_INFO(
+        logger_, "Groot2 monitoring enabled on TCP ports %lld and %lld",
+        static_cast<long long>(port), static_cast<long long>(port + 1));
+    }
+    return true;
+  }
+
   bool goalReceived(ActionT::Goal::ConstSharedPtr goal) override
   {
     if (!bt_action_server_->loadBehaviorTree(goal->behavior_tree)) {
       RCLCPP_ERROR(logger_, "Unable to load arm demo behavior tree");
       return false;
     }
-    bt_action_server_->getBlackboard()->set("demo_stage", std::string("starting"));
+    auto board = bt_action_server_->getBlackboard();
+    board->set("demo_stage", std::string("starting"));
+    ActionT::Feedback feedback;
+    feedback.current_stage = "starting";
+    board->set("demo_feedback", feedback);
     return true;
   }
 
   void onLoop() override
   {
     auto feedback = std::make_shared<ActionT::Feedback>();
-    if (!bt_action_server_->getBlackboard()->get("demo_stage", feedback->current_stage)) {
+    if (!bt_action_server_->getBlackboard()->get("demo_feedback", *feedback)) {
       feedback->current_stage = "starting";
     }
     bt_action_server_->publishFeedback(feedback);
@@ -60,12 +99,41 @@ public:
     ActionT::Result::SharedPtr result,
     const nav2_behavior_tree::BtStatus final_bt_status) override
   {
+    ActionT::Feedback diagnostic;
+    if (!bt_action_server_->getBlackboard()->get("demo_feedback", diagnostic)) {
+      diagnostic.current_stage = "unknown";
+    }
+    result->moveit_state = diagnostic.moveit_state;
     if (final_bt_status == nav2_behavior_tree::BtStatus::SUCCEEDED) {
       result->error_code = 0;
+      result->error_name = "SUCCESS";
       result->error_msg = "arm demo completed";
+      diagnostic.error_code = 0;
+      diagnostic.error_name.clear();
+      diagnostic.error_source.clear();
+      diagnostic.error_msg.clear();
     } else {
-      result->error_msg = "arm demo failed";
+      if (diagnostic.error_code == 0) {
+        const bool canceled = final_bt_status == nav2_behavior_tree::BtStatus::CANCELED;
+        diagnostic.error_code = canceled ? -1004 : -1002;
+        diagnostic.error_name = canceled ? "DEMO_CANCELED" : "BT_FAILED";
+        diagnostic.error_source = "bt_navigator";
+        diagnostic.error_msg = canceled ? "Demo was canceled." :
+          "Behavior tree failed without an action result; inspect the BT/MoveIt logs.";
+      }
+      result->error_code = diagnostic.error_code;
+      result->error_name = diagnostic.error_name;
+      result->error_source = diagnostic.error_source;
+      result->error_msg = diagnostic.error_msg;
+      result->failed_stage = diagnostic.current_stage;
+      result->failed_node = diagnostic.current_node;
+      RCLCPP_ERROR(logger_, "Demo failed at %s [%s]: %s (%d), source=%s: %s",
+        result->failed_stage.c_str(), result->failed_node.c_str(),
+        result->error_name.c_str(), result->error_code, result->error_source.c_str(),
+        result->error_msg.c_str());
     }
+    // Failure can arrive on the last BT tick: always publish one final diagnostic feedback.
+    bt_action_server_->publishFeedback(std::make_shared<ActionT::Feedback>(diagnostic));
   }
 };
 

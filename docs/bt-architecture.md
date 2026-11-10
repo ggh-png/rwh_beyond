@@ -46,8 +46,8 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 | --- | --- |
 | `rwh_beyond_msgs` | `RunDemo.action`, `TcpPose.msg` 정의 |
 | `rwh_beyond_navigator` | goal 수신, XML 로드, 트리 실행, 진행 상태와 결과 전달 |
-| `rwh_beyond_bt` | BT 노드 7개, 실행 XML, Groot2 모델 XML, 생성기와 테스트 |
-| `rwh_beyond_bringup` | BT navigator와 lifecycle manager launch |
+| `rwh_beyond_bt` | BT 노드 8개, 실행 XML, Groot2 모델 XML, 생성기와 테스트 |
+| `rwh_beyond_bringup` | BT navigator와 lifecycle manager launch; 지도 초기화는 트리 노드가 담당 |
 
 외부 레포는 실행 기반을 제공합니다.
 
@@ -87,7 +87,7 @@ flowchart TD
 | 로드 대상 | `rwh_beyond_navigator::DemoNavigator` | `rwh_beyond_bt_nodes` |
 
 BT 라이브러리의 실제 파일명은 `librwh_beyond_bt_nodes.so`입니다.
-`BT_REGISTER_NODES`가 7개 노드를 등록하며, `BT_PLUGIN_EXPORT` compile definition이
+`BT_REGISTER_NODES`가 8개 노드를 등록하며, `BT_PLUGIN_EXPORT` compile definition이
 `BT_RegisterNodesFromPlugin` 심볼을 공개합니다.
 
 ## Goal을 받으면 일어나는 일
@@ -112,17 +112,19 @@ sequenceDiagram
 1. Navigator가 요청한 XML을 읽습니다. 빈 경로이면 기본 트리를 사용합니다.
 2. XML 로딩에 실패하면 goal을 거부합니다.
 3. `Sequence`의 각 단계가 성공하면 다음 단계로 넘어갑니다. 실패하면 중단합니다.
-4. 진행 중에는 `demo_stage` blackboard 값을 feedback으로 전달합니다.
+4. 진행 중에는 root blackboard의 `demo_feedback` 객체에서 현재 단계·노드·MoveIt 상태와 오류를 전달합니다.
 
 | `RunDemo` 필드 | 의미 |
 | --- | --- |
 | Goal · `behavior_tree` | 실행할 XML 경로 |
-| Feedback · `current_stage` | 현재 단계 |
-| Result · `error_code`, `error_msg` | 결과 정보 |
+| Feedback · `current_stage`, `current_node`, `moveit_state` | 현재 BT 단계·노드·MoveIt 내부 상태 |
+| Feedback · `error_code`, `error_name`, `error_source`, `error_msg` | 마지막 오류 코드·이름·발생 컴포넌트·메시지 |
+| Result · `error_code`, `error_name`, `error_source`, `error_msg` | 성공 또는 상세 실패 정보 |
+| Result · `failed_stage`, `failed_node`, `moveit_state` | 실패 위치와 마지막 MoveIt 상태 |
 
 현재 preemption은 지원하지 않습니다. 실행 중인 작업을 바꾸려면 먼저 cancel해야 합니다.
-실패 시 숫자 `error_code` 매핑은 아직 구현하지 않았으므로 **ROS action status와
-`error_msg`도 확인**해야 합니다.
+MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 오류를 구분합니다.
+[실패 진단 예제](bt-operation.md#bt-error-reporting)를 참고하세요.
 
 ## 기본 작업 순서
 
@@ -130,6 +132,7 @@ sequenceDiagram
 
 | 순서 | `demo.xml` 노드 | 동작 |
 | --- | --- | --- |
+| 준비 | `ClearOctomap` | clear 후 새 관측 지도 확인, 첫 성공 이후 재사용 |
 | 1 | `MoveHome` | joint1~joint6을 0 rad로 이동 |
 | 2 | `MoveTcpUp` | 현재 TCP에서 base_link Z축으로 0.30 m 상승, 자세 유지 |
 | 3 | `CloseGripper` | 그리퍼 닫기 |
@@ -144,7 +147,7 @@ sequenceDiagram
 
 ```text
 rwh_beyond_bt/
-├── src/action/                  # action 노드 7개
+├── src/action/                  # action 노드 8개
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp

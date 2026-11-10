@@ -15,6 +15,8 @@
   <depend>rclcpp_action</depend>
   <depend>rwh_beyond_msgs</depend>
   <depend>shape_msgs</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_srvs</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>
   <depend>trajectory_msgs</depend>

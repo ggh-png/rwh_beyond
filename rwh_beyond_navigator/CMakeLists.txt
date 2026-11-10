@@ -21,4 +21,12 @@ ament_target_dependencies(${PROJECT_NAME}
 pluginlib_export_plugin_description_file(nav2_core navigator_plugins.xml)
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
 install(FILES navigator_plugins.xml DESTINATION share/${PROJECT_NAME})
+if(BUILD_TESTING)
+  find_package(ament_cmake_pytest REQUIRED)
+  ament_add_pytest_test(error_reporting test/test_error_reporting.py
+    TIMEOUT 90 ENV ROS_DOMAIN_ID=89 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
+  ament_add_pytest_test(groot_monitoring test/test_groot_monitoring.py
+    TIMEOUT 90 ENV ROS_DOMAIN_ID=90 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1)
+endif()
+
 ament_package()

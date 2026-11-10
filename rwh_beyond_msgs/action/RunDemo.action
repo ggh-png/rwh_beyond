@@ -1,6 +1,19 @@
 string behavior_tree
 ---
-uint16 error_code
+# Native signed MoveIt/controller error code; 0 means demo success.
+# BT-local errors use -1000 and below. See error_source/error_name.
+int32 error_code
+string error_name
+string error_source
 string error_msg
+string failed_stage
+string failed_node
+string moveit_state
 ---
 string current_stage
+string current_node
+string moveit_state
+int32 error_code
+string error_name
+string error_source
+string error_msg

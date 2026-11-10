@@ -25,9 +25,9 @@ flowchart TD
 - `bt_demo`를 중지하면 다른 runner가 사용하지 않는 `piper_sim`도 종료합니다.
 - `piper_sim`을 중지하면 이에 의존하는 `bt_demo`도 종료합니다.
 
-`requires`는 프로세스 시작 의존성입니다. 카메라 맵 준비를 보장하는 조건은 아닙니다.
-Navigator 활성화와 별도로 **첫 계획 전 RViz에서 관측 Octomap을 확인**합니다.
-현재 맵 준비를 자동으로 기다리는 BT condition은 없습니다.
+`requires`는 프로세스 시작 의존성입니다. 지도 초기화는 launch에서 실행하지 않습니다.
+Goal을 받은 뒤 트리 첫 `ClearOctomap` 노드가 clear와 새 관측 대기를 수행합니다.
+Navigator active 자체는 지도 준비 완료를 의미하지 않습니다.
 
 ## 2. Depth 관측으로 Planning Scene을 만듭니다
 
@@ -72,6 +72,8 @@ sequenceDiagram
     participant S as MuJoCo bridge
     U->>U: RViz에서 Octomap 수신 확인
     U->>N: RunDemo goal
+    N->>M: ClearOctomap (최초 성공까지)
+    M-->>N: clear 후 새 점군과 Octomap 확인
     N->>B: MakeTcpPose로 TcpPose 저장
     B-->>N: MoveTcp가 pose 객체 하나 읽기
     N->>M: MoveGroup goal

@@ -155,3 +155,18 @@ mutation, invalid inputs, missing TF and application failure results.
 `rwh_beyond_bt/behavior_trees/parameterized_demo.xml` demonstrates the original
 home, +0.30 m along base_link Z, close, home, open sequence using the two new
 parameterized nodes. It is an optional tree; the navigator default is unchanged.
+
+## 오류 전달
+
+MoveIt/controller 결과의 signed 오류 코드·이름·원문 메시지·발생 컴포넌트와
+BT 단계/노드를 root blackboard의 `demo_feedback` 객체로 navigator에 전달합니다.
+MoveIt의 action feedback `state`도 `/run_demo` feedback에 포함됩니다.
+`RunDemo` 인터페이스가 변경됐으므로 적용 후 navigator와 client를 재시작해야 합니다.
+자세한 출력 예제는 [BT 실패 진단](../docs/bt-operation.md#bt-error-reporting)을 참고하세요.
+
+## Octomap 초기화 노드
+
+`<ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>`를 트리 맨 앞에 배치합니다.
+clear 후 새 점군과 Octomap을 확인할 때까지 RUNNING을 반환합니다.
+첫 성공 이후 같은 노드 인스턴스에서는 건너뛰며, `once=false`이면 새 실행마다 초기화합니다.
+Launch에서는 지도를 초기화하지 않습니다.

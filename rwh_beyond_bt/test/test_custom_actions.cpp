@@ -14,6 +14,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "tf2_ros/buffer.h"
 #include "rwh_beyond_msgs/msg/tcp_pose.hpp"
+#include "rwh_beyond_msgs/action/run_demo.hpp"
 
 using FJT = control_msgs::action::FollowJointTrajectory;
 using TcpPose = rwh_beyond_msgs::msg::TcpPose;
@@ -50,13 +51,22 @@ protected:
         std::lock_guard<std::mutex> lock(mutex_);
         arm_goal_ = *goal;
         ++arm_goals_;
-        return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
+        return arm_reject_ ? rclcpp_action::GoalResponse::REJECT :
+               rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;
       },
       [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
       [this](auto handle) {
         auto result = std::make_shared<MoveGroup::Result>();
         result->error_code.val = arm_error_;
-        handle->succeed(result);
+        result->error_code.source = arm_source_;
+        result->error_code.message = arm_message_;
+        if (arm_feedback_delay_ms_ > 0) {
+          auto feedback = std::make_shared<MoveGroup::Feedback>();
+          feedback->state = "MONITOR";
+          handle->publish_feedback(feedback);
+          std::this_thread::sleep_for(std::chrono::milliseconds(arm_feedback_delay_ms_.load()));
+        }
+        if (arm_abort_) {handle->abort(result);} else {handle->succeed(result);}
       });
     executor_.add_node(server_);
     spinner_ = std::thread([this]() {executor_.spin();});
@@ -134,6 +144,9 @@ protected:
   MoveGroup::Goal arm_goal_;
   std::atomic<int> gripper_goals_{0}, arm_goals_{0};
   std::atomic<int> gripper_error_{FJT::Result::SUCCESSFUL};
+  std::string arm_source_, arm_message_;
+  std::atomic<bool> arm_abort_{false}, arm_reject_{false};
+  std::atomic<int> arm_feedback_delay_ms_{0};
   std::atomic<int> arm_error_{moveit_msgs::msg::MoveItErrorCodes::SUCCESS};
 };
 
@@ -392,4 +405,83 @@ TEST_F(CustomActions, TypedPosePassesThroughSubtreeRemapping)
       <BehaviorTree ID="Motion"><MoveTcp pose="{target}"/></BehaviorTree>
     </root>)"), BT::NodeStatus::SUCCESS);
   EXPECT_EQ(arm_goals_, 1);
+}
+
+TEST_F(CustomActions, MoveItAbortPreservesSignedCodeMessageSourceAndStage)
+{
+  arm_error_ = moveit_msgs::msg::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
+  arm_abort_ = true;
+  arm_source_ = "plan_execution";
+  arm_message_ = "Trajectory invalid after scene update";
+  arm_feedback_delay_ms_ = 30;
+  EXPECT_EQ(run("<MoveHome name=\"return_home\"/>"), BT::NodeStatus::FAILURE);
+  const auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  EXPECT_EQ(diagnostic.current_stage, "move_home");
+  EXPECT_EQ(diagnostic.current_node, "return_home");
+  EXPECT_EQ(diagnostic.moveit_state, "MONITOR");
+  EXPECT_EQ(diagnostic.error_code, -3);
+  EXPECT_EQ(diagnostic.error_name, "MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE");
+  EXPECT_EQ(diagnostic.error_source, "plan_execution");
+  EXPECT_EQ(diagnostic.error_msg, arm_message_);
+}
+
+TEST_F(CustomActions, EmptyMoveItMessageHasUsefulFallbackAndNextStageClearsError)
+{
+  arm_error_ = moveit_msgs::msg::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
+  arm_abort_ = true;
+  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::FAILURE);
+  auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  EXPECT_NE(diagnostic.error_msg.find("remaining trajectory became invalid"), std::string::npos);
+  EXPECT_NE(diagnostic.error_msg.find("exact contact pairs are not"), std::string::npos);
+  arm_error_ = moveit_msgs::msg::MoveItErrorCodes::SUCCESS;
+  arm_abort_ = false;
+  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::SUCCESS);
+  diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  EXPECT_EQ(diagnostic.error_code, 0);
+  EXPECT_TRUE(diagnostic.error_msg.empty());
+  EXPECT_TRUE(diagnostic.moveit_state.empty());
+}
+
+TEST_F(CustomActions, FixedArmAndGripperActionsCheckApplicationErrors)
+{
+  arm_error_ = moveit_msgs::msg::MoveItErrorCodes::NO_IK_SOLUTION;
+  for (const auto * xml : {"<MoveHome/>", "<MoveTcpUp/>"}) {
+    EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
+    EXPECT_EQ(blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback").error_code, -31);
+  }
+  gripper_error_ = FJT::Result::GOAL_TOLERANCE_VIOLATED;
+  for (const auto * xml : {"<CloseGripper/>", "<OpenGripper/>", "<SetGripper opening=\"50\"/>"}) {
+    EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
+    const auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+    EXPECT_EQ(diagnostic.error_code, FJT::Result::GOAL_TOLERANCE_VIOLATED);
+    EXPECT_EQ(diagnostic.error_name, "GOAL_TOLERANCE_VIOLATED");
+  }
+}
+
+TEST_F(CustomActions, LocalInputAndRejectedActionHaveNonzeroDiagnostics)
+{
+  EXPECT_EQ(run("<MoveTcp/>"), BT::NodeStatus::FAILURE);
+  auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  EXPECT_EQ(diagnostic.current_stage, "move_tcp");
+  EXPECT_EQ(diagnostic.error_name, "INVALID_INPUT");
+  EXPECT_NE(diagnostic.error_code, 0);
+  arm_reject_ = true;
+  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::FAILURE);
+  diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  EXPECT_EQ(diagnostic.error_name, "ACTION_REQUEST_FAILED");
+  EXPECT_NE(diagnostic.error_code, 0);
+}
+
+TEST_F(CustomActions, FailureInsideSubtreeReachesRootDiagnostics)
+{
+  arm_abort_ = true;
+  arm_error_ = moveit_msgs::msg::MoveItErrorCodes::CONTROL_FAILED;
+  EXPECT_EQ(runXml(R"(
+    <root BTCPP_format="4" main_tree_to_execute="Main">
+      <BehaviorTree ID="Main"><SubTree ID="Motion" _autoremap="true"/></BehaviorTree>
+      <BehaviorTree ID="Motion"><MoveHome name="subtree_home"/></BehaviorTree>
+    </root>)"), BT::NodeStatus::FAILURE);
+  const auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  EXPECT_EQ(diagnostic.error_code, -4);
+  EXPECT_EQ(diagnostic.current_node, "subtree_home");
 }
