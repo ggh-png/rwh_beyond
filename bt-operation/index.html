@@ -137,6 +137,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#bt-error-reporting" class="nav-link">BT 실패 진단</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-bs-level="2"><a href="#3-groot2" class="nav-link">3. Groot2에서 편집하기</a>
               <ul class="nav flex-column">
               </ul>
@@ -170,6 +174,11 @@ GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=true</cod
 source /root/ros2_ws/install/setup.bash
 ros2 launch rwh_beyond_bringup bt_demo.launch.py
 </code></pre>
+<p>BT navigator와 lifecycle manager의 설정은
+<code>rwh_beyond_bringup/params/bt_demo_params.yaml</code>에서 관리합니다. 값을 수정한 뒤
+<code>rwh_beyond_bringup</code>을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
+<code>ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml</code>로
+지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.</p>
 <p><code>ros_runner</code>에서 <strong><code>bt_demo</code>만 활성화</strong>하면 <code>requires: [piper_sim]</code>에 의해
 MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_sim</code>은 재사용합니다.
 BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
@@ -181,6 +190,72 @@ ros2 service call /ros_runner/deactivate_bt_demo std_srvs/srv/Empty &quot;{}&quo
 <p><code>piper_sim</code>을 중지하면 이에 의존하는 <code>bt_demo</code>도 중지됩니다.
 다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
 YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.</p>
+<h3 id="octomap">트리 안에서 Octomap 초기화<a class="headerlink" href="#octomap" title="Permanent link">&para;</a></h3>
+<p>Launch는 navigator와 lifecycle manager만 실행합니다. <strong>지도 초기화는 트리 첫 노드가 수행</strong>합니다.</p>
+<pre><code class="language-xml">&lt;Sequence&gt;
+  &lt;ClearOctomap once=&quot;true&quot; timeout=&quot;30.0&quot; fresh_clouds=&quot;2&quot;/&gt;
+  &lt;MoveHome/&gt;
+  &lt;!-- 이후 이동과 그리퍼 작업 --&gt;
+&lt;/Sequence&gt;
+</code></pre>
+<pre><code class="language-mermaid">flowchart TD
+    G[&quot;RunDemo goal / 트리 실행&quot;] --&gt; C[&quot;ClearOctomap&quot;]
+    C --&gt; E[&quot;clear 서비스 1회 호출&quot;]
+    E --&gt; D[&quot;초기화 이후 새 점군 2개 대기&quot;]
+    D --&gt; M[&quot;Octomap 재생성 확인&quot;]
+    M --&gt; A[&quot;MoveHome 등 다음 노드&quot;]
+</code></pre>
+<p><code>once=true</code>는 <strong>이 BT 노드 인스턴스에서 초기화가 한 번 성공하면</strong> 다음 실행에서 건너뜁니다.
+같은 XML을 재사용하는 반복 goal에서는 다시 clear하지 않습니다.
+XML 변경·다른 트리 로딩·navigator 재시작으로 노드가 새로 만들어지면 다시 초기화합니다.
+<code>once=false</code>이면 노드가 새로 실행될 때마다 clear하며 매 tick 반복 호출하지는 않습니다.
+실패·취소된 준비는 성공으로 기억하지 않으므로 다음 시도에서 다시 준비합니다.</p>
+<table>
+<thead>
+<tr>
+<th>BT 포트</th>
+<th>기본값</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>once</code></td>
+<td><code>true</code></td>
+<td>노드 인스턴스의 성공한 초기화 재사용</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td><code>30.0</code></td>
+<td>서비스 대기부터 맵 확인까지 총 wall time, 초</td>
+</tr>
+<tr>
+<td><code>fresh_clouds</code></td>
+<td><code>2</code></td>
+<td>clear 이후 필요한 서로 다른 비어 있지 않은 점군 수</td>
+</tr>
+<tr>
+<td><code>service_name</code></td>
+<td><code>/clear_octomap</code></td>
+<td>MoveIt clear 서비스</td>
+</tr>
+<tr>
+<td><code>cloud_topic</code></td>
+<td><code>/camera/depth/filtered_points</code></td>
+<td>로봇 제거 후 점군</td>
+</tr>
+<tr>
+<td><code>scene_service</code></td>
+<td><code>/get_planning_scene</code></td>
+<td>지도 확인 서비스</td>
+</tr>
+</tbody>
+</table>
+<p>초기화 전 timestamp의 점군은 인정하지 않습니다. Timeout·빈 지도·서비스 오류는
+<code>FAILURE</code>로 반환해 다음 이동을 막고, <code>/run_demo</code>의 실패 단계는 <code>clear_octomap</code>으로 표시합니다.
+새 관측 수신을 확인하는 것이며 작업 영역 전체의 관측 완료를 보장하지는 않습니다.
+기본 <code>demo.xml</code>과 <code>parameterized_demo.xml</code>의 맨 앞에 이 노드를 배치했습니다.
+Octomap을 사용하지 않는 트리에서는 해당 노드를 넣지 않으면 됩니다.</p>
 <h3 id="rviz">기본 RViz 화면<a class="headerlink" href="#rviz" title="Permanent link">&para;</a></h3>
 <p>시뮬레이션은 <code>scene_source:=depth</code>와 <code>moma_bringup/config/depth_planning.rviz</code>를 사용합니다.</p>
 <table>
@@ -316,6 +391,99 @@ XML의 action 노드가 서버에 연결할 수 있어야 활성화가 완료됩
 </tbody>
 </table>
 <p>서버 발견 대기 시간은 로봇 동작 완료 제한 시간이 아닙니다.</p>
+<h2 id="bt-error-reporting">BT 실패 진단<a class="headerlink" href="#bt-error-reporting" title="Permanent link">&para;</a></h2>
+<p><code>RunDemo</code>는 현재 단계뿐 아니라 MoveIt 내부 상태와 실패 원인을 feedback/result로 전달합니다.
+MoveIt의 <code>error_code.val</code>, <code>message</code>, <code>source</code>를 사용하며,
+<strong>result.error_code는 uint16에서 int32로 변경</strong>해 음수 코드를 보존합니다.
+성공은 0, MoveIt·controller 실패는 원래 코드이며 <code>error_source</code>와 <code>error_name</code>으로 구분합니다.
+BT 자체 오류는 -1000 이하입니다.</p>
+<pre><code class="language-text">Feedback:
+  current_stage: move_home
+  current_node: MoveHome
+  moveit_state: MONITOR
+  error_code: -3
+  error_name: MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
+  error_source: move_action
+  error_msg: Planning scene changed during execution; the remaining trajectory became invalid. ...
+
+Result:
+  error_code: -3
+  error_name: MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
+  failed_stage: move_home
+  failed_node: MoveHome
+</code></pre>
+<p>위 예제는 MoveIt의 원문 메시지·source가 비어 있을 때의 fallback입니다.
+원문이 있으면 <code>error_msg</code>와 <code>error_source</code>에 그대로 전달합니다.
+<code>moveit_state</code>는 action feedback의 마지막 <code>state</code>이며 진행률 퍼센트가 아닙니다.
+실패가 마지막 tick에 발생해도 terminal result 직전에 진단 feedback을 한 번 더 발행합니다.
+새 stage/goal을 시작할 때 이전 오류를 초기화합니다.</p>
+<table>
+<thead>
+<tr>
+<th>오류 예</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE (-3)</code></td>
+<td>실행 중 scene 갱신으로 남은 경로가 무효화됨</td>
+</tr>
+<tr>
+<td><code>START_STATE_IN_COLLISION (-10)</code></td>
+<td>시작 상태가 충돌 상태</td>
+</tr>
+<tr>
+<td><code>GOAL_IN_COLLISION (-12)</code></td>
+<td>목표 상태가 충돌 상태</td>
+</tr>
+<tr>
+<td><code>NO_IK_SOLUTION (-31)</code></td>
+<td>목표 자세의 IK 해가 없음</td>
+</tr>
+<tr>
+<td><code>GOAL_TOLERANCE_VIOLATED</code></td>
+<td>그리퍼 controller가 목표 tolerance를 만족하지 못함</td>
+</tr>
+<tr>
+<td><code>INVALID_INPUT (-1000)</code></td>
+<td>pose·그리퍼 입력 검증 실패</td>
+</tr>
+<tr>
+<td><code>ACTION_REQUEST_FAILED (-1001)</code></td>
+<td>goal 거부·전송 실패·응답 timeout</td>
+</tr>
+<tr>
+<td><code>BT_FAILED (-1002)</code></td>
+<td>구체적인 action 오류가 남지 않은 트리 실패</td>
+</tr>
+<tr>
+<td><code>OCTOMAP_TIMEOUT (-1100)</code></td>
+<td>ClearOctomap의 서비스·새 관측·맵 확인 시간 초과</td>
+</tr>
+<tr>
+<td><code>OCTOMAP_SERVICE_ERROR (-1101)</code></td>
+<td>Octomap 서비스 처리 오류</td>
+</tr>
+<tr>
+<td><code>BT_EXCEPTION (-1003)</code></td>
+<td>TF 조회 등 BT 실행 중 예외</td>
+</tr>
+<tr>
+<td><code>ACTION_CANCELED / DEMO_CANCELED (-1004)</code></td>
+<td>action/demo 취소</td>
+</tr>
+</tbody>
+</table>
+<p>충돌 링크 쌍은 MoveGroup result의 독립 필드가 아닙니다.
+따라서 <code>&lt;octomap&gt; - gripper_link1</code>이 MoveIt 로그에만 있고 result.message에는 없다면
+navigator가 그 쌍을 정확히 반환할 수는 없습니다. 이 경우 -3의 의미를 설명하고 MoveIt collision 로그를 안내합니다.
+여러 goal이 섞일 수 있는 전역 로그를 원래 action result로 간주해 합치지 않습니다.</p>
+<p><strong>적용 시 runner와 action client를 재시작</strong>하고 새 workspace를 source하세요.
+Action 타입이 바뀌었으므로 이전 타입을 로드한 Python client/navigator를 계속 사용할 수 없습니다.
+BT 오류 전달은 SubTree 안에서도 root blackboard를 사용합니다.
+기본 <code>MoveHome</code>, <code>MoveTcpUp</code>, <code>CloseGripper</code>, <code>OpenGripper</code>도 ROS 상태뿐 아니라
+MoveIt/controller의 application error를 확인합니다.</p>
 <h2 id="3-groot2">3. Groot2에서 편집하기<a class="headerlink" href="#3-groot2" title="Permanent link">&para;</a></h2>
 <pre><code class="language-bash">groot2
 </code></pre>
@@ -357,7 +525,19 @@ XML의 action 노드가 서버에 연결할 수 있어야 활성화가 완료됩
     L --&gt; N
 </code></pre>
 <p>Groot2는 모델 XML로 포트를 표시합니다. 실행 구현은 navigator가 C++ 라이브러리에서
-로드합니다. 현재 launch에는 Groot2 실시간 모니터 연결을 설정하지 않았습니다.</p>
+로드합니다.</p>
+<h3 id="_1">실시간 모니터 연결<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p><code>bt_demo</code> navigator가 활성화되면 Groot2의 <strong>Monitor</strong> 모드에서 navigator가 실행되는
+호스트와 포트 <code>5555</code>로 연결합니다. 같은 호스트에서는 <code>127.0.0.1:5555</code>를 사용합니다.
+<code>5555</code>는 요청 포트이고 <code>5556</code>은 상태 전송 포트이므로 원격 연결 시 둘 다 접근 가능해야 합니다.
+연결 후 goal을 보내면 트리 노드의 상태가 실시간으로 표시됩니다.</p>
+<p>설정은 <code>rwh_beyond_bringup/params/bt_demo_params.yaml</code>의
+<code>run_demo.enable_groot_monitoring</code>과 <code>run_demo.groot_server_port</code>에서 변경합니다.
+포트는 1~65534 사이여야 하며, 변경 시 다음 포트도 사용됩니다. 비활성화하려면
+<code>enable_groot_monitoring: false</code>로 설정합니다. 설정이나 라이브러리 변경 후에는
+navigator를 재시작하세요.</p>
+<p>모니터 포트는 모든 네트워크 인터페이스에서 열리며 인증을 제공하지 않습니다.
+신뢰할 수 있는 호스트만 접속하도록 방화벽 등으로 두 포트를 제한하세요.</p>
 <h3 id="c">C++ 노드나 포트를 바꿨을 때<a class="headerlink" href="#c" title="Permanent link">&para;</a></h3>
 <p>빌드하고 workspace를 source한 뒤 모델 XML을 재생성합니다.</p>
 <pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
@@ -384,12 +564,16 @@ colcon test-result --test-result-base build/rwh_beyond_bt/test_results
 </thead>
 <tbody>
 <tr>
-<td>Mock 테스트 13개</td>
+<td>Mock 테스트 24개</td>
 <td>mm 변환, 객체 생성·전달·재사용·SubTree 연결, 위치·자세와 quaternion 정규화</td>
 </tr>
 <tr>
 <td>잘못된 입력 테스트</td>
 <td>quaternion·TF·blackboard 입력 오류, application error 처리</td>
+</tr>
+<tr>
+<td>Navigator mock 통합 테스트</td>
+<td>음수 코드·원문·발생 컴포넌트·최종 feedback 전달, 다음 goal 오류 초기화</td>
 </tr>
 <tr>
 <td>Headless 통합 실행</td>

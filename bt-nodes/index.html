@@ -133,6 +133,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#clearoctomap" class="nav-link">ClearOctomap — 이동 전 지도 초기화</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
             <li class="nav-item" data-bs-level="2"><a href="#setgripper" class="nav-link">SetGripper — 개방 폭 지정</a>
               <ul class="nav flex-column">
               </ul>
@@ -174,6 +178,11 @@
 </thead>
 <tbody>
 <tr>
+<td><code>ClearOctomap</code></td>
+<td>1회 실행 여부·대기 시간·새 점군 수</td>
+<td>clear 후 새 관측 지도 확인</td>
+</tr>
+<tr>
 <td><code>SetGripper</code></td>
 <td>개방 폭, 단위, 시간</td>
 <td>지정한 폭으로 그리퍼 이동</td>
@@ -211,6 +220,13 @@
 </tbody>
 </table>
 <p>모든 노드는 Nav2의 <code>server_name</code>, <code>server_timeout</code> 포트를 상속합니다.</p>
+<h2 id="clearoctomap">ClearOctomap — 이동 전 지도 초기화<a class="headerlink" href="#clearoctomap" title="Permanent link">&para;</a></h2>
+<pre><code class="language-xml">&lt;ClearOctomap once=&quot;true&quot; timeout=&quot;30.0&quot; fresh_clouds=&quot;2&quot;/&gt;
+</code></pre>
+<p>서비스를 한 번 호출하고 새 관측 지도까지 확인하는 비동기 action 노드입니다.
+준비 중에는 <code>RUNNING</code>, 완료 시 <code>SUCCESS</code>, timeout이나 서비스 오류 시 <code>FAILURE</code>를 반환합니다.
+<code>once=true</code>는 이 노드 인스턴스의 첫 성공 이후 초기화를 건너뜁니다.
+Groot2에서 트리 맨 앞에 배치하세요. 상세 포트와 실행 기준은 <a href="../bt-operation/">실행 안내</a>를 참고하세요.</p>
 <h2 id="setgripper">SetGripper — 개방 폭 지정<a class="headerlink" href="#setgripper" title="Permanent link">&para;</a></h2>
 <p><strong>50 mm 열기:</strong></p>
 <pre><code class="language-xml">&lt;SetGripper opening=&quot;50&quot; duration=&quot;2.5&quot;/&gt;
@@ -366,7 +382,7 @@ blackboard-&gt;set(&quot;target_pose&quot;, target);
 </code></pre>
 <p>Blackboard key를 일곱 개 만들 필요 없이 <code>{target_pose}</code> 하나를 재사용합니다.
 문자열이나 XML의 <code>&lt;SetBlackboard&gt;</code>로 넣은 임의 문자열은 이 메시지 객체를 대신하지 않습니다.
-현재 <code>RunDemo</code> action 필드는 그대로이며, 외부 ROS 메시지가 자동으로 blackboard에 들어오지는 않습니다.</p>
+<code>RunDemo</code> goal은 XML 경로만 받으며, 외부 ROS 메시지가 자동으로 blackboard에 들어오지는 않습니다.</p>
 <h2 id="movetcp">MoveTcp — 객체로 이동하기<a class="headerlink" href="#movetcp" title="Permanent link">&para;</a></h2>
 <pre><code class="language-xml">&lt;MoveTcp pose=&quot;{target_pose}&quot; tcp_link=&quot;tcp_link&quot;/&gt;
 </code></pre>

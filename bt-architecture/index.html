@@ -256,11 +256,11 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tr>
 <tr>
 <td><code>rwh_beyond_bt</code></td>
-<td>BT 노드 7개, 실행 XML, Groot2 모델 XML, 생성기와 테스트</td>
+<td>BT 노드 8개, 실행 XML, Groot2 모델 XML, 생성기와 테스트</td>
 </tr>
 <tr>
 <td><code>rwh_beyond_bringup</code></td>
-<td>BT navigator와 lifecycle manager launch</td>
+<td>BT navigator와 lifecycle manager launch; 지도 초기화는 트리 노드가 담당</td>
 </tr>
 </tbody>
 </table>
@@ -338,7 +338,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tbody>
 </table>
 <p>BT 라이브러리의 실제 파일명은 <code>librwh_beyond_bt_nodes.so</code>입니다.
-<code>BT_REGISTER_NODES</code>가 7개 노드를 등록하며, <code>BT_PLUGIN_EXPORT</code> compile definition이
+<code>BT_REGISTER_NODES</code>가 8개 노드를 등록하며, <code>BT_PLUGIN_EXPORT</code> compile definition이
 <code>BT_RegisterNodesFromPlugin</code> 심볼을 공개합니다.</p>
 <h2 id="goal">Goal을 받으면 일어나는 일<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
 <pre><code class="language-mermaid">sequenceDiagram
@@ -360,7 +360,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 <li>Navigator가 요청한 XML을 읽습니다. 빈 경로이면 기본 트리를 사용합니다.</li>
 <li>XML 로딩에 실패하면 goal을 거부합니다.</li>
 <li><code>Sequence</code>의 각 단계가 성공하면 다음 단계로 넘어갑니다. 실패하면 중단합니다.</li>
-<li>진행 중에는 <code>demo_stage</code> blackboard 값을 feedback으로 전달합니다.</li>
+<li>진행 중에는 root blackboard의 <code>demo_feedback</code> 객체에서 현재 단계·노드·MoveIt 상태와 오류를 전달합니다.</li>
 </ol>
 <table>
 <thead>
@@ -375,18 +375,26 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 <td>실행할 XML 경로</td>
 </tr>
 <tr>
-<td>Feedback · <code>current_stage</code></td>
-<td>현재 단계</td>
+<td>Feedback · <code>current_stage</code>, <code>current_node</code>, <code>moveit_state</code></td>
+<td>현재 BT 단계·노드·MoveIt 내부 상태</td>
 </tr>
 <tr>
-<td>Result · <code>error_code</code>, <code>error_msg</code></td>
-<td>결과 정보</td>
+<td>Feedback · <code>error_code</code>, <code>error_name</code>, <code>error_source</code>, <code>error_msg</code></td>
+<td>마지막 오류 코드·이름·발생 컴포넌트·메시지</td>
+</tr>
+<tr>
+<td>Result · <code>error_code</code>, <code>error_name</code>, <code>error_source</code>, <code>error_msg</code></td>
+<td>성공 또는 상세 실패 정보</td>
+</tr>
+<tr>
+<td>Result · <code>failed_stage</code>, <code>failed_node</code>, <code>moveit_state</code></td>
+<td>실패 위치와 마지막 MoveIt 상태</td>
 </tr>
 </tbody>
 </table>
 <p>현재 preemption은 지원하지 않습니다. 실행 중인 작업을 바꾸려면 먼저 cancel해야 합니다.
-실패 시 숫자 <code>error_code</code> 매핑은 아직 구현하지 않았으므로 <strong>ROS action status와
-<code>error_msg</code>도 확인</strong>해야 합니다.</p>
+MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 오류를 구분합니다.
+<a href="../bt-operation/#bt-error-reporting">실패 진단 예제</a>를 참고하세요.</p>
 <h2 id="_4">기본 작업 순서<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p><strong>home → base_link +Z 0.30 m → 닫기 → home → 열기</strong></p>
 <table>
@@ -398,6 +406,11 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>준비</td>
+<td><code>ClearOctomap</code></td>
+<td>clear 후 새 관측 지도 확인, 첫 성공 이후 재사용</td>
+</tr>
 <tr>
 <td>1</td>
 <td><code>MoveHome</code></td>
@@ -430,7 +443,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 기본 트리는 <code>demo.xml</code>입니다.</p>
 <h2 id="_5">소스에서 찾아볼 위치<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <pre><code class="language-text">rwh_beyond_bt/
-├── src/action/                  # action 노드 7개
+├── src/action/                  # action 노드 8개
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp
