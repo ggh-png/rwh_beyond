@@ -208,3 +208,5 @@ ros2 launch rwh_beyond_grasp_bridge inference.launch.py mock:=true
 사용한다. [로컬 컨테이너 운영](deploy/graspgenx-docker/LOCAL_PODMAN.md)을 참고한다.
 
 [빨간 상자 파지 BT 사용법](docs/red-box-grasp.md): `bt_demo → grasp_bridge → piper_sim`, `/run_demo`로 실행.
+
+SAM 3 기반 RGB-D 객체 분할 확장은 [운영·검증 기록](docs/sam3-perception.md)을 참고한다.

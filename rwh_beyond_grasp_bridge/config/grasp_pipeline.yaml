@@ -2,6 +2,7 @@ graspgenx_bridge:
   ros__parameters:
     use_sim_time: true
     endpoint: tcp://127.0.0.1:5566
+    segmentation_endpoint: tcp://127.0.0.1:5567
     timeout: 60.0
     min_points: 100
     max_points: 200000
@@ -11,6 +12,12 @@ grasp_coordinator:
     use_sim_time: true
     endpoint: tcp://127.0.0.1:5566
     simulation_only: true
+    segmentation_backend: sam3
+    segmentation_endpoint: tcp://127.0.0.1:5567
+    target_text: box
+    target_box: [0.0, 0.0, 0.0, 0.0]
+    selection_point: [-1, -1]
+    selection_policy: unique
     base_frame: base_link
     tcp_link: tcp_link
     object_dimensions: [0.04, 0.04, 0.05]

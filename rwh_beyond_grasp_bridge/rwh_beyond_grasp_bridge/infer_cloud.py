@@ -44,7 +44,8 @@ def send_goal_and_print(node, goal):
     future = handle.get_result_async()
     rclpy.spin_until_future_complete(node, future)
     result = future.result().result
-    print(json.dumps(dict(success=result.success, message=result.message, candidates=[
+    print(json.dumps(dict(success=result.success, message=result.message, segmentation_score=result.segmentation_score,
+        segmentation_instances=result.segmentation_instances, candidates=[
         dict(id=c.id, frame=c.pose.header.frame_id,
              stamp=dict(sec=c.pose.header.stamp.sec, nanosec=c.pose.header.stamp.nanosec), score=c.score,
              position=[c.pose.pose.position.x,c.pose.pose.position.y,c.pose.pose.position.z],
@@ -52,3 +53,5 @@ def send_goal_and_print(node, goal):
         for c in result.candidates]), indent=2))
     if not result.success:
         raise SystemExit(1)
+
+    return result

@@ -1,0 +1,41 @@
+# Run from an approved GPU server workspace. Ports never bind a public interface.
+services:
+  segmentation:
+    build:
+      context: .
+      args:
+        # Publish/load the tested base image, or supply an equivalent CUDA/PyTorch image.
+        BASE_IMAGE: ${SAM3_BASE_IMAGE:?set approved CUDA/PyTorch base image}
+    command: ["python", "-u", "/opt/segmentation/server.py", "--endpoint", "tcp://0.0.0.0:5567"]
+    user: "${RUN_UID:?set owner UID}:${RUN_GID:?set owner GID}"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: ${CPU_LIMIT:?set CPU limit}
+    mem_limit: ${MEMORY_LIMIT:?set memory limit}
+    pids_limit: 256
+    shm_size: 256m
+    tmpfs: ["/tmp:rw,size=1g,mode=1777"]
+    ports: ["127.0.0.1:${SAM3_PORT:-5567}:5567"]
+    environment:
+      HOME: /tmp
+      HF_HOME: /data/cache/huggingface
+      OMP_NUM_THREADS: 2
+      OPENBLAS_NUM_THREADS: 2
+      SAM3_MEMORY_FRACTION: ${SAM3_MEMORY_FRACTION:-0.65}
+    volumes:
+      - ${SAM3_WORKSPACE:?set workspace}/models:/data/models:ro
+      - ${SAM3_WORKSPACE:?set workspace}/cache:/data/cache:rw
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_DEVICE:?set allocated GPU}"]
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD", "python", "-c", "from wire import request; r=request('tcp://127.0.0.1:5567',{'action':'health'},3); assert r.get('backend')=='sam3' and not r.get('mock')"]
+      interval: 30s
+      timeout: 5s
+      start_period: 180s
+      retries: 3

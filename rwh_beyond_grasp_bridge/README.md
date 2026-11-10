@@ -1,3 +1,7 @@
+> SAM 3 RGBD 입력과 대상 선택을 추가했습니다. 기존 Action 타입이 변경되어 rebuild와
+> 서버/클라이언트 재시작이 필요합니다. 최신 운영 방법·승인 상태·제한은
+> [SAM 3 객체 분할](../docs/sam3-perception.md)을 참고하세요.
+
 # rwh_beyond_grasp_bridge
 
 Beyond 레포의 ROS 2 Jazzy ↔ GraspGenX ZMQ Bridge. 인터페이스는 기존 `rwh_beyond_msgs`를 공유한다.

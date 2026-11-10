@@ -19,7 +19,7 @@ from rclpy.duration import Duration
 from sensor_msgs.msg import Image, CameraInfo, JointState, PointCloud2
 from sensor_msgs_py.point_cloud2 import create_cloud_xyz32
 from std_msgs.msg import Header, ColorRGBA
-from geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped, Point
 from std_srvs.srv import Trigger, SetBool, Empty
 from moveit_msgs.msg import (PlanningScene, PlanningSceneWorld, PlanningSceneComponents as PC, CollisionObject,
     AttachedCollisionObject, RobotState, Constraints, JointConstraint, ObjectColor)
@@ -30,6 +30,8 @@ from shape_msgs.msg import SolidPrimitive
 from tf2_ros import Buffer, TransformListener
 from rwh_beyond_msgs.action import InferGrasps, RunGraspStep
 from rwh_beyond_msgs.msg import TcpPose
+from rwh_beyond_msgs.srv import SetGraspRegion
+from .observed_geometry import observed_bounds
 from .depth_converter import depth_xyz
 from .red_perception import red_mask, pose_matrix, matrix_pose, set_pair
 from .zmq_client import request as zmq_request
@@ -43,7 +45,9 @@ class Canceled(Exception):pass
 class GraspCoordinator(Node):
     def __init__(self):
         super().__init__('grasp_coordinator')
-        defaults={'endpoint':'tcp://127.0.0.1:5566','base_frame':'base_link','tcp_link':'tcp_link',
+        defaults={'segmentation_backend':'sam3','segmentation_endpoint':'tcp://127.0.0.1:5567',
+            'target_text':'box','target_box':[0.0,0.0,0.0,0.0], 'selection_point':[-1,-1],
+            'selection_policy':'unique','endpoint':'tcp://127.0.0.1:5566','base_frame':'base_link','tcp_link':'tcp_link',
             'pregrasp_distance':0.08,'lift_distance':0.08,'object_dimensions':[0.04,0.04,0.05],
             # Model gripper +X is closing; PiPER physical closing is +/-Y.
             # Model fingertip is +Z 0.130 m (official piper_hand config).
@@ -70,14 +74,14 @@ class GraspCoordinator(Node):
             self.subs.append(self.create_subscription(typ,topic,lambda m,k=key:self.capture(k,m),qos_profile_sensor_data))
         self.subs.append(self.create_subscription(JointState,'feedback/joint_states',self.joint_callback,10))
         self.subs.append(self.create_subscription(PointCloud2,'camera/depth/filtered_points',self.cloud_callback,qos_profile_sensor_data))
-        self.mask_pub=self.create_publisher(Image,'grasp/red_mask',qos_profile_sensor_data)
+        self.mask_pub=self.create_publisher(Image,'grasp/object_mask',qos_profile_sensor_data)
         self.points_pub=self.create_publisher(PointCloud2,'grasp/object_cloud',qos_profile_sensor_data)
         self.pose_pub=self.create_publisher(PoseStamped,'grasp/selected_tcp',10)
         self.stage_clients={}
         for key,typ,name in [('scene',GetPlanningScene,'get_planning_scene'),('apply',ApplyPlanningScene,'apply_planning_scene'),
             ('ik',GetPositionIK,'compute_ik'),('cartesian',GetCartesianPath,'compute_cartesian_path'),
             ('fk',GetPositionFK,'compute_fk'),('plan',GetMotionPlan,'plan_kinematic_path'),
-            ('exclude',SetBool,'simulation/exclude_red_target'),('physics',Trigger,'simulation/grasp_state'),
+            ('exclude',SetBool,'simulation/exclude_red_target'),('region',SetGraspRegion,'simulation/set_grasp_region'),('physics',Trigger,'simulation/grasp_state'),
             ('clear',Empty,'clear_octomap')]:
             self.stage_clients[key]=self.create_client(typ,name,callback_group=self.group)
         self.infer=ActionClient(self,InferGrasps,'infer_grasps',callback_group=self.group)
@@ -161,6 +165,9 @@ class GraspCoordinator(Node):
                 if self.attached:raise RuntimeError('Already holding a target; place/release before another pick')
                 health=zmq_request(self.get_parameter('endpoint').value,{'action':'health'},3)
                 if health.get('status')!='ok' or health.get('mock'):raise RuntimeError('A real GraspGenX server is required')
+                if self.get_parameter('segmentation_backend').value=='sam3':
+                    health=zmq_request(self.get_parameter('segmentation_endpoint').value,{'action':'health'},3)
+                    if health.get('backend')!='sam3' or health.get('mock') is not False:raise RuntimeError('Real SAM 3 server required')
             elif command=='prepare':result.pregrasp=self.prepare()
             elif command=='move_pregrasp':
                 if not self.prepared:raise RuntimeError('No prepared grasp')
@@ -197,34 +204,50 @@ class GraspCoordinator(Node):
     def prepare(self):
         if self.attached:raise RuntimeError('Already holding object')
         self.cleanup()
-        self.stage('acquire_red_rgbd')
+        self.stage('acquire_object_rgbd')
         frame=self.snapshot();rgb,depth,info=frame['rgb'],frame['depth'],frame['info']
         if rgb.header.frame_id!=depth.header.frame_id:raise ValueError('RGB and depth must be registered')
-        labels=red_mask(rgb)
-        mask=Image(header=depth.header,height=depth.height,width=depth.width,encoding='mono8',
-                   step=depth.width,data=labels.astype(np.uint8).tobytes())
-        xyz=depth_xyz(depth,info,mask)
-        self.mask_pub.publish(mask);self.points_pub.publish(create_cloud_xyz32(depth.header,xyz.tolist()))
-        self.stage(f'infer_red_grasps points={len(xyz)}')
+        # Capture TF before inference so a slow remote response cannot expire TF history.
+        transform=self.buffer.lookup_transform(self.base,depth.header.frame_id,Time.from_msg(depth.header.stamp))
+        camera=Pose();camera.position.x=transform.transform.translation.x;camera.position.y=transform.transform.translation.y;camera.position.z=transform.transform.translation.z;camera.orientation=transform.transform.rotation
+        base_T_camera=pose_matrix(camera)
+        backend=self.get_parameter('segmentation_backend').value
         self.wait(self.infer.server_is_ready,10)
-        goal=InferGrasps.Goal(input_mode=InferGrasps.Goal.DEPTH_IMAGE,depth_image=depth,
-            camera_info=info,object_mask=mask,gripper_name='piper_hand',
+        goal=InferGrasps.Goal(depth_image=depth,camera_info=info,gripper_name='piper_hand',
             num_grasps=self.get_parameter('num_grasps').value,top_k=self.get_parameter('top_k').value)
+        if backend=='sam3':
+            goal.input_mode=InferGrasps.Goal.RGBD;goal.rgb_image=rgb
+            goal.target_text=self.get_parameter('target_text').value
+            goal.target_box=self.get_parameter('target_box').value
+            point=self.get_parameter('selection_point').value
+            goal.use_selection_point=point[0]>=0 and point[1]>=0
+            if goal.use_selection_point:goal.selection_u=int(point[0]);goal.selection_v=int(point[1])
+            goal.selection_policy=self.get_parameter('selection_policy').value
+        elif backend=='color_demo':
+            labels=red_mask(rgb)
+            mask=Image(header=depth.header,height=depth.height,width=depth.width,encoding='mono8',step=depth.width,data=labels.astype(np.uint8).tobytes())
+            goal.input_mode=InferGrasps.Goal.DEPTH_IMAGE;goal.object_mask=mask
+        else:raise ValueError('segmentation_backend must be sam3 or explicit color_demo')
+        self.stage('segment_and_infer_grasps')
         sent=self.infer.send_goal_async(goal);self.wait(sent.done,10);inference=sent.result()
         if not inference.accepted:raise RuntimeError('Grasp inference goal rejected')
         response=inference.get_result_async()
-        try:self.wait(response.done,90)
+        try:self.wait(response.done,130)
         except Exception:
             inference.cancel_goal_async();raise
         result=response.result().result
         if not result.success or not result.message.startswith('OK:'):raise RuntimeError('Real GraspGenX inference failed: '+result.message)
-        transform=self.buffer.lookup_transform(self.base,depth.header.frame_id,Time.from_msg(depth.header.stamp))
-        camera=Pose();camera.position.x=transform.transform.translation.x;camera.position.y=transform.transform.translation.y;camera.position.z=transform.transform.translation.z;camera.orientation=transform.transform.rotation
-        base_T_camera=pose_matrix(camera)
-        points=xyz@base_T_camera[:3,:3].T+base_T_camera[:3,3]
-        lower,upper=np.quantile(points,[.02,.98],axis=0)
-        dimensions=np.array(self.get_parameter('object_dimensions').value)
-        center=(lower+upper)/2;center[2]=upper[2]-dimensions[2]/2
+        if backend=='sam3':mask=result.object_mask
+        xyz=depth_xyz(depth,info,mask)
+        self.mask_pub.publish(mask);self.points_pub.publish(create_cloud_xyz32(depth.header,xyz.tolist()))
+        if backend=='sam3':
+            center,dimensions,support_z=observed_bounds(xyz,depth,info,mask,base_T_camera)
+        else:
+            points=xyz@base_T_camera[:3,:3].T+base_T_camera[:3,3]
+            lower,upper=np.quantile(points,[.02,.98],axis=0)
+            dimensions=np.array(self.get_parameter('object_dimensions').value)
+            center=(lower+upper)/2;center[2]=upper[2]-dimensions[2]/2
+            support_z=float(upper[2]-dimensions[2])
         self.stage(f'update_target_scene center={center.tolist()}')
         self.object_pose=Pose();self.object_pose.position.x,self.object_pose.position.y,self.object_pose.position.z=map(float,center);self.object_pose.orientation.w=1.
         self.object=CollisionObject(header=Header(frame_id=self.base),id=TARGET,
@@ -238,15 +261,22 @@ class GraspCoordinator(Node):
                 old=matrix.entry_values[matrix.entry_names.index(TARGET)].enabled[matrix.entry_names.index(finger)]
             self.original_pairs[finger]=old
             set_pair(matrix,finger,TARGET,True)
-        # Known cube height, observed top surface -> support plane estimate, no simulator pose.
-        support_z=float(upper[2]-dimensions[2])
+        # SAM mode uses an observed horizontal support plane; color_demo retains its known-box prior.
         table_pose=Pose();table_pose.orientation.w=1.;table_pose.position.z=support_z-.012
         table=CollisionObject(header=Header(frame_id=self.base),id=TABLE,
             primitives=[SolidPrimitive(type=SolidPrimitive.BOX,dimensions=[1.5,1.5,.02])],primitive_poses=[table_pose],operation=CollisionObject.ADD)
         self.scene_active=True
         self.apply(PlanningScene(allowed_collision_matrix=matrix,world=PlanningSceneWorld(collision_objects=[self.object,table]),
             object_colors=[ObjectColor(id=TARGET,color=ColorRGBA(r=1.,g=.1,b=.05,a=1.))]))
-        if not self.call('exclude',SetBool.Request(data=True)).success:raise RuntimeError('Target depth exclusion failed')
+        if backend=='sam3':
+            lower=center-dimensions/2-.003;upper=center+dimensions/2+.003
+            # Preserve the support plane in Octomap; only exclude above-table target volume.
+            lower[2]=support_z+.003
+            region=SetGraspRegion.Request(enabled=True,frame_id=self.base,
+                lower=Point(x=float(lower[0]),y=float(lower[1]),z=float(lower[2])),
+                upper=Point(x=float(upper[0]),y=float(upper[1]),z=float(upper[2])))
+            if not self.call('region',region).success:raise RuntimeError('Selected target region exclusion failed')
+        elif not self.call('exclude',SetBool.Request(data=True)).success:raise RuntimeError('Target depth exclusion failed')
         self.call('clear',Empty.Request())
         cleared=self.get_clock().now().nanoseconds*1e-9;sequence=self.cloud_seq
         self.wait(lambda:self.cloud_seq>=sequence+2 and self.cloud_stamp>cleared,20)
@@ -266,7 +296,7 @@ class GraspCoordinator(Node):
             if grasp[2,2]>-math.cos(math.radians(35)):
                 reasons['not_top_down']+=1;continue
             contact=(grasp@np.array([0,0,.105,1]))[:3]
-            if np.linalg.norm(contact-center)>.055:
+            if np.any(np.abs(contact-center)>dimensions/2+.03):
                 reasons['off_target']+=1;continue
             for flipped in (False,True):
                 g=grasp.copy()
@@ -395,7 +425,9 @@ class GraspCoordinator(Node):
             if TARGET in {o.id for o in current.world.collision_objects}:
                 scene.world.collision_objects=[CollisionObject(id=TARGET,operation=CollisionObject.REMOVE)]
             self.apply(scene,check_cancel=False)
-            self.call('exclude',SetBool.Request(data=False),check_cancel=False)
+            if self.get_parameter('segmentation_backend').value=='sam3':
+                self.call('region',SetGraspRegion.Request(enabled=False),check_cancel=False)
+            else:self.call('exclude',SetBool.Request(data=False),check_cancel=False)
             self.scene_active=False;self.prepared=False
         else:
             self.get_logger().warning('Object remains attached and gripper remains closed; no automatic release')

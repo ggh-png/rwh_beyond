@@ -1,5 +1,9 @@
 # 빨간 상자 파지 BT
 
+> 아래 색상 기반 설명·집기 측정은 기존 color_demo 기록이다. 현재 runner 기본값은
+> SAM 3이며 [새 분할 경로](sam3-perception.md)를 먼저 참고한다.
+> 기존 회귀 실행은 `RWH_SEGMENTATION_BACKEND=color_demo`를 명시한다.
+
 `bt_demo → grasp_bridge → piper_sim`으로 환경을 준비하고 `/run_demo` goal로
 RGB-D 인식, 실제 GraspGenX 추론, MoveIt 계획, 접촉 확인, 들어올리기를 실행한다.
 **MuJoCo 전용**이며 실물 CAN driver를 시작하지 않는다.

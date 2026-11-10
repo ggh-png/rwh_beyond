@@ -1,6 +1,7 @@
 # Choose exactly one source. PoseStamped preserves its frame_id/acquisition stamp.
 uint8 POINT_CLOUD=0
 uint8 DEPTH_IMAGE=1
+uint8 RGBD=2
 uint8 input_mode
 # POINT_CLOUD: segmented object XYZ, meters.
 sensor_msgs/PointCloud2 object_cloud
@@ -10,6 +11,16 @@ sensor_msgs/Image depth_image
 sensor_msgs/CameraInfo camera_info
 # mono8/8UC1; nonzero pixels belong to ONE object, zero is background.
 sensor_msgs/Image object_mask
+# RGBD: server-side SAM 3 segmentation, then the existing GraspGenX request.
+# RGB and depth must be registered; target_box is pixel xyxy (all zeros = unset).
+sensor_msgs/Image rgb_image
+string target_text
+float32[4] target_box
+bool use_selection_point
+uint32 selection_u
+uint32 selection_v
+# Empty or "unique" rejects ambiguity; "highest_score" is an explicit opt-in.
+string selection_policy
 string gripper_name
 int32 num_grasps
 int32 top_k
@@ -19,5 +30,9 @@ bool success
 # NO_CANDIDATES, CANCELED or INTERNAL_ERROR.
 string message
 rwh_beyond_msgs/GraspCandidate[] candidates
+# RGBD only: selected depth-safe mask and segmentation confidence (not grasp score).
+sensor_msgs/Image object_mask
+float32 segmentation_score
+uint32 segmentation_instances
 ---
 string stage

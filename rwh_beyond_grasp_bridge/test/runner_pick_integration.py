@@ -1,5 +1,6 @@
 """Private-domain runner -> BT -> real GPU model -> physical MuJoCo pick test."""
 import json,os,signal,subprocess,time
+os.environ["RWH_SEGMENTATION_BACKEND"]="color_demo"
 from pathlib import Path
 import yaml
 import rclpy

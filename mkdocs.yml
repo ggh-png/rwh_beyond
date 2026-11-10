@@ -23,6 +23,7 @@ nav:
       - 실행과 Groot2: bt-operation.md
       - GraspGenX 원격 추론: graspgenx-integration.md
       - 빨간 상자 파지: red-box-grasp.md
+      - SAM 3 객체 분할: sam3-perception.md
   - 문제 해결: troubleshooting.md
   - GraspGenX 작업 기록: work-log-2026-11-10.md
   - 문서 관리: documentation.md

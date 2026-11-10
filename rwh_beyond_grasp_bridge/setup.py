@@ -13,6 +13,7 @@ setup(name='rwh_beyond_grasp_bridge', version='0.1.0',
  entry_points={'console_scripts': [
  'grasp_coordinator = rwh_beyond_grasp_bridge.grasp_coordinator:main',
  'mock_zmq_server = rwh_beyond_grasp_bridge.mock_zmq_server:main',
+ 'infer_rgbd = rwh_beyond_grasp_bridge.infer_rgbd:main',
  'infer_depth = rwh_beyond_grasp_bridge.infer_depth:main',
  'inference_action_server = rwh_beyond_grasp_bridge.inference_action_server:main',
  'infer_cloud = rwh_beyond_grasp_bridge.infer_cloud:main']})

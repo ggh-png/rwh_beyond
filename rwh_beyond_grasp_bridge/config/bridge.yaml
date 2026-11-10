@@ -1,6 +1,8 @@
 graspgenx_bridge:
   ros__parameters:
     endpoint: tcp://127.0.0.1:5556
+    segmentation_endpoint: tcp://127.0.0.1:5567
+    allow_mock_segmentation: false
     timeout: 60.0
     min_points: 100
     max_points: 200000

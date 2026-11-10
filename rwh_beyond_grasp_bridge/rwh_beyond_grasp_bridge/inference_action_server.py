@@ -9,6 +9,7 @@ from rwh_beyond_msgs.action import InferGrasps
 from rwh_beyond_msgs.msg import GraspCandidate
 from .cloud_converter import cloud_xyz
 from .depth_converter import depth_xyz
+from .segmentation_client import segment_image
 from .pose_converter import validate_candidates, quaternion_xyzw
 from .zmq_client import request, RequestCanceled, ServerError, ProtocolError
 
@@ -16,7 +17,7 @@ class InferenceActionServer(Node):
     def __init__(self):
         super().__init__('graspgenx_bridge')
         for name, value in [('endpoint', 'tcp://127.0.0.1:5556'), ('timeout', 60.0),
-                            ('min_points', 100), ('max_points', 200000), ('max_grasps', 1000),
+                            ('segmentation_endpoint', 'tcp://127.0.0.1:5567'), ('allow_mock_segmentation', False), ('min_points', 100), ('max_points', 200000), ('max_grasps', 1000),
                             ('max_depth_pixels', 2073600), ('sensor_sync_tolerance', 0.1)]:
             self.declare_parameter(name, value)
         self.endpoint = self.get_parameter('endpoint').value
@@ -49,7 +50,28 @@ class InferenceActionServer(Node):
             goal = handle.request
             if not goal.gripper_name.strip() or not 1 <= goal.num_grasps <= self.max_grasps or not 1 <= goal.top_k <= goal.num_grasps:
                 raise ValueError('gripper_name required; 1 <= top_k <= num_grasps <= max_grasps')
-            if goal.input_mode == InferGrasps.Goal.POINT_CLOUD:
+            segmentation_mock = False
+            if goal.input_mode != InferGrasps.Goal.RGBD and goal.rgb_image.data:
+                raise ValueError('rgb_image requires RGBD mode')
+            if goal.input_mode == InferGrasps.Goal.RGBD:
+                if goal.object_cloud.data or goal.object_mask.data:
+                    raise ValueError('RGBD does not accept presegmented cloud/mask')
+                feedback('segmenting_object')
+                box = list(goal.target_box) if any(goal.target_box) else []
+                point = [goal.selection_u, goal.selection_v] if goal.use_selection_point else []
+                mask, score, count, segmentation_mock = segment_image(
+                    self.get_parameter('segmentation_endpoint').value, goal.rgb_image, goal.depth_image,
+                    goal.target_text, box, point, goal.selection_policy or 'unique', self.timeout,
+                    lambda: handle.is_cancel_requested or not rclpy.ok(),
+                    self.get_parameter('allow_mock_segmentation').value)
+                result.object_mask = mask
+                result.segmentation_score = score
+                result.segmentation_instances = count
+                feedback('converting_depth')
+                xyz = depth_xyz(goal.depth_image, goal.camera_info, mask,
+                    self.minimum, self.maximum, self.max_pixels, self.sync_tolerance)
+                header = copy.deepcopy(goal.depth_image.header)
+            elif goal.input_mode == InferGrasps.Goal.POINT_CLOUD:
                 if goal.depth_image.data or goal.object_mask.data:
                     raise ValueError('POINT_CLOUD mode does not accept depth/mask; choose one source')
                 header = copy.deepcopy(goal.object_cloud.header)
@@ -90,7 +112,7 @@ class InferenceActionServer(Node):
                 handle.abort()
             else:
                 result.success = True
-                prefix = 'MOCK_ONLY' if response.get('mock') is True else 'OK'
+                prefix = 'MOCK_ONLY' if response.get('mock') is True or segmentation_mock else 'OK'
                 result.message = f'{prefix}: {len(result.candidates)} candidates in input frame'
                 handle.succeed()
         except RequestCanceled as error:
