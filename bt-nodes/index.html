@@ -75,10 +75,25 @@
 <li>
     <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
 </li>
+                                    
+<li>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 원격 추론</a>
+</li>
+                                    
+<li>
+    <a href="../red-box-grasp/" class="dropdown-item">빨간 상자 파지</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 객체 분할</a>
+</li>
                                 </ul>
                             </li>
                             <li class="nav-item">
                                 <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../work-log-2026-11-10/" class="nav-link">GraspGenX 작업 기록</a>
                             </li>
                             <li class="nav-item">
                                 <a href="../documentation/" class="nav-link">문서 관리</a>
@@ -157,6 +172,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#graspstep" class="nav-link">GraspStep — 파지 단계별 공통 플러그인</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -177,6 +196,16 @@
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>GraspStep</code></td>
+<td>command, pregrasp 출력</td>
+<td>파지 단계별 Action 호출, prepare에서만 모델 추론</td>
+</tr>
+<tr>
+<td><code>MoveObservation</code></td>
+<td>고정</td>
+<td>MuJoCo의 카메라 관측 자세로 MoveIt 이동</td>
+</tr>
 <tr>
 <td><code>ClearOctomap</code></td>
 <td>1회 실행 여부·대기 시간·새 점군 수</td>
@@ -219,7 +248,7 @@
 </tr>
 </tbody>
 </table>
-<p>모든 노드는 Nav2의 <code>server_name</code>, <code>server_timeout</code> 포트를 상속합니다.</p>
+<p>ROS Action 기반 이동/그리퍼/GraspStep 노드는 Nav2의 <code>server_name</code>, <code>server_timeout</code> 포트를 상속합니다. ClearOctomap과 MakeTcpPose는 별도 포트를 사용합니다.</p>
 <h2 id="clearoctomap">ClearOctomap — 이동 전 지도 초기화<a class="headerlink" href="#clearoctomap" title="Permanent link">&para;</a></h2>
 <pre><code class="language-xml">&lt;ClearOctomap once=&quot;true&quot; timeout=&quot;30.0&quot; fresh_clouds=&quot;2&quot;/&gt;
 </code></pre>
@@ -506,7 +535,19 @@ blackboard-&gt;set(&quot;target_pose&quot;, target);
 </tbody>
 </table>
 <p>이는 actuator force를 통한 접촉 추정입니다. 물체가 안정적으로 파지됐는지를
-독립적으로 검증하는 조건은 아닙니다.</p></div>
+독립적으로 검증하는 조건은 아닙니다.</p>
+<h2 id="graspstep">GraspStep — 파지 단계별 공통 플러그인<a class="headerlink" href="#graspstep" title="Permanent link">&para;</a></h2>
+<p>같은 노드를 여러 번 쓰지만 <code>command</code>에 따라 다른 단계를 수행한다. <code>prepare</code>에서만
+RGB-D 인식과 GraspGenX 추론을 한 번 실행한다. XML <code>name</code>으로 Groot2에서 단계를 구분한다.</p>
+<pre><code class="language-xml">&lt;GraspStep name=&quot;PrepareRedBoxGrasp&quot; command=&quot;prepare&quot; server_timeout=&quot;1000&quot; pregrasp=&quot;{red_pregrasp}&quot;/&gt;
+&lt;GraspStep name=&quot;MoveToRedPregrasp&quot; command=&quot;move_pregrasp&quot; server_timeout=&quot;1000&quot;/&gt;
+&lt;GraspStep name=&quot;ApproachRedBox&quot; command=&quot;approach&quot; server_timeout=&quot;1000&quot;/&gt;
+&lt;CloseGripper/&gt;
+&lt;GraspStep name=&quot;VerifyAndAttachRedBox&quot; command=&quot;attach&quot; server_timeout=&quot;1000&quot;/&gt;
+&lt;GraspStep name=&quot;LiftAndVerifyRedBox&quot; command=&quot;lift&quot; server_timeout=&quot;1000&quot;/&gt;
+</code></pre>
+<p>전체 기본 트리에는 앞에 시뮬레이터 확인·지도 준비·관측 자세 단계도 있다.
+<a href="../red-box-grasp/">각 command와 충돌/취소 처리</a>를 참고한다.</p></div>
             </div>
         </div>
 

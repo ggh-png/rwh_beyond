@@ -75,10 +75,25 @@
 <li>
     <a href="./" class="dropdown-item active" aria-current="page">실행과 Groot2</a>
 </li>
+                                    
+<li>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 원격 추론</a>
+</li>
+                                    
+<li>
+    <a href="../red-box-grasp/" class="dropdown-item">빨간 상자 파지</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 객체 분할</a>
+</li>
                                 </ul>
                             </li>
                             <li class="nav-item">
                                 <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../work-log-2026-11-10/" class="nav-link">GraspGenX 작업 기록</a>
                             </li>
                             <li class="nav-item">
                                 <a href="../documentation/" class="nav-link">문서 관리</a>
@@ -100,7 +115,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../troubleshooting/" class="nav-link">
+                                <a rel="next" href="../graspgenx-integration/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -163,12 +178,12 @@
 <pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
 colcon build --packages-select \
-  rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator \
+  rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator rwh_beyond_grasp_bridge \
   moma_mujoco_ros moma_bringup rwh_beyond_bringup --symlink-install
 source install/setup.bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 </code></pre>
-<p>MuJoCo·MoveIt이 준비되면 다른 터미널에서 같은 환경을 source하고 navigator를 실행합니다.
+<p>MuJoCo·MoveIt이 준비되면 다른 터미널에서 <code>ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py</code>를 실행하고, 그다음 navigator를 실행합니다. 기본 트리는 <a href="../red-box-grasp/">빨간 상자 파지</a>이며 실제 GraspGenX 서버가 필요합니다.
 GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=true</code>를 사용합니다.</p>
 <pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
 source /root/ros2_ws/install/setup.bash
@@ -179,19 +194,19 @@ ros2 launch rwh_beyond_bringup bt_demo.launch.py
 <code>rwh_beyond_bringup</code>을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
 <code>ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml</code>로
 지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.</p>
-<p><code>ros_runner</code>에서 <strong><code>bt_demo</code>만 활성화</strong>하면 <code>requires: [piper_sim]</code>에 의해
+<p><code>ros_runner</code>에서 <strong><code>bt_demo</code>만 활성화</strong>하면 <code>bt_demo → grasp_bridge → piper_sim</code>에 의해
 MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_sim</code>은 재사용합니다.
-BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
+추론 Bridge/coordinator도 자동 시작합니다. BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
 <strong>자동으로 demo goal을 보내지는 않습니다.</strong></p>
-<pre><code class="language-bash">ros2 service call /ros_runner/activate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
+<pre><code class="language-bash">ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
 # navigator와 사용되지 않는 simulator 의존성 종료
-ros2 service call /ros_runner/deactivate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
+ros2 service call /runner_manager_node/deactivate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
 </code></pre>
 <p><code>piper_sim</code>을 중지하면 이에 의존하는 <code>bt_demo</code>도 중지됩니다.
 다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
 YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.</p>
 <h3 id="octomap">트리 안에서 Octomap 초기화<a class="headerlink" href="#octomap" title="Permanent link">&para;</a></h3>
-<p>Launch는 navigator와 lifecycle manager만 실행합니다. <strong>지도 초기화는 트리 첫 노드가 수행</strong>합니다.</p>
+<p>Launch는 navigator와 lifecycle manager만 실행합니다. <strong>지도 초기화는 이동 전 ClearOctomap 노드가 수행</strong>합니다.</p>
 <pre><code class="language-xml">&lt;Sequence&gt;
   &lt;ClearOctomap once=&quot;true&quot; timeout=&quot;30.0&quot; fresh_clouds=&quot;2&quot;/&gt;
   &lt;MoveHome/&gt;

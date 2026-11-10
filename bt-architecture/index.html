@@ -75,10 +75,25 @@
 <li>
     <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
 </li>
+                                    
+<li>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 원격 추론</a>
+</li>
+                                    
+<li>
+    <a href="../red-box-grasp/" class="dropdown-item">빨간 상자 파지</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 객체 분할</a>
+</li>
                                 </ul>
                             </li>
                             <li class="nav-item">
                                 <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../work-log-2026-11-10/" class="nav-link">GraspGenX 작업 기록</a>
                             </li>
                             <li class="nav-item">
                                 <a href="../documentation/" class="nav-link">문서 관리</a>
@@ -256,7 +271,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tr>
 <tr>
 <td><code>rwh_beyond_bt</code></td>
-<td>BT 노드 8개, 실행 XML, Groot2 모델 XML, 생성기와 테스트</td>
+<td>BT 노드 10개, 실행 XML, Groot2 모델 XML, 생성기와 테스트</td>
 </tr>
 <tr>
 <td><code>rwh_beyond_bringup</code></td>
@@ -396,54 +411,17 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 오류를 구분합니다.
 <a href="../bt-operation/#bt-error-reporting">실패 진단 예제</a>를 참고하세요.</p>
 <h2 id="_4">기본 작업 순서<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<p><strong>home → base_link +Z 0.30 m → 닫기 → home → 열기</strong></p>
-<table>
-<thead>
-<tr>
-<th>순서</th>
-<th><code>demo.xml</code> 노드</th>
-<th>동작</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>준비</td>
-<td><code>ClearOctomap</code></td>
-<td>clear 후 새 관측 지도 확인, 첫 성공 이후 재사용</td>
-</tr>
-<tr>
-<td>1</td>
-<td><code>MoveHome</code></td>
-<td>joint1~joint6을 0 rad로 이동</td>
-</tr>
-<tr>
-<td>2</td>
-<td><code>MoveTcpUp</code></td>
-<td>현재 TCP에서 base_link Z축으로 0.30 m 상승, 자세 유지</td>
-</tr>
-<tr>
-<td>3</td>
-<td><code>CloseGripper</code></td>
-<td>그리퍼 닫기</td>
-</tr>
-<tr>
-<td>4</td>
-<td><code>MoveHome</code></td>
-<td>home 복귀</td>
-</tr>
-<tr>
-<td>5</td>
-<td><code>OpenGripper</code></td>
-<td>그리퍼 열기</td>
-</tr>
-</tbody>
-</table>
-<p><code>parameterized_demo.xml</code>은 같은 작업을 입력 가능한 <code>MoveTcp</code>와 <code>SetGripper</code>로
-표현한 예제입니다. <code>MakeTcpPose</code>가 목표 객체를 만들고 <code>MoveTcp</code>가 객체 하나를 받습니다.
-기본 트리는 <code>demo.xml</code>입니다.</p>
+<p>기본 <code>demo.xml</code>은 빨간 상자를 집어 들어올리는 MuJoCo 전용 트리다.</p>
+<p><strong>준비 확인 → 지도 초기화 → home → 열기 → 관측 자세 → RGB-D/실제 모델 추론과 후보 검증
+→ pregrasp → 직선 접근 → 닫기 → 접촉 확인·부착 → 상승·물리 검증</strong></p>
+<p><code>GraspStep</code>은 <code>command</code>에 해당하는 한 단계를 실행하는 공통 플러그인으로,
+모델 추론은 <code>prepare</code>에서만 실행한다. <a href="../red-box-grasp/">상세 흐름과 포트</a>를 참고한다.</p>
+<p>예전 고정 home/up/close/home/open은 <code>legacy_demo.xml</code>에 보존했다.
+<code>parameterized_demo.xml</code>은 <code>MakeTcpPose → MoveTcp</code>와 <code>SetGripper</code>로 같은 원래
+작업을 표현한 별도 예제다.</p>
 <h2 id="_5">소스에서 찾아볼 위치<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <pre><code class="language-text">rwh_beyond_bt/
-├── src/action/                  # action 노드 8개
+├── src/action/                  # action 노드 10개
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp
