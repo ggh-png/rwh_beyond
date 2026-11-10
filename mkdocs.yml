@@ -18,6 +18,7 @@ nav:
   - ros_runner 운용: runner.md
   - 로봇 팔 BT:
       - 구조 이해: bt-architecture.md
+      - Depth 관측과 runner 흐름: depth-bt-flow.md
       - 노드 사용법: bt-nodes.md
       - 실행과 Groot2: bt-operation.md
   - 문제 해결: troubleshooting.md

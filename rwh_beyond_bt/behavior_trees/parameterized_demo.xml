@@ -2,7 +2,8 @@
   <BehaviorTree ID="ParameterizedDemo">
     <Sequence>
       <MoveHome/>
-      <MoveTcp x="0" y="0" z="0.30" relative="true"/>
+      <MakeTcpPose x="0" y="0" z="0.30" relative="true" pose="{lift_pose}"/>
+      <MoveTcp pose="{lift_pose}"/>
       <SetGripper opening="0" unit="mm" duration="3"/>
       <MoveHome/>
       <SetGripper opening="100" unit="mm" duration="3"/>

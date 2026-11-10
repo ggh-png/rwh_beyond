@@ -8,7 +8,8 @@
 | 노드 | 바꿀 수 있는 값 | 동작 |
 | --- | --- | --- |
 | `SetGripper` | 개방 폭, 단위, 시간 | 지정한 폭으로 그리퍼 이동 |
-| `MoveTcp` | 위치, 자세, 기준 프레임 | MoveIt pose goal 실행 |
+| `MakeTcpPose` | 위치, 자세, 기준 프레임 | 하나의 `TcpPose` 객체 생성 |
+| `MoveTcp` | `pose` 객체, TCP link | MoveIt pose goal 실행 |
 | `CloseGripper` | 고정 | 0 mm로 닫기, 3초 |
 | `OpenGripper` | 고정 | 100 mm로 열기, 3초 |
 | `MoveHome` | 고정 | joint1~joint6 = 0 rad |
@@ -44,63 +45,118 @@ Blackboard 값도 연결할 수 있습니다.
 현재 모델의 최대 폭이 100 mm여서 두 단위의 숫자가 일치합니다.
 소수·범위 초과·잘못된 단위·유효하지 않은 시간은 goal 전송 전에 거부합니다.
 
-## MoveTcp — 위치와 자세 지정
+## TcpPose — 목표를 객체 하나로 관리
 
-**base_link 기준 위치와 자세를 함께 입력:**
+위치 3개와 quaternion 4개를 따로 blackboard에 저장하는 대신,
+**`rwh_beyond_msgs/msg/TcpPose` 객체 하나**를 저장합니다.
+
+```mermaid
+flowchart LR
+    M["MakeTcpPose"] --> P["target_pose 객체"]
+    P --> T["MoveTcp"]
+```
+
+메시지 정의:
+
+```text
+string frame_id "base_link"
+geometry_msgs/Pose pose
+bool relative false
+bool keep_current_orientation false
+```
+
+| 필드 | 의미 |
+| --- | --- |
+| `frame_id` | 위치와 자세의 기준 좌표계 |
+| `pose.position` | m 단위 위치 x/y/z |
+| `pose.orientation` | 기준 좌표계의 quaternion x/y/z/w |
+| `relative` | true이면 위치를 현재 TCP 위치에 더할 offset으로 해석 |
+| `keep_current_orientation` | true이면 메시지의 quaternion을 무시하고 현재 TCP 자세 유지 |
+
+!!! note "메시지의 초기 자세"
+    ROS 메시지의 기본 quaternion은 `(0, 0, 0, 1)`인 단위 회전입니다.
+    메시지를 직접 만들면 이 자세가 목표가 됩니다.
+    현재 자세를 유지하려면 `keep_current_orientation=true`로 설정합니다.
+    `MakeTcpPose`는 quaternion 입력을 생략하면 이 값을 true로 설정합니다.
+
+## MakeTcpPose — 객체 만들기
+
+XML에서 **한 번 생성하고 이후에는 객체 이름만 연결**합니다.
 
 ```xml
-<MoveTcp x="0.25" y="0" z="0.35"
-         qx="0" qy="0" qz="0" qw="1"/>
+<Sequence>
+  <MakeTcpPose x="0.25" y="0" z="0.35"
+               qx="0" qy="0" qz="0" qw="1"
+               pose="{target_pose}"/>
+  <MoveTcp pose="{target_pose}"/>
+</Sequence>
+```
+
+| 입력 / 출력 | 필수 / 기본값 | 의미 |
+| --- | --- | --- |
+| 입력 `x`, `y`, `z` | 필수 | m 단위 위치 |
+| 입력 `qx`, `qy`, `qz`, `qw` | 생략 가능 | 모두 지정하거나 모두 생략 |
+| 입력 `frame_id` | `base_link` | 위치·자세 기준 좌표계 |
+| 입력 `relative` | `false` | 상대 위치 여부 |
+| 출력 `pose` | 필수 | `TcpPose`를 저장할 blackboard key |
+
+Quaternion을 생략하면 `keep_current_orientation=true`인 객체를 만듭니다.
+네 값을 모두 넣으면 `false`로 설정하고 quaternion을 정규화합니다.
+이 노드는 **객체 생성만 수행**하며 로봇을 움직이지 않습니다.
+검증에 실패하면 출력 객체를 덮어쓰지 않고 FAILURE를 반환합니다.
+
+### 현재 자세를 유지하며 상대 이동
+
+```xml
+<Sequence>
+  <MakeTcpPose x="0" y="0" z="0.30" relative="true" pose="{lift_pose}"/>
+  <MoveTcp pose="{lift_pose}"/>
+</Sequence>
+```
+
+기준 프레임 Z축 방향으로 0.30 m 상승하는 예제입니다.
+`relative`는 위치에만 적용되며, 입력 quaternion은 항상 `frame_id` 기준 **절대 자세**입니다.
+
+### 다른 C++ 노드에서도 메시지를 바로 저장할 수 있습니다
+
+```cpp
+rwh_beyond_msgs::msg::TcpPose target;
+target.pose.position.x = 0.25;
+target.pose.position.z = 0.35;
+target.pose.orientation.w = 1.0;
+blackboard->set("target_pose", target);
+```
+
+Blackboard key를 일곱 개 만들 필요 없이 `{target_pose}` 하나를 재사용합니다.
+문자열이나 XML의 `<SetBlackboard>`로 넣은 임의 문자열은 이 메시지 객체를 대신하지 않습니다.
+현재 `RunDemo` action 필드는 그대로이며, 외부 ROS 메시지가 자동으로 blackboard에 들어오지는 않습니다.
+
+## MoveTcp — 객체로 이동하기
+
+```xml
+<MoveTcp pose="{target_pose}" tcp_link="tcp_link"/>
 ```
 
 | 입력 | 필수 / 기본값 | 의미 |
 | --- | --- | --- |
-| `x`, `y`, `z` | 필수 | 목표 위치, 단위 m |
-| `qx`, `qy`, `qz`, `qw` | 생략 가능 | 목표 quaternion, x/y/z/w 순서 |
-| `frame_id` | `base_link` | 위치와 자세의 기준 좌표계 |
+| `pose` | 필수 | `TcpPose` 타입의 blackboard 객체 |
 | `tcp_link` | `tcp_link` | 제어할 TCP link |
-| `relative` | `false` | true이면 xyz를 현재 위치에 더함 |
 
-### 자세를 유지하려면 quaternion을 생략합니다
+`x/y/z`, `qx/qy/qz/qw`, `frame_id`, `relative` 개별 포트는 제거했습니다.
+기존 XML은 위 `MakeTcpPose → MoveTcp` 구성으로 옮깁니다.
 
-```xml
-<MoveTcp x="0.25" y="0" z="0.35"/>
-```
+입력 객체는 복사해 검증하므로 **정규화와 상대 좌표 계산이 원본 객체를 바꾸지 않습니다.**
+객체가 없거나 타입이 다르면 goal을 보내지 않습니다.
+위치는 유한해야 하고 프레임은 비어 있으면 안 됩니다.
+명시적 자세의 quaternion은 유한하며 norm이 `1e-12` 이상이어야 합니다.
 
-Quaternion은 **네 값을 모두 입력하거나 모두 생략**합니다.
-입력값은 유한해야 하며 norm이 `1e-12` 이상이어야 합니다.
-유효한 quaternion은 정규화하고, 일부 성분만 입력하거나 0 quaternion이면 거부합니다.
+| 객체의 설정 | 현재 TCP TF 필요 여부 |
+| --- | --- |
+| 절대 위치 + 명시적 자세 | 불필요 |
+| 상대 위치 | 필요 |
+| 현재 자세 유지 | 필요 |
 
-### 상대 이동은 기준 프레임의 축을 따릅니다
-
-```xml
-<!-- 현재 위치에서 base_link Z축으로 0.30 m 상승 -->
-<MoveTcp x="0" y="0" z="0.30" relative="true"/>
-```
-
-| 설정 | 위치 | 자세 |
-| --- | --- | --- |
-| `relative="false"` | 기준 프레임의 절대 위치 | 입력 quaternion 또는 현재 자세 |
-| `relative="true"` | 현재 위치 + 기준 프레임 축 방향 offset | 입력 quaternion 또는 현재 자세 |
-
-!!! note "relative는 위치에만 적용"
-    입력 quaternion은 항상 `frame_id` 기준의 **절대 자세**입니다.
-    현재 자세에 더하는 회전 증분으로 해석하지 않습니다.
-
-상대 위치 또는 자세 유지에는 TF가 필요합니다.
-절대 위치와 quaternion을 모두 지정하면 현재 TCP TF를 조회하지 않습니다.
 목표 프레임과 도달 가능성은 MoveIt이 검증합니다.
-
-### Blackboard에서 pose를 받을 수도 있습니다
-
-```xml
-<MoveTcp x="{target_x}" y="{target_y}" z="{target_z}"
-         qx="{target_qx}" qy="{target_qy}"
-         qz="{target_qz}" qw="{target_qw}"/>
-```
-
-현재 `RunDemo` goal에는 좌표 필드가 없습니다. XML에 상수를 쓰거나,
-다른 BT 노드 등으로 이 blackboard 값을 먼저 채워야 합니다.
 
 ### MoveIt 계획 설정
 

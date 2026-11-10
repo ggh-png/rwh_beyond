@@ -4,21 +4,25 @@
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
+        <Action ID="MakeTcpPose">
+            <output_port name="pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Constructed and validated TcpPose object</output_port>
+            <input_port name="relative" type="bool" default="false">Interpret only position as an offset along frame axes</input_port>
+            <input_port name="qy" type="double">Optional quaternion y; supply all four components</input_port>
+            <input_port name="frame_id" type="std::string" default="base_link">Reference frame for position and orientation</input_port>
+            <input_port name="z" type="double">Required z in metres</input_port>
+            <input_port name="qx" type="double">Optional quaternion x; supply all four components</input_port>
+            <input_port name="y" type="double">Required y in metres</input_port>
+            <input_port name="qw" type="double">Optional quaternion w; supply all four components</input_port>
+            <input_port name="qz" type="double">Optional quaternion z; supply all four components</input_port>
+            <input_port name="x" type="double">Required x in metres</input_port>
+        </Action>
         <Action ID="MoveHome">
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="MoveTcp">
-            <input_port name="x" type="double">Required target x in metres</input_port>
-            <input_port name="qz" type="double">Optional target quaternion z; supply all four components</input_port>
-            <input_port name="qw" type="double">Optional target quaternion w; supply all four components</input_port>
-            <input_port name="y" type="double">Required target y in metres</input_port>
-            <input_port name="qx" type="double">Optional target quaternion x; supply all four components</input_port>
-            <input_port name="z" type="double">Required target z in metres</input_port>
-            <input_port name="frame_id" type="std::string" default="base_link">Target reference frame</input_port>
-            <input_port name="qy" type="double">Optional target quaternion y; supply all four components</input_port>
             <input_port name="tcp_link" type="std::string" default="tcp_link">Controlled TCP link</input_port>
-            <input_port name="relative" type="bool" default="false">Interpret xyz as offsets along reference-frame axes</input_port>
+            <input_port name="pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Required TcpPose object from the blackboard</input_port>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>

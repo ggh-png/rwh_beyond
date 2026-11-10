@@ -13,6 +13,7 @@
   <depend>nav2_behavior_tree</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
+  <depend>rwh_beyond_msgs</depend>
   <depend>shape_msgs</depend>
   <depend>tf2_geometry_msgs</depend>
   <depend>tf2_ros</depend>

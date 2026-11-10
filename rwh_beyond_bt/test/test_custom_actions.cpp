@@ -2,6 +2,7 @@
 #include <chrono>
 #include <cmath>
 #include <mutex>
+#include <limits>
 #include <thread>
 
 #include "gtest/gtest.h"
@@ -12,8 +13,10 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "tf2_ros/buffer.h"
+#include "rwh_beyond_msgs/msg/tcp_pose.hpp"
 
 using FJT = control_msgs::action::FollowJointTrajectory;
+using TcpPose = rwh_beyond_msgs::msg::TcpPose;
 using MoveGroup = moveit_msgs::action::MoveGroup;
 using namespace std::chrono_literals;
 
@@ -83,16 +86,30 @@ protected:
     if (spinner_.joinable()) {spinner_.join();}
   }
 
+  static TcpPose makePose(double x = 0.4, double y = 0.0, double z = 0.5)
+  {
+    TcpPose target;
+    target.pose.position.x = x;
+    target.pose.position.y = y;
+    target.pose.position.z = z;
+    target.pose.orientation.w = 1.0;
+    target.keep_current_orientation = true;
+    return target;
+  }
+
   BT::NodeStatus run(const std::string & node)
+  {
+    return runXml("<root BTCPP_format=\"4\"><BehaviorTree ID=\"Test\">" + node +
+      "</BehaviorTree></root>");
+  }
+
+  BT::NodeStatus runXml(const std::string & xml)
   {
     BT::Tree tree;
     try {
-      tree = factory_.createTreeFromText(
-        "<root BTCPP_format=\"4\"><BehaviorTree ID=\"Test\">" + node +
-        "</BehaviorTree></root>", blackboard_);
+      tree = factory_.createTreeFromText(xml, blackboard_);
     } catch (const std::exception &) {
-      // BT validates malformed literal port values while loading the XML.
-      // The navigator rejects such trees before ticking or sending any goal.
+      // Literal parsing / port mapping errors reject the tree before any goal.
       return BT::NodeStatus::FAILURE;
     }
     const auto end = std::chrono::steady_clock::now() + 3s;
@@ -160,13 +177,14 @@ TEST_F(CustomActions, InvalidGripperInputNeverSendsGoal)
   EXPECT_EQ(gripper_goals_, 0);
 }
 
+
 TEST_F(CustomActions, ArmAbsoluteAndRelativeGoalsPreserveOrientation)
 {
-  ASSERT_EQ(run("<MoveTcp x=\"0.4\" y=\"-0.1\" z=\"0.5\"/>"), BT::NodeStatus::SUCCESS);
+  blackboard_->set("target", makePose(0.4, -0.1, 0.5));
+  ASSERT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::SUCCESS);
   {
     std::lock_guard<std::mutex> lock(mutex_);
-    const auto & constraints = arm_goal_.request.goal_constraints.at(0);
-    const auto & position = constraints.position_constraints.at(0);
+    const auto & position = arm_goal_.request.goal_constraints.at(0).position_constraints.at(0);
     const auto & pose = position.constraint_region.primitive_poses.at(0);
     EXPECT_EQ(position.header.frame_id, "base_link");
     EXPECT_EQ(position.link_name, "tcp_link");
@@ -177,8 +195,10 @@ TEST_F(CustomActions, ArmAbsoluteAndRelativeGoalsPreserveOrientation)
     EXPECT_EQ(arm_goal_.request.group_name, "arm");
     EXPECT_FALSE(arm_goal_.planning_options.plan_only);
   }
-  blackboard_->set("dz", 0.3);
-  ASSERT_EQ(run("<MoveTcp x=\"0\" y=\"0\" z=\"{dz}\" relative=\"true\"/>"), BT::NodeStatus::SUCCESS);
+  auto offset = makePose(0.0, 0.0, 0.3);
+  offset.relative = true;
+  blackboard_->set("target", offset);
+  ASSERT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::SUCCESS);
   {
     std::lock_guard<std::mutex> lock(mutex_);
     const auto & pose = arm_goal_.request.goal_constraints.at(0).position_constraints.at(0).
@@ -189,16 +209,29 @@ TEST_F(CustomActions, ArmAbsoluteAndRelativeGoalsPreserveOrientation)
   }
 }
 
-TEST_F(CustomActions, InvalidArmInputOrMissingTfNeverSendsGoal)
+TEST_F(CustomActions, InvalidPoseOrMissingTfNeverSendsGoal)
 {
-  for (const auto & attrs : {
-      "x=\"0\" y=\"0\"", "x=\"nan\" y=\"0\" z=\"0\"",
-      "x=\"0\" y=\"inf\" z=\"0\"", "x=\"abc\" y=\"0\" z=\"0\"",
-      "x=\"0\" y=\"0\" z=\"0\" frame_id=\"missing_frame\"",
-      "x=\"0\" y=\"0\" z=\"0\" relative=\"invalid\""})
-  {
-    EXPECT_EQ(run(std::string("<MoveTcp ") + attrs + "/>"), BT::NodeStatus::FAILURE) << attrs;
+  auto bad = makePose();
+  bad.pose.position.x = std::numeric_limits<double>::quiet_NaN();
+  blackboard_->set("target", bad);
+  EXPECT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::FAILURE);
+  bad = makePose();
+  bad.pose.position.y = std::numeric_limits<double>::infinity();
+  blackboard_->set("target", bad);
+  EXPECT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::FAILURE);
+  for (const auto & frame : {"", "missing_frame"}) {
+    bad = makePose();
+    bad.frame_id = frame;
+    blackboard_->set("target", bad);
+    EXPECT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::FAILURE);
   }
+  blackboard_->set("target", makePose());
+  EXPECT_EQ(run("<MoveTcp pose=\"{target}\" tcp_link=\"\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(run("<MoveTcp pose=\"{unset_target}\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(run("<MoveTcp/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(run("<MoveTcp x=\"0.4\" y=\"0\" z=\"0.5\"/>"), BT::NodeStatus::FAILURE);
+  blackboard_->set("wrong_type", std::string("not a TcpPose"));
+  EXPECT_EQ(run("<MoveTcp pose=\"{wrong_type}\"/>"), BT::NodeStatus::FAILURE);
   EXPECT_EQ(arm_goals_, 0);
 }
 
@@ -207,18 +240,21 @@ TEST_F(CustomActions, ApplicationErrorsFailEvenWithSucceededRosStatus)
   gripper_error_ = FJT::Result::GOAL_TOLERANCE_VIOLATED;
   EXPECT_EQ(run("<SetGripper opening=\"50\"/>"), BT::NodeStatus::FAILURE);
   arm_error_ = moveit_msgs::msg::MoveItErrorCodes::NO_IK_SOLUTION;
-  EXPECT_EQ(run("<MoveTcp x=\"0.4\" y=\"0\" z=\"0.5\"/>"), BT::NodeStatus::FAILURE);
+  blackboard_->set("target", makePose());
+  EXPECT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::FAILURE);
 }
 
-TEST_F(CustomActions, AbsoluteFullPoseUsesRequestedOrientationWithoutCurrentTf)
+TEST_F(CustomActions, AbsoluteFullPoseUsesMessageFrameAndOrientationWithoutCurrentTf)
 {
   blackboard_->set("tf_buffer", std::shared_ptr<tf2_ros::Buffer>{});
-  ASSERT_EQ(run("<MoveTcp x=\"0.4\" y=\"0.1\" z=\"0.5\" "
-    "qx=\"0\" qy=\"0\" qz=\"0\" qw=\"1\"/>"), BT::NodeStatus::SUCCESS);
+  auto target = makePose(0.4, 0.1, 0.5);
+  target.keep_current_orientation = false;
+  target.frame_id = "world";
+  blackboard_->set("target", target);
+  ASSERT_EQ(run("<MoveTcp pose=\"{target}\" tcp_link=\"tool_tip\"/>"), BT::NodeStatus::SUCCESS);
   std::lock_guard<std::mutex> lock(mutex_);
   const auto & constraints = arm_goal_.request.goal_constraints.at(0);
-  const auto & position = constraints.position_constraints.at(0);
-  const auto & pose = position.constraint_region.primitive_poses.at(0);
+  const auto & pose = constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0);
   const auto & orientation = constraints.orientation_constraints.at(0);
   EXPECT_DOUBLE_EQ(pose.position.x, 0.4);
   EXPECT_DOUBLE_EQ(pose.position.y, 0.1);
@@ -227,17 +263,19 @@ TEST_F(CustomActions, AbsoluteFullPoseUsesRequestedOrientationWithoutCurrentTf)
   EXPECT_DOUBLE_EQ(orientation.orientation.y, 0.0);
   EXPECT_DOUBLE_EQ(orientation.orientation.z, 0.0);
   EXPECT_DOUBLE_EQ(orientation.orientation.w, 1.0);
-  EXPECT_DOUBLE_EQ(pose.orientation.w, 1.0);
-  EXPECT_EQ(orientation.header.frame_id, "base_link");
-  EXPECT_EQ(orientation.link_name, "tcp_link");
+  EXPECT_EQ(orientation.header.frame_id, "world");
+  EXPECT_EQ(orientation.link_name, "tool_tip");
 }
 
-TEST_F(CustomActions, RelativePositionUsesAbsoluteNormalizedBlackboardOrientation)
+TEST_F(CustomActions, RelativePositionNormalizesOrientationWithoutMutatingMessage)
 {
-  blackboard_->set("target_qy", 2.0);
-  blackboard_->set("target_qw", 2.0);
-  ASSERT_EQ(run("<MoveTcp x=\"0\" y=\"0\" z=\"0.3\" relative=\"true\" "
-    "qx=\"0\" qy=\"{target_qy}\" qz=\"0\" qw=\"{target_qw}\"/>"), BT::NodeStatus::SUCCESS);
+  auto target = makePose(0, 0, 0.3);
+  target.relative = true;
+  target.keep_current_orientation = false;
+  target.pose.orientation.y = 2.0;
+  target.pose.orientation.w = 2.0;
+  blackboard_->set("target", target);
+  ASSERT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::SUCCESS);
   std::lock_guard<std::mutex> lock(mutex_);
   const auto & constraints = arm_goal_.request.goal_constraints.at(0);
   const auto & pose = constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0);
@@ -249,22 +287,109 @@ TEST_F(CustomActions, RelativePositionUsesAbsoluteNormalizedBlackboardOrientatio
   EXPECT_NEAR(q.y, std::sqrt(0.5), 1e-12);
   EXPECT_DOUBLE_EQ(q.z, 0.0);
   EXPECT_NEAR(q.w, std::sqrt(0.5), 1e-12);
-  EXPECT_DOUBLE_EQ(pose.orientation.y, q.y);
+  const auto unchanged = blackboard_->get<TcpPose>("target");
+  EXPECT_EQ(unchanged, target);
 }
 
-TEST_F(CustomActions, InvalidQuaternionNeverSendsGoal)
+TEST_F(CustomActions, InvalidQuaternionMessageNeverSendsGoal)
 {
-  for (const auto & attrs : {
-      "qx=\"0\"", "qx=\"0\" qy=\"0\" qz=\"0\"",
-      "qx=\"0\" qy=\"0\" qz=\"0\" qw=\"0\"",
-      "qx=\"0\" qy=\"0\" qz=\"0\" qw=\"1e-15\"",
-      "qx=\"nan\" qy=\"0\" qz=\"0\" qw=\"1\"",
-      "qx=\"0\" qy=\"inf\" qz=\"0\" qw=\"1\"",
-      "qx=\"abc\" qy=\"0\" qz=\"0\" qw=\"1\"",
-      "qx=\"0\" qy=\"0\" qz=\"0\" qw=\"{unset_qw}\""})
+  for (const auto w : {0.0, 1e-15, std::numeric_limits<double>::quiet_NaN(),
+      std::numeric_limits<double>::infinity()})
   {
-    EXPECT_EQ(run(std::string("<MoveTcp x=\"0.4\" y=\"0\" z=\"0.5\" ") + attrs + "/>"),
-      BT::NodeStatus::FAILURE) << attrs;
+    auto target = makePose();
+    target.keep_current_orientation = false;
+    target.pose.orientation.w = w;
+    blackboard_->set("target", target);
+    EXPECT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::FAILURE);
   }
   EXPECT_EQ(arm_goals_, 0);
+}
+
+TEST_F(CustomActions, MakeTcpPosePublishesOneTypedBlackboardObjectWithoutMotion)
+{
+  ASSERT_EQ(run("<MakeTcpPose x=\"0.25\" y=\"0\" z=\"0.35\" "
+    "qx=\"0\" qy=\"0\" qz=\"0\" qw=\"2\" frame_id=\"world\" "
+    "pose=\"{target_pose}\"/>"), BT::NodeStatus::SUCCESS);
+  const auto target = blackboard_->get<TcpPose>("target_pose");
+  EXPECT_EQ(target.frame_id, "world");
+  EXPECT_DOUBLE_EQ(target.pose.position.x, 0.25);
+  EXPECT_DOUBLE_EQ(target.pose.position.z, 0.35);
+  EXPECT_DOUBLE_EQ(target.pose.orientation.w, 1.0);
+  EXPECT_FALSE(target.relative);
+  EXPECT_FALSE(target.keep_current_orientation);
+  EXPECT_EQ(blackboard_->getEntry("target_x"), nullptr);
+  EXPECT_EQ(blackboard_->getEntry("target_qw"), nullptr);
+  const auto & ports = factory_.manifests().at("MoveTcp").ports;
+  EXPECT_EQ(ports.count("pose"), 1u);
+  for (const auto * old : {"x", "y", "z", "qx", "qy", "qz", "qw", "frame_id", "relative"}) {
+    EXPECT_EQ(ports.count(old), 0u);
+  }
+  EXPECT_EQ(arm_goals_, 0);
+  EXPECT_EQ(gripper_goals_, 0);
+}
+
+TEST_F(CustomActions, MakeAndMovePoseSequenceUsesSingleObject)
+{
+  ASSERT_EQ(run("<Sequence>"
+    "<MakeTcpPose x=\"0\" y=\"0\" z=\"0.30\" relative=\"true\" pose=\"{lift_pose}\"/>"
+    "<MoveTcp pose=\"{lift_pose}\"/>"
+    "</Sequence>"), BT::NodeStatus::SUCCESS);
+  const auto target = blackboard_->get<TcpPose>("lift_pose");
+  EXPECT_TRUE(target.relative);
+  EXPECT_TRUE(target.keep_current_orientation);
+  std::lock_guard<std::mutex> lock(mutex_);
+  const auto & pose = arm_goal_.request.goal_constraints.at(0).position_constraints.at(0).
+    constraint_region.primitive_poses.at(0);
+  EXPECT_DOUBLE_EQ(pose.position.z, 0.6);
+  EXPECT_DOUBLE_EQ(pose.orientation.z, 0.7071067811865476);
+}
+
+TEST_F(CustomActions, InvalidBuilderInputDoesNotOverwriteOrMove)
+{
+  const auto original = makePose();
+  blackboard_->set("made_pose", original);
+  for (const auto & attrs : {
+      "x=\"0\" y=\"0\"", "x=\"nan\" y=\"0\" z=\"0\"",
+      "x=\"abc\" y=\"0\" z=\"0\"", "x=\"0\" y=\"0\" z=\"0\" qx=\"0\"",
+      "x=\"0\" y=\"0\" z=\"0\" qx=\"0\" qy=\"0\" qz=\"0\" qw=\"0\"",
+      "x=\"0\" y=\"0\" z=\"0\" qx=\"0\" qy=\"inf\" qz=\"0\" qw=\"1\"",
+      "x=\"0\" y=\"0\" z=\"0\" frame_id=\"\"",
+      "x=\"0\" y=\"0\" z=\"0\" relative=\"invalid\""})
+  {
+    EXPECT_EQ(run(std::string("<Sequence><MakeTcpPose ") + attrs +
+      " pose=\"{made_pose}\"/><MoveTcp pose=\"{made_pose}\"/></Sequence>"), BT::NodeStatus::FAILURE);
+    EXPECT_EQ(blackboard_->get<TcpPose>("made_pose"), original);
+  }
+  EXPECT_EQ(run("<MakeTcpPose x=\"0\" y=\"0\" z=\"0\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(arm_goals_, 0);
+}
+
+TEST_F(CustomActions, TypedPoseCanBeReusedAndUpdated)
+{
+  blackboard_->set("target", makePose());
+  EXPECT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::SUCCESS);
+  blackboard_->set("target", makePose(0.2, 0.1, 0.3));
+  ASSERT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::SUCCESS);
+  std::lock_guard<std::mutex> lock(mutex_);
+  const auto & pose = arm_goal_.request.goal_constraints.at(0).position_constraints.at(0).
+    constraint_region.primitive_poses.at(0);
+  EXPECT_DOUBLE_EQ(pose.position.x, 0.2);
+  EXPECT_DOUBLE_EQ(pose.position.y, 0.1);
+  EXPECT_DOUBLE_EQ(pose.position.z, 0.3);
+  EXPECT_EQ(arm_goals_, 2);
+}
+
+TEST_F(CustomActions, TypedPosePassesThroughSubtreeRemapping)
+{
+  ASSERT_EQ(runXml(R"(
+    <root BTCPP_format="4" main_tree_to_execute="Main">
+      <BehaviorTree ID="Main">
+        <Sequence>
+          <MakeTcpPose x="0.25" y="0" z="0.35" pose="{target_pose}"/>
+          <SubTree ID="Motion" target="{target_pose}" _autoremap="true"/>
+        </Sequence>
+      </BehaviorTree>
+      <BehaviorTree ID="Motion"><MoveTcp pose="{target}"/></BehaviorTree>
+    </root>)"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(arm_goals_, 1);
 }

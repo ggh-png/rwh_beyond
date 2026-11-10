@@ -8,6 +8,7 @@ BT navigator는 별도의 launch로 실행합니다.
 | 알고 싶은 것 | 읽을 문서 |
 | --- | --- |
 | 구성 요소와 실행 흐름 | 이 페이지 |
+| Runner 자동 기동과 depth 충돌 계획 | [Depth 관측과 runner 흐름](depth-bt-flow.md) |
 | 그리퍼 mm, 목표 좌표와 자세 입력 | [BT 노드 사용법](bt-nodes.md) |
 | 빌드, runner, Groot2, 검증 | [실행과 Groot2](bt-operation.md) |
 
@@ -43,9 +44,9 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 
 | 패키지 | 책임 |
 | --- | --- |
-| `rwh_beyond_msgs` | `RunDemo.action` 정의 |
+| `rwh_beyond_msgs` | `RunDemo.action`, `TcpPose.msg` 정의 |
 | `rwh_beyond_navigator` | goal 수신, XML 로드, 트리 실행, 진행 상태와 결과 전달 |
-| `rwh_beyond_bt` | BT 노드 6개, 실행 XML, Groot2 모델 XML, 생성기와 테스트 |
+| `rwh_beyond_bt` | BT 노드 7개, 실행 XML, Groot2 모델 XML, 생성기와 테스트 |
 | `rwh_beyond_bringup` | BT navigator와 lifecycle manager launch |
 
 외부 레포는 실행 기반을 제공합니다.
@@ -54,7 +55,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 | --- | --- |
 | `moma-mj-lab` | MuJoCo 시뮬레이션과 ROS bridge |
 | `agx_arm_ros` | 공식 모델, MoveIt 설정, 실물 드라이버 |
-| `ros_runner` | `piper_sim`과 `bt_demo`의 독립 실행 및 로봇 실행 경로 간 상호 비활성화 |
+| `ros_runner` | `bt_demo → piper_sim` 자동 의존성 실행 및 로봇 실행 경로 간 상호 비활성화 |
 
 !!! note "현재 로봇 모델"
     패키지 이름은 공통으로 쓰지만 구현은 PiPER의 `arm` group,
@@ -86,7 +87,7 @@ flowchart TD
 | 로드 대상 | `rwh_beyond_navigator::DemoNavigator` | `rwh_beyond_bt_nodes` |
 
 BT 라이브러리의 실제 파일명은 `librwh_beyond_bt_nodes.so`입니다.
-`BT_REGISTER_NODES`가 6개 노드를 등록하며, `BT_PLUGIN_EXPORT` compile definition이
+`BT_REGISTER_NODES`가 7개 노드를 등록하며, `BT_PLUGIN_EXPORT` compile definition이
 `BT_RegisterNodesFromPlugin` 심볼을 공개합니다.
 
 ## Goal을 받으면 일어나는 일
@@ -136,19 +137,19 @@ sequenceDiagram
 | 5 | `OpenGripper` | 그리퍼 열기 |
 
 `parameterized_demo.xml`은 같은 작업을 입력 가능한 `MoveTcp`와 `SetGripper`로
-표현한 예제입니다. 기본 트리는 `demo.xml`입니다.
+표현한 예제입니다. `MakeTcpPose`가 목표 객체를 만들고 `MoveTcp`가 객체 하나를 받습니다.
+기본 트리는 `demo.xml`입니다.
 
 ## 소스에서 찾아볼 위치
 
 ```text
 rwh_beyond_bt/
-├── src/action/                  # action 노드 6개
+├── src/action/                  # action 노드 7개
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp
 ├── include/rwh_beyond_bt/action/ # 공통 action 베이스
-├── behavior_trees/              # 실행할 트리
-├── rwh_beyond_tree_nodes.xml     # Groot2 노드 모델
+├── behavior_trees/              # 실행 트리와 Groot2 노드 모델 XML
 └── test/test_custom_actions.cpp  # mock 테스트
 ```
 

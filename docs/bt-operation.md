@@ -25,17 +25,44 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch rwh_beyond_bringup bt_demo.launch.py
 ```
 
-`ros_runner`에서는 먼저 `piper_sim`을 실행하고 준비가 끝나면 `bt_demo`를 실행합니다.
-`bt_demo`는 시뮬레이션을 자동으로 시작하거나 종료하지 않습니다. **Launch만으로
-demo goal을 보내지는 않습니다.**
-`piper_sim`, `piper_moveit_sim`, `piper_moveit`은 서로 비활성화합니다.
-`piper_moveit`을 시작하면 `bt_demo`도 종료됩니다. 시뮬레이션을 종료할 때는
-`bt_demo`도 별도로 종료하세요.
+`ros_runner`에서 **`bt_demo`만 활성화**하면 `requires: [piper_sim]`에 의해
+MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_sim`은 재사용합니다.
+BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
+**자동으로 demo goal을 보내지는 않습니다.**
+
+```bash
+ros2 service call /ros_runner/activate_bt_demo std_srvs/srv/Empty "{}"
+# navigator와 사용되지 않는 simulator 의존성 종료
+ros2 service call /ros_runner/deactivate_bt_demo std_srvs/srv/Empty "{}"
+```
+
+`piper_sim`을 중지하면 이에 의존하는 `bt_demo`도 중지됩니다.
+다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
+YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.
+
+### 기본 RViz 화면
+
+시뮬레이션은 `scene_source:=depth`와 `moma_bringup/config/depth_planning.rviz`를 사용합니다.
+
+| 표시 | Topic / 데이터 | 기본 상태 |
+| --- | --- | --- |
+| MotionPlanning | `/monitored_planning_scene`의 로봇·Octomap | 켜짐 |
+| Planned Path | `/display_planned_path` | 켜짐 |
+| Depth points - robot filtered | `/camera/depth/filtered_points` | 켜짐, cyan |
+| Depth points - raw | `/camera/depth/color/points` | 비교용, 꺼짐 |
+| RGB camera | `/camera/color/image_raw` | 켜짐 |
+| Depth camera | `/camera/depth/image_rect_raw` | 켜짐 |
+| Camera pose | `/camera/pose` | 비교용, 꺼짐 |
+
+Octomap은 별도 `/octomap` display가 아니라 MotionPlanning의 Scene Geometry에 표시됩니다.
+점군·영상은 센서의 Best Effort QoS에 맞췄습니다. 겹쳐 보이면 Displays에서 점군을 끄고
+Octomap만 확인하세요. 최초 계획 전 카메라 영상과 Octomap 수신을 확인하세요.
+GUI 옵션은 runner 시작 전 `RWH_PIPER_SIM_GUI`, `RWH_PIPER_SIM_RVIZ` 환경변수로 바꿀 수 있습니다.
 
 | 실행 경로 | 대상 |
 | --- | --- |
 | `piper_sim` | MuJoCo + MoveIt (GUI, RViz 및 그리퍼 설정 가능) |
-| `bt_demo` | BT navigator 및 lifecycle manager |
+| `bt_demo` | `piper_sim` 자동 시작 + BT navigator 및 lifecycle manager |
 | `piper_moveit_sim` | MuJoCo + MoveIt |
 | `piper_moveit` | 실물 CAN 드라이버 + MoveIt |
 
@@ -74,7 +101,7 @@ groot2
 
 다음 순서로 파일을 불러옵니다.
 
-1. **노드 모델 가져오기:** `rwh_beyond_bt/rwh_beyond_tree_nodes.xml`
+1. **노드 모델 가져오기:** `rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml`
 2. **트리 열기:** `rwh_beyond_bt/behavior_trees/demo.xml` 또는 `parameterized_demo.xml`
 
 위 경로는 `/root/ros2_ws/src/rwh_beyond/` 기준입니다.
@@ -108,7 +135,7 @@ Groot2는 모델 XML로 포트를 표시합니다. 실행 구현은 navigator가
 source /opt/ros/jazzy/setup.bash
 source /root/ros2_ws/install/setup.bash
 ros2 run rwh_beyond_bt generate_tree_nodes_xml \
-  /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/rwh_beyond_tree_nodes.xml
+  /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
 ```
 
 - **Navigator:** 프로세스를 재시작해 새 라이브러리를 로드합니다.
@@ -126,7 +153,7 @@ colcon test-result --test-result-base build/rwh_beyond_bt/test_results
 
 | 검증 | 확인한 내용 |
 | --- | --- |
-| Mock 테스트 8개 | mm 변환, 정수·범위 검사, 절대·상대 위치, 자세 유지, quaternion 전달·정규화 |
+| Mock 테스트 13개 | mm 변환, 객체 생성·전달·재사용·SubTree 연결, 위치·자세와 quaternion 정규화 |
 | 잘못된 입력 테스트 | quaternion·TF·blackboard 입력 오류, application error 처리 |
 | Headless 통합 실행 | lifecycle active, action server 등록, 라이브러리 로딩 |
 

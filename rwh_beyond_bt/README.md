@@ -32,7 +32,7 @@ After building and sourcing the workspace, regenerate the palette from the actua
 plugin registrations (no ROS nodes are constructed and no motion is requested):
 
 ```bash
-ros2 run rwh_beyond_bt generate_tree_nodes_xml /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/rwh_beyond_tree_nodes.xml
+ros2 run rwh_beyond_bt generate_tree_nodes_xml /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
 ```
 
 Compare and commit the resulting XML when node IDs or ports change. The XML is
@@ -63,59 +63,94 @@ happen to coincide for this 100 mm model.
 The node calls `gripper_controller/follow_joint_trajectory` using joint `gripper`.
 Changing this model's gripper geometry requires updating the aperture limit.
 
-### MoveTcp
+### TcpPose: one object per target
 
-```xml
-<!-- Absolute position in base_link, metres; retain current TCP orientation. -->
-<MoveTcp x="0.25" y="0.0" z="0.35"/>
-<!-- Absolute full pose: quaternion orientation in base_link. -->
-<MoveTcp x="0.25" y="0.0" z="0.35" qx="0" qy="0" qz="0" qw="1"/>
-<!-- Pose values may come from the blackboard. -->
-<MoveTcp x="{target_x}" y="{target_y}" z="{target_z}"
-         qx="{target_qx}" qy="{target_qy}" qz="{target_qz}" qw="{target_qw}"/>
-<!-- Relative offset along base_link axes, not rotated TCP axes. -->
-<MoveTcp x="0" y="0" z="0.30" relative="true"/>
-<!-- Blackboard values are supported on every input port. -->
-<MoveTcp x="{target_x}" y="{target_y}" z="{target_z}"/>
+`rwh_beyond_msgs/msg/TcpPose` groups position, quaternion and target semantics:
+
+```text
+string frame_id "base_link"
+geometry_msgs/Pose pose
+bool relative false
+bool keep_current_orientation false
 ```
 
-`x`, `y`, `z` are required finite metre values. `frame_id` defaults to `base_link`,
-`tcp_link` defaults to `tcp_link`, and `relative` defaults to `false`.
+Position is in metres; orientation is a quaternion in x/y/z/w order in
+`frame_id`. `relative` affects only position. `keep_current_orientation=true`
+ignores the stored orientation and uses the measured TCP orientation instead.
+The ROS Quaternion default is identity `(0, 0, 0, 1)`. A directly constructed
+message therefore requests identity orientation unless `keep_current_orientation`
+is set to true. `MakeTcpPose` chooses retained orientation when quaternion inputs
+are omitted.
 
-`qx`, `qy`, `qz`, `qw` optionally specify the target orientation as a quaternion
-in `frame_id` (ROS component order x, y, z, w). Supply all four together or omit
-all four to preserve the current TCP orientation. Values must be finite and the
-quaternion norm must be at least 1e-12; accepted quaternions are normalized before
-being sent to MoveIt. Partial, zero-length or invalid quaternions fail without
-sending a goal. Blackboard references that cannot be resolved also fail.
+### MakeTcpPose → MoveTcp
 
-`relative="true"` affects **only position**: the supplied orientation remains an
-absolute orientation in `frame_id`, not a rotational increment. TF is required
-for relative position or omitted orientation; an absolute full pose does not
-need a current-TCP TF lookup. MoveIt still validates the target frame and pose.
-This is a MoveIt pose goal, not a guaranteed straight-line Cartesian path. It uses
-`arm`, OMPL/RRTConnect, 10 seconds of planning, 0.1 velocity/acceleration scaling,
-5 mm position tolerance and 0.01 rad orientation tolerances.
+Create a target once and share one typed blackboard entry:
 
-Both nodes also accept Nav2's `server_name` and `server_timeout` ports. Inputs are
-read at the start of each invocation. Malformed literal values reject the XML at load time. Invalid runtime inputs
-and unavailable transforms return BT FAILURE without sending a goal. MoveIt/controller application errors
-and cancellations return FAILURE; unreachable or colliding targets do not fall
-back to arbitrary joint targets. Existing fixed-sequence nodes and `demo.xml`
-are unchanged. Example coordinates must be checked for the current scene before
-execution.
+```xml
+<Sequence>
+  <MakeTcpPose x="0.25" y="0" z="0.35"
+               qx="0" qy="0" qz="0" qw="1" pose="{target_pose}"/>
+  <MoveTcp pose="{target_pose}"/>
+</Sequence>
+```
 
-After rebuilding, restart the navigator to load the updated shared library and
-re-import `rwh_beyond_tree_nodes.xml` in Groot2. The model XML is editor metadata;
-it does not install executable node implementations into the editor.
+`MakeTcpPose` is a synchronous, local builder: it creates a message and never
+sends a motion goal. It requires `x`, `y`, `z` and an output `pose` mapping.
+`frame_id` defaults to `base_link`; `relative` defaults to `false`. Supply all
+four quaternion inputs to set orientation, or omit all four to set
+`keep_current_orientation=true`. Partial/invalid quaternions fail. The builder
+writes the output only after validation succeeds.
+
+For a relative lift preserving current orientation:
+
+```xml
+<Sequence>
+  <MakeTcpPose x="0" y="0" z="0.30" relative="true" pose="{lift_pose}"/>
+  <MoveTcp pose="{lift_pose}"/>
+</Sequence>
+```
+
+An upstream C++ BT node can also directly supply the ROS message:
+
+```cpp
+rwh_beyond_msgs::msg::TcpPose target;
+target.pose.position.x = 0.25;
+target.pose.position.z = 0.35;
+target.pose.orientation.w = 1.0;
+blackboard->set("target_pose", target);
+```
+
+`MoveTcp` now accepts **only** `pose` and optional `tcp_link` (default
+`tcp_link`), plus the inherited Nav2 `server_name` and `server_timeout` ports.
+The former scalar position/quaternion/frame/relative ports are removed; migrate
+old XML by creating a `TcpPose` with `MakeTcpPose` or another typed producer.
+A string is not a `TcpPose` object. No custom literal parsing or ROS topic
+subscription is implied by the message definition. The `RunDemo` action fields
+are unchanged; remote producers would need an explicit bridge into the blackboard.
+
+Positions must be finite and `frame_id`/`tcp_link` nonempty. Explicit quaternion
+components must be finite with norm at least 1e-12; normalization works on a
+copy and never mutates the blackboard object. TF is required for relative
+position or retained orientation; an absolute full pose needs no current-TCP
+TF lookup. MoveIt still validates the target frame and pose.
+
+The pose goal uses `arm`, OMPL/RRTConnect, 10 seconds of planning, 0.1 speed and
+acceleration scaling, 5 mm position tolerance and 0.01 rad orientation tolerances.
+It does not guarantee a straight-line Cartesian path. Invalid runtime inputs,
+unavailable required TF, controller/MoveIt application errors and cancellations
+return FAILURE. There is no fallback to arbitrary joint targets.
+
+After rebuilding, restart the navigator to load the updated library and
+re-import `rwh_beyond_tree_nodes.xml` in Groot2. The default `demo.xml` and the
+four fixed-sequence nodes are unchanged.
 
 ## Verification
 
 `colcon test --packages-select rwh_beyond_bt --event-handlers console_direct+`
 uses mock action servers in ROS domain 87, without moving a robot. It checks goal
-conversion, absolute/relative frames, explicit/retained orientation, quaternion
-normalization, blackboard inputs, invalid inputs, missing TF and application
-failure results.
+conversion, typed message construction/reuse/SubTree remapping, absolute/relative
+frames, explicit/retained orientation, quaternion normalization without source
+mutation, invalid inputs, missing TF and application failure results.
 
 `rwh_beyond_bt/behavior_trees/parameterized_demo.xml` demonstrates the original
 home, +0.30 m along base_link Z, close, home, open sequence using the two new
