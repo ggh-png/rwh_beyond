@@ -164,6 +164,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#sam-graspgenx-bt" class="nav-link">SAM 마스크 → 로컬 점군 → GraspGenX를 BT 단계로 분리</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -262,7 +266,28 @@ sam3.pt를 다운로드했다. 토큰은 사용자 숨김 입력/개인 캐시�
 <li>Bridge/runner 49 tests와 시뮬레이터 4 tests 재통과. 문서 빌드·diff 검사 통과.</li>
 </ul>
 <p><a href="../sam3-perception/">실제 모델·BT·runner 상세 기록</a>과 JSON/마스크 이미지를 추가했다.
-GPU 모델은 실행 상태로 유지하고 테스트 ROS 프로세스는 정리했다.</p></div>
+GPU 모델은 실행 상태로 유지하고 테스트 ROS 프로세스는 정리했다.</p>
+<h2 id="sam-graspgenx-bt">SAM 마스크 → 로컬 점군 → GraspGenX를 BT 단계로 분리<a class="headerlink" href="#sam-graspgenx-bt" title="Permanent link">&para;</a></h2>
+<p>사용자가 요청한 최종 데이터 경로를 BT에 명시했다. GraspStep의 segment_target은
+RGB를 SAM으로 보내 마스크를 받고, build_object_cloud는 로봇 PC ROS CPU에서 같은
+Depth/K를 역투영해 PointCloud2를 먼저 발행한다. prepare는 그 점군을 POINT_CLOUD
+Action으로 보내 GraspGenX 추론·후보 검사를 한다. 별도의 RGBD 편의 Action도 유지한다.</p>
+<ul>
+<li>관측 30초 만료 및 팔 관절 변화 시 재관측을 요구한다. 실패/취소 시 관측 context 정리.</li>
+<li>기본 demo.xml에 위 두 단계를 추가하고 MoveObservation을 활성화했다. 마지막 홈 복귀 유지.</li>
+<li>baseline에서 로컬 점군 2780점 → 추론 시작 순서와 실제 파지/리프트 성공.</li>
+<li>전체 기본 트리에서 2783점 → 약 7.6 cm 리프트 → 홈 복귀, 양쪽 접촉 유지 성공.</li>
+<li>한 전체 트리 시도는 관측 이동 전 START_STATE_INVALID로 중단돼 실패 기록도 보존했다.
+  해당 시도에서 SAM/점군 단계는 실행하지 않았으며 충돌 검사는 해제하지 않았다.</li>
+<li>Bridge/runner 단위·통신 검사 52 tests와 3 subtests 통과.</li>
+<li>mesh는 만들지 않았다. GraspGenX의 XYZ 입력을 사용하며 완전한 뒷면 형상 복원은 보장하지 않는다.</li>
+</ul>
+<p>실측 수치와 실패를 포함한 기록은 <a href="../sam3-perception/">SAM 로컬 점군 실험</a>에 정리했다.
+원격 공용 GPU 서버 배포와 실물 로봇 동작은 이번 실험 범위가 아니다.</p>
+<p>추가 runner에서는 취소/복원과 재실행 리프트 후 5초 유지 시 물체가 미끄러졌다.
+다른 시작 시도는 lifecycle get_state 요청 실패로 중단됐다. 전체 트리 성공 실험과
+분리해 기록했으며 장시간 파지 튜닝을 범위 밖으로 유지했다. 로컬 XYZ를 PLY/NPY로
+저장하고 동일 점군으로 실제 서버 후보 반환도 확인했다.</p></div>
             </div>
         </div>
 

@@ -168,6 +168,10 @@
               <ul class="nav flex-column">
               </ul>
             </li>
+            <li class="nav-item" data-bs-level="2"><a href="#bt" class="nav-link">명시적인 BT 로컬 점군 흐름</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -180,18 +184,19 @@
 <p>색상에 의존하지 않는 분할 경로를 추가했다. GPU 모델은 같은 서버의 서로 다른
 컨테이너에서 실행한다. ROS/MoveIt은 로봇 컨테이너에만 둔다.</p>
 <pre><code class="language-mermaid">flowchart LR
-  A[등록된 RGB-D + CameraInfo + 대상 지정] --&gt; B[InferGrasps RGBD Action]
-  B --&gt; C[ZMQ 5567: SAM 3 컨테이너]
+  A[BT segment_target: RGB + 대상 지정] --&gt; C[ZMQ 5567: SAM 3 컨테이너]
   C --&gt; D[선택 객체 마스크 + 분할 점수]
-  D --&gt; E[ROS CPU: 실측 Depth 역투영]
-  E --&gt; F[ZMQ 5566: 기존 GraspGenX 컨테이너]
+  D --&gt; E[BT build_object_cloud: 로컬 ROS CPU + Depth/K]
+  E --&gt; B[BT prepare: InferGrasps POINT_CLOUD Action]
+  B --&gt; F[ZMQ 5566: 기존 GraspGenX 컨테이너]
   F --&gt; G[PoseStamped 후보 + 파지 점수 + 마스크]
   G --&gt; H[시뮬레이션 coordinator: TF/TCP/충돌 검사]
 </code></pre>
 <p>SAM 3는 마스크를 만들고 GraspGenX는 XYZ로 파지 후보를 만든다. 가벼운 Depth 역투영은
 기존 CPU ROS Bridge를 재사용한다. Depth 전체를 GPU 서버로 전송할 필요가 없고
 GraspGenX 공식 프로토콜도 유지한다. SAM 3D의 생성 형상이나 RGB에서 추정한 깊이를
-사용하지 않는다. 두 GPU 모델은 하나의 Action 안에서 순차 호출한다.</p>
+사용하지 않는다. BT는 분할·로컬 점군·파지 추론 단계를 각각 실행한다. 별도로 제공하는 RGBD 입력 Action은
+동일 처리를 하나의 추론 Action 안에서 순차 호출하는 편의 인터페이스다.</p>
 <p>공식 가중치 접근 승인과 fine-grained 토큰의 gated repo 읽기 권한을 확인한 뒤
 다운로드·실제 SAM 3 추론을 완료했다. 저장한 시뮬레이션 RGB-D 320×240에서
 텍스트 <code>red box</code>로 객체 1개를 분리하고 실제 GraspGenX 후보 20개를 ROS Action으로
@@ -403,7 +408,64 @@ ROS_DOMAIN_ID=92 python3 \
 성공 여부는 별도 검증해야 한다. 전체 SAM·GraspGenX 서버는 계속 실행 중이고,
 검증용 ROS domain의 프로세스는 종료했다. 실제 상태는 health로 확인한다.</p>
 <p>관련 메시지 변경 이후 기존 runner가 계속 실행 중이었다면 runner를 재시작해
-새 설정을 로드한다. GPU 서버는 runner와 별도로 유지하며 중복 모델 기동은 피한다.</p></div>
+새 설정을 로드한다. GPU 서버는 runner와 별도로 유지하며 중복 모델 기동은 피한다.</p>
+<h2 id="bt">명시적인 BT 로컬 점군 흐름<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h2>
+<p>사용자 요청에 따라 BT 경로는 다음 세 단계로 나눴다. 기존 GraspStep 플러그인이
+각 command를 coordinator로 전달하므로 새 C++ 플러그인 종류나 Action 타입 변경은 없다.</p>
+<pre><code class="language-xml">&lt;GraspStep name=&quot;SegmentTargetWithSAM&quot; command=&quot;segment_target&quot; server_timeout=&quot;1000&quot;/&gt;
+&lt;GraspStep name=&quot;BuildLocalObjectCloud&quot; command=&quot;build_object_cloud&quot; server_timeout=&quot;1000&quot;/&gt;
+&lt;GraspStep name=&quot;PrepareRedBoxGrasp&quot; command=&quot;prepare&quot; server_timeout=&quot;1000&quot; pregrasp=&quot;{red_pregrasp}&quot;/&gt;
+</code></pre>
+<ol>
+<li>segment_target: 새 RGB-D와 촬영 시각 TF를 저장하고, RGB/프롬프트를 SAM 서버에 보내
+   선택 객체 마스크를 받는다. <code>/grasp/object_mask</code>를 발행한다.</li>
+<li>build_object_cloud: <strong>로봇 PC의 ROS 컨테이너 CPU</strong>에서 원본 Depth/CameraInfo와 마스크를
+   역투영해 미터 단위 float32 XYZ를 만들고 <code>/grasp/object_cloud</code>로 먼저 발행한다.</li>
+<li>prepare: 위의 PointCloud2를 <strong>POINT_CLOUD 모드</strong> InferGrasps Action에 그대로 전달한다.
+   Bridge가 검증한 XYZ를 GraspGenX 서버에 보낸다. 후보 변환·IK·충돌/경로 검사는 기존과 같다.</li>
+</ol>
+<p>BT 경로는 RGBD Action을 다시 호출하지 않으므로 SAM이나 역투영을 중복 실행하지 않는다.
+독립 클라이언트용 RGBD Action도 유지한다. legacy prepare만 호출하면 내부에서 분할·점군
+단계를 수행한다. 30초 지난 관측이나 촬영 후 팔 관절이 0.02 rad 넘게 달라진 관측은 무효화한다.
+이는 움직이는 대상의 추적을 대신하지 않으며 정지한 장면이 전제다.
+실패/취소는 관측 context와 대상 제외/접촉 설정을 정리한다.</p>
+<p>현재 GraspGenX는 XYZ 입력을 받으므로 mesh 재구성은 추가하지 않았다. 측정한 표면 점군으로
+추론하며 보이지 않는 뒷면의 완전한 형상은 보장하지 않는다. mesh는 추후 충돌 형상 개선과
+별도로 평가할 수 있다. 분할 마스크만으로는 XYZ를 만들 수 없어 정렬된 실측 Depth와 K가 필요하다.</p>
+<p>명시적 세 단계의 첫 baseline 실험에서 <code>local_object_cloud points=2780</code>이
+<code>infer_grasps_from_local_cloud</code>보다 먼저 발생했고 실제 접촉·리프트에 성공했다.
+세부 결과는 validation JSON의 최신 local_cloud 실험 기록을 참고한다.
+기본 demo.xml은 실험에 필요한 MoveObservation을 활성화했으며 마지막 MoveHome을 유지한다.</p>
+<h3 id="_2">명시적 로컬 점군 경로의 전체 트리 실험<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>기본 트리의 MoveObservation을 켠 상태에서 <strong>마지막 MoveHome을 포함한 전체 순서</strong>를
+독립 domain 102에서 실행했다. 로컬 PointCloud 2783점이 추론보다 먼저 발행됐고,
+파지·약 7.6 cm 리프트·홈 복귀까지 status=SUCCEEDED/error_code=0이었다.
+홈 복귀 후 물체 중심 높이는 약 21.25 cm, 양쪽 접촉은 유지됐다. 이는 단일 성공 실험이며
+장시간 파지 안정성이나 반복 성공률을 보장하지 않는다.</p>
+<p>앞선 domain 101의 전체 트리 시도는 MoveObservation 전에 START_STATE_INVALID로 중단됐다.
+그 실행에서는 SAM/점군 단계에 도달하지 않았다. 충돌 검사를 끄거나 실패를 성공으로
+바꾸지 않았고, 새 독립 domain의 후속 실행에서 전체 트리가 성공했다. 이 간헐적 시작 상태
+거부의 원인을 확정한 것은 아니므로 실패 기록도 JSON에 보존했다.</p>
+<pre><code class="language-bash">SAM_PICK_FULL_TREE=1 ROS_DOMAIN_ID=102 MUJOCO_GL=osmesa python3 \
+  /root/ros2_ws/src/rwh_beyond/rwh_beyond_grasp_bridge/test/sam_pick_integration.py
+</code></pre>
+<p>미지정 시 위 스크립트는 관측·리프트까지의 baseline을 검사한다. 전체 트리 모드는 리프트
+검증 단계와 Action 성공을 요구하고 홈 복귀 후 접촉/높이는 결과에 기록한다.</p>
+<h3 id="_3">추가 실험과 점군 파일<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>같은 SAM 마스크·실측 Depth에서 로컬 CPU가 만든 XYZ 2783점을 NPY와 ASCII PLY로
+내보냈다. 좌표계는 d405_color_optical_frame, 단위 m다. PLY는 point cloud이며 triangle mesh가 아니다.
+동일 XYZ를 실제 GraspGenX에 전송해 40개 후보를 받았다. 공식 서버가 요청 top-k보다
+많이 반환할 수 있으므로 ROS Bridge는 최종 top_k를 다시 적용한다.
+호스트 파일은 <code>~/sam3_workspace/logs/object-cloud.ply</code>, <code>object-cloud.npy</code>다.</p>
+<p>추가 runner 실험: domain 103은 lifecycle get_state 요청 실패로 활성화 전에 중단됐다.
+domain 104에서는 후보 선택 중 취소·영역/ACM 복원, 재실행 리프트 검증까지 진행했으나
+이후 <strong>5초 유지 검사에서 물체가 미끄러져</strong> contact/height assertion이 실패했다.
+새 흐름의 이 추가 실행에서 보유 중 재goal 차단 검사는 그 지점까지 도달하지 않았다.
+이전 흐름의 runner 성공 기록과 구분하며, 추가 실패도 JSON에 기록했다.
+사용자가 장시간 파지 유지 튜닝을 이번 범위에서 제외해 마찰/접촉/그리퍼 한도를 변경하지 않았다.</p>
+<p>단위·프로토콜 테스트는 52 tests + 3 subtests 통과했지만, 위의 실제 실험들을 모두
+성공한 실행으로 집계하지 않는다. 기본 전체 트리 성공, baseline 성공, 시작 상태 거부,
+runner 시작 실패 및 후속 파지 유지 실패를 각각 구분한다.</p></div>
             </div>
         </div>
 

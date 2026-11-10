@@ -199,7 +199,7 @@
 <tr>
 <td><code>GraspStep</code></td>
 <td>command, pregrasp 출력</td>
-<td>파지 단계별 Action 호출, prepare에서만 모델 추론</td>
+<td>분할·로컬 점군·파지 준비 등 단계별 Action 호출</td>
 </tr>
 <tr>
 <td><code>MoveObservation</code></td>
@@ -537,9 +537,13 @@ blackboard-&gt;set(&quot;target_pose&quot;, target);
 <p>이는 actuator force를 통한 접촉 추정입니다. 물체가 안정적으로 파지됐는지를
 독립적으로 검증하는 조건은 아닙니다.</p>
 <h2 id="graspstep">GraspStep — 파지 단계별 공통 플러그인<a class="headerlink" href="#graspstep" title="Permanent link">&para;</a></h2>
-<p>같은 노드를 여러 번 쓰지만 <code>command</code>에 따라 다른 단계를 수행한다. <code>prepare</code>에서만
+<p>같은 노드를 여러 번 쓰지만 <code>command</code>에 따라 다른 단계를 수행한다. <code>segment_target</code>은 SAM 분할,
+<code>build_object_cloud</code>는 로컬 ROS CPU의 Depth 역투영·PointCloud 발행, <code>prepare</code>는 GraspGenX 추론과 후보 검사를 한다.
+기존 prepare 단독 호출도 내부적으로 앞의 두 단계를 실행할 수 있다. <code>prepare</code>에서만
 RGB-D 인식과 GraspGenX 추론을 한 번 실행한다. XML <code>name</code>으로 Groot2에서 단계를 구분한다.</p>
-<pre><code class="language-xml">&lt;GraspStep name=&quot;PrepareRedBoxGrasp&quot; command=&quot;prepare&quot; server_timeout=&quot;1000&quot; pregrasp=&quot;{red_pregrasp}&quot;/&gt;
+<pre><code class="language-xml">&lt;GraspStep name=&quot;SegmentTargetWithSAM&quot; command=&quot;segment_target&quot; server_timeout=&quot;1000&quot;/&gt;
+&lt;GraspStep name=&quot;BuildLocalObjectCloud&quot; command=&quot;build_object_cloud&quot; server_timeout=&quot;1000&quot;/&gt;
+&lt;GraspStep name=&quot;PrepareRedBoxGrasp&quot; command=&quot;prepare&quot; server_timeout=&quot;1000&quot; pregrasp=&quot;{red_pregrasp}&quot;/&gt;
 &lt;GraspStep name=&quot;MoveToRedPregrasp&quot; command=&quot;move_pregrasp&quot; server_timeout=&quot;1000&quot;/&gt;
 &lt;GraspStep name=&quot;ApproachRedBox&quot; command=&quot;approach&quot; server_timeout=&quot;1000&quot;/&gt;
 &lt;CloseGripper/&gt;
