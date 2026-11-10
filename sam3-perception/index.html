@@ -8,7 +8,7 @@
         
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/sam3-perception/">
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>SAM 3 객체 분할 - RWH · Husky 사용 가이드</title>
+        <title>SAM 3 객체 분할·실험 - RWH · Husky 사용 가이드</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -85,7 +85,11 @@
 </li>
                                     
 <li>
-    <a href="./" class="dropdown-item active" aria-current="page">SAM 3 객체 분할</a>
+    <a href="../grasp-pipeline-guide/" class="dropdown-item">최종 파지 실행 가이드</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">SAM 3 객체 분할·실험</a>
 </li>
                                 </ul>
                             </li>
@@ -110,7 +114,7 @@
                             </a>
                         </li>
                             <li class="nav-item">
-                                <a rel="prev" href="../red-box-grasp/" class="nav-link">
+                                <a rel="prev" href="../grasp-pipeline-guide/" class="nav-link">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
@@ -180,6 +184,8 @@
                     <div class="col-md-9" role="main">
 
 <h1 id="sam-3-graspgenx">SAM 3 객체 분할과 GraspGenX 연결<a class="headerlink" href="#sam-3-graspgenx" title="Permanent link">&para;</a></h1>
+<p>현재 구성의 실행은 <a href="../grasp-pipeline-guide/">최종 파지 실행 가이드</a>를 먼저 참고한다.
+이 페이지는 확장 과정과 단계별 실험 이력을 포함한다.</p>
 <h2 id="_1">구조와 현재 검증 범위<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <p>색상에 의존하지 않는 분할 경로를 추가했다. GPU 모델은 같은 서버의 서로 다른
 컨테이너에서 실행한다. ROS/MoveIt은 로봇 컨테이너에만 둔다.</p>
@@ -189,7 +195,7 @@
   D --&gt; E[BT build_object_cloud: 로컬 ROS CPU + Depth/K]
   E --&gt; B[BT prepare: InferGrasps POINT_CLOUD Action]
   B --&gt; F[ZMQ 5566: 기존 GraspGenX 컨테이너]
-  F --&gt; G[PoseStamped 후보 + 파지 점수 + 마스크]
+  F --&gt; G[PoseStamped 후보 + 파지 점수]
   G --&gt; H[시뮬레이션 coordinator: TF/TCP/충돌 검사]
 </code></pre>
 <p>SAM 3는 마스크를 만들고 GraspGenX는 XYZ로 파지 후보를 만든다. 가벼운 Depth 역투영은
