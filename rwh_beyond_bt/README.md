@@ -175,9 +175,11 @@ Launch에서는 지도를 초기화하지 않습니다.
 ## Simulation grasp stages
 
 `MoveObservation` plans to the calibrated MuJoCo observation joint pose.
-`GraspStep` calls the `RunGraspStep` Action with `check_ready`, `prepare`,
+`GraspStep` calls the `RunGraspStep` Action with `check_ready`, `segment_target`, `build_object_cloud`, `prepare`,
 `move_pregrasp`, `approach`, `attach`, or `lift`. Repeated GraspStep instances
-execute different stages, not repeated inference; inference happens only in prepare.
+execute different stages, not repeated inference; SAM segmentation runs in segment_target; local ROS CPU back-projects Depth and publishes
+PointCloud2 in build_object_cloud; GraspGenX inference happens only in prepare.
+The default tree enables observation and returns home after a verified lift.
 The original MoveHome/OpenGripper/CloseGripper/ClearOctomap nodes remain in the tree.
 
 CloseGripper disables only its own gripper path-position/velocity tracking check

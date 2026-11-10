@@ -5,7 +5,9 @@
       <ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>
       <MoveHome/>
       <OpenGripper/>
-      <!-- <MoveObservation/> -->
+      <MoveObservation/>
+      <GraspStep server_timeout="1000" name="SegmentTargetWithSAM" command="segment_target"/>
+      <GraspStep server_timeout="1000" name="BuildLocalObjectCloud" command="build_object_cloud"/>
       <GraspStep server_timeout="1000" name="PrepareRedBoxGrasp" command="prepare" pregrasp="{red_pregrasp}"/>
       <GraspStep server_timeout="1000" name="MoveToRedPregrasp" command="move_pregrasp"/>
       <GraspStep server_timeout="1000" name="ApproachRedBox" command="approach"/>

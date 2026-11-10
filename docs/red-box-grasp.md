@@ -243,3 +243,12 @@ bash ~/graspgenx_workspace/docker/scripts/local_podman.sh stop
 `podman logs`는 모델 출력 확인 용도가 아니다. endpoint는 로봇 컨테이너 내부
 `tcp://127.0.0.1:5566`이며 호스트 localhost와 다르다. 전체 생성 옵션은
 `deploy/graspgenx-docker/scripts/local_podman.sh`와 `LOCAL_PODMAN.md`를 참고한다.
+
+
+### 최신 BT의 명시적 로컬 점군 단계
+
+현재 기본 트리는 MoveObservation을 활성화하고, segment_target → build_object_cloud →
+prepare → 이동/파지/리프트 → MoveHome 순서다. SAM이 반환한 마스크와 촬영 Depth/K를
+로봇 PC의 ROS CPU에서 XYZ로 바꾼 뒤 PointCloud 입력 Action으로 GraspGenX에 전달한다.
+[실험 결과와 최신 흐름](sam3-perception.md)을 참고한다.
+위의 관측 생략/마지막 홈 복귀 미검증 설명은 이전 사용자 구성의 기록이다.

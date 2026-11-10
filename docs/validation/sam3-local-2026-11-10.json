@@ -148,5 +148,166 @@
       ]
     ],
     "attached_object": "red_grasp_target"
+  },
+  "local_cloud_experiments": {
+    "baseline": {
+      "local_cloud_points": 2780,
+      "local_cloud_frame": "d405_color_optical_frame",
+      "stages": [
+        "check_ready",
+        "clear_octomap",
+        "move_home",
+        "open_gripper",
+        "move_observation",
+        "segment_target",
+        "acquire_object_rgbd",
+        "segment_target_on_server",
+        "segmented_target score=0.8633 instances=1",
+        "build_object_cloud",
+        "local_object_cloud points=2780 frame=d405_color_optical_frame",
+        "prepare",
+        "infer_grasps_from_local_cloud",
+        "update_target_scene center=[0.34831026145843536, -8.665433694151833e-05, 0.024892638375105903]",
+        "select_collision_free_grasp",
+        "selected candidate=8 score=0.755 tcp=[0.34989510456452566, -0.01107853528947371, 0.01773017552178316] rejected={'not_top_down': 8}",
+        "move_pregrasp",
+        "approach",
+        "close_gripper",
+        "attach",
+        "verify_bilateral_object_contact",
+        "object_attached_in_planning_scene",
+        "lift",
+        "verify_physical_lift",
+        "physical_lift_verified delta_z=0.0768 forces={'gripper_link1': 10.011926604776685, 'gripper_link2': 9.99058877786559}"
+      ],
+      "status": 4,
+      "error_code": 0,
+      "error_name": "SUCCESS",
+      "message": "arm demo completed",
+      "stage": "",
+      "initial": {
+        "simulation": "mujoco",
+        "object_position": [
+          0.35,
+          0.0,
+          0.02588228
+        ],
+        "finger_forces": {
+          "gripper_link1": 0.0,
+          "gripper_link2": 0.0
+        },
+        "bilateral_contact": false,
+        "exclude_red_target": false,
+        "exclude_grasp_region": false
+      },
+      "final": {
+        "simulation": "mujoco",
+        "object_position": [
+          0.35282929965654103,
+          -0.009686166386598142,
+          0.10161731983015475
+        ],
+        "finger_forces": {
+          "gripper_link1": 10.013338140513731,
+          "gripper_link2": 9.988972118369135
+        },
+        "bilateral_contact": true,
+        "exclude_red_target": false,
+        "exclude_grasp_region": true
+      }
+    },
+    "full_tree": {
+      "full_default_tree": true,
+      "local_cloud_points": 2783,
+      "local_cloud_frame": "d405_color_optical_frame",
+      "stages": [
+        "check_ready",
+        "clear_octomap",
+        "move_home",
+        "open_gripper",
+        "move_observation",
+        "segment_target",
+        "acquire_object_rgbd",
+        "segment_target_on_server",
+        "segmented_target score=0.8672 instances=1",
+        "build_object_cloud",
+        "local_object_cloud points=2783 frame=d405_color_optical_frame",
+        "prepare",
+        "infer_grasps_from_local_cloud",
+        "update_target_scene center=[0.34828494505130286, -9.41232511712485e-05, 0.02489269401248522]",
+        "select_collision_free_grasp",
+        "selected candidate=40 score=0.587 tcp=[0.33052921082210884, 0.0013259780011240733, 0.0186579792294764] rejected={'not_top_down': 37, 'lift_path': 2, 'pre_ik': 4}",
+        "move_pregrasp",
+        "approach",
+        "close_gripper",
+        "attach",
+        "verify_bilateral_object_contact",
+        "object_attached_in_planning_scene",
+        "lift",
+        "verify_physical_lift",
+        "physical_lift_verified delta_z=0.0760 forces={'gripper_link1': 10.010805023044904, 'gripper_link2': 9.988627712779921}",
+        "move_home"
+      ],
+      "status": 4,
+      "error_code": 0,
+      "error_name": "SUCCESS",
+      "message": "arm demo completed",
+      "stage": "",
+      "initial": {
+        "simulation": "mujoco",
+        "object_position": [
+          0.3499999999984817,
+          -8.094584352668703e-16,
+          0.02435318341108118
+        ],
+        "finger_forces": {
+          "gripper_link1": 0.0,
+          "gripper_link2": 0.0
+        },
+        "bilateral_contact": false,
+        "exclude_red_target": false,
+        "exclude_grasp_region": false
+      },
+      "final": {
+        "simulation": "mujoco",
+        "object_position": [
+          0.1972234939868997,
+          -3.26093798220574e-05,
+          0.21246400164311632
+        ],
+        "finger_forces": {
+          "gripper_link1": 9.999494243563834,
+          "gripper_link2": 10.000531517193991
+        },
+        "bilateral_contact": true,
+        "exclude_red_target": false,
+        "exclude_grasp_region": true
+      }
+    },
+    "failed_full_tree_attempt": {
+      "status": 6,
+      "error_code": -26,
+      "error_name": "START_STATE_INVALID",
+      "message": "MoveIt returned START_STATE_INVALID.",
+      "stage": "move_observation"
+    },
+    "exported_point_cloud": {
+      "local_points": 2783,
+      "dtype": "float32",
+      "frame": "d405_color_optical_frame",
+      "units": "meters",
+      "segmentation_score": 0.86328125,
+      "instances": 1,
+      "mock": false,
+      "returned_grasps": 40
+    },
+    "runner_extra_hold_test": {
+      "cancellation_cleanup_passed": true,
+      "lift_verification_seen": true,
+      "five_second_hold_passed": false,
+      "observed_failure": "Object slipped after lift; test failed at final contact/height assertion",
+      "earlier_startup_attempt": "Lifecycle get_state async_send_request failed before experiment in domain 103",
+      "scope": "No extra tuning of prolonged grasp retention; initial full-tree pick/home return succeeded in separate experiment"
+    }
   }
 }

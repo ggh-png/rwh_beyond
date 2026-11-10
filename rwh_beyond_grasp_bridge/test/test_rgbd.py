@@ -107,3 +107,45 @@ def test_segmentation_failure_never_reaches_grasp_model(bridge,mock,failure):
         assert not result.success and result.message.startswith(expected)
         assert not mock.requests
     finally:segment.close()
+
+
+def test_local_cloud_stage_requires_segmentation_and_expires():
+    import time
+    from types import SimpleNamespace
+    from rwh_beyond_grasp_bridge.grasp_coordinator import GraspCoordinator
+    node=SimpleNamespace(perception=None)
+    with pytest.raises(RuntimeError,match='segment_target first'):
+        GraspCoordinator.perception_context(node)
+    node.perception={'captured_at':time.monotonic()-31}
+    with pytest.raises(RuntimeError,match='expired'):
+        GraspCoordinator.perception_context(node)
+    assert node.perception is None
+
+
+def test_local_cloud_published_before_grasp_and_uses_original_camera_frame():
+    import time
+    from types import SimpleNamespace
+    from rwh_beyond_grasp_bridge.grasp_coordinator import GraspCoordinator
+    goal=rgbd_goal();mask=fake_segmentation({'rgb':np.zeros((32,32,3),np.uint8)})['mask']
+    mask=Image(header=goal.depth_image.header,height=32,width=32,encoding='mono8',step=32,data=mask.tobytes())
+    context=dict(captured_at=time.monotonic(),frame={'depth':goal.depth_image,'info':goal.camera_info},mask=mask)
+    clouds=[];stages=[]
+    node=SimpleNamespace(perception_context=lambda:context,points_pub=SimpleNamespace(publish=clouds.append),stage=stages.append)
+    GraspCoordinator.build_object_cloud(node)
+    assert len(clouds)==1 and clouds[0].header==goal.depth_image.header
+    assert clouds[0].width==24*24 and context['xyz'].shape==(24*24,3)
+    assert clouds[0] is context['cloud'] and stages[0].startswith('local_object_cloud')
+
+
+def test_local_snapshot_invalidated_when_arm_moves_but_not_when_gripper_changes():
+    import time
+    from types import SimpleNamespace
+    from sensor_msgs.msg import JointState
+    from rwh_beyond_grasp_bridge.grasp_coordinator import GraspCoordinator
+    context=dict(captured_at=time.monotonic(),capture_joints=JointState(name=['joint1','gripper'],position=[0.,.1]))
+    node=SimpleNamespace(perception=context,joints=JointState(name=['joint1','gripper'],position=[0.,0.]))
+    assert GraspCoordinator.perception_context(node) is context
+    node.joints.position=[.1,0.]
+    with pytest.raises(RuntimeError,match='Arm moved'):
+        GraspCoordinator.perception_context(node)
+    assert node.perception is None

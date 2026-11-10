@@ -33,6 +33,8 @@ from rwh_beyond_msgs.msg import TcpPose
 from rwh_beyond_msgs.srv import SetGraspRegion
 from .observed_geometry import observed_bounds
 from .depth_converter import depth_xyz
+from .segmentation_client import segment_image
+from .zmq_client import RequestCanceled
 from .red_perception import red_mask, pose_matrix, matrix_pose, set_pair
 from .zmq_client import request as zmq_request
 
@@ -66,7 +68,7 @@ class GraspCoordinator(Node):
         self.lock=threading.Lock();self.scene_lock=threading.RLock();self.active_handle=None;self.motion_handle=None
         self.frames={};self.joints=None;self.cloud_stamp=0;self.cloud_seq=0
         self.prepared=False;self.attached=False;self.scene_active=False;self.original_pairs={}
-        self.cleanup_requested=False;self.baseline_height=None
+        self.cleanup_requested=False;self.baseline_height=None;self.perception=None
         self.buffer=Buffer(cache_time=Duration(seconds=30));self.listener=TransformListener(self.buffer,self)
         self.subs=[]
         for key,typ,topic in [('rgb',Image,'camera/color/image_raw'),('depth',Image,'camera/depth/image_rect_raw'),
@@ -168,6 +170,8 @@ class GraspCoordinator(Node):
                 if self.get_parameter('segmentation_backend').value=='sam3':
                     health=zmq_request(self.get_parameter('segmentation_endpoint').value,{'action':'health'},3)
                     if health.get('backend')!='sam3' or health.get('mock') is not False:raise RuntimeError('Real SAM 3 server required')
+            elif command=='segment_target':self.segment_target()
+            elif command=='build_object_cloud':self.build_object_cloud()
             elif command=='prepare':result.pregrasp=self.prepare()
             elif command=='move_pregrasp':
                 if not self.prepared:raise RuntimeError('No prepared grasp')
@@ -201,45 +205,76 @@ class GraspCoordinator(Node):
         keys=[k for k,v in list(self.frames.items()) if set(v)=={'rgb','depth','info'} and k[0]*10**9+k[1]>after]
         return copy.deepcopy(self.frames[max(keys)])
 
-    def prepare(self):
+    def segment_target(self):
         if self.attached:raise RuntimeError('Already holding object')
         self.cleanup()
         self.stage('acquire_object_rgbd')
-        frame=self.snapshot();rgb,depth,info=frame['rgb'],frame['depth'],frame['info']
-        if rgb.header.frame_id!=depth.header.frame_id:raise ValueError('RGB and depth must be registered')
-        # Capture TF before inference so a slow remote response cannot expire TF history.
+        frame=self.snapshot();captured_at=time.monotonic();rgb,depth=frame['rgb'],frame['depth']
         transform=self.buffer.lookup_transform(self.base,depth.header.frame_id,Time.from_msg(depth.header.stamp),timeout=Duration(seconds=2.0))
         camera=Pose();camera.position.x=transform.transform.translation.x;camera.position.y=transform.transform.translation.y;camera.position.z=transform.transform.translation.z;camera.orientation=transform.transform.rotation
-        base_T_camera=pose_matrix(camera)
+        capture_joints=copy.deepcopy(self.joints)
         backend=self.get_parameter('segmentation_backend').value
-        self.wait(self.infer.server_is_ready,10)
-        goal=InferGrasps.Goal(depth_image=depth,camera_info=info,gripper_name='piper_hand',
-            num_grasps=self.get_parameter('num_grasps').value,top_k=self.get_parameter('top_k').value)
+        self.stage('segment_target_on_server')
         if backend=='sam3':
-            goal.input_mode=InferGrasps.Goal.RGBD;goal.rgb_image=rgb
-            goal.target_text=self.get_parameter('target_text').value
-            goal.target_box=self.get_parameter('target_box').value
-            point=self.get_parameter('selection_point').value
-            goal.use_selection_point=point[0]>=0 and point[1]>=0
-            if goal.use_selection_point:goal.selection_u=int(point[0]);goal.selection_v=int(point[1])
-            goal.selection_policy=self.get_parameter('selection_policy').value
+            box=list(self.get_parameter('target_box').value)
+            point=list(self.get_parameter('selection_point').value)
+            try:
+                mask,score,count,_=segment_image(self.get_parameter('segmentation_endpoint').value,
+                    rgb,depth,self.get_parameter('target_text').value,box if any(box) else [],
+                    point if min(point)>=0 else [],self.get_parameter('selection_policy').value,
+                    timeout=60.,canceled=lambda:self.active_handle is not None and self.active_handle.is_cancel_requested)
+            except RequestCanceled as error:raise Canceled(str(error)) from error
+            self.stage(f'segmented_target score={score:.4f} instances={count}')
         elif backend=='color_demo':
             labels=red_mask(rgb)
             mask=Image(header=depth.header,height=depth.height,width=depth.width,encoding='mono8',step=depth.width,data=labels.astype(np.uint8).tobytes())
-            goal.input_mode=InferGrasps.Goal.DEPTH_IMAGE;goal.object_mask=mask
         else:raise ValueError('segmentation_backend must be sam3 or explicit color_demo')
-        self.stage('segment_and_infer_grasps')
+        self.perception=dict(frame=frame,mask=mask,base_T_camera=pose_matrix(camera),backend=backend,captured_at=captured_at,capture_joints=capture_joints)
+        self.mask_pub.publish(mask)
+
+    def perception_context(self):
+        if self.perception is None:raise RuntimeError('No segmented target; run segment_target first')
+        if time.monotonic()-self.perception['captured_at']>30:
+            self.perception=None
+            raise RuntimeError('Perception snapshot expired; reobserve target')
+        previous=self.perception.get('capture_joints')
+        current=getattr(self,'joints',None)
+        if previous is not None and current is not None:
+            old=dict(zip(previous.name,previous.position));new=dict(zip(current.name,current.position))
+            if any(name in old and name in new and abs(old[name]-new[name])>.02 for name in [f'joint{i}' for i in range(1,7)]):
+                self.perception=None
+                raise RuntimeError('Arm moved after capture; reobserve target')
+        return self.perception
+
+    def build_object_cloud(self):
+        context=self.perception_context();frame=context['frame']
+        xyz=depth_xyz(frame['depth'],frame['info'],context['mask'])
+        cloud=create_cloud_xyz32(frame['depth'].header,xyz.tolist())
+        context.update(xyz=xyz,cloud=cloud)
+        self.points_pub.publish(cloud)
+        self.stage(f'local_object_cloud points={len(xyz)} frame={cloud.header.frame_id}')
+
+    def prepare(self):
+        if self.attached:raise RuntimeError('Already holding object')
+        # Legacy prepare remains usable; explicit BT stages reuse the same snapshot.
+        if self.perception is None:self.segment_target()
+        context=self.perception_context()
+        if 'cloud' not in context:self.build_object_cloud()
+        frame=context['frame'];depth,info=frame['depth'],frame['info']
+        xyz,mask,base_T_camera,backend=context['xyz'],context['mask'],context['base_T_camera'],context['backend']
+        self.stage('infer_grasps_from_local_cloud')
+        self.wait(self.infer.server_is_ready,10)
+        goal=InferGrasps.Goal(input_mode=InferGrasps.Goal.POINT_CLOUD,object_cloud=context['cloud'],
+            gripper_name='piper_hand',num_grasps=self.get_parameter('num_grasps').value,
+            top_k=self.get_parameter('top_k').value)
         sent=self.infer.send_goal_async(goal);self.wait(sent.done,10);inference=sent.result()
         if not inference.accepted:raise RuntimeError('Grasp inference goal rejected')
         response=inference.get_result_async()
-        try:self.wait(response.done,130)
+        try:self.wait(response.done,70)
         except Exception:
             inference.cancel_goal_async();raise
         result=response.result().result
         if not result.success or not result.message.startswith('OK:'):raise RuntimeError('Real GraspGenX inference failed: '+result.message)
-        if backend=='sam3':mask=result.object_mask
-        xyz=depth_xyz(depth,info,mask)
-        self.mask_pub.publish(mask);self.points_pub.publish(create_cloud_xyz32(depth.header,xyz.tolist()))
         if backend=='sam3':
             center,dimensions,support_z=observed_bounds(xyz,depth,info,mask,base_T_camera)
         else:
@@ -412,6 +447,7 @@ class GraspCoordinator(Node):
         return response
 
     def cleanup(self):
+        if not self.attached:self.perception=None
         if not self.scene_active:return
         query=GetPlanningScene.Request();query.components.components=PC.ALLOWED_COLLISION_MATRIX|PC.ROBOT_STATE_ATTACHED_OBJECTS|PC.WORLD_OBJECT_NAMES
         current=self.call('scene',query,check_cancel=False).scene

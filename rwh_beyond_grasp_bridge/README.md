@@ -183,3 +183,13 @@ conversion, not GPU inference, VPN forwarding or checkpoint compatibility.
 
 See [deployment README](../deploy/graspgenx-docker/README.md) and
 [phase report](../docs/graspgenx-integration.md).
+
+
+### BT에서 사용하는 로컬 PointCloud 경로
+
+`segment_target` → `build_object_cloud` → `prepare` 순서로 실행한다.
+SAM 서버는 마스크를 반환하고, 로봇 PC의 ROS CPU가 Depth/K로 객체 XYZ를 만든다.
+`/grasp/object_cloud` 발행 이후 POINT_CLOUD Action으로 GraspGenX에 전달한다.
+따라서 BT에서는 RGBD Action을 통해 SAM을 다시 호출하지 않는다. 단독 RGBD Action
+클라이언트 인터페이스는 계속 사용할 수 있다. 기본 트리는 관측 자세와 마지막 홈 복귀를 포함한다.
+전체 시뮬레이션 실험과 제한은 [검증 문서](../docs/sam3-perception.md)를 참고한다.

@@ -17,7 +17,7 @@ if os.environ.get('ROS_DOMAIN_ID','0')=='0':raise RuntimeError('A private nonzer
 tree=ET.parse('/root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/demo.xml')
 sequence=tree.find('.//Sequence')
 if sequence.find('MoveObservation') is None:
- index=next(i for i,n in enumerate(sequence) if n.tag=='GraspStep' and n.get('command')=='prepare')
+ index=next(i for i,n in enumerate(sequence) if n.tag=='GraspStep' and n.get('command') in ('segment_target','prepare'))
  sequence.insert(index,ET.Element('MoveObservation'))
 if sequence[-1].tag=='MoveHome':sequence.remove(sequence[-1])
 tree_path=Path('/tmp/sam3-runner-baseline.xml');tree.write(tree_path,encoding='unicode')
