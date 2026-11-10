@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/bt-nodes/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>노드 사용법 - RWH · Husky 사용 가이드</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../assets/stylesheets/bt-docs.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · Husky 사용 가이드</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">시작하기</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../connection/" class="nav-link">SSH와 본체 확인</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../setup/" class="nav-link">외부 PC 준비</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../operation/" class="nav-link">SLAM과 Nav2 실행</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../interfaces/" class="nav-link">TF와 토픽</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../configuration/" class="nav-link">파라미터 설정</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../runner/" class="nav-link">ros_runner 운용</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">로봇 팔 BT</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bt-architecture/" class="dropdown-item">구조 이해</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">노드 사용법</a>
+</li>
+                                    
+<li>
+    <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../upstream/" class="nav-link">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../bt-architecture/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../bt-operation/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/bt-nodes.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#bt" class="nav-link">BT 노드 사용법</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">노드 목록</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#setgripper" class="nav-link">SetGripper — 개방 폭 지정</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#movetcp" class="nav-link">MoveTcp — 위치와 자세 지정</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">실패와 그리퍼 접촉 처리</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="bt">BT 노드 사용법<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
+<p>그리퍼는 <strong>정수 mm</strong>, 팔 위치는 <strong>m</strong>, 팔 자세는 <strong>quaternion</strong>으로 입력합니다.
+<a href="../bt-architecture/">전체 구조</a> · <a href="../bt-operation/">실행과 Groot2</a></p>
+<h2 id="_1">노드 목록<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>노드</th>
+<th>바꿀 수 있는 값</th>
+<th>동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SetGripper</code></td>
+<td>개방 폭, 단위, 시간</td>
+<td>지정한 폭으로 그리퍼 이동</td>
+</tr>
+<tr>
+<td><code>MoveTcp</code></td>
+<td>위치, 자세, 기준 프레임</td>
+<td>MoveIt pose goal 실행</td>
+</tr>
+<tr>
+<td><code>CloseGripper</code></td>
+<td>고정</td>
+<td>0 mm로 닫기, 3초</td>
+</tr>
+<tr>
+<td><code>OpenGripper</code></td>
+<td>고정</td>
+<td>100 mm로 열기, 3초</td>
+</tr>
+<tr>
+<td><code>MoveHome</code></td>
+<td>고정</td>
+<td>joint1~joint6 = 0 rad</td>
+</tr>
+<tr>
+<td><code>MoveTcpUp</code></td>
+<td>고정</td>
+<td>base_link +Z 0.30 m, 현재 자세 유지</td>
+</tr>
+</tbody>
+</table>
+<p>모든 노드는 Nav2의 <code>server_name</code>, <code>server_timeout</code> 포트를 상속합니다.</p>
+<h2 id="setgripper">SetGripper — 개방 폭 지정<a class="headerlink" href="#setgripper" title="Permanent link">&para;</a></h2>
+<p><strong>50 mm 열기:</strong></p>
+<pre><code class="language-xml">&lt;SetGripper opening=&quot;50&quot; duration=&quot;2.5&quot;/&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>입력</th>
+<th>필수 / 기본값</th>
+<th>단위와 범위</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>opening</code></td>
+<td>필수</td>
+<td>총 개방 폭, 정수 0~100 mm</td>
+</tr>
+<tr>
+<td><code>unit</code></td>
+<td><code>mm</code></td>
+<td><code>mm</code> 또는 <code>percent</code></td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td><code>3.0</code></td>
+<td>초, 0 초과 3600 이하</td>
+</tr>
+</tbody>
+</table>
+<p><code>opening="50"</code>은 <strong>양쪽 손가락 사이 총 50 mm</strong>입니다.
+Controller에는 <code>gripper=0.05</code> m로 전달합니다.
+<code>0</code>이면 닫힘, <code>100</code>이면 현재 모델의 최대 개방 폭입니다.</p>
+<p>Blackboard 값도 연결할 수 있습니다.</p>
+<pre><code class="language-xml">&lt;SetGripper opening=&quot;{gripper_opening_mm}&quot;/&gt;
+</code></pre>
+<p><code>unit="percent"</code>를 명시하면 0~100% 개방률로 해석합니다.
+현재 모델의 최대 폭이 100 mm여서 두 단위의 숫자가 일치합니다.
+소수·범위 초과·잘못된 단위·유효하지 않은 시간은 goal 전송 전에 거부합니다.</p>
+<h2 id="movetcp">MoveTcp — 위치와 자세 지정<a class="headerlink" href="#movetcp" title="Permanent link">&para;</a></h2>
+<p><strong>base_link 기준 위치와 자세를 함께 입력:</strong></p>
+<pre><code class="language-xml">&lt;MoveTcp x=&quot;0.25&quot; y=&quot;0&quot; z=&quot;0.35&quot;
+         qx=&quot;0&quot; qy=&quot;0&quot; qz=&quot;0&quot; qw=&quot;1&quot;/&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>입력</th>
+<th>필수 / 기본값</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x</code>, <code>y</code>, <code>z</code></td>
+<td>필수</td>
+<td>목표 위치, 단위 m</td>
+</tr>
+<tr>
+<td><code>qx</code>, <code>qy</code>, <code>qz</code>, <code>qw</code></td>
+<td>생략 가능</td>
+<td>목표 quaternion, x/y/z/w 순서</td>
+</tr>
+<tr>
+<td><code>frame_id</code></td>
+<td><code>base_link</code></td>
+<td>위치와 자세의 기준 좌표계</td>
+</tr>
+<tr>
+<td><code>tcp_link</code></td>
+<td><code>tcp_link</code></td>
+<td>제어할 TCP link</td>
+</tr>
+<tr>
+<td><code>relative</code></td>
+<td><code>false</code></td>
+<td>true이면 xyz를 현재 위치에 더함</td>
+</tr>
+</tbody>
+</table>
+<h3 id="quaternion">자세를 유지하려면 quaternion을 생략합니다<a class="headerlink" href="#quaternion" title="Permanent link">&para;</a></h3>
+<pre><code class="language-xml">&lt;MoveTcp x=&quot;0.25&quot; y=&quot;0&quot; z=&quot;0.35&quot;/&gt;
+</code></pre>
+<p>Quaternion은 <strong>네 값을 모두 입력하거나 모두 생략</strong>합니다.
+입력값은 유한해야 하며 norm이 <code>1e-12</code> 이상이어야 합니다.
+유효한 quaternion은 정규화하고, 일부 성분만 입력하거나 0 quaternion이면 거부합니다.</p>
+<h3 id="_2">상대 이동은 기준 프레임의 축을 따릅니다<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<pre><code class="language-xml">&lt;!-- 현재 위치에서 base_link Z축으로 0.30 m 상승 --&gt;
+&lt;MoveTcp x=&quot;0&quot; y=&quot;0&quot; z=&quot;0.30&quot; relative=&quot;true&quot;/&gt;
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>위치</th>
+<th>자세</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>relative="false"</code></td>
+<td>기준 프레임의 절대 위치</td>
+<td>입력 quaternion 또는 현재 자세</td>
+</tr>
+<tr>
+<td><code>relative="true"</code></td>
+<td>현재 위치 + 기준 프레임 축 방향 offset</td>
+<td>입력 quaternion 또는 현재 자세</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition note">
+<p class="admonition-title">relative는 위치에만 적용</p>
+<p>입력 quaternion은 항상 <code>frame_id</code> 기준의 <strong>절대 자세</strong>입니다.
+현재 자세에 더하는 회전 증분으로 해석하지 않습니다.</p>
+</div>
+<p>상대 위치 또는 자세 유지에는 TF가 필요합니다.
+절대 위치와 quaternion을 모두 지정하면 현재 TCP TF를 조회하지 않습니다.
+목표 프레임과 도달 가능성은 MoveIt이 검증합니다.</p>
+<h3 id="blackboard-pose">Blackboard에서 pose를 받을 수도 있습니다<a class="headerlink" href="#blackboard-pose" title="Permanent link">&para;</a></h3>
+<pre><code class="language-xml">&lt;MoveTcp x=&quot;{target_x}&quot; y=&quot;{target_y}&quot; z=&quot;{target_z}&quot;
+         qx=&quot;{target_qx}&quot; qy=&quot;{target_qy}&quot;
+         qz=&quot;{target_qz}&quot; qw=&quot;{target_qw}&quot;/&gt;
+</code></pre>
+<p>현재 <code>RunDemo</code> goal에는 좌표 필드가 없습니다. XML에 상수를 쓰거나,
+다른 BT 노드 등으로 이 blackboard 값을 먼저 채워야 합니다.</p>
+<h3 id="moveit">MoveIt 계획 설정<a class="headerlink" href="#moveit" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Planning group</td>
+<td><code>arm</code></td>
+</tr>
+<tr>
+<td>Pipeline / planner</td>
+<td>OMPL / <code>RRTConnectkConfigDefault</code></td>
+</tr>
+<tr>
+<td>계획 시간</td>
+<td>10초</td>
+</tr>
+<tr>
+<td>속도 / 가속도 비율</td>
+<td>각각 0.1</td>
+</tr>
+<tr>
+<td>위치 / 자세 허용오차</td>
+<td>5 mm / 0.01 rad</td>
+</tr>
+</tbody>
+</table>
+<p>이 노드는 pose goal을 실행합니다. 직선 Cartesian 궤적을 보장하지 않으며,
+도달 불가·충돌 목표를 임의 관절 목표로 바꾸지 않습니다.</p>
+<h2 id="_3">실패와 그리퍼 접촉 처리<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h3 id="_4">새 노드의 성공 판정<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p><code>MoveTcp</code>와 <code>SetGripper</code>는 <strong>ROS action status와 application error code</strong>를 함께 확인합니다.
+오류나 cancel이면 BT FAILURE를 반환합니다.
+잘못된 literal 값은 XML 로드 단계에서 거부될 수 있으며,
+잘못된 runtime 입력이나 필요한 TF의 조회 실패는 goal 전송 전에 실패합니다.</p>
+<p>기존 고정 노드 4개는 Nav2 기본 결과 처리에 의존하므로 같은 검증이 모두 적용된 것은 아닙니다.</p>
+<h3 id="mujoco">MuJoCo의 닫기 성공 조건<a class="headerlink" href="#mujoco" title="Permanent link">&para;</a></h3>
+<p>Trajectory의 마지막 시점 이후, 다음 중 하나를 만족하면 bridge가 성공을 반환합니다.</p>
+<ol>
+<li>위치와 속도가 허용오차 안에 들어옴.</li>
+<li>닫기 목표가 약 0 m (<code>desired &lt;= 1e-4</code>)이고, 양쪽 손가락 force가 threshold 이상임.</li>
+</ol>
+<p>Force는 MuJoCo <code>actuator_force</code>의 절댓값으로 읽습니다.
+두 값 중 작은 값이 threshold 이상이어야 합니다.</p>
+<table>
+<thead>
+<tr>
+<th>파라미터</th>
+<th>기본값</th>
+<th>설정 의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gripper_contact_force_threshold</code></td>
+<td><code>1.0</code></td>
+<td>양쪽 손가락 force threshold</td>
+</tr>
+<tr>
+<td>같은 값이 0 이하</td>
+<td>—</td>
+<td>force 기반 대체 성공 조건 비활성화</td>
+</tr>
+</tbody>
+</table>
+<p>이는 actuator force를 통한 접촉 추정입니다. 물체가 안정적으로 파지됐는지를
+독립적으로 검증하는 조건은 아닙니다.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../assets/javascripts/mermaid.mjs" type="module"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

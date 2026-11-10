@@ -17,6 +17,7 @@
         <link href="../css/base.css" rel="stylesheet">
         <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
         <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../assets/stylesheets/bt-docs.css" rel="stylesheet">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
         <script>hljs.highlightAll();</script> 
     </head>
@@ -54,6 +55,23 @@
                             </li>
                             <li class="nav-item">
                                 <a href="../runner/" class="nav-link">ros_runner 운용</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">로봇 팔 BT</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bt-architecture/" class="dropdown-item">구조 이해</a>
+</li>
+                                    
+<li>
+    <a href="../bt-nodes/" class="dropdown-item">노드 사용법</a>
+</li>
+                                    
+<li>
+    <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
+</li>
+                                </ul>
                             </li>
                             <li class="nav-item">
                                 <a href="../troubleshooting/" class="nav-link">문제 해결</a>
@@ -107,6 +125,10 @@
             
             <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">문서 관리</a>
               <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#mermaid" class="nav-link">Mermaid 다이어그램</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
               </ul>
             </li>
         </ul>
@@ -125,7 +147,13 @@ mkdocs serve
 <pre><code class="language-bash">mkdocs build --strict
 </code></pre>
 <p><code>main</code>에 문서 변경이 push되면 GitHub Actions가 strict 빌드 후 <code>gh-pages</code> 브랜치로 배포합니다. GitHub Pages는 해당 브랜치의 루트를 게시하도록 설정합니다. 문서 수정은 <code>docs/</code>에서 하고 생성된 <code>site/</code> 또는 <code>gh-pages</code> 파일을 직접 편집하지 않습니다.</p>
-<p><a href="https://www.mkdocs.org/user-guide/deploying-your-docs/">공식 MkDocs GitHub Pages 배포 안내</a></p></div>
+<p><a href="https://www.mkdocs.org/user-guide/deploying-your-docs/">공식 MkDocs GitHub Pages 배포 안내</a></p>
+<h2 id="mermaid">Mermaid 다이어그램<a class="headerlink" href="#mermaid" title="Permanent link">&para;</a></h2>
+<p>Markdown의 <code>mermaid</code> fenced block을 사용합니다. GitHub에서는 기본 Mermaid 지원으로,
+문서 사이트에서는 <code>assets/javascripts/mermaid.mjs</code>로 렌더링합니다.
+렌더러는 버전을 고정한 CDN 모듈을 사용하므로 브라우저의 CDN 접근이 필요합니다.
+모듈을 불러오지 못하면 원래 다이어그램 코드가 남습니다. 문서 빌드는 CDN 다운로드 없이 가능합니다.</p>
+<p><a href="https://mermaid.js.org/intro/getting-started.html">Mermaid 공식 사용 안내</a></p></div>
             </div>
         </div>
 
@@ -139,6 +167,7 @@ mkdocs serve
                 shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
         </script>
         <script src="../js/base.js"></script>
+        <script src="../assets/javascripts/mermaid.mjs" type="module"></script>
         <script src="../search/main.js"></script>
 
         <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">

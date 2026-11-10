@@ -2,46 +2,58 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
+         <loc>https://ggh-png.github.io/rwh_beyond/bt-architecture/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
+         <loc>https://ggh-png.github.io/rwh_beyond/bt-nodes/</loc>
+         <lastmod>2026-11-10</lastmod>
+    </url>
+    <url>
+         <loc>https://ggh-png.github.io/rwh_beyond/bt-operation/</loc>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/configuration/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/connection/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/documentation/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/interfaces/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/operation/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/runner/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/setup/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/troubleshooting/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/upstream/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/work-log-2026-11-09/</loc>
-         <lastmod>2026-11-09</lastmod>
+         <lastmod>2026-11-10</lastmod>
     </url>
 </urlset>
