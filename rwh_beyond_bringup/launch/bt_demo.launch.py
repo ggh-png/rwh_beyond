@@ -1,34 +1,11 @@
-"""Launch MuJoCo, MoveIt, and the arm behavior-tree demo navigator."""
+"""Launch the arm behavior-tree demo navigator and lifecycle manager."""
 
-import os
-
-from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 
 def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument('gui', default_value='true'),
-        DeclareLaunchArgument('rviz', default_value='true'),
-        DeclareLaunchArgument('gripper_contact_force_threshold', default_value='1.0'),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(os.path.join(
-                get_package_share_directory('moma_bringup'),
-                'launch',
-                'simulation.launch.py',
-            )),
-            launch_arguments={
-                'gui': LaunchConfiguration('gui'),
-                'rviz': LaunchConfiguration('rviz'),
-                'moveit': 'true',
-                'gripper_contact_force_threshold': LaunchConfiguration(
-                    'gripper_contact_force_threshold'),
-            }.items(),
-        ),
         Node(
             package='nav2_bt_navigator',
             executable='bt_navigator',

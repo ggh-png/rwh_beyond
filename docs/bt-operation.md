@@ -13,18 +13,29 @@ colcon build --packages-select \
   rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator \
   moma_mujoco_ros moma_bringup rwh_beyond_bringup --symlink-install
 source install/setup.bash
-ros2 launch rwh_beyond_bringup bt_demo.launch.py gui:=false rviz:=false
+ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 ```
 
-MuJoCo·MoveIt과 navigator가 시작됩니다. **Launch만으로 demo goal을 보내지는 않습니다.**
-GUI를 표시하려면 `gui:=true rviz:=true`를 사용합니다.
+MuJoCo·MoveIt이 준비되면 다른 터미널에서 같은 환경을 source하고 navigator를 실행합니다.
+GUI를 표시하려면 시뮬레이션 launch에 `gui:=true rviz:=true`를 사용합니다.
 
-`ros_runner`에서는 `bt_demo`를 실행합니다.
-`piper_moveit`, `piper_moveit_sim`, `bt_demo`는 서로 비활성화하도록 설정돼 있습니다.
+```bash
+source /opt/ros/jazzy/setup.bash
+source /root/ros2_ws/install/setup.bash
+ros2 launch rwh_beyond_bringup bt_demo.launch.py
+```
+
+`ros_runner`에서는 먼저 `piper_sim`을 실행하고 준비가 끝나면 `bt_demo`를 실행합니다.
+`bt_demo`는 시뮬레이션을 자동으로 시작하거나 종료하지 않습니다. **Launch만으로
+demo goal을 보내지는 않습니다.**
+`piper_sim`, `piper_moveit_sim`, `piper_moveit`은 서로 비활성화합니다.
+`piper_moveit`을 시작하면 `bt_demo`도 종료됩니다. 시뮬레이션을 종료할 때는
+`bt_demo`도 별도로 종료하세요.
 
 | 실행 경로 | 대상 |
 | --- | --- |
-| `bt_demo` | MuJoCo + MoveIt + BT navigator |
+| `piper_sim` | MuJoCo + MoveIt (GUI, RViz 및 그리퍼 설정 가능) |
+| `bt_demo` | BT navigator 및 lifecycle manager |
 | `piper_moveit_sim` | MuJoCo + MoveIt |
 | `piper_moveit` | 실물 CAN 드라이버 + MoveIt |
 

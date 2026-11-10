@@ -2,7 +2,8 @@
 
 **BT XML이 작업 순서를 정하고, C++ 노드가 MoveIt과 그리퍼 controller를 호출합니다.**
 Nav2 BT Navigator는 이 트리를 `/run_demo` action으로 실행합니다.
-현재 통합 launch의 실행 대상은 **PiPER MuJoCo 시뮬레이션**입니다.
+현재 데모의 실행 대상은 **PiPER MuJoCo 시뮬레이션**입니다. 시뮬레이션과
+BT navigator는 별도의 launch로 실행합니다.
 
 | 알고 싶은 것 | 읽을 문서 |
 | --- | --- |
@@ -45,7 +46,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 | `rwh_beyond_msgs` | `RunDemo.action` 정의 |
 | `rwh_beyond_navigator` | goal 수신, XML 로드, 트리 실행, 진행 상태와 결과 전달 |
 | `rwh_beyond_bt` | BT 노드 6개, 실행 XML, Groot2 모델 XML, 생성기와 테스트 |
-| `rwh_beyond_bringup` | 시뮬레이션·MoveIt·navigator 통합 launch |
+| `rwh_beyond_bringup` | BT navigator와 lifecycle manager launch |
 
 외부 레포는 실행 기반을 제공합니다.
 
@@ -53,7 +54,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 | --- | --- |
 | `moma-mj-lab` | MuJoCo 시뮬레이션과 ROS bridge |
 | `agx_arm_ros` | 공식 모델, MoveIt 설정, 실물 드라이버 |
-| `ros_runner` | `bt_demo` 실행 및 runner 간 상호 비활성화 |
+| `ros_runner` | `piper_sim`과 `bt_demo`의 독립 실행 및 로봇 실행 경로 간 상호 비활성화 |
 
 !!! note "현재 로봇 모델"
     패키지 이름은 공통으로 쓰지만 구현은 PiPER의 `arm` group,
