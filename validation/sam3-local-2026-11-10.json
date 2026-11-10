@@ -1,0 +1,152 @@
+{
+  "status": 4,
+  "success": true,
+  "message": "OK: 20 candidates in input frame",
+  "elapsed": 1.061889355070889,
+  "segmentation_score": 0.86328125,
+  "segmentation_instances": 1,
+  "candidates": 20,
+  "scores": [
+    0.8664708137512207,
+    0.8638779520988464,
+    0.8602390289306641,
+    0.8494493365287781,
+    0.8411880135536194,
+    0.8389785885810852,
+    0.8290455341339111,
+    0.8288765549659729,
+    0.8251521587371826,
+    0.8238394856452942,
+    0.8232559561729431,
+    0.8225270509719849,
+    0.8218315243721008,
+    0.8163748979568481,
+    0.8125749826431274,
+    0.8105930089950562,
+    0.8090117573738098,
+    0.8066829442977905,
+    0.8037149310112,
+    0.7980009317398071
+  ],
+  "frame": "d405_color_optical_frame",
+  "mask_pixels": 2783,
+  "source": "MuJoCo RGB-D camera render; 320x240; no simulator mask used",
+  "target_text": "red box",
+  "segmentation_backend": "sam3",
+  "mock": false,
+  "bt": {
+    "status": 4,
+    "error_code": 0,
+    "error_name": "SUCCESS",
+    "message": "arm demo completed",
+    "stage": "",
+    "initial": {
+      "simulation": "mujoco",
+      "object_position": [
+        0.35,
+        0.0,
+        0.02588228
+      ],
+      "finger_forces": {
+        "gripper_link1": 0.0,
+        "gripper_link2": 0.0
+      },
+      "bilateral_contact": false,
+      "exclude_red_target": false
+    },
+    "final": {
+      "simulation": "mujoco",
+      "object_position": [
+        0.3386380757750745,
+        -0.0011626632718792441,
+        0.09810642212519054
+      ],
+      "finger_forces": {
+        "gripper_link1": 9.996124349799969,
+        "gripper_link2": 9.965475193815646
+      },
+      "bilateral_contact": true,
+      "exclude_red_target": false
+    }
+  },
+  "bt_tree": "Temporary baseline: observation enabled, stop after lift; original demo.xml unchanged",
+  "observed_gpu_mib": {
+    "sam3": 5480,
+    "graspgenx": 1002
+  },
+  "runner": {
+    "status": "PASS",
+    "mock": false,
+    "cancellation_recovery": true,
+    "repeat_goal_guard": true,
+    "initial": {
+      "simulation": "mujoco",
+      "object_position": [
+        0.3499999999974128,
+        -1.3799529318399999e-15,
+        0.024784487925111107
+      ],
+      "finger_forces": {
+        "gripper_link1": 0.0,
+        "gripper_link2": 0.0
+      },
+      "bilateral_contact": false,
+      "exclude_red_target": false,
+      "exclude_grasp_region": false
+    },
+    "final": {
+      "simulation": "mujoco",
+      "object_position": [
+        0.3424134005033681,
+        -0.012570052635754158,
+        0.09340516056591185
+      ],
+      "finger_forces": {
+        "gripper_link1": 9.983806005568022,
+        "gripper_link2": 9.978834276553075
+      },
+      "bilateral_contact": true,
+      "exclude_red_target": false,
+      "exclude_grasp_region": true
+    },
+    "stages": [
+      [
+        "check_ready",
+        "clear_octomap",
+        "move_home",
+        "open_gripper",
+        "move_observation",
+        "prepare",
+        "acquire_object_rgbd",
+        "segment_and_infer_grasps",
+        "update_target_scene center=[0.3483206587923931, -0.00015840214693539287, 0.02489255773889896]",
+        "select_collision_free_grasp"
+      ],
+      [
+        "check_ready",
+        "move_home",
+        "open_gripper",
+        "move_observation",
+        "prepare",
+        "acquire_object_rgbd",
+        "segment_and_infer_grasps",
+        "update_target_scene center=[0.3483372245366823, -0.0001522628752873966, 0.024896533855464267]",
+        "select_collision_free_grasp",
+        "selected candidate=45 score=0.618 tcp=[0.33366330092237945, -0.007933089406967598, 0.026219591746520443] rejected={'not_top_down': 42, 'pre_ik': 6}",
+        "move_pregrasp",
+        "approach",
+        "close_gripper",
+        "attach",
+        "verify_bilateral_object_contact",
+        "object_attached_in_planning_scene",
+        "lift",
+        "verify_physical_lift",
+        "physical_lift_verified delta_z=0.0737 forces={'gripper_link1': 10.050265454666622, 'gripper_link2': 9.97920106969336}"
+      ],
+      [
+        "check_ready"
+      ]
+    ],
+    "attached_object": "red_grasp_target"
+  }
+}
