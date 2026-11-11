@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/project-code-map/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>5. 코드를 따라 읽기 - RWH · PiPER 집기와 Husky 운용</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../assets/stylesheets/bt-docs.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · PiPER 집기와 Husky 운용</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">문서 시작</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">PiPER 집기 이해하기</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../project-overview/" class="dropdown-item">1. 전체 흐름 한눈에</a>
+</li>
+                                    
+<li>
+    <a href="../project-containers/" class="dropdown-item">2. 컨테이너 구축</a>
+</li>
+                                    
+<li>
+    <a href="../project-data/" class="dropdown-item">3. 모델 데이터와 좌표계</a>
+</li>
+                                    
+<li>
+    <a href="../grasp-pipeline-guide/" class="dropdown-item">4. 처음 터미널부터 실행</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">5. 코드를 따라 읽기</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 구현</a>
+</li>
+                                    
+<li>
+    <a href="../graspgenx-model/" class="dropdown-item">GraspGenX 구현</a>
+</li>
+                                    
+<li>
+    <a href="../grasp-visualization/" class="dropdown-item">RViz로 디버깅</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">BT 개발 상세</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bt-architecture/" class="dropdown-item">아키텍처</a>
+</li>
+                                    
+<li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth와 runner 흐름</a>
+</li>
+                                    
+<li>
+    <a href="../bt-nodes/" class="dropdown-item">노드 목록</a>
+</li>
+                                    
+<li>
+    <a href="../bt-grasp-stages/" class="dropdown-item">단계별 포트와 Action</a>
+</li>
+                                    
+<li>
+    <a href="../bt-code-style/" class="dropdown-item">Nav2 헤더·CPP 구성</a>
+</li>
+                                    
+<li>
+    <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">구축 상세와 실험 기록</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 배포 상세</a>
+</li>
+                                    
+<li>
+    <a href="../red-box-grasp/" class="dropdown-item">초기 빨간 상자 통합</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-history/" class="dropdown-item">SAM 통합 이력</a>
+</li>
+                                    
+<li>
+    <a href="../work-log-2026-11-09/" class="dropdown-item">11월 9일 작업 기록</a>
+</li>
+                                    
+<li>
+    <a href="../work-log-2026-11-10/" class="dropdown-item">11월 10일 작업 기록</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Husky SLAM·Nav2</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../husky-guide/" class="dropdown-item">시작 안내</a>
+</li>
+                                    
+<li>
+    <a href="../connection/" class="dropdown-item">SSH와 본체 확인</a>
+</li>
+                                    
+<li>
+    <a href="../setup/" class="dropdown-item">외부 PC 준비</a>
+</li>
+                                    
+<li>
+    <a href="../operation/" class="dropdown-item">SLAM과 Nav2 실행</a>
+</li>
+                                    
+<li>
+    <a href="../interfaces/" class="dropdown-item">TF와 토픽</a>
+</li>
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">파라미터 설정</a>
+</li>
+                                    
+<li>
+    <a href="../runner/" class="dropdown-item">ros_runner 운용</a>
+</li>
+                                    
+<li>
+    <a href="../troubleshooting/" class="dropdown-item">문제 해결</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../upstream/" class="nav-link">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../grasp-pipeline-guide/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../sam3-perception/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/project-code-map.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#_1" class="nav-link">코드를 따라 읽기</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#1" class="nav-link">1. 실행 구성을 먼저 읽기</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2-xml-c" class="nav-link">2. XML과 C++ 플러그인 읽기</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#3-python" class="nav-link">3. Python에서 단계별 구현 찾기</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#4-segmentobject" class="nav-link">4. SegmentObject 요청 하나 끝까지 추적하기</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#5-infergrasps-action" class="nav-link">5. InferGrasps의 두 Action을 구분하기</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#6" class="nav-link">6. 선택·실행과 시뮬레이터</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#7" class="nav-link">7. 무엇을 고칠 때 어디로 가나</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#8" class="nav-link">8. 빌드와 확인</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="_1">코드를 따라 읽기<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>처음에는 전체 소스를 순서대로 읽기보다 <strong>BT 노드 하나가 어떤 Action을 호출하고,
+서버의 어느 함수로 도착하는지</strong> 따라가면 구조를 빨리 파악할 수 있습니다.
+경로는 별도 표기가 없으면 ROS 컨테이너 <code>/root/ros2_ws/src/rwh_beyond</code> 기준입니다.</p>
+<h2 id="1">1. 실행 구성을 먼저 읽기<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>순서</th>
+<th>파일</th>
+<th>확인할 내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>../ros_runner/config/runners.yaml</code></td>
+<td><code>bt_demo_sim</code> → <code>piper_moveit_sim</code> 의존성, 환경변수</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>rwh_beyond_bringup/launch/bt_demo.launch.py</code></td>
+<td>grasp pipeline·RViz include, navigator·lifecycle manager</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>rwh_beyond_bringup/params/bt_demo_params.yaml</code></td>
+<td>custom navigator 플러그인, BT 라이브러리, Groot2</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>rwh_beyond_grasp_bridge/launch/grasp_pipeline.launch.py</code></td>
+<td>inference server와 coordinator 두 노드 생성</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>rwh_beyond_grasp_bridge/config/grasp_pipeline.yaml</code></td>
+<td>대상, endpoint, 프레임, TCP 보정, 후보 수</td>
+</tr>
+</tbody>
+</table>
+<p>시뮬레이터·MoveIt 구성은
+<code>../moma-mj-lab/ros2_ws/src/moma_bringup/launch/simulation.launch.py</code>에서 이어집니다.
+현재 BT의 RViz node 생성 코드는 <code>rwh_beyond_bringup/launch/moveit_rviz.launch.py</code>이며,
+화면 설정은 <code>../moma-mj-lab/ros2_ws/src/moma_bringup/config/depth_planning.rviz</code>입니다.</p>
+<h2 id="2-xml-c">2. XML과 C++ 플러그인 읽기<a class="headerlink" href="#2-xml-c" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/ggh-png/rwh_beyond/blob/main/rwh_beyond_bt/behavior_trees/demo.xml">기본 XML</a>을 열고
+<code>SegmentObject</code>부터 시작하세요.</p>
+<pre><code class="language-text">rwh_beyond_bt/behavior_trees/demo.xml
+  &lt;SegmentObject observation_id=&quot;{observation}&quot; mask=&quot;{object_mask}&quot;/&gt;
+     ↓ XML 이름을 BT_REGISTER_NODES로 등록
+rwh_beyond_bt/plugins/action/segment_object_action.cpp
+     ↓ SegmentObjectAction / providedPorts / on_success
+rwh_beyond_bt/include/rwh_beyond_bt/plugins/action/segment_object_action.hpp
+     ↓ 공통 GraspActionNode
+rwh_beyond_bt/src/bt_grasp_action_node.cpp
+     ↓ ROS Action grasp/segment_object
+</code></pre>
+<p><code>on_success()</code>가 응답의 <code>observation_id</code>와 <code>object_mask</code>를 Blackboard 출력 포트에 씁니다.
+다음 <code>BuildObjectCloud</code>는 같은 Blackboard 값을 입력 포트로 받아 요청에 담습니다.
+각 노드의 헤더와 CPP가 분리되어 있고 개별 플러그인 라이브러리로 빌드됩니다.
+기존 <code>rwh_beyond_bt_nodes</code>는 호환 로더입니다. <a href="../bt-code-style/">C++ 구조 상세</a>를 참고하세요.</p>
+<p><code>rwh_beyond_navigator/src/demo_navigator.cpp</code>는 <code>/run_demo</code> goal과 기본 트리·결과 진단을 연결합니다.
+<code>RunDemo.action</code>은 어떤 트리를 실행할지 지정하고, <code>RunGraspStage.action</code>은 각 파지 단계의 데이터를 전달합니다.</p>
+<h2 id="3-python">3. Python에서 단계별 구현 찾기<a class="headerlink" href="#3-python" title="Permanent link">&para;</a></h2>
+<p>아래 Python 파일은 모두 <code>rwh_beyond_grasp_bridge/rwh_beyond_grasp_bridge/</code> 안에 있습니다.</p>
+<table>
+<thead>
+<tr>
+<th>BT 노드</th>
+<th>Action endpoint</th>
+<th>구현의 시작점</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CheckGraspReady</code></td>
+<td><code>/grasp/check_ready</code></td>
+<td><code>grasp_coordinator.py::check_ready()</code></td>
+</tr>
+<tr>
+<td><code>SegmentObject</code></td>
+<td><code>/grasp/segment_object</code></td>
+<td><code>perception_stages.py::segment_target()</code></td>
+</tr>
+<tr>
+<td><code>BuildObjectCloud</code></td>
+<td><code>/grasp/build_object_cloud</code></td>
+<td><code>perception_stages.py::build_object_cloud()</code></td>
+</tr>
+<tr>
+<td><code>InferGrasps</code></td>
+<td><code>/grasp/infer_grasps</code></td>
+<td><code>inference_stages.py::infer_grasps()</code></td>
+</tr>
+<tr>
+<td><code>SelectFeasibleGrasp</code></td>
+<td><code>/grasp/select_feasible_grasp</code></td>
+<td><code>selection_stages.py::select_feasible_grasp()</code></td>
+</tr>
+<tr>
+<td><code>MoveToPregrasp</code></td>
+<td><code>/grasp/move_pregrasp</code></td>
+<td><code>motion_stages.py::execute_trajectory()</code></td>
+</tr>
+<tr>
+<td><code>ApproachGrasp</code></td>
+<td><code>/grasp/approach</code></td>
+<td><code>motion_stages.py::execute_cartesian()</code></td>
+</tr>
+<tr>
+<td><code>AttachObject</code></td>
+<td><code>/grasp/attach</code></td>
+<td><code>motion_stages.py::attach()</code></td>
+</tr>
+<tr>
+<td><code>LiftObject</code></td>
+<td><code>/grasp/lift</code></td>
+<td><code>motion_stages.py::lift()</code></td>
+</tr>
+</tbody>
+</table>
+<p>공통 진입점은 <code>grasp_coordinator.py::execute_stage()</code>입니다. endpoint별 ActionServer를 만들고,
+관측/계획 ID·입력 일치·실행 순서 검증 후 해당 모듈 함수를 호출합니다.
+<code>MoveHome</code>, <code>MoveObservation</code>, <code>OpenGripper</code>, <code>CloseGripper</code>는 위 파지 단계와 별도로
+기존 C++ MoveIt·그리퍼 노드를 사용합니다. <a href="../bt-nodes/">전체 노드 목록</a>을 참고하세요.</p>
+<h2 id="4-segmentobject">4. SegmentObject 요청 하나 끝까지 추적하기<a class="headerlink" href="#4-segmentobject" title="Permanent link">&para;</a></h2>
+<pre><code class="language-text">segment_object_action.cpp
+  → grasp/segment_object (RunGraspStage)
+  → grasp_coordinator.py::execute_stage()
+  → perception_stages.py::segment_target()
+      snapshot() → 새 RGB/Depth/Info
+      lookup_transform() → 촬영 시각 TF
+      segmentation_client.py::segment_image()
+        zmq_client.py::request()
+          → SAM 컨테이너 /opt/segmentation/server.py
+          → 공식 Sam3Processor
+      관측 context와 observation_id 저장
+      visualization.py::publish_segmentation()
+  → Action result.object_mask / observation_id
+  → C++ on_success() → Blackboard
+</code></pre>
+<p>다음 <code>BuildObjectCloud</code>는 같은 context에서 <code>depth_converter.py::depth_xyz()</code>를 호출합니다.</p>
+<h2 id="5-infergrasps-action">5. InferGrasps의 두 Action을 구분하기<a class="headerlink" href="#5-infergrasps-action" title="Permanent link">&para;</a></h2>
+<pre><code class="language-text">BT InferGrasps
+  → /grasp/infer_grasps           # RunGraspStage: 관측 ID와 BT 데이터 연결
+  → coordinator / inference_stages.py
+  → /infer_grasps                 # InferGrasps: 독립 추론 인터페이스
+  → inference_action_server.py
+      cloud_converter.py::cloud_xyz()
+      zmq_client.py::request() → GraspGenX 5566
+      pose_converter.py::validate_candidates() / quaternion_xyzw()
+  → 후보 배열 반환 → coordinator → BT Blackboard
+</code></pre>
+<p><code>/grasp/infer_grasps</code>와 <code>/infer_grasps</code>는 이름이 비슷하지만 서로 다른 Action입니다.
+기본 BT는 POINT_CLOUD 모드이며, 독립 RGBD/Depth 경로는 <code>inference_action_server.py</code>에서 분기합니다.</p>
+<h2 id="6">6. 선택·실행과 시뮬레이터<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>selection_stages.py</code>: SAM 관측 충돌 형상, 대상 Octomap 제외 영역, 후보별 거절 사유·IK·경로 계획.</li>
+<li><code>observed_geometry.py</code>: 관측 XYZ와 주변 Depth에서 물체 AABB·수평 지지면 추정.</li>
+<li><code>motion_stages.py</code>: ExecuteTrajectory·Cartesian 이동, 양쪽 접촉·물리 상승 확인.</li>
+<li><code>visualization.py</code>: 마스크·overlay·base 점군·후보·선택 marker 발행. 계획 입력을 바꾸지 않음.</li>
+<li><code>grasp_coordinator.py</code>: 공유 상태·락·취소·정리. 실패/취소 시 임시 제외 영역·충돌 허용 복원.</li>
+<li><code>../moma-mj-lab/ros2_ws/src/moma_mujoco_ros/moma_mujoco_ros/bridge.py</code>: 카메라/clock/관절·trajectory·검증 서비스의 ROS 연결.</li>
+<li>같은 폴더의 <code>trajectory.py</code>, <code>contacts.py</code>: 시뮬레이션 궤적·접촉 처리.</li>
+</ul>
+<p>현재 모델 자세 보정·하향 선택 가정은 <code>selection_stages.py</code>를, 실제 제조사 URDF·MoveIt 설정은
+<code>../agx_arm_ros</code>를 확인합니다. 모델의 파지 점수만으로 로봇을 직접 움직이지 않습니다.</p>
+<h2 id="7">7. 무엇을 고칠 때 어디로 가나<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>작업</th>
+<th>먼저 수정/확인할 곳</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>단계 순서 바꾸기</td>
+<td><code>rwh_beyond_bt/behavior_trees/*.xml</code></td>
+</tr>
+<tr>
+<td>SAM 대상 바꾸기</td>
+<td>coordinator 파라미터 <code>target_text</code>, <code>target_box</code>, <code>selection_point</code></td>
+</tr>
+<tr>
+<td>SAM 추론 API/선택 규칙</td>
+<td><code>deploy/sam3-docker/server.py</code>, <code>segmentation_core.py</code></td>
+</tr>
+<tr>
+<td>GraspGenX 시작 옵션</td>
+<td><code>deploy/graspgenx-docker/config/server.local.yaml</code>, <code>deploy/graspgenx-docker/scripts/run_server.py</code></td>
+</tr>
+<tr>
+<td>파지 후보 수</td>
+<td><code>rwh_beyond_grasp_bridge/config/grasp_pipeline.yaml</code>: <code>num_grasps</code>, <code>top_k</code>, <code>max_candidates</code></td>
+</tr>
+<tr>
+<td>TCP 변환·접근/리프트 거리</td>
+<td>같은 YAML의 <code>model_to_tcp_*</code>, <code>pregrasp_distance</code>, <code>lift_distance</code></td>
+</tr>
+<tr>
+<td>파지 선택 조건</td>
+<td><code>selection_stages.py</code></td>
+</tr>
+<tr>
+<td>BT 노드 추가</td>
+<td><code>plugins/action/*.cpp</code>, <code>include/.../plugins/action/*.hpp</code>, CMake, XML 모델</td>
+</tr>
+<tr>
+<td>Action 데이터 추가</td>
+<td><code>rwh_beyond_msgs/action/</code>, 관련 서버·C++ 노드 함께 변경</td>
+</tr>
+<tr>
+<td>RViz 표시 추가</td>
+<td><code>visualization.py</code> + <code>../moma-mj-lab/ros2_ws/src/moma_bringup/config/depth_planning.rviz</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="8">8. 빌드와 확인<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<p>ROS 컨테이너에서 실행합니다. 아래는 관련 코드 변경 후의 빌드이며 매 실험마다 필요하지 않습니다.</p>
+<pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
+cd /root/ros2_ws
+colcon build --symlink-install --packages-select   rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator rwh_beyond_grasp_bridge   rwh_beyond_bringup moma_mujoco_ros moma_bringup ros_runner
+source install/setup.bash
+</code></pre>
+<p>Action 타입 변경 후 서버·클라이언트·runner를 재시작합니다. 모델 서버 코드를 바꾸지 않았다면
+GPU 모델 서버를 재시작할 필요는 없습니다.</p>
+<pre><code class="language-bash"># 문서 검사: 실제 집기/이동을 시작하지 않음
+cd /root/ros2_ws/src/rwh_beyond
+python3 -m mkdocs build --strict
+</code></pre>
+<p>Python/BT 테스트와 실제 GPU·물리 통합 시험은 범위가 다릅니다.
+<code>rwh_beyond_grasp_bridge/test/test_*.py</code>는 단위/프로토콜 검사,
+<code>sam_pick_integration.py</code>, <code>sam_runner_pick_integration.py</code>는 모델·시뮬레이터가 필요한 통합 시험입니다.
+실제 시험은 별도 ROS domain에서 실행하며 <a href="../bt-grasp-stages/">기존 검증 방법</a>을 따릅니다.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../assets/javascripts/mermaid.mjs" type="module"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/grasp-visualization/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>RViz로 디버깅 - RWH · PiPER 집기와 Husky 운용</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../assets/stylesheets/bt-docs.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · PiPER 집기와 Husky 운용</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">문서 시작</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">PiPER 집기 이해하기</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../project-overview/" class="dropdown-item">1. 전체 흐름 한눈에</a>
+</li>
+                                    
+<li>
+    <a href="../project-containers/" class="dropdown-item">2. 컨테이너 구축</a>
+</li>
+                                    
+<li>
+    <a href="../project-data/" class="dropdown-item">3. 모델 데이터와 좌표계</a>
+</li>
+                                    
+<li>
+    <a href="../grasp-pipeline-guide/" class="dropdown-item">4. 처음 터미널부터 실행</a>
+</li>
+                                    
+<li>
+    <a href="../project-code-map/" class="dropdown-item">5. 코드를 따라 읽기</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 구현</a>
+</li>
+                                    
+<li>
+    <a href="../graspgenx-model/" class="dropdown-item">GraspGenX 구현</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">RViz로 디버깅</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">BT 개발 상세</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bt-architecture/" class="dropdown-item">아키텍처</a>
+</li>
+                                    
+<li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth와 runner 흐름</a>
+</li>
+                                    
+<li>
+    <a href="../bt-nodes/" class="dropdown-item">노드 목록</a>
+</li>
+                                    
+<li>
+    <a href="../bt-grasp-stages/" class="dropdown-item">단계별 포트와 Action</a>
+</li>
+                                    
+<li>
+    <a href="../bt-code-style/" class="dropdown-item">Nav2 헤더·CPP 구성</a>
+</li>
+                                    
+<li>
+    <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">구축 상세와 실험 기록</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 배포 상세</a>
+</li>
+                                    
+<li>
+    <a href="../red-box-grasp/" class="dropdown-item">초기 빨간 상자 통합</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-history/" class="dropdown-item">SAM 통합 이력</a>
+</li>
+                                    
+<li>
+    <a href="../work-log-2026-11-09/" class="dropdown-item">11월 9일 작업 기록</a>
+</li>
+                                    
+<li>
+    <a href="../work-log-2026-11-10/" class="dropdown-item">11월 10일 작업 기록</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Husky SLAM·Nav2</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../husky-guide/" class="dropdown-item">시작 안내</a>
+</li>
+                                    
+<li>
+    <a href="../connection/" class="dropdown-item">SSH와 본체 확인</a>
+</li>
+                                    
+<li>
+    <a href="../setup/" class="dropdown-item">외부 PC 준비</a>
+</li>
+                                    
+<li>
+    <a href="../operation/" class="dropdown-item">SLAM과 Nav2 실행</a>
+</li>
+                                    
+<li>
+    <a href="../interfaces/" class="dropdown-item">TF와 토픽</a>
+</li>
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">파라미터 설정</a>
+</li>
+                                    
+<li>
+    <a href="../runner/" class="dropdown-item">ros_runner 운용</a>
+</li>
+                                    
+<li>
+    <a href="../troubleshooting/" class="dropdown-item">문제 해결</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../upstream/" class="nav-link">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../graspgenx-model/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../bt-architecture/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/grasp-visualization.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#sam-rviz" class="nav-link">SAM 마스크·객체 점군을 RViz에서 보기</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">실행</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">집기 없이 관측만 실행</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">집기 전 파지 후보·선택 결과까지 확인</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_5" class="nav-link">토픽 확인</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2026-11-11" class="nav-link">2026-11-11 검증</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="sam-rviz">SAM 마스크·객체 점군을 RViz에서 보기<a class="headerlink" href="#sam-rviz" title="Permanent link">&para;</a></h1>
+<p><a href="../project-overview/">전체 구조</a> · <a href="../grasp-pipeline-guide/">처음부터 실행</a> · <a href="../project-data/">데이터 형식</a> · <a href="../project-code-map/">코드 안내</a></p>
+<p><code>SegmentObject</code>와 <code>BuildObjectCloud</code>를 실행하면 실제 결과를 ROS 토픽으로 확인할 수 있다.
+아래 결과 토픽은 Reliable / Transient Local / Keep Last 1로 마지막 메시지를 보존한다.
+BT가 끝난 뒤 RViz를 켜도 <strong>coordinator가 계속 실행 중이면</strong> 마지막 결과를 받을 수 있다.
+노드를 종료하면 캐시는 사라진다. 결과는 매 프레임 추적 영상이 아니라 마지막 관측의 스냅샷이다.</p>
+<table>
+<thead>
+<tr>
+<th>토픽</th>
+<th>타입</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/grasp/object_mask</code></td>
+<td>sensor_msgs/Image</td>
+<td>깊이 경계 침식 후 실제 점군 생성에 사용한 0/1 마스크</td>
+</tr>
+<tr>
+<td><code>/grasp/object_mask_preview</code></td>
+<td>sensor_msgs/Image</td>
+<td>RViz에서 밝게 보이는 0/255 마스크; 원래 마스크는 수정하지 않음</td>
+</tr>
+<tr>
+<td><code>/grasp/segmentation_overlay</code></td>
+<td>sensor_msgs/Image</td>
+<td>동일 촬영 RGB에 선택 영역을 초록색으로 겹친 rgb8 영상</td>
+</tr>
+<tr>
+<td><code>/grasp/object_cloud</code></td>
+<td>sensor_msgs/PointCloud2</td>
+<td>기존 모델 입력과 동일한 카메라 optical frame의 XYZ, m 단위</td>
+</tr>
+<tr>
+<td><code>/grasp/object_cloud_base</code></td>
+<td>sensor_msgs/PointCloud2</td>
+<td>촬영 시각 TF로 base_link에 변환한 표시용 객체 점군</td>
+</tr>
+</tbody>
+</table>
+<p><code>object_cloud_base</code>는 카메라가 이동한 뒤에도 원래 관측 위치에 표시된다. 오래된 TF를
+RViz에서 다시 찾을 필요가 없다. 원본 점군·마스크·시간·GraspGenX 입력은 바꾸지 않는다.
+새 분할이 성공하면 이전 base 점군을 비우고, 다음 <code>BuildObjectCloud</code> 결과로 갱신한다.
+물체를 들어올린 뒤에도 스냅샷은 원래 위치에 남으며 현재 물체 추적 결과를 뜻하지 않는다.</p>
+<p>파지 추론·선택 결과도 같은 보존 QoS로 발행한다.</p>
+<table>
+<thead>
+<tr>
+<th>토픽</th>
+<th>타입</th>
+<th>내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/grasp/grasp_candidates</code></td>
+<td>visualization_msgs/MarkerArray</td>
+<td>모델 후보 방향·상위 점수</td>
+</tr>
+<tr>
+<td><code>/grasp/selected_grasp</code></td>
+<td>visualization_msgs/MarkerArray</td>
+<td>선택 TCP 축·점수, pregrasp, 접근 방향</td>
+</tr>
+<tr>
+<td><code>/grasp/selected_tcp</code></td>
+<td>geometry_msgs/PoseStamped</td>
+<td>선택한 실제 PiPER TCP 자세</td>
+</tr>
+<tr>
+<td><code>/grasp/selected_pregrasp</code></td>
+<td>geometry_msgs/PoseStamped</td>
+<td>선택한 사전 접근 자세</td>
+</tr>
+</tbody>
+</table>
+<p>파란 화살표는 <strong>검사 전 모델 원점의 +Z 접근 방향</strong>이다. 기본 상위 10개만 그리며 상위
+3개 점수를 표시한다. <code>debug_max_candidates</code>는 표시 개수만 제한하고 실제 추론·후보
+검사 개수는 바꾸지 않는다. 모델 원점은 PiPER TCP와 다르므로 화살표 시작점과 TCP 축은
+서로 떨어질 수 있다. 모델→TCP 보정과 flipped 후보 처리는 선택 단계에서 적용한다.</p>
+<p>최종 선택 결과는 실제 TCP의 빨강/초록/파랑 XYZ 축, 자홍색 pregrasp 점, 노란색 접근 선과
+선택 점수로 표시한다. 접근 선은 pregrasp→TCP 구간이며 OMPL 관절 경로 전체를 나타내지는
+않는다. 다음 분할이 성공하면 후보·선택 MarkerArray를 비워 이전 관측과 섞이지 않게 한다.
+PoseStamped 두 토픽은 마지막 성공한 선택 값으로 남으므로 기본 화면은 MarkerArray를 사용한다.</p>
+<h2 id="_1">실행<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p><a href="../grasp-pipeline-guide/">최종 실행 가이드</a>에 따라 모델 서버·runner·BT navigator를 준비한다.
+빌드 후 기존 coordinator를 재시작해야 새 토픽·QoS가 적용된다.</p>
+<pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
+cd /root/ros2_ws
+colcon build --symlink-install --packages-select \
+  rwh_beyond_grasp_bridge rwh_beyond_bt moma_bringup
+source install/setup.bash
+</code></pre>
+<h3 id="bt-launch-moveit-rviz">BT launch에서 MoveIt RViz 함께 실행 — 기본<a class="headerlink" href="#bt-launch-moveit-rviz" title="Permanent link">&para;</a></h3>
+<p><code>rwh_beyond_bringup/launch/bt_demo.launch.py</code>가 navigator·lifecycle manager와 함께
+MoveIt/SAM/파지 통합 RViz를 기본 실행한다(<code>rviz:=true</code>). RViz 부분만
+<code>rwh_beyond_bringup/moveit_rviz.launch.py</code>를 include하여 시뮬레이터와 동일한 robot
+description·SRDF·kinematics를 사용한다. 로봇 모델과 기본 RViz 설정은 <code>moma_bringup</code>의
+설정을 참조하며, 시뮬레이터나 move_group을 추가로 시작하지 않는다.</p>
+<p>runner의 <code>piper_moveit_sim</code>은 <code>rviz:=false</code>로 실행하고, <strong>bt_demo_sim이 RViz를 소유</strong>한다.
+따라서 새 runner 설정으로 <code>/ros_runner/activate_bt_demo_sim</code>을 호출하면 통합 RViz가 한 번만
+열리고, bt_demo_sim을 중지하면 그 RViz도 함께 종료된다. 기존 runner는 설정을 다시 읽도록
+한 번 재시작한다. 별도 RViz launch 명령은 기본 실행에 필요하지 않다.</p>
+<p>수동으로 simulation을 실행한 경우 BT launch를 시작한다. BT launch가 Bridge도 시작하므로
+Bridge를 별도로 실행하지 않는다.</p>
+<pre><code class="language-bash">ros2 launch rwh_beyond_bringup bt_demo.launch.py
+</code></pre>
+<p>GUI 없이 실행하려면 직접 launch에서는 <code>rviz:=false</code>, runner에서는 <strong>시작 전</strong> 다음 값을
+지정한다. 과거 <code>RWH_PIPER_SIM_RVIZ</code> 대신 BT 화면은 이 변수를 사용한다.</p>
+<pre><code class="language-bash">export RWH_BT_RVIZ=false
+</code></pre>
+<p><code>RWH_BT_RVIZ</code>의 기본값은 true다. <code>piper_moveit_sim</code> 단독 실행 시에도 RViz는
+시작되지 않는다. 사용자 config는 <code>bt_demo.launch.py rviz_config:=/path/to/config.rviz</code>로
+지정할 수 있다.</p>
+<p>화면은 왼쪽 MotionPlanning·Displays, 가운데 로봇/계획 장면, 오른쪽 분할 영상 2개로
+배치했다. 목표의 interactive marker가 결과를 가리지 않도록 <code>MotionPlanning → Planning
+Request → Query Goal State</code>는 기본 해제했다. GUI에서 목표를 드래그할 때 이 항목을 켠다.</p>
+<p>RViz를 비활성화해 실행한 기존 그래프에 나중에 창만 추가하려면 아래 보조 launch를 사용할
+수 있다. 기본 bt_demo에서 이미 RViz가 열린 경우에는 중복 실행하지 않는다.</p>
+<pre><code class="language-bash">ros2 launch rwh_beyond_bringup moveit_rviz.launch.py
+</code></pre>
+<h3 id="_2">별도 결과 전용 뷰어 — 선택 사항<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>같은 ROS_DOMAIN_ID의 ROS 컨테이너 터미널에서 실행한다. 이 launch는 RViz만 열며
+시뮬레이터·모델·BT goal을 시작하지 않는다.</p>
+<pre><code class="language-bash">ros2 launch rwh_beyond_grasp_bridge grasp_visualization.launch.py
+</code></pre>
+<p>처음에는 결과가 없다. 아래 관측 BT 또는 기본 집기 BT를 실행하면 왼쪽에 마스크·오버레이,
+오른쪽에 초록색 객체 점군이 표시된다. Fixed Frame은 <code>base_link</code>다.</p>
+<p>직접 RViz를 설정할 경우 Image display에 preview/overlay를, PointCloud2 display에
+<code>object_cloud_base</code>를 연결한다. 세 display 모두 Reliability=Reliable,
+Durability=Transient Local, History=Keep Last, Depth=1을 선택한다.
+단순 0/1 마스크는 화면에서 거의 검게 보일 수 있으므로 preview 토픽을 사용한다.</p>
+<h3 id="rviz">기존 시뮬레이션 RViz<a class="headerlink" href="#rviz" title="Permanent link">&para;</a></h3>
+<p><code>moma_bringup/config/depth_planning.rviz</code>도 갱신했다. 기본 bt_demo가 이 설정의
+MoveIt RViz를 실행하므로 마스크·오버레이·점군·파지 결과를 한 화면에서 볼 수 있다. 이미 열린 RViz는 새 config를 다시 불러오거나
+재시작한다. 기존 잘못된 <code>/grasp/red_mask</code> 설정은 제거했다.</p>
+<h2 id="_3">집기 없이 관측만 실행<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>시뮬레이션용 <code>perception_preview.xml</code>을 제공한다. <strong>홈 이동·그리퍼 열기·관측 자세 이동은
+실행하지만</strong>, 파지 추론·접근·닫기·리프트는 실행하지 않는다. 이미 물체를 들고 있으면
+처음 준비 확인에서 거부한다. 두 실제 모델의 health check는 기존과 같이 요구한다.</p>
+<p>runner가 활성화되고 navigator lifecycle이 active인 상태에서 다음 goal을 보낸다.</p>
+<pre><code class="language-bash">ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  &quot;{behavior_tree: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/perception_preview.xml}&quot; \
+  --feedback
+</code></pre>
+<p>전체 집기는 기존처럼 빈 goal을 보낸다.</p>
+<pre><code class="language-bash">ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo &quot;{}&quot; --feedback
+</code></pre>
+<h2 id="_4">집기 전 파지 후보·선택 결과까지 확인<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<p><code>grasp_debug.xml</code>은 관측 자세 이동 후 SAM→점군→GraspGenX→MoveIt IK/충돌·경로 검사와
+후보 선택까지만 실행한다. 사전 접근 이동·그리퍼 닫기·리프트는 하지 않는다.</p>
+<pre><code class="language-bash">ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  &quot;{behavior_tree: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/grasp_debug.xml}&quot; \
+  --feedback
+</code></pre>
+<p>이 트리가 끝나면 임시 planning scene 상태·미부착 계획은 정리되고 디버그 마커만 보존한다.
+전체 집기를 할 때는 기본 빈 goal을 새로 보내 관측·추론·계획을 다시 수행한다.</p>
+<h2 id="_5">토픽 확인<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<pre><code class="language-bash">ros2 topic info /grasp/object_cloud_base --verbose
+ros2 topic echo /grasp/object_cloud_base --once --field width \
+  --qos-reliability reliable --qos-durability transient_local
+</code></pre>
+<p>토픽이 없으면 coordinator 실행 여부를 확인한다. 토픽은 있지만 메시지가 없으면
+<code>SegmentObject</code> / <code>BuildObjectCloud</code> 실행과 성공 여부를 확인한다. 모델 서버만 켜서는
+이 결과 토픽이 발행되지 않는다. RViz와 ROS 노드는 같은 ROS_DOMAIN_ID를 사용해야 한다.</p>
+<h2 id="2026-11-11">2026-11-11 검증<a class="headerlink" href="#2026-11-11" title="Permanent link">&para;</a></h2>
+<p>단위 테스트는 RGB/BGR·행 padding 처리, 0/255 표시, 원본 마스크 불변성, 촬영 TF 변환,
+늦게 연결한 구독자의 보존 메시지 수신과 새 분할 시 base 점군 초기화를 확인했다.
+실제 SAM·MuJoCo 관측 BT 완료 후 구독자를 연결해 다섯 토픽을 수신했으며, 이후 RViz를 열어
+마스크·오버레이·점군이 렌더링되고 Global Status가 OK인 것을 확인했다.
+이 시험은 집기를 수행하지 않았다. 모델 서버는 유지하고 검증용 ROS/RViz 프로세스는 종료했다.</p>
+<p>실제 관측에서 2,779개 점을 확인했다. 표시용 frame은 <code>base_link</code>, 원본 frame은
+<code>d405_color_optical_frame</code>이며, RViz가 세 표시 토픽을 구독하고 QoS가 일치함을 확인했다.
+Bridge·perception 관련 Python 테스트는 새 시각화 검사 포함 61개가 통과했다.
+<a href="../validation/grasp-rviz-2026-11-11.json">실제 관측 검증 JSON</a>을 참고한다.</p>
+<h3 id="moveit">MoveIt 통합 화면 추가 검증<a class="headerlink" href="#moveit" title="Permanent link">&para;</a></h3>
+<p>실제 SAM·GraspGenX로 <code>grasp_debug.xml</code>을 실행한 뒤 기존 MoveIt RViz만 추가 실행했다.
+마스크·오버레이·점군과 함께 모델 후보 10개 및 최종 선택 TCP·pregrasp·점수를 수신·표시했다.
+RViz 추가 전후 <code>move_group</code> 개수는 1개로 유지되어 중복 시뮬레이션을 시작하지 않음을 확인했다.
+배치 조정 후 실제 창에서 MotionPlanning·로봇·두 분할 영상·마커를 함께 확인했으며,
+관련 Python 테스트 62개와 문서 strict 빌드가 통과했다. 이 시험은 파지 계획·선택까지만
+검증했고 접근·닫기·리프트는 실행하지 않았다.
+<a href="../validation/moveit-grasp-debug-2026-11-11.json">통합 검증 JSON</a>을 참고한다.</p>
+<h3 id="bt-launch-rviz">BT launch의 RViz 소유·종료 연동<a class="headerlink" href="#bt-launch-rviz" title="Permanent link">&para;</a></h3>
+<p><code>bt_demo.launch.py</code>에 기본 활성화되는 RViz include를 추가하고 <code>piper_sim</code>의 RViz는 비활성화했다.
+launch/runner 단위 검사 5개와 3개 backend subtest가 통과했다. 별도 ROS 도메인에서 실제
+<code>activate_bt_demo</code> 호출 후 RViz 프로세스 1개와 move_group 1개를 확인했고,
+<code>deactivate_bt_demo</code> 호출로 RViz가 종료되는 것을 검증했다. 이 생명주기 시험은 이동 goal을
+보내지 않았다. 추가 전체 debug BT 시도 중 한 번은 <code>MoveObservation</code>의 기존
+<code>START_STATE_INVALID</code> 판정으로 중단됐으며 충돌·시작 상태 검사를 완화하지 않았다.
+<a href="../validation/bt-rviz-owner-2026-11-11.json">RViz 소유 검증 JSON</a>을 참고한다.
+재현 스크립트는 <code>rwh_beyond_bringup/test/bt_rviz_lifecycle.py</code>이며 비어 있는 별도 ROS 도메인에서 실행한다.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../assets/javascripts/mermaid.mjs" type="module"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

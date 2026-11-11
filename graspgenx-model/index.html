@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/graspgenx-model/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>GraspGenX 구현 - RWH · PiPER 집기와 Husky 운용</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../assets/stylesheets/bt-docs.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · PiPER 집기와 Husky 운용</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">문서 시작</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">PiPER 집기 이해하기</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../project-overview/" class="dropdown-item">1. 전체 흐름 한눈에</a>
+</li>
+                                    
+<li>
+    <a href="../project-containers/" class="dropdown-item">2. 컨테이너 구축</a>
+</li>
+                                    
+<li>
+    <a href="../project-data/" class="dropdown-item">3. 모델 데이터와 좌표계</a>
+</li>
+                                    
+<li>
+    <a href="../grasp-pipeline-guide/" class="dropdown-item">4. 처음 터미널부터 실행</a>
+</li>
+                                    
+<li>
+    <a href="../project-code-map/" class="dropdown-item">5. 코드를 따라 읽기</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 구현</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">GraspGenX 구현</a>
+</li>
+                                    
+<li>
+    <a href="../grasp-visualization/" class="dropdown-item">RViz로 디버깅</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">BT 개발 상세</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bt-architecture/" class="dropdown-item">아키텍처</a>
+</li>
+                                    
+<li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth와 runner 흐름</a>
+</li>
+                                    
+<li>
+    <a href="../bt-nodes/" class="dropdown-item">노드 목록</a>
+</li>
+                                    
+<li>
+    <a href="../bt-grasp-stages/" class="dropdown-item">단계별 포트와 Action</a>
+</li>
+                                    
+<li>
+    <a href="../bt-code-style/" class="dropdown-item">Nav2 헤더·CPP 구성</a>
+</li>
+                                    
+<li>
+    <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">구축 상세와 실험 기록</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 배포 상세</a>
+</li>
+                                    
+<li>
+    <a href="../red-box-grasp/" class="dropdown-item">초기 빨간 상자 통합</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-history/" class="dropdown-item">SAM 통합 이력</a>
+</li>
+                                    
+<li>
+    <a href="../work-log-2026-11-09/" class="dropdown-item">11월 9일 작업 기록</a>
+</li>
+                                    
+<li>
+    <a href="../work-log-2026-11-10/" class="dropdown-item">11월 10일 작업 기록</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Husky SLAM·Nav2</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../husky-guide/" class="dropdown-item">시작 안내</a>
+</li>
+                                    
+<li>
+    <a href="../connection/" class="dropdown-item">SSH와 본체 확인</a>
+</li>
+                                    
+<li>
+    <a href="../setup/" class="dropdown-item">외부 PC 준비</a>
+</li>
+                                    
+<li>
+    <a href="../operation/" class="dropdown-item">SLAM과 Nav2 실행</a>
+</li>
+                                    
+<li>
+    <a href="../interfaces/" class="dropdown-item">TF와 토픽</a>
+</li>
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">파라미터 설정</a>
+</li>
+                                    
+<li>
+    <a href="../runner/" class="dropdown-item">ros_runner 운용</a>
+</li>
+                                    
+<li>
+    <a href="../troubleshooting/" class="dropdown-item">문제 해결</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../upstream/" class="nav-link">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../sam3-perception/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../grasp-visualization/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/graspgenx-model.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#graspgenx" class="nav-link">GraspGenX를 어떻게 활용했나</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">서버 실행부터 요청 처리까지</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_2" class="nav-link">모델 입력과 그리퍼 정보</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">모델의 결과를 그대로 실행하지 않는 이유</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#api" class="nav-link">현재 사용하는 API 범위</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_4" class="nav-link">바꾸는 위치</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="graspgenx">GraspGenX를 어떻게 활용했나<a class="headerlink" href="#graspgenx" title="Permanent link">&para;</a></h1>
+<p>GraspGenX는 <strong>분리된 한 물체의 3D 점군과 그리퍼 정보를 받아, 파지 위치·방향 후보와 점수를 반환</strong>합니다.
+공식 pretrained 모델과 <code>piper_hand</code> assets를 사용하며 이 프로젝트에서 모델을 별도 학습하지 않습니다.
+텍스트로 물체를 찾는 일은 SAM, Depth를 XYZ로 바꾸는 일은 ROS가 먼저 수행합니다.</p>
+<h2 id="_1">서버 실행부터 요청 처리까지<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>아래 경로는 GraspGenX 컨테이너 내부입니다.</p>
+<pre><code class="language-text">/opt/deploy/scripts/start_server.sh
+  → /opt/deploy/scripts/run_server.py
+      /opt/deploy/config/server.local.yaml 읽기
+      checkpoint/gen, checkpoint/dis, piper_hand assets 존재 확인
+  → /opt/GraspGenX/client-server/graspgenx_server.py
+  → graspgenx/serving/zmq_server.py::GraspGenXZMQServer
+      action=&quot;infer&quot; → _handle_infer()
+      _get_sampler(&quot;piper_hand&quot;)
+      graspgenx/grasp_server.py::GraspGenXSampler.run_inference()
+      grasps / confidences / gripper_name / timing 반환
+</code></pre>
+<p>SAM 서버는 프로젝트에서 만든 작은 어댑터이고, GraspGenX는 공식 ZMQ server를 실행하는
+시작 스크립트를 프로젝트에서 감싼 형태입니다. 두 모델을 한 Python 프로세스에 import하지 않습니다.</p>
+<h2 id="_2">모델 입력과 그리퍼 정보<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>입력 점군은 <code>float32 [N,3]</code>, 미터 단위이며 카메라 optical frame 기준입니다.
+<code>gripper_name="piper_hand"</code>는 서버가 준비한 그리퍼 assets와 sampler를 선택합니다.
+로봇 전체 관절값이나 MoveIt Planning Scene을 보내는 필드는 없습니다.</p>
+<p>sampler는 점군 중심을 기준으로 전처리하고 모델의 생성·점수 평가 경로를 사용합니다.
+내부 전처리 후에는 위치를 입력 점군 좌표계로 돌려 반환합니다. ROS가 별도로 물체 중심을
+더하거나 빼면 좌표가 중복 보정되므로 입력 header와 촬영 TF를 유지해야 합니다.</p>
+<p>현재 config는 <code>fast_inference: false</code>로 PyTorch 경로를 사용합니다.
+TensorRT artifacts 볼륨이 존재한다고 fast runtime이 켜졌다는 뜻은 아닙니다.</p>
+<h2 id="_3">모델의 결과를 그대로 실행하지 않는 이유<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>모델 점수는 <strong>그리퍼·물체 형상을 바탕으로 한 후보 평가값</strong>입니다.
+PiPER의 관절 제한·도달 범위·현재 자세·테이블/주변 장애물·경로 실행 가능성을 모두 증명하지 않습니다.</p>
+<p>ROS Bridge는 응답 행렬과 점수를 검증하고 <code>GraspCandidate[]</code>로 변환합니다.
+coordinator의 <code>SelectFeasibleGrasp</code>가 그 후보에 TCP 보정·IK·충돌·경로 검사를 적용합니다.
+따라서 후보가 여러 개 있어도 실행 가능한 후보가 없어 선택 단계가 실패할 수 있습니다.</p>
+<h2 id="api">현재 사용하는 API 범위<a class="headerlink" href="#api" title="Permanent link">&para;</a></h2>
+<p>기본 BT가 보내는 ZMQ 작업은 <strong><code>action="infer"</code></strong>입니다.
+현재 공식 소스에 다른 inference action이 있더라도 이 프로젝트가 자동으로 그것을 사용하는 것은 아닙니다.
+전체 scene·텍스트·Depth를 GraspGenX에 보내는 현재 BT 경로는 없습니다.</p>
+<p>ROS 쪽 <code>/infer_grasps</code>는 입력 모드 POINT_CLOUD/DEPTH_IMAGE/RGBD를 제공하지만,
+후자의 전처리도 ROS/SAM에서 수행하고 GraspGenX에는 동일한 객체 XYZ 요청을 보냅니다.
+구체적인 배열·필드는 <a href="../project-data/">모델 데이터 형식</a>을 참고하세요.</p>
+<h2 id="_4">바꾸는 위치<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>목적</th>
+<th>위치</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>후보 생성/반환 개수</td>
+<td>ROS <code>grasp_pipeline.yaml</code>의 <code>num_grasps</code>, <code>top_k</code></td>
+</tr>
+<tr>
+<td>실제 검사 후보 개수</td>
+<td>같은 파일 <code>max_candidates</code></td>
+</tr>
+<tr>
+<td>RViz에만 그릴 개수</td>
+<td>같은 파일 <code>debug_max_candidates</code></td>
+</tr>
+<tr>
+<td>checkpoint·port·fast runtime</td>
+<td>배포 <code>config/server.local.yaml</code></td>
+</tr>
+<tr>
+<td>공식 서버 실행 옵션</td>
+<td>배포 <code>scripts/run_server.py</code></td>
+</tr>
+<tr>
+<td>로봇 실행 후보 선택 규칙</td>
+<td>ROS <code>selection_stages.py</code></td>
+</tr>
+</tbody>
+</table>
+<p>공식 모델 구현을 읽고 싶으면 <code>grasp_server.py</code>와 <code>serving/zmq_server.py</code>부터,
+이 프로젝트의 연결을 바꾸려면 <code>inference_action_server.py</code>와 <code>pose_converter.py</code>부터 읽으세요.</p></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../assets/javascripts/mermaid.mjs" type="module"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

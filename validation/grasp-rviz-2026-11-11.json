@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "point_count": 2779,
+  "cloud_frame": "d405_color_optical_frame",
+  "display_frame": "base_link",
+  "late_subscription_after_bt": true,
+  "stamp": {
+    "sec": 11,
+    "nanosec": 262000000
+  },
+  "base_bounds": {
+    "lower": [
+      0.33000025153160095,
+      -0.01888684369623661,
+      0.002414977177977562
+    ],
+    "upper": [
+      0.3676746189594269,
+      0.018676837906241417,
+      0.049784936010837555
+    ]
+  },
+  "rviz_subscribers": {
+    "object_cloud_base": 2,
+    "object_mask_preview": 2,
+    "segmentation_overlay": 2
+  }
+}

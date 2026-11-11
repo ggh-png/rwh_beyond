@@ -8,7 +8,7 @@
         
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/bt-operation/">
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>실행과 Groot2 - RWH · Husky 사용 가이드</title>
+        <title>실행과 Groot2 - RWH · PiPER 집기와 Husky 운용</title>
         <link href="../css/bootstrap.min.css" rel="stylesheet">
         <link href="../css/fontawesome.min.css" rel="stylesheet">
         <link href="../css/brands.min.css" rel="stylesheet">
@@ -25,7 +25,7 @@
     <body>
         <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
             <div class="container">
-                <a class="navbar-brand" href="..">RWH · Husky 사용 가이드</a>
+                <a class="navbar-brand" href="..">RWH · PiPER 집기와 Husky 운용</a>
                 <!-- Expander button -->
                 <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -36,76 +36,135 @@
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="nav-item">
-                                <a href=".." class="nav-link">시작하기</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../connection/" class="nav-link">SSH와 본체 확인</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../setup/" class="nav-link">외부 PC 준비</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../operation/" class="nav-link">SLAM과 Nav2 실행</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../interfaces/" class="nav-link">TF와 토픽</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../configuration/" class="nav-link">파라미터 설정</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../runner/" class="nav-link">ros_runner 운용</a>
+                                <a href=".." class="nav-link">문서 시작</a>
                             </li>
                             <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">로봇 팔 BT</a>
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">PiPER 집기 이해하기</a>
                                 <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../bt-architecture/" class="dropdown-item">구조 이해</a>
+    <a href="../project-overview/" class="dropdown-item">1. 전체 흐름 한눈에</a>
 </li>
                                     
 <li>
-    <a href="../depth-bt-flow/" class="dropdown-item">Depth 관측과 runner 흐름</a>
+    <a href="../project-containers/" class="dropdown-item">2. 컨테이너 구축</a>
 </li>
                                     
 <li>
-    <a href="../bt-nodes/" class="dropdown-item">노드 사용법</a>
+    <a href="../project-data/" class="dropdown-item">3. 모델 데이터와 좌표계</a>
 </li>
                                     
 <li>
-    <a href="../bt-grasp-stages/" class="dropdown-item">역할별 파지 플러그인</a>
+    <a href="../grasp-pipeline-guide/" class="dropdown-item">4. 처음 터미널부터 실행</a>
 </li>
                                     
 <li>
-    <a href="../bt-code-style/" class="dropdown-item">Nav2 코드 구성</a>
+    <a href="../project-code-map/" class="dropdown-item">5. 코드를 따라 읽기</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 구현</a>
+</li>
+                                    
+<li>
+    <a href="../graspgenx-model/" class="dropdown-item">GraspGenX 구현</a>
+</li>
+                                    
+<li>
+    <a href="../grasp-visualization/" class="dropdown-item">RViz로 디버깅</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">BT 개발 상세</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bt-architecture/" class="dropdown-item">아키텍처</a>
+</li>
+                                    
+<li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth와 runner 흐름</a>
+</li>
+                                    
+<li>
+    <a href="../bt-nodes/" class="dropdown-item">노드 목록</a>
+</li>
+                                    
+<li>
+    <a href="../bt-grasp-stages/" class="dropdown-item">단계별 포트와 Action</a>
+</li>
+                                    
+<li>
+    <a href="../bt-code-style/" class="dropdown-item">Nav2 헤더·CPP 구성</a>
 </li>
                                     
 <li>
     <a href="./" class="dropdown-item active" aria-current="page">실행과 Groot2</a>
 </li>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">구축 상세와 실험 기록</a>
+                                <ul class="dropdown-menu">
                                     
 <li>
-    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 원격 추론</a>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 배포 상세</a>
 </li>
                                     
 <li>
-    <a href="../red-box-grasp/" class="dropdown-item">빨간 상자 파지</a>
+    <a href="../red-box-grasp/" class="dropdown-item">초기 빨간 상자 통합</a>
 </li>
                                     
 <li>
-    <a href="../grasp-pipeline-guide/" class="dropdown-item">최종 파지 실행 가이드</a>
+    <a href="../sam3-history/" class="dropdown-item">SAM 통합 이력</a>
 </li>
                                     
 <li>
-    <a href="../sam3-perception/" class="dropdown-item">SAM 3 객체 분할·실험</a>
+    <a href="../work-log-2026-11-09/" class="dropdown-item">11월 9일 작업 기록</a>
+</li>
+                                    
+<li>
+    <a href="../work-log-2026-11-10/" class="dropdown-item">11월 10일 작업 기록</a>
 </li>
                                 </ul>
                             </li>
-                            <li class="nav-item">
-                                <a href="../troubleshooting/" class="nav-link">문제 해결</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../work-log-2026-11-10/" class="nav-link">GraspGenX 작업 기록</a>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Husky SLAM·Nav2</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../husky-guide/" class="dropdown-item">시작 안내</a>
+</li>
+                                    
+<li>
+    <a href="../connection/" class="dropdown-item">SSH와 본체 확인</a>
+</li>
+                                    
+<li>
+    <a href="../setup/" class="dropdown-item">외부 PC 준비</a>
+</li>
+                                    
+<li>
+    <a href="../operation/" class="dropdown-item">SLAM과 Nav2 실행</a>
+</li>
+                                    
+<li>
+    <a href="../interfaces/" class="dropdown-item">TF와 토픽</a>
+</li>
+                                    
+<li>
+    <a href="../configuration/" class="dropdown-item">파라미터 설정</a>
+</li>
+                                    
+<li>
+    <a href="../runner/" class="dropdown-item">ros_runner 운용</a>
+</li>
+                                    
+<li>
+    <a href="../troubleshooting/" class="dropdown-item">문제 해결</a>
+</li>
+                                </ul>
                             </li>
                             <li class="nav-item">
                                 <a href="../documentation/" class="nav-link">문서 관리</a>
@@ -184,6 +243,9 @@
                     <div class="col-md-9" role="main">
 
 <h1 id="bt-groot2">BT 실행과 Groot2<a class="headerlink" href="#bt-groot2" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>처음 읽는 경우 <a href="../project-overview/">전체 흐름</a> → <a href="../grasp-pipeline-guide/">현재 실행 절차</a> → <a href="../project-code-map/">코드 안내</a> 순서로 보세요. 이 페이지의 상세·과거 예제보다 현재 실행 절차를 우선합니다.</p>
+</blockquote>
 <p><a href="../grasp-pipeline-guide/">최종 SAM 파지 실행 가이드</a> · <a href="../bt-architecture/">전체 구조</a> · <a href="../bt-nodes/">BT 노드 사용법</a></p>
 <h2 id="1">1. 빌드하고 실행하기<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
 <p>컨테이너 workspace에서 실행합니다.</p>
@@ -195,30 +257,35 @@ colcon build --packages-select \
 source install/setup.bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 </code></pre>
-<p>MuJoCo·MoveIt이 준비되면 다른 터미널에서 <code>ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py</code>를 실행하고, 그다음 navigator를 실행합니다. 기본 트리는 <a href="../red-box-grasp/">빨간 상자 파지</a>이며 실제 SAM 3와 GraspGenX 서버가 모두 필요합니다.
-GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=true</code>를 사용합니다.</p>
+<p>MuJoCo·MoveIt이 준비되면 다른 터미널에서 아래 BT launch를 실행합니다. 이 launch가
+grasp pipeline도 시작하므로 별도로 실행하지 않습니다. 기본 트리는
+<a href="../red-box-grasp/">빨간 상자 파지</a>이며 실제 SAM 3와 GraspGenX 서버가 모두 필요합니다.
+GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=false</code>를 사용합니다.</p>
 <pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
 source /root/ros2_ws/install/setup.bash
 ros2 launch rwh_beyond_bringup bt_demo.launch.py
 </code></pre>
+<p>BT launch가 MoveIt/SAM/파지 통합 RViz도 함께 실행합니다. GUI 없이 실행하려면
+<code>bt_demo.launch.py rviz:=false</code>를 사용합니다. runner의 경우 RViz는 bt_demo_sim이 소유하며
+<code>piper_moveit_sim</code>은 별도 창을 만들지 않습니다.</p>
 <p>BT navigator와 lifecycle manager의 설정은
 <code>rwh_beyond_bringup/params/bt_demo_params.yaml</code>에서 관리합니다. 값을 수정한 뒤
 <code>rwh_beyond_bringup</code>을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
 <code>ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml</code>로
 지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.</p>
-<p><code>ros_runner</code>에서 <strong><code>bt_demo</code>만 활성화</strong>하면 <code>bt_demo → grasp_bridge → piper_sim</code>에 의해
-MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_sim</code>은 재사용합니다.
-추론 Bridge/coordinator도 자동 시작합니다. BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
+<p><code>ros_runner</code>에서 <strong><code>bt_demo_sim</code>만 활성화</strong>하면 <code>bt_demo_sim → piper_moveit_sim</code>에 의해
+MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_moveit_sim</code>은 재사용합니다.
+BT launch가 추론 Bridge/coordinator를 직접 시작하며, runner가 시뮬레이션 의존성을 관리합니다.
 <strong>자동으로 demo goal을 보내지는 않습니다.</strong></p>
-<pre><code class="language-bash">ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
+<pre><code class="language-bash">ros2 service call /runner_manager_node/activate_bt_demo_sim std_srvs/srv/Empty &quot;{}&quot;
 # navigator와 사용되지 않는 simulator 의존성 종료
-ros2 service call /runner_manager_node/deactivate_bt_demo std_srvs/srv/Empty &quot;{}&quot;
+ros2 service call /runner_manager_node/deactivate_bt_demo_sim std_srvs/srv/Empty &quot;{}&quot;
 </code></pre>
-<p><code>piper_sim</code>을 중지하면 이에 의존하는 <code>bt_demo</code>도 중지됩니다.
+<p><code>piper_moveit_sim</code>을 중지하면 이에 의존하는 <code>bt_demo_sim</code>도 중지됩니다.
 다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
 YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.</p>
 <h3 id="octomap">트리 안에서 Octomap 초기화<a class="headerlink" href="#octomap" title="Permanent link">&para;</a></h3>
-<p>Launch는 navigator와 lifecycle manager만 실행합니다. <strong>지도 초기화는 이동 전 ClearOctomap 노드가 수행</strong>합니다.</p>
+<p>Launch는 navigator와 lifecycle manager, grasp pipeline 및 선택적 RViz를 실행합니다. <strong>지도 초기화는 이동 전 ClearOctomap 노드가 수행</strong>합니다.</p>
 <pre><code class="language-xml">&lt;Sequence&gt;
   &lt;ClearOctomap once=&quot;true&quot; timeout=&quot;30.0&quot; fresh_clouds=&quot;2&quot;/&gt;
   &lt;MoveHome/&gt;
@@ -334,7 +401,7 @@ Octomap을 사용하지 않는 트리에서는 해당 노드를 넣지 않으면
 <p>Octomap은 별도 <code>/octomap</code> display가 아니라 MotionPlanning의 Scene Geometry에 표시됩니다.
 점군·영상은 센서의 Best Effort QoS에 맞췄습니다. 겹쳐 보이면 Displays에서 점군을 끄고
 Octomap만 확인하세요. 최초 계획 전 카메라 영상과 Octomap 수신을 확인하세요.
-GUI 옵션은 runner 시작 전 <code>RWH_PIPER_SIM_GUI</code>, <code>RWH_PIPER_SIM_RVIZ</code> 환경변수로 바꿀 수 있습니다.</p>
+GUI 옵션은 runner 시작 전 <code>RWH_PIPER_SIM_GUI</code>, <code>RWH_BT_RVIZ</code> 환경변수로 바꿀 수 있습니다.</p>
 <table>
 <thead>
 <tr>
@@ -344,16 +411,12 @@ GUI 옵션은 runner 시작 전 <code>RWH_PIPER_SIM_GUI</code>, <code>RWH_PIPER_
 </thead>
 <tbody>
 <tr>
-<td><code>piper_sim</code></td>
-<td>MuJoCo + MoveIt (GUI, RViz 및 그리퍼 설정 가능)</td>
-</tr>
-<tr>
-<td><code>bt_demo</code></td>
-<td><code>piper_sim</code> 자동 시작 + BT navigator 및 lifecycle manager</td>
+<td><code>bt_demo_sim</code></td>
+<td><code>piper_moveit_sim</code> 자동 시작 + grasp pipeline 및 BT navigator와 RViz</td>
 </tr>
 <tr>
 <td><code>piper_moveit_sim</code></td>
-<td>MuJoCo + MoveIt</td>
+<td>MuJoCo + MoveIt (RViz 별도 실행)</td>
 </tr>
 <tr>
 <td><code>piper_moveit</code></td>
@@ -554,7 +617,7 @@ MoveIt/controller의 application error를 확인합니다.</p>
 <p>Groot2는 모델 XML로 포트를 표시합니다. 실행 구현은 navigator가 C++ 라이브러리에서
 로드합니다.</p>
 <h3 id="_1">실시간 모니터 연결<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
-<p><code>bt_demo</code> navigator가 활성화되면 Groot2의 <strong>Monitor</strong> 모드에서 navigator가 실행되는
+<p>BT navigator가 활성화되면 Groot2의 <strong>Monitor</strong> 모드에서 navigator가 실행되는
 호스트와 포트 <code>5555</code>로 연결합니다. 같은 호스트에서는 <code>127.0.0.1:5555</code>를 사용합니다.
 <code>5555</code>는 요청 포트이고 <code>5556</code>은 상태 전송 포트이므로 원격 연결 시 둘 다 접근 가능해야 합니다.
 연결 후 goal을 보내면 트리 노드의 상태가 실시간으로 표시됩니다.</p>
