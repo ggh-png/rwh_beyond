@@ -1,20 +1,35 @@
+// Copyright 2026 rwh_beyond contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <atomic>
 #include <chrono>
 #include <cmath>
-#include <mutex>
 #include <limits>
+#include <mutex>
 #include <thread>
 
-#include "gtest/gtest.h"
 #include "behaviortree_cpp/bt_factory.h"
 #include "control_msgs/action/follow_joint_trajectory.hpp"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "gtest/gtest.h"
 #include "moveit_msgs/action/move_group.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
-#include "tf2_ros/buffer.h"
-#include "rwh_beyond_msgs/msg/tcp_pose.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
+#include "rwh_beyond_msgs/action/run_grasp_stage.hpp"
+#include "rwh_beyond_msgs/msg/tcp_pose.hpp"
+#include "tf2_ros/buffer.h"
 
 using FJT = control_msgs::action::FollowJointTrajectory;
 using TcpPose = rwh_beyond_msgs::msg::TcpPose;
@@ -180,10 +195,10 @@ TEST_F(CustomActions, GripperConvertsIntegerInputsAndBlackboard)
 TEST_F(CustomActions, InvalidGripperInputNeverSendsGoal)
 {
   for (const auto & attrs : {
-      "", "opening=\"-1\"", "opening=\"101\"", "opening=\"50.5\"",
-      "opening=\"abc\"", "opening=\"50\" unit=\"degrees\"",
-      "opening=\"50\" duration=\"0\"", "opening=\"50\" duration=\"nan\"",
-      "opening=\"50\" duration=\"3601\""})
+    "", "opening=\"-1\"", "opening=\"101\"", "opening=\"50.5\"",
+    "opening=\"abc\"", "opening=\"50\" unit=\"degrees\"",
+    "opening=\"50\" duration=\"0\"", "opening=\"50\" duration=\"nan\"",
+    "opening=\"50\" duration=\"3601\""})
   {
     EXPECT_EQ(run(std::string("<SetGripper ") + attrs + "/>"), BT::NodeStatus::FAILURE) << attrs;
   }
@@ -267,7 +282,8 @@ TEST_F(CustomActions, AbsoluteFullPoseUsesMessageFrameAndOrientationWithoutCurre
   ASSERT_EQ(run("<MoveTcp pose=\"{target}\" tcp_link=\"tool_tip\"/>"), BT::NodeStatus::SUCCESS);
   std::lock_guard<std::mutex> lock(mutex_);
   const auto & constraints = arm_goal_.request.goal_constraints.at(0);
-  const auto & pose = constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0);
+  const auto & pose =
+    constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0);
   const auto & orientation = constraints.orientation_constraints.at(0);
   EXPECT_DOUBLE_EQ(pose.position.x, 0.4);
   EXPECT_DOUBLE_EQ(pose.position.y, 0.1);
@@ -291,7 +307,8 @@ TEST_F(CustomActions, RelativePositionNormalizesOrientationWithoutMutatingMessag
   ASSERT_EQ(run("<MoveTcp pose=\"{target}\"/>"), BT::NodeStatus::SUCCESS);
   std::lock_guard<std::mutex> lock(mutex_);
   const auto & constraints = arm_goal_.request.goal_constraints.at(0);
-  const auto & pose = constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0);
+  const auto & pose =
+    constraints.position_constraints.at(0).constraint_region.primitive_poses.at(0);
   const auto & q = constraints.orientation_constraints.at(0).orientation;
   EXPECT_DOUBLE_EQ(pose.position.x, 0.1);
   EXPECT_DOUBLE_EQ(pose.position.y, 0.2);
@@ -362,15 +379,16 @@ TEST_F(CustomActions, InvalidBuilderInputDoesNotOverwriteOrMove)
   const auto original = makePose();
   blackboard_->set("made_pose", original);
   for (const auto & attrs : {
-      "x=\"0\" y=\"0\"", "x=\"nan\" y=\"0\" z=\"0\"",
-      "x=\"abc\" y=\"0\" z=\"0\"", "x=\"0\" y=\"0\" z=\"0\" qx=\"0\"",
-      "x=\"0\" y=\"0\" z=\"0\" qx=\"0\" qy=\"0\" qz=\"0\" qw=\"0\"",
-      "x=\"0\" y=\"0\" z=\"0\" qx=\"0\" qy=\"inf\" qz=\"0\" qw=\"1\"",
-      "x=\"0\" y=\"0\" z=\"0\" frame_id=\"\"",
-      "x=\"0\" y=\"0\" z=\"0\" relative=\"invalid\""})
+    "x=\"0\" y=\"0\"", "x=\"nan\" y=\"0\" z=\"0\"",
+    "x=\"abc\" y=\"0\" z=\"0\"", "x=\"0\" y=\"0\" z=\"0\" qx=\"0\"",
+    "x=\"0\" y=\"0\" z=\"0\" qx=\"0\" qy=\"0\" qz=\"0\" qw=\"0\"",
+    "x=\"0\" y=\"0\" z=\"0\" qx=\"0\" qy=\"inf\" qz=\"0\" qw=\"1\"",
+    "x=\"0\" y=\"0\" z=\"0\" frame_id=\"\"",
+    "x=\"0\" y=\"0\" z=\"0\" relative=\"invalid\""})
   {
     EXPECT_EQ(run(std::string("<Sequence><MakeTcpPose ") + attrs +
-      " pose=\"{made_pose}\"/><MoveTcp pose=\"{made_pose}\"/></Sequence>"), BT::NodeStatus::FAILURE);
+      " pose=\"{made_pose}\"/><MoveTcp pose=\"{made_pose}\"/></Sequence>"),
+      BT::NodeStatus::FAILURE);
     EXPECT_EQ(blackboard_->get<TcpPose>("made_pose"), original);
   }
   EXPECT_EQ(run("<MakeTcpPose x=\"0\" y=\"0\" z=\"0\"/>"), BT::NodeStatus::FAILURE);
@@ -394,7 +412,8 @@ TEST_F(CustomActions, TypedPoseCanBeReusedAndUpdated)
 
 TEST_F(CustomActions, TypedPosePassesThroughSubtreeRemapping)
 {
-  ASSERT_EQ(runXml(R"(
+  ASSERT_EQ(runXml(
+    R"(
     <root BTCPP_format="4" main_tree_to_execute="Main">
       <BehaviorTree ID="Main">
         <Sequence>
@@ -403,7 +422,8 @@ TEST_F(CustomActions, TypedPosePassesThroughSubtreeRemapping)
         </Sequence>
       </BehaviorTree>
       <BehaviorTree ID="Motion"><MoveTcp pose="{target}"/></BehaviorTree>
-    </root>)"), BT::NodeStatus::SUCCESS);
+    </root>)"),
+    BT::NodeStatus::SUCCESS);
   EXPECT_EQ(arm_goals_, 1);
 }
 
@@ -415,7 +435,8 @@ TEST_F(CustomActions, MoveItAbortPreservesSignedCodeMessageSourceAndStage)
   arm_message_ = "Trajectory invalid after scene update";
   arm_feedback_delay_ms_ = 30;
   EXPECT_EQ(run("<MoveHome name=\"return_home\"/>"), BT::NodeStatus::FAILURE);
-  const auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  const auto diagnostic =
+    blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
   EXPECT_EQ(diagnostic.current_stage, "move_home");
   EXPECT_EQ(diagnostic.current_node, "return_home");
   EXPECT_EQ(diagnostic.moveit_state, "MONITOR");
@@ -447,12 +468,14 @@ TEST_F(CustomActions, FixedArmAndGripperActionsCheckApplicationErrors)
   arm_error_ = moveit_msgs::msg::MoveItErrorCodes::NO_IK_SOLUTION;
   for (const auto * xml : {"<MoveHome/>", "<MoveTcpUp/>"}) {
     EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
-    EXPECT_EQ(blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback").error_code, -31);
+    EXPECT_EQ(blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>(
+      "demo_feedback").error_code, -31);
   }
   gripper_error_ = FJT::Result::GOAL_TOLERANCE_VIOLATED;
   for (const auto * xml : {"<CloseGripper/>", "<OpenGripper/>", "<SetGripper opening=\"50\"/>"}) {
     EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
-    const auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+    const auto diagnostic =
+      blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
     EXPECT_EQ(diagnostic.error_code, FJT::Result::GOAL_TOLERANCE_VIOLATED);
     EXPECT_EQ(diagnostic.error_name, "GOAL_TOLERANCE_VIOLATED");
   }
@@ -476,12 +499,15 @@ TEST_F(CustomActions, FailureInsideSubtreeReachesRootDiagnostics)
 {
   arm_abort_ = true;
   arm_error_ = moveit_msgs::msg::MoveItErrorCodes::CONTROL_FAILED;
-  EXPECT_EQ(runXml(R"(
+  EXPECT_EQ(runXml(
+    R"(
     <root BTCPP_format="4" main_tree_to_execute="Main">
       <BehaviorTree ID="Main"><SubTree ID="Motion" _autoremap="true"/></BehaviorTree>
       <BehaviorTree ID="Motion"><MoveHome name="subtree_home"/></BehaviorTree>
-    </root>)"), BT::NodeStatus::FAILURE);
-  const auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+    </root>)"),
+    BT::NodeStatus::FAILURE);
+  const auto diagnostic =
+    blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
   EXPECT_EQ(diagnostic.error_code, -4);
   EXPECT_EQ(diagnostic.current_node, "subtree_home");
 }
@@ -508,7 +534,6 @@ TEST_F(CustomActions, ObservationUsesSimulationJointPoseAndMoveItCollisionPlanni
 }
 
 // Exercise real ROS action transport and Blackboard payloads across the split nodes.
-#include "rwh_beyond_msgs/action/run_grasp_stage.hpp"
 using GraspStageAction = rwh_beyond_msgs::action::RunGraspStage;
 
 TEST_F(CustomActions, SplitGraspStagesPassTypedArtifacts)
@@ -550,13 +575,16 @@ TEST_F(CustomActions, SplitGraspStagesPassTypedArtifacts)
           result->plan_id = "plan-9";
           result->pregrasp.frame_id = "base_link";
         }
-        if (stage == "move_pregrasp" || stage == "approach" || stage == "attach" || stage == "lift") {
+        if (stage == "move_pregrasp" || stage == "approach" || stage == "attach" ||
+        stage == "lift")
+        {
           EXPECT_EQ(goal->plan_id, "plan-9");
         }
         handle->succeed(result);
       }));
   }
-  EXPECT_EQ(runXml(R"(
+  EXPECT_EQ(runXml(
+    R"(
     <root BTCPP_format="4"><BehaviorTree ID="Test"><Sequence>
       <SegmentObject observation_id="{obs}" mask="{mask}"/>
       <BuildObjectCloud observation_id="{obs}" mask="{mask}" cloud="{cloud}"/>
@@ -564,7 +592,8 @@ TEST_F(CustomActions, SplitGraspStagesPassTypedArtifacts)
       <SelectFeasibleGrasp observation_id="{obs}" cloud="{cloud}" candidates="{candidates}" plan_id="{plan}" pregrasp="{pre}"/>
       <MoveToPregrasp plan_id="{plan}"/><ApproachGrasp plan_id="{plan}"/>
       <AttachObject plan_id="{plan}"/><LiftObject plan_id="{plan}"/>
-    </Sequence></BehaviorTree></root>)"), BT::NodeStatus::SUCCESS);
+    </Sequence></BehaviorTree></root>)"),
+    BT::NodeStatus::SUCCESS);
   EXPECT_EQ(calls, stages);
   EXPECT_EQ(blackboard_->get<TcpPose>("pre").frame_id, "base_link");
 }
@@ -573,22 +602,24 @@ TEST_F(CustomActions, SplitGraspStageFailureStopsSequence)
 {
   int moves = 0;
   auto infer = rclcpp_action::create_server<GraspStageAction>(server_, "grasp/infer_grasps",
-    [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-    [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
-    [](auto handle) {
-      auto result = std::make_shared<GraspStageAction::Result>();
-      result->message = "inference failed";
-      handle->abort(result);
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+      [](auto handle) {
+        auto result = std::make_shared<GraspStageAction::Result>();
+        result->message = "inference failed";
+        handle->abort(result);
     });
   auto move = rclcpp_action::create_server<GraspStageAction>(server_, "grasp/move_pregrasp",
-    [&](auto, auto) {++moves; return rclcpp_action::GoalResponse::REJECT;},
-    [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
+      [&](auto, auto) {++moves; return rclcpp_action::GoalResponse::REJECT;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
   blackboard_->set("obs", std::string("capture"));
   blackboard_->set("cloud", sensor_msgs::msg::PointCloud2());
-  EXPECT_EQ(runXml(R"(
+  EXPECT_EQ(runXml(
+    R"(
     <root BTCPP_format="4"><BehaviorTree ID="Test"><Sequence>
       <InferGrasps observation_id="{obs}" cloud="{cloud}" candidates="{candidates}"/>
       <MoveToPregrasp plan_id="unused"/>
-    </Sequence></BehaviorTree></root>)"), BT::NodeStatus::FAILURE);
+    </Sequence></BehaviorTree></root>)"),
+    BT::NodeStatus::FAILURE);
   EXPECT_EQ(moves, 0);
 }

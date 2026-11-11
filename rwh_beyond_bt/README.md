@@ -22,10 +22,18 @@ Launching does not send a demo goal.
 
 ## Plugin layout
 
-`src/action/` contains one source per action. Shared action bases are in
-`include/rwh_beyond_bt/action/`. `src/condition/` is reserved for conditions;
-the current demo has none. `src/register_nodes.cpp` exports the BT factory entry
-point for `rwh_beyond_bt_nodes`.
+Each node has a public declaration in `include/rwh_beyond_bt/plugins/action/*_action.hpp`
+and a matching implementation in `plugins/action/*_action.cpp`, following Nav2 Jazzy.
+ROS action nodes use `(xml_tag_name, action_name, conf)` constructors and a
+`BT::NodeBuilder` inside their own `BT_REGISTER_NODES` entry point.
+
+The 19 nodes build as individual `rwh_beyond_<name>_action_bt_node` shared libraries.
+Common implementations live in `src/bt_*.cpp`, `diagnostics.cpp` and `tcp_pose.cpp`.
+`src/register_nodes.cpp` keeps `rwh_beyond_bt_nodes` as a compatibility loader for
+existing navigator configurations. Load either that aggregate or individual
+libraries in one factory, not both. Headers and CMake targets are installed/exported.
+
+See [Nav2 code layout and style](../docs/bt-code-style.md) for extension and lint rules.
 
 ## Groot2 node model XML
 
@@ -148,7 +156,7 @@ sequence is preserved in `legacy_demo.xml`.
 ## Verification
 
 `colcon test --packages-select rwh_beyond_bt --event-handlers console_direct+`
-uses mock action servers in ROS domain 87, without moving a robot. It checks goal
+includes ROS 2 lint and plugin-loading tests, plus mock action servers in ROS domains 87/90, without moving a robot. It checks goal
 conversion, typed message construction/reuse/SubTree remapping, absolute/relative
 frames, explicit/retained orientation, quaternion normalization without source
 mutation, invalid inputs, missing TF and application failure results.
@@ -175,12 +183,13 @@ Launch에서는 지도를 초기화하지 않습니다.
 ## Simulation grasp stages
 
 `MoveObservation` plans to the calibrated MuJoCo observation joint pose.
-`GraspStep` calls the `RunGraspStep` Action with `check_ready`, `segment_target`, `build_object_cloud`, `prepare`,
-`move_pregrasp`, `approach`, `attach`, or `lift`. Repeated GraspStep instances
-execute different stages, not repeated inference; SAM segmentation runs in segment_target; local ROS CPU back-projects Depth and publishes
-PointCloud2 in build_object_cloud; GraspGenX inference happens only in prepare.
-The default tree enables observation and returns home after a verified lift.
-The original MoveHome/OpenGripper/CloseGripper/ClearOctomap nodes remain in the tree.
+The default tree uses `CheckGraspReady`, `SegmentObject`, `BuildObjectCloud`,
+`InferGrasps`, `SelectFeasibleGrasp`, `MoveToPregrasp`, `ApproachGrasp`,
+`AttachObject` and `LiftObject` as separate BT node classes and action plugins.
+Masks, clouds and candidates pass through typed Blackboard ports; observation and
+plan IDs bind the inputs to a stationary capture and a validated trajectory.
+`GraspStep` and `/grasp_step` remain for legacy XML clients.
+The default tree observes, picks, verifies the physical lift and returns home.
 
 CloseGripper disables only its own gripper path-position/velocity tracking check
 for the expected blocked-close case. Arm tracking and collision checks remain;

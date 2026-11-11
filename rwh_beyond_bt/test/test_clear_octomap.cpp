@@ -1,14 +1,28 @@
+// Copyright 2026 rwh_beyond contributors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 #include <atomic>
 #include <chrono>
 #include <thread>
 
-#include "gtest/gtest.h"
 #include "behaviortree_cpp/bt_factory.h"
+#include "gtest/gtest.h"
 #include "moveit_msgs/srv/get_planning_scene.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "rwh_beyond_msgs/action/run_demo.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "std_srvs/srv/empty.hpp"
-#include "rwh_beyond_msgs/action/run_demo.hpp"
 
 using namespace std::chrono_literals;
 using Feedback = rwh_beyond_msgs::action::RunDemo::Feedback;
@@ -23,23 +37,28 @@ protected:
   {
     server_ = std::make_shared<rclcpp::Node>("octomap_mock");
     client_ = std::make_shared<rclcpp::Node>("octomap_bt_client");
-    clear_ = server_->create_service<std_srvs::srv::Empty>("/clear_octomap",
-      [this](std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr) {++clears_;});
+    clear_ = server_->create_service<std_srvs::srv::Empty>(
+      "/clear_octomap",
+      [this](std_srvs::srv::Empty::Request::SharedPtr,
+      std_srvs::srv::Empty::Response::SharedPtr)
+      {
+        ++clears_;
+      });
     scene_ = server_->create_service<moveit_msgs::srv::GetPlanningScene>("/get_planning_scene",
-      [this](moveit_msgs::srv::GetPlanningScene::Request::SharedPtr,
-      moveit_msgs::srv::GetPlanningScene::Response::SharedPtr response) {
-        ++queries_;
-        if (!empty_) {response->scene.world.octomap.octomap.data = {1, 2};}
+        [this](moveit_msgs::srv::GetPlanningScene::Request::SharedPtr,
+        moveit_msgs::srv::GetPlanningScene::Response::SharedPtr response) {
+          ++queries_;
+          if (!empty_) {response->scene.world.octomap.octomap.data = {1, 2};}
       });
     cloud_ = server_->create_publisher<sensor_msgs::msg::PointCloud2>(
       "/camera/depth/filtered_points", rclcpp::SensorDataQoS());
     timer_ = server_->create_wall_timer(20ms, [this]() {
-      if (clears_ == 0 || !publish_) {return;}
-      sensor_msgs::msg::PointCloud2 message;
-      message.width = 1;
-      message.height = 1;
-      if (!stale_) {message.header.stamp = server_->now();}
-      cloud_->publish(message);
+          if (clears_ == 0 || !publish_) {return;}
+          sensor_msgs::msg::PointCloud2 message;
+          message.width = 1;
+          message.height = 1;
+          if (!stale_) {message.header.stamp = server_->now();}
+          cloud_->publish(message);
     });
     executor_.add_node(server_);
     spinner_ = std::thread([this]() {executor_.spin();});
@@ -47,8 +66,8 @@ protected:
     board_->set("node", client_);
     factory_.registerFromPlugin(BT_PLUGIN_PATH);
     factory_.registerSimpleAction("Next", [this](BT::TreeNode &) {
-      ++next_;
-      return BT::NodeStatus::SUCCESS;
+        ++next_;
+        return BT::NodeStatus::SUCCESS;
     });
   }
 

@@ -60,7 +60,9 @@ Blackboard에는 이름 문자열만 저장되는 것이 아니라 실제 `senso
 
 ## 구현 경계
 
-- `rwh_beyond_bt/src/action/grasp_stages.cpp`: 역할별 등록 타입 9개, typed ports, Action 전송·진단.
+- `rwh_beyond_bt/include/rwh_beyond_bt/plugins/action/*_action.hpp`: 역할별 공개 클래스·포트 선언.
+- `rwh_beyond_bt/plugins/action/*_action.cpp`: 각 클래스 구현과 독립 플러그인 등록.
+- `rwh_beyond_bt/src/bt_grasp_action_node.cpp`: 공통 Action 전송·진단.
 - `rwh_beyond_msgs/action/RunGraspStage.action`: command 없는 공통 전송 형식. endpoint마다 사용하는 필드가 다르다.
 - `perception_stages.py`: RGB-D·TF 획득, SAM 마스크, 로컬 Depth 역투영.
 - `inference_stages.py`: 로컬 점군을 기존 `InferGrasps` Action으로 전달.
@@ -68,7 +70,8 @@ Blackboard에는 이름 문자열만 저장되는 것이 아니라 실제 `senso
 - `motion_stages.py`: 이동, 접촉 부착, 물리 리프트 검증.
 - `grasp_coordinator.py`: ROS 연결·관측/계획 수명·단계별 endpoint·공유 락·취소/정리.
 
-노드는 같은 `librwh_beyond_bt_nodes.so`에 등록되지만 서로 다른 BT 타입과 포트를 가진다.
+노드는 각각 `librwh_beyond_<name>_action_bt_node.so`로 빌드하며 공개 헤더와 CPP를 분리한다.
+기존 `librwh_beyond_bt_nodes.so`는 이들을 불러오는 호환 로더다. [Nav2 스타일 구성](bt-code-style.md)을 참고한다.
 백엔드는 한 ROS 프로세스에 유지한다. MoveIt 장면과 부착 상태를 공유하고 취소를 직렬화하기
 위한 구성이다. 모델 컨테이너는 계속 SAM과 GraspGenX로 분리된다.
 

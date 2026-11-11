@@ -81,14 +81,15 @@ flowchart TD
 
 | 구분 | Navigator | BT 노드 |
 | --- | --- | --- |
-| 등록 파일 | `navigator_plugins.xml` | `src/register_nodes.cpp` |
+| 등록 파일 | `navigator_plugins.xml` | 각 `plugins/action/*_action.cpp` |
 | 설정 키 | `demo.plugin` | `plugin_lib_names` |
 | 로더 | ROS `pluginlib` | BehaviorTree.CPP factory |
 | 로드 대상 | `rwh_beyond_navigator::DemoNavigator` | `rwh_beyond_bt_nodes` |
 
-BT 라이브러리의 실제 파일명은 `librwh_beyond_bt_nodes.so`입니다.
-`BT_REGISTER_NODES`가 8개 노드를 등록하며, `BT_PLUGIN_EXPORT` compile definition이
-`BT_RegisterNodesFromPlugin` 심볼을 공개합니다.
+현재 BT 노드는 각 `librwh_beyond_<name>_action_bt_node.so`로 나뉩니다.
+각 CPP의 `BT_REGISTER_NODES`와 `BT_PLUGIN_EXPORT`가 등록 함수를 공개합니다.
+기존 `librwh_beyond_bt_nodes.so`는 19개 개별 라이브러리를 불러오는 호환 로더입니다.
+[헤더·CPP 구성과 Nav2 스타일](bt-code-style.md)을 참고하세요.
 
 ## Goal을 받으면 일어나는 일
 
@@ -145,13 +146,14 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 
 ```text
 rwh_beyond_bt/
-├── src/action/                  # 이동·그리퍼·역할별 파지 Action 노드
-├── src/condition/               # condition 추가 위치, 현재 구현 없음
-├── src/register_nodes.cpp       # 노드 ID 등록
+├── plugins/action/                         # 노드별 구현·BT_REGISTER_NODES
+├── include/rwh_beyond_bt/plugins/action/   # 노드별 공개 선언
+├── include/rwh_beyond_bt/bt_*.hpp          # 공통 Action 베이스 선언
+├── src/bt_*.cpp                           # 공통 베이스 구현
+├── src/register_nodes.cpp                 # 기존 설정용 호환 로더
 ├── src/generate_tree_nodes_xml.cpp
-├── include/rwh_beyond_bt/action/ # 공통 action 베이스
-├── behavior_trees/              # 실행 트리와 Groot2 노드 모델 XML
-└── test/test_custom_actions.cpp  # mock 테스트
+├── behavior_trees/                        # 실행 트리·Groot2 모델
+└── test/                                  # 동작·플러그인 로딩·lint 검사
 ```
 
 ## 참고
