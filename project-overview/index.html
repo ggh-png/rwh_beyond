@@ -554,6 +554,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../model-bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델별 ROS 노드 분리
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../sam3-perception/" class="md-nav__link">
         
   
@@ -1497,7 +1525,8 @@ PiPER가 실제로 실행할 수 있는 경로를 골라 MuJoCo에서 집는 시
       SIM["MuJoCo: 로봇 · 물체 · RGB-D 카메라"]
       BT["BT navigator: 단계 순서와 실패 관리"]
       CO["grasp_coordinator: 관측 · 선택 · 이동 관리"]
-      BR["graspgenx_bridge: ROS Action ↔ 모델 통신"]
+      SB["sam3_bridge: 분할 ROS Action ↔ SAM"]
+      BR["graspgenx_bridge: 추론 ROS Action ↔ GraspGenX"]
       MV["MoveIt: IK · 충돌 · 경로 계획"]
       RV["RViz: 로봇 · SAM · 점군 · 파지 시각화"]
     end
@@ -1506,8 +1535,10 @@ PiPER가 실제로 실행할 수 있는 경로를 골라 MuJoCo에서 집는 시
   end
   SIM --&gt;|RGB / Depth / CameraInfo / TF| CO
   BT --&gt;|단계별 ROS Action| CO
-  CO --&gt;|RGB + 대상 설명| SAM
-  SAM --&gt;|2D 마스크| CO
+  CO --&gt;|RGB + 대상 설명 / ROS Action| SB
+  SB --&gt;|ZMQ| SAM
+  SAM --&gt;|2D 마스크| SB
+  SB --&gt;|ROS 결과| CO
   CO --&gt;|로컬 객체 점군 / ROS Action| BR
   BR --&gt;|XYZ / ZMQ| GX
   GX --&gt;|파지 행렬 + 점수| BR
@@ -1532,7 +1563,7 @@ PiPER가 실제로 실행할 수 있는 경로를 골라 MuJoCo에서 집는 시
 <tr>
 <td><code>rwh_beyond</code></td>
 <td>BT, 공용 메시지, 모델 Bridge, coordinator, 통합 launch, 이 문서</td>
-<td><code>rwh_beyond_bt/</code>, <code>rwh_beyond_grasp_bridge/</code></td>
+<td><code>rwh_beyond_bt/</code>, <code>rwh_beyond_grasp_pipeline/</code>, 모델별 bridge</td>
 </tr>
 <tr>
 <td><code>ros_runner</code></td>
@@ -1568,14 +1599,15 @@ PiPER가 실제로 실행할 수 있는 경로를 골라 MuJoCo에서 집는 시
 <p>마지막에 자동으로 내려놓거나 그리퍼를 열지 않습니다. 실패한 단계 뒤의 단계는 실행하지 않습니다.</p>
 <h2 id="4-bt-python">4. BT와 Python의 관계<a class="headerlink" href="#4-bt-python" title="Permanent link">&para;</a></h2>
 <p>BT C++ 플러그인은 단계 순서·Action 요청·성공/실패/취소를 관리합니다.
-Python coordinator는 카메라 관측, 모델 호출, MoveIt 검사와 저장된 경로를 관리합니다.</p>
+Python coordinator는 카메라 관측, 모델 ROS Action 요청, MoveIt 검사와 저장된 경로를 관리합니다.
+SAM·GraspGenX의 ZMQ 통신은 각각 별도 ROS bridge 프로세스가 담당합니다.</p>
 <ul>
 <li>Blackboard: 실제 마스크·점군·후보 메시지와 <code>observation_id</code>, <code>plan_id</code>를 단계 사이에 전달합니다.</li>
 <li>coordinator 내부: 원본 RGB-D·촬영 TF·관절 상태·선택된 궤적·부착 상태를 보관합니다.</li>
 <li>GPU 서버: 분할 또는 파지 추론만 수행합니다. 로봇의 관절·충돌 장면·이동 명령은 처리하지 않습니다.</li>
 </ul>
-<p>노드별로 C++ 헤더·CPP와 endpoint를 분리했지만, Python 백엔드는 상태 공유를 위해 한 coordinator
-프로세스에 역할별 모듈을 연결한 구조입니다. 각 단계가 모두 별도 Python 서버인 구성은 아닙니다.</p>
+<p>C++ BT 노드별 헤더·CPP·endpoint와 모델별 ROS 프로세스를 분리했습니다. 관측·선택·이동 모듈은
+상태 공유를 위해 coordinator에 유지합니다. <a href="../model-bridges/">모델별 ROS bridge</a>를 참고하세요.</p>
 <h2 id="validation">5. 검증 결과와 제한<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <p>기존 실제 모델 시험에서 분할·점군·파지·약 7.4~7.7 cm 리프트·홈 복귀를 확인했습니다.
 RViz 결과 보존과 활성화/종료 시험도 기록되어 있습니다. 아래 원시 기록은 서로 다른 시점의 시험입니다.</p>
@@ -1587,6 +1619,10 @@ RViz 결과 보존과 활성화/종료 시험도 기록되어 있습니다. 아�
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><a href="../validation/model-bridges-2026-11-11.json">모델별 ROS 분리</a></td>
+<td>독립 서버·실제 모델 전체 BT·취소 복원</td>
+</tr>
 <tr>
 <td><a href="../validation/bt-split-2026-11-11.json">BT 역할 분리</a></td>
 <td>데이터 전달, 전체 집기, 취소 복원</td>

@@ -576,6 +576,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../model-bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델별 ROS 노드 분리
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../sam3-perception/" class="md-nav__link">
         
   
@@ -1580,6 +1608,8 @@ GraspGenX에 객체 XYZ만 보내 파지 자세를 받는 구조</strong>입니�
 <p>RGB와 Depth는 같은 해상도·같은 optical frame으로 정합되어야 합니다. 단순히 컬러/Depth
 토픽 이름만 바꾸면 서로 맞는 영상이 된다는 뜻은 아닙니다. coordinator는 같은 stamp의 RGB·Depth·Info를 모읍니다.</p>
 <h2 id="2-ros-sam-ros">2. ROS → SAM → ROS<a class="headerlink" href="#2-ros-sam-ros" title="Permanent link">&para;</a></h2>
+<p>coordinator → <code>/segment_image</code> ROS Action → <code>sam3_bridge</code> → SAM ZMQ 순서입니다.
+Action 입력은 RGB와 대상 조건이며 Depth는 pipeline에 남깁니다.</p>
 <p>ZMQ 주소 <code>tcp://127.0.0.1:5567</code>. 아래는 배열을 생략한 요청 구조 예시입니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"segment"</span><span class="p">,</span>
@@ -1620,10 +1650,10 @@ GraspGenX에 객체 XYZ만 보내 파지 자세를 받는 구조</strong>입니�
 </tr>
 </tbody>
 </table>
-<p>Depth·TF·관절값은 SAM에 보내지 않습니다. ROS client는 마스크를 3×3 침식 1회 처리해
+<p>Depth·TF·관절값은 SAM에 보내지 않습니다. SAM ROS bridge는 마스크를 3×3 침식 1회 처리해
 경계의 배경 Depth 혼입을 줄입니다. <a href="../sam3-perception/">공식 SAM API를 호출하는 방법</a>도 참고하세요.</p>
 <h2 id="3-depth-k">3. 마스크 + Depth + K → 객체 점군<a class="headerlink" href="#3-depth-k" title="Permanent link">&para;</a></h2>
-<p>ROS CPU의 <code>depth_converter.py::depth_xyz()</code>가 마스크 안의 유효한 깊이 픽셀만 역투영합니다.
+<p>ROS CPU의 <code>rwh_beyond_model_utils.depth_converter::depth_xyz()</code>가 마스크 안의 유효한 깊이 픽셀만 역투영합니다.
 일반적인 pinhole 표현은 아래와 같습니다. 실제 코드는 K 역행렬을 사용합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Z = depth(u,v)
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>X = (u - cx) * Z / fx
@@ -1724,7 +1754,8 @@ ROS 결과는 <code>GraspCandidate[]</code>: <code>id</code>, <code>PoseStamped 
 마스크·점군·ID가 같은 관측인지 검사하므로 임의 데이터를 넣는 무상태 서비스는 아닙니다.
 RViz 토픽은 디버깅 출력이며 다음 BT 단계가 토픽에서 결과를 다시 읽는 구조는 아닙니다.</p>
 <h2 id="standalone">7. 독립 추론 API와 기본 BT의 차이<a class="headerlink" href="#standalone" title="Permanent link">&para;</a></h2>
-<p><code>rwh_beyond_msgs/action/InferGrasps.action</code>은 세 입력 모드를 지원합니다.</p>
+<p><code>rwh_beyond_msgs/action/InferGrasps.action</code>은 세 입력 모드를 지원합니다.
+RGBD 모드는 별도 SAM ROS Action을 호출합니다. <a href="../model-bridges/">모델별 노드/API</a>를 참고하세요.</p>
 <table>
 <thead>
 <tr>

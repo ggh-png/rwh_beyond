@@ -16,7 +16,7 @@
         <link rel="prev" href="../grasp-pipeline-guide/">
       
       
-        <link rel="next" href="../sam3-perception/">
+        <link rel="next" href="../model-bridges/">
       
       
         
@@ -575,6 +575,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델별 ROS 노드 분리
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1584,12 +1612,12 @@
 </tr>
 <tr>
 <td>4</td>
-<td><code>rwh_beyond_grasp_bridge/launch/grasp_pipeline.launch.py</code></td>
-<td>inference server와 coordinator 두 노드 생성</td>
+<td><code>rwh_beyond_grasp_pipeline/launch/grasp_pipeline.launch.py</code></td>
+<td>SAM bridge·GraspGenX bridge·coordinator 세 노드 생성</td>
 </tr>
 <tr>
 <td>5</td>
-<td><code>rwh_beyond_grasp_bridge/config/grasp_pipeline.yaml</code></td>
+<td><code>rwh_beyond_grasp_pipeline/config/grasp_pipeline.yaml</code></td>
 <td>대상, endpoint, 프레임, TCP 보정, 후보 수</td>
 </tr>
 </tbody>
@@ -1618,7 +1646,8 @@
 <p><code>rwh_beyond_navigator/src/demo_navigator.cpp</code>는 <code>/run_demo</code> goal과 기본 트리·결과 진단을 연결합니다.
 <code>RunDemo.action</code>은 어떤 트리를 실행할지 지정하고, <code>RunGraspStage.action</code>은 각 파지 단계의 데이터를 전달합니다.</p>
 <h2 id="3-python">3. Python에서 단계별 구현 찾기<a class="headerlink" href="#3-python" title="Permanent link">&para;</a></h2>
-<p>아래 Python 파일은 모두 <code>rwh_beyond_grasp_bridge/rwh_beyond_grasp_bridge/</code> 안에 있습니다.</p>
+<p>아래 단계 구현은 <code>rwh_beyond_grasp_pipeline/rwh_beyond_grasp_pipeline/</code> 안에 있습니다.
+모델 서버 노드는 <a href="../model-bridges/">모델별 ROS bridge</a>에 별도 위치를 정리했습니다.</p>
 <table>
 <thead>
 <tr>
@@ -1686,14 +1715,15 @@
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  → perception_stages.py::segment_target()
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>      snapshot() → 새 RGB/Depth/Info
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>      lookup_transform() → 촬영 시각 TF
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>      segmentation_client.py::segment_image()
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        zmq_client.py::request()
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>          → SAM 컨테이너 /opt/segmentation/server.py
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>          → 공식 Sam3Processor
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>      관측 context와 observation_id 저장
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>      visualization.py::publish_segmentation()
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>  → Action result.object_mask / observation_id
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  → C++ on_success() → Blackboard
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>      rwh_beyond_sam3_bridge.action_client::segment_via_action()
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>        /segment_image Action → sam3_bridge.action_server
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        segmentation_client.py::segment_image() → zmq_client.py::request()
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>          → SAM 컨테이너 /opt/segmentation/server.py
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>          → 공식 Sam3Processor
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>      관측 context와 observation_id 저장
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>      visualization.py::publish_segmentation()
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>  → Action result.object_mask / observation_id
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>  → C++ on_success() → Blackboard
 </code></pre></div>
 <p>다음 <code>BuildObjectCloud</code>는 같은 context에서 <code>depth_converter.py::depth_xyz()</code>를 호출합니다.</p>
 <h2 id="5-infergrasps-action">5. InferGrasps의 두 Action을 구분하기<a class="headerlink" href="#5-infergrasps-action" title="Permanent link">&para;</a></h2>
@@ -1701,14 +1731,14 @@
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>  → /grasp/infer_grasps           # RunGraspStage: 관측 ID와 BT 데이터 연결
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>  → coordinator / inference_stages.py
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>  → /infer_grasps                 # InferGrasps: 독립 추론 인터페이스
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  → inference_action_server.py
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>      cloud_converter.py::cloud_xyz()
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>  → rwh_beyond_graspgenx_bridge/inference_action_server.py
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>      rwh_beyond_model_utils/cloud_converter.py::cloud_xyz()
 <a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>      zmq_client.py::request() → GraspGenX 5566
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>      pose_converter.py::validate_candidates() / quaternion_xyzw()
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>      rwh_beyond_model_utils/pose_converter.py::validate_candidates() / quaternion_xyzw()
 <a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>  → 후보 배열 반환 → coordinator → BT Blackboard
 </code></pre></div>
 <p><code>/grasp/infer_grasps</code>와 <code>/infer_grasps</code>는 이름이 비슷하지만 서로 다른 Action입니다.
-기본 BT는 POINT_CLOUD 모드이며, 독립 RGBD/Depth 경로는 <code>inference_action_server.py</code>에서 분기합니다.</p>
+기본 BT는 POINT_CLOUD 모드이며, 독립 RGBD/Depth 경로는 GraspGenX bridge에서 분기하며 RGBD는 SAM Action을 호출합니다.</p>
 <h2 id="6">6. 선택·실행과 시뮬레이터<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>selection_stages.py</code>: SAM 관측 충돌 형상, 대상 Octomap 제외 영역, 후보별 거절 사유·IK·경로 계획.</li>
@@ -1748,7 +1778,7 @@
 </tr>
 <tr>
 <td>파지 후보 수</td>
-<td><code>rwh_beyond_grasp_bridge/config/grasp_pipeline.yaml</code>: <code>num_grasps</code>, <code>top_k</code>, <code>max_candidates</code></td>
+<td><code>rwh_beyond_grasp_pipeline/config/grasp_pipeline.yaml</code>: <code>num_grasps</code>, <code>top_k</code>, <code>max_candidates</code></td>
 </tr>
 <tr>
 <td>TCP 변환·접근/리프트 거리</td>
@@ -1776,8 +1806,9 @@
 <p>ROS 컨테이너에서 실행합니다. 아래는 관련 코드 변경 후의 빌드이며 매 실험마다 필요하지 않습니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install<span class="w"> </span>--packages-select<span class="w">   </span>rwh_beyond_msgs<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>rwh_beyond_navigator<span class="w"> </span>rwh_beyond_grasp_bridge<span class="w">   </span>rwh_beyond_bringup<span class="w"> </span>moma_mujoco_ros<span class="w"> </span>moma_bringup<span class="w"> </span>ros_runner
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install<span class="w"> </span>--packages-up-to<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span>rwh_beyond_bringup<span class="w"> </span>rwh_beyond_grasp_bridge<span class="w"> </span>ros_runner
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
 </code></pre></div>
 <p>Action 타입 변경 후 서버·클라이언트·runner를 재시작합니다. 모델 서버 코드를 바꾸지 않았다면
 GPU 모델 서버를 재시작할 필요는 없습니다.</p>
@@ -1789,6 +1820,8 @@ GPU 모델 서버를 재시작할 필요는 없습니다.</p>
 <code>rwh_beyond_grasp_bridge/test/test_*.py</code>는 단위/프로토콜 검사,
 <code>sam_pick_integration.py</code>, <code>sam_runner_pick_integration.py</code>는 모델·시뮬레이터가 필요한 통합 시험입니다.
 실제 시험은 별도 ROS domain에서 실행하며 <a href="../bt-grasp-stages/">기존 검증 방법</a>을 따릅니다.</p>
+<p>이전 패키지 안의 Python 파일은 호환 import 래퍼입니다. 실제 구현을 수정할 때는
+<a href="../model-bridges/">소유 패키지와 API 목록</a>에서 위치를 확인하세요.</p>
 
 
 
@@ -1841,13 +1874,13 @@ GPU 모델 서버를 재시작할 필요는 없습니다.</p>
         
         
           
-          <a href="../sam3-perception/" class="md-footer__link md-footer__link--next" aria-label="다음: SAM 3 구현">
+          <a href="../model-bridges/" class="md-footer__link md-footer__link--next" aria-label="다음: 모델별 ROS 노드 분리">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                SAM 3 구현
+                모델별 ROS 노드 분리
               </div>
             </div>
             <div class="md-footer__button md-icon">

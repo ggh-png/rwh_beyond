@@ -450,6 +450,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../model-bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델별 ROS 노드 분리
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../sam3-perception/" class="md-nav__link">
         
   
@@ -1594,16 +1622,17 @@ endpoint를 호출하며 XML에 <code>command</code>를 지정하지 않는다. 
 </ul>
 <p>노드는 각각 <code>librwh_beyond_&lt;name&gt;_action_bt_node.so</code>로 빌드하며 공개 헤더와 CPP를 분리한다.
 기존 <code>librwh_beyond_bt_nodes.so</code>는 이들을 불러오는 호환 로더다. <a href="../bt-code-style/">Nav2 스타일 구성</a>을 참고한다.
-백엔드는 한 ROS 프로세스에 유지한다. MoveIt 장면과 부착 상태를 공유하고 취소를 직렬화하기
-위한 구성이다. 모델 컨테이너는 계속 SAM과 GraspGenX로 분리된다.</p>
+모델 통신은 SAM·GraspGenX 각각 별도 ROS bridge 프로세스로 분리했다. MoveIt 장면·관측·부착 상태와
+이동/취소 관리는 pipeline coordinator에 유지한다. GPU 모델 컨테이너도 계속 분리된다.
+<a href="../model-bridges/">모델별 패키지와 Action</a>을 참고한다.</p>
 <p>기존 <code>GraspStep</code>, <code>/grasp_step</code>, <code>RunGraspStep</code>은 이전 XML·클라이언트 호환용으로 남긴다.
 legacy <code>prepare</code>는 분할·점군·추론·선택을 묶어 호출한다. 기본 트리는 이를 호출하지 않는다.
 다른 노드에 <code>server_name</code>을 재지정할 때도 같은 역할의 endpoint 규약을 지켜야 한다.</p>
 <h2 id="groot2">빌드와 Groot2<a class="headerlink" href="#groot2" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--packages-select<span class="w"> </span>rwh_beyond_msgs<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>rwh_beyond_grasp_bridge<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>rwh_beyond_navigator<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>--symlink-install
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install<span class="w"> </span>--packages-up-to<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span>rwh_beyond_bringup<span class="w"> </span>rwh_beyond_grasp_bridge<span class="w"> </span>ros_runner
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>generate_tree_nodes_xml<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span>src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml

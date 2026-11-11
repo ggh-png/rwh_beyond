@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/sam3-perception/">
       
       
-        <link rel="prev" href="../project-code-map/">
+        <link rel="prev" href="../model-bridges/">
       
       
         <link rel="next" href="../graspgenx-model/">
@@ -449,6 +449,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델별 ROS 노드 분리
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -545,10 +573,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ros" class="md-nav__link">
+  <a href="#sam-ros-bridge" class="md-nav__link">
     <span class="md-ellipsis">
       
-        응답 이후 ROS에서 처리하는 것
+        응답 이후 SAM ROS bridge에서 처리하는 것
       
     </span>
   </a>
@@ -1457,10 +1485,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#ros" class="md-nav__link">
+  <a href="#sam-ros-bridge" class="md-nav__link">
     <span class="md-ellipsis">
       
-        응답 이후 ROS에서 처리하는 것
+        응답 이후 SAM ROS bridge에서 처리하는 것
       
     </span>
   </a>
@@ -1516,17 +1544,19 @@ RGB에서 3D 모델을 생성하는 SAM 3D나 동영상 추적 기능은 현재 
 <h2 id="_1">요청 한 번의 실제 구현<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <p>배포 코드 위치는 <code>rwh_beyond/deploy/sam3-docker/</code>입니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ROS perception_stages.py::segment_target()
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  → segmentation_client.py::segment_image()
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>      RGB + text/box/selection_point → ZMQ 5567
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  → server.py::serve()
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      segmentation_core.py::validate_request()
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      Sam3.predict()
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>        processor.set_image(...)
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>        processor.set_text_prompt(...)       # text가 있을 때
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        processor.add_geometric_prompt(...)  # box가 있을 때
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>      segmentation_core.py::select_instance()
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>      선택 mask + score + instance_count 반환
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  → ROS에서 응답 검증·마스크 침식·Image 변환·RViz 발행
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  → action_client.py::segment_via_action()
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>      /segment_image ROS Action → SAM ROS action_server.py
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  → segmentation_client.py::segment_image()
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      RGB + text/box/selection_point → ZMQ 5567
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  → server.py::serve()
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>      segmentation_core.py::validate_request()
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>      Sam3.predict()
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>        processor.set_image(...)
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>        processor.set_text_prompt(...)       # text가 있을 때
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>        processor.add_geometric_prompt(...)  # box가 있을 때
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>      segmentation_core.py::select_instance()
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>      선택 mask + score + instance_count 반환
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  → ROS에서 응답 검증·마스크 침식·Image 변환·RViz 발행
 </code></pre></div>
 <h2 id="_2">공식 모델을 로드하는 방법<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p><code>server.py::Sam3.__init__()</code>에서 다음 API를 사용합니다.</p>
@@ -1572,7 +1602,7 @@ GPU 추론은 <code>torch.inference_mode()</code>와 CUDA bfloat16 autocast 안�
 <p>현재 어댑터는 텍스트 또는 박스를 요구합니다. <strong>점 하나만 SAM에 직접 입력하는 interactive prompt API는
 연결하지 않았습니다.</strong> 기본 파라미터는 <code>target_text="red box"</code>, 박스·점 미지정, <code>unique</code>입니다.
 선택 조건·마스크 수 검사는 <code>segmentation_core.py::select_instance()</code>가 담당합니다.</p>
-<h2 id="ros">응답 이후 ROS에서 처리하는 것<a class="headerlink" href="#ros" title="Permanent link">&para;</a></h2>
+<h2 id="sam-ros-bridge">응답 이후 SAM ROS bridge에서 처리하는 것<a class="headerlink" href="#sam-ros-bridge" title="Permanent link">&para;</a></h2>
 <ol>
 <li><code>backend="sam3"</code>, <code>mock=False</code> 확인. 색상 기반/mocked 결과로 자동 대체하지 않음.</li>
 <li>마스크 크기·<code>uint8</code>·0/1 값·점수·인스턴스 수 확인.</li>
@@ -1606,11 +1636,11 @@ GPU 추론은 <code>torch.inference_mode()</code>와 CUDA bfloat16 autocast 안�
 </tr>
 <tr>
 <td>ROS 요청 payload·마스크 후처리</td>
-<td>Bridge <code>segmentation_client.py</code></td>
+<td>SAM bridge <code>segmentation_client.py</code></td>
 </tr>
 <tr>
 <td>촬영·TF 저장·분할 단계 흐름</td>
-<td>Bridge <code>perception_stages.py</code></td>
+<td>pipeline <code>perception_stages.py</code></td>
 </tr>
 <tr>
 <td>체크포인트 경로·GPU·볼륨</td>
@@ -1625,6 +1655,8 @@ GPU 추론은 <code>torch.inference_mode()</code>와 CUDA bfloat16 autocast 안�
 새 물체·실물·복수 물체·조명 변화의 일반적인 성공률이나 동적 추적은 검증하지 않았습니다.
 초기 승인 전 테스트, 승인 후 실제 모델, 과거 <code>GraspStep</code> 방식과 실패 기록은
 <a href="../sam3-history/">이전 SAM 통합 기록</a>에 별도로 보존했습니다.</p>
+<p>현재 ROS 서버는 <code>rwh_beyond_sam3_bridge/action_server.py</code>이고, coordinator는
+<code>rwh_beyond_grasp_pipeline</code>에 있습니다. <a href="../model-bridges/">분리된 패키지와 실행</a>을 참고하세요.</p>
 
 
 
@@ -1660,7 +1692,7 @@ GPU 추론은 <code>torch.inference_mode()</code>와 CUDA bfloat16 autocast 안�
       <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
         
           
-          <a href="../project-code-map/" class="md-footer__link md-footer__link--prev" aria-label="이전: 5. 코드를 따라 읽기">
+          <a href="../model-bridges/" class="md-footer__link md-footer__link--prev" aria-label="이전: 모델별 ROS 노드 분리">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1670,7 +1702,7 @@ GPU 추론은 <code>torch.inference_mode()</code>와 CUDA bfloat16 autocast 안�
                 이전
               </span>
               <div class="md-ellipsis">
-                5. 코드를 따라 읽기
+                모델별 ROS 노드 분리
               </div>
             </div>
           </a>

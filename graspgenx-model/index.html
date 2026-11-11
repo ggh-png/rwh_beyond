@@ -452,6 +452,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../model-bridges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    모델별 ROS 노드 분리
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../sam3-perception/" class="md-nav__link">
         
   
@@ -1564,7 +1592,9 @@ coordinator의 <code>SelectFeasibleGrasp</code>가 그 후보에 TCP 보정·IK�
 </tbody>
 </table>
 <p>공식 모델 구현을 읽고 싶으면 <code>grasp_server.py</code>와 <code>serving/zmq_server.py</code>부터,
-이 프로젝트의 연결을 바꾸려면 <code>inference_action_server.py</code>와 <code>pose_converter.py</code>부터 읽으세요.</p>
+이 프로젝트의 연결을 바꾸려면 <code>rwh_beyond_graspgenx_bridge/inference_action_server.py</code>와 공통 <code>pose_converter.py</code>부터 읽으세요.</p>
+<p>현재 ROS 서버는 <code>rwh_beyond_graspgenx_bridge</code> 패키지에서 실행합니다. RGBD 편의 API도
+SAM을 직접 ZMQ로 호출하지 않고 <code>/segment_image</code> Action을 사용합니다. <a href="../model-bridges/">노드 분리 구조</a>를 참고하세요.</p>
 
 
 
