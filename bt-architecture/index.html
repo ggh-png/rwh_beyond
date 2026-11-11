@@ -73,6 +73,10 @@
 </li>
                                     
 <li>
+    <a href="../bt-grasp-stages/" class="dropdown-item">역할별 파지 플러그인</a>
+</li>
+                                    
+<li>
     <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
 </li>
                                     
@@ -418,14 +422,15 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 <p>기본 <code>demo.xml</code>은 빨간 상자를 집어 들어올리는 MuJoCo 전용 트리다.</p>
 <p><strong>준비 확인 → 지도 초기화 → home → 열기 → 관측 자세 → RGB-D/실제 모델 추론과 후보 검증
 → pregrasp → 직선 접근 → 닫기 → 접촉 확인·부착 → 상승·물리 검증</strong></p>
-<p><code>GraspStep</code>은 <code>command</code>에 해당하는 한 단계를 실행하는 공통 플러그인으로,
-모델 추론은 <code>prepare</code>에서만 실행한다. <a href="../red-box-grasp/">상세 흐름과 포트</a>를 참고한다.</p>
+<p>현재 기본 트리는 <a href="../bt-grasp-stages/">역할별 플러그인</a>으로 마스크·점군·후보를 Blackboard에 전달한다.
+모델 추론은 <code>InferGrasps</code>, IK·충돌·경로 검사는 <code>SelectFeasibleGrasp</code>가 담당한다.
+기존 <code>GraspStep + command</code>는 호환용으로 남긴다.</p>
 <p>예전 고정 home/up/close/home/open은 <code>legacy_demo.xml</code>에 보존했다.
 <code>parameterized_demo.xml</code>은 <code>MakeTcpPose → MoveTcp</code>와 <code>SetGripper</code>로 같은 원래
 작업을 표현한 별도 예제다.</p>
 <h2 id="_5">소스에서 찾아볼 위치<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <pre><code class="language-text">rwh_beyond_bt/
-├── src/action/                  # action 노드 10개
+├── src/action/                  # 이동·그리퍼·역할별 파지 Action 노드
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp

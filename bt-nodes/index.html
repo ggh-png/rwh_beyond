@@ -73,6 +73,10 @@
 </li>
                                     
 <li>
+    <a href="../bt-grasp-stages/" class="dropdown-item">역할별 파지 플러그인</a>
+</li>
+                                    
+<li>
     <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
 </li>
                                     
@@ -119,7 +123,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a rel="next" href="../bt-operation/" class="nav-link">
+                                <a rel="next" href="../bt-grasp-stages/" class="nav-link">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -176,7 +180,11 @@
               <ul class="nav flex-column">
               </ul>
             </li>
-            <li class="nav-item" data-bs-level="2"><a href="#graspstep" class="nav-link">GraspStep — 파지 단계별 공통 플러그인</a>
+            <li class="nav-item" data-bs-level="2"><a href="#_5" class="nav-link">역할별 파지 플러그인</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#graspstep-xml" class="nav-link">GraspStep — 기존 XML 호환용 공통 플러그인</a>
               <ul class="nav flex-column">
               </ul>
             </li>
@@ -201,9 +209,19 @@
 </thead>
 <tbody>
 <tr>
+<td><code>SegmentObject</code>, <code>BuildObjectCloud</code>, <code>InferGrasps</code>, <code>SelectFeasibleGrasp</code></td>
+<td>mask, cloud, candidates, observation_id, plan_id</td>
+<td><a href="../bt-grasp-stages/">역할별 파지 포트</a></td>
+</tr>
+<tr>
+<td><code>CheckGraspReady</code>, <code>MoveToPregrasp</code>, <code>ApproachGrasp</code>, <code>AttachObject</code>, <code>LiftObject</code></td>
+<td>plan_id(준비 확인 제외)</td>
+<td>준비 확인·이동·접촉·리프트</td>
+</tr>
+<tr>
 <td><code>GraspStep</code></td>
 <td>command, pregrasp 출력</td>
-<td>분할·로컬 점군·파지 준비 등 단계별 Action 호출</td>
+<td>기존 XML 호환용 공통 플러그인</td>
 </tr>
 <tr>
 <td><code>MoveObservation</code></td>
@@ -540,11 +558,13 @@ blackboard-&gt;set(&quot;target_pose&quot;, target);
 </table>
 <p>이는 actuator force를 통한 접촉 추정입니다. 물체가 안정적으로 파지됐는지를
 독립적으로 검증하는 조건은 아닙니다.</p>
-<h2 id="graspstep">GraspStep — 파지 단계별 공통 플러그인<a class="headerlink" href="#graspstep" title="Permanent link">&para;</a></h2>
+<h2 id="_5">역할별 파지 플러그인<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>현재 기본 트리는 <a href="../bt-grasp-stages/">역할별 파지 플러그인과 데이터 포트</a>를 사용한다.
+추론과 후보 선택은 각각 <code>InferGrasps</code>, <code>SelectFeasibleGrasp</code>로 나뉜다.</p>
+<h2 id="graspstep-xml">GraspStep — 기존 XML 호환용 공통 플러그인<a class="headerlink" href="#graspstep-xml" title="Permanent link">&para;</a></h2>
 <p>같은 노드를 여러 번 쓰지만 <code>command</code>에 따라 다른 단계를 수행한다. <code>segment_target</code>은 SAM 분할,
 <code>build_object_cloud</code>는 로컬 ROS CPU의 Depth 역투영·PointCloud 발행, <code>prepare</code>는 GraspGenX 추론과 후보 검사를 한다.
-기존 prepare 단독 호출도 내부적으로 앞의 두 단계를 실행할 수 있다. <code>prepare</code>에서만
-RGB-D 인식과 GraspGenX 추론을 한 번 실행한다. XML <code>name</code>으로 Groot2에서 단계를 구분한다.</p>
+기존 prepare 단독 호출도 내부적으로 앞의 두 단계를 실행할 수 있다. legacy <code>prepare</code>는 이미 분할·생성된 점군이 있으면 재사용하고 없으면 먼저 생성한다. XML <code>name</code>으로 Groot2에서 단계를 구분한다.</p>
 <pre><code class="language-xml">&lt;GraspStep name=&quot;SegmentTargetWithSAM&quot; command=&quot;segment_target&quot; server_timeout=&quot;1000&quot;/&gt;
 &lt;GraspStep name=&quot;BuildLocalObjectCloud&quot; command=&quot;build_object_cloud&quot; server_timeout=&quot;1000&quot;/&gt;
 &lt;GraspStep name=&quot;PrepareRedBoxGrasp&quot; command=&quot;prepare&quot; server_timeout=&quot;1000&quot; pregrasp=&quot;{red_pregrasp}&quot;/&gt;

@@ -73,6 +73,10 @@
 </li>
                                     
 <li>
+    <a href="../bt-grasp-stages/" class="dropdown-item">역할별 파지 플러그인</a>
+</li>
+                                    
+<li>
     <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
 </li>
                                     
@@ -236,7 +240,7 @@ Self-filter의 20 mm padding은 가까운 환경점에도 영향을 줄 수 있�
 <h2 id="_1">지도 준비와 접촉<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <ul>
 <li>최초 <code>ClearOctomap once=true</code>가 clear 후 새 점군 2개/지도 생성을 확인한다.</li>
-<li>각 <code>prepare</code>는 대상의 의미적 분리를 위해 RGB 점 제외 → clear → 새 관측 지도 확인을
+<li>각 <code>SelectFeasibleGrasp</code>(legacy <code>prepare</code>)는 대상의 의미적 분리를 위해 RGB 점 제외 → clear → 새 관측 지도 확인을
   다시 수행한다. 물체 자체는 CollisionObject로 유지하며 빈 지도에서 이동하지 않는다.</li>
 <li>target과 두 손가락의 ACM pair만 허용한다. 그리퍼와 Octomap 전체는 계속 검사한다.</li>
 <li>파지 후 AttachedCollisionObject는 들고 있는 물체의 환경 충돌 검사에 사용한다.

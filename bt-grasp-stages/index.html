@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="auto">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/bt-grasp-stages/">
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>역할별 파지 플러그인 - RWH · Husky 사용 가이드</title>
+        <link href="../css/bootstrap.min.css" rel="stylesheet">
+        <link href="../css/fontawesome.min.css" rel="stylesheet">
+        <link href="../css/brands.min.css" rel="stylesheet">
+        <link href="../css/solid.min.css" rel="stylesheet">
+        <link href="../css/v4-font-face.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
+        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
+        <link href="../assets/stylesheets/bt-docs.css" rel="stylesheet">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+        <script>hljs.highlightAll();</script> 
+    </head>
+
+    <body>
+        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
+            <div class="container">
+                <a class="navbar-brand" href="..">RWH · Husky 사용 가이드</a>
+                <!-- Expander button -->
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <!-- Expanded navigation -->
+                <div id="navbar-collapse" class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li class="nav-item">
+                                <a href=".." class="nav-link">시작하기</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../connection/" class="nav-link">SSH와 본체 확인</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../setup/" class="nav-link">외부 PC 준비</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../operation/" class="nav-link">SLAM과 Nav2 실행</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../interfaces/" class="nav-link">TF와 토픽</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../configuration/" class="nav-link">파라미터 설정</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../runner/" class="nav-link">ros_runner 운용</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">로봇 팔 BT</a>
+                                <ul class="dropdown-menu">
+                                    
+<li>
+    <a href="../bt-architecture/" class="dropdown-item">구조 이해</a>
+</li>
+                                    
+<li>
+    <a href="../depth-bt-flow/" class="dropdown-item">Depth 관측과 runner 흐름</a>
+</li>
+                                    
+<li>
+    <a href="../bt-nodes/" class="dropdown-item">노드 사용법</a>
+</li>
+                                    
+<li>
+    <a href="./" class="dropdown-item active" aria-current="page">역할별 파지 플러그인</a>
+</li>
+                                    
+<li>
+    <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
+</li>
+                                    
+<li>
+    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 원격 추론</a>
+</li>
+                                    
+<li>
+    <a href="../red-box-grasp/" class="dropdown-item">빨간 상자 파지</a>
+</li>
+                                    
+<li>
+    <a href="../grasp-pipeline-guide/" class="dropdown-item">최종 파지 실행 가이드</a>
+</li>
+                                    
+<li>
+    <a href="../sam3-perception/" class="dropdown-item">SAM 3 객체 분할·실험</a>
+</li>
+                                </ul>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../troubleshooting/" class="nav-link">문제 해결</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../work-log-2026-11-10/" class="nav-link">GraspGenX 작업 기록</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../documentation/" class="nav-link">문서 관리</a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="../upstream/" class="nav-link">구조와 출처</a>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav ms-md-auto">
+                        <li class="nav-item">
+                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li class="nav-item">
+                                <a rel="prev" href="../bt-nodes/" class="nav-link">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a rel="next" href="../bt-operation/" class="nav-link">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/bt-grasp-stages.md" class="nav-link">Edit on ggh-png/rwh_beyond
+                                    </a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <script src="../js/darkmode.js"></script>
+
+        <div class="container">
+            <div class="row">
+                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
+    <div class="navbar-header">
+        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
+            <span class="fa fa-angle-down"></span>
+        </button>
+    </div>
+
+    
+    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
+        <ul class="nav flex-column">
+            
+            <li class="nav-item" data-bs-level="1"><a href="#bt" class="nav-link">역할별 파지 BT 플러그인</a>
+              <ul class="nav flex-column">
+            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">기본 트리와 데이터</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_2" class="nav-link">저장 상태와 재사용 범위</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">구현 경계</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#groot2" class="nav-link">빌드와 Groot2</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+            <li class="nav-item" data-bs-level="2"><a href="#2026-11-11" class="nav-link">2026-11-11 검증</a>
+              <ul class="nav flex-column">
+              </ul>
+            </li>
+              </ul>
+            </li>
+        </ul>
+    </div>
+</div></div>
+                    <div class="col-md-9" role="main">
+
+<h1 id="bt">역할별 파지 BT 플러그인<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
+<p>2026-11-11부터 기본 <code>demo.xml</code>은 역할별 노드를 사용한다. 각 노드는 고정된 ROS Action
+endpoint를 호출하며 XML에 <code>command</code>를 지정하지 않는다. SAM 마스크 → 로컬 ROS CPU
+점군 → GraspGenX 후보 → MoveIt 후보 선택 → 접근·접촉 확인·리프트 흐름은 유지한다.</p>
+<h2 id="_1">기본 트리와 데이터<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<pre><code class="language-xml">&lt;SegmentObject observation_id=&quot;{observation}&quot; mask=&quot;{object_mask}&quot;/&gt;
+&lt;BuildObjectCloud observation_id=&quot;{observation}&quot; mask=&quot;{object_mask}&quot; cloud=&quot;{object_cloud}&quot;/&gt;
+&lt;InferGrasps observation_id=&quot;{observation}&quot; cloud=&quot;{object_cloud}&quot; candidates=&quot;{grasps}&quot;/&gt;
+&lt;SelectFeasibleGrasp observation_id=&quot;{observation}&quot; cloud=&quot;{object_cloud}&quot;
+                     candidates=&quot;{grasps}&quot; plan_id=&quot;{grasp_plan}&quot; pregrasp=&quot;{pregrasp}&quot;/&gt;
+&lt;MoveToPregrasp plan_id=&quot;{grasp_plan}&quot;/&gt;
+&lt;ApproachGrasp plan_id=&quot;{grasp_plan}&quot;/&gt;
+&lt;CloseGripper/&gt;
+&lt;AttachObject plan_id=&quot;{grasp_plan}&quot;/&gt;
+&lt;LiftObject plan_id=&quot;{grasp_plan}&quot;/&gt;
+</code></pre>
+<p>완전한 트리는 앞에 <code>CheckGraspReady</code>, <code>ClearOctomap</code>, <code>MoveHome</code>, <code>OpenGripper</code>,
+<code>MoveObservation</code>을 실행하고 마지막에 <code>MoveHome</code>으로 복귀한다. <code>Sequence</code>이므로
+실패하면 다음 단계는 실행하지 않는다. 그리퍼를 열거나 내려놓는 단계는 포함하지 않는다.</p>
+<table>
+<thead>
+<tr>
+<th>BT 노드</th>
+<th>고정 endpoint</th>
+<th>입력 → 출력</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CheckGraspReady</td>
+<td>grasp/check_ready</td>
+<td>MuJoCo·실제 모델·기존 파지 상태 확인</td>
+</tr>
+<tr>
+<td>SegmentObject</td>
+<td>grasp/segment_object</td>
+<td>설정된 대상 텍스트/박스/픽셀 → observation_id, mask</td>
+</tr>
+<tr>
+<td>BuildObjectCloud</td>
+<td>grasp/build_object_cloud</td>
+<td>observation_id, mask → cloud</td>
+</tr>
+<tr>
+<td>InferGrasps</td>
+<td>grasp/infer_grasps</td>
+<td>observation_id, cloud → candidates</td>
+</tr>
+<tr>
+<td>SelectFeasibleGrasp</td>
+<td>grasp/select_feasible_grasp</td>
+<td>observation_id, cloud, candidates → plan_id, pregrasp</td>
+</tr>
+<tr>
+<td>MoveToPregrasp</td>
+<td>grasp/move_pregrasp</td>
+<td>plan_id → 검증된 사전 접근 경로 실행</td>
+</tr>
+<tr>
+<td>ApproachGrasp</td>
+<td>grasp/approach</td>
+<td>plan_id → Cartesian 최종 접근</td>
+</tr>
+<tr>
+<td>AttachObject</td>
+<td>grasp/attach</td>
+<td>plan_id → 양쪽 접촉 확인·MoveIt 부착</td>
+</tr>
+<tr>
+<td>LiftObject</td>
+<td>grasp/lift</td>
+<td>plan_id → 상승 경로·물리 리프트 확인</td>
+</tr>
+</tbody>
+</table>
+<p>Blackboard에는 이름 문자열만 저장되는 것이 아니라 실제 <code>sensor_msgs/Image</code>,
+<code>PointCloud2</code>, <code>vector&lt;GraspCandidate&gt;</code>, <code>TcpPose</code> 메시지가 저장된다. ROS Action 요청에도
+그 데이터를 전달한다. 메시를 생성하지 않으며 GraspGenX에는 XYZ 점군을 보낸다.
+<code>server_timeout="1000"</code>은 Nav2 Action 응답 대기 시간(ms)이며 모델 실행 전체 제한이 아니다.</p>
+<h2 id="_2">저장 상태와 재사용 범위<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>원본 RGB-D·CameraInfo·촬영 시각 TF·관절 상태는 ROS 측 관측 context에 보관한다.
+<code>observation_id</code>로 이 context와 Blackboard 마스크·점군을 연결한다. 서버는 입력 마스크와
+점군이 해당 관측에서 나온 값과 일치하는지 확인한다. 30초가 지났거나 촬영 후 팔 관절이
+0.02 rad 넘게 바뀌면 이동 전에 재관측을 요구한다. 후보의 frame/stamp도 점군과 일치해야 한다.
+따라서 새 노드는 별도 프로세스에서 임의의 마스크/점군을 주입하는 무상태 API는 아니다.</p>
+<p>추론은 <code>InferGrasps</code>에서만 수행한다. <code>SelectFeasibleGrasp</code>는 받은 후보로 관측 기반
+충돌 모델·선택 영역 제외를 준비하고 TF/TCP, IK, 충돌, 접근·상승 경로와 사전 접근 경로를
+검사한다. 선택한 경로는 서버가 보관하며 Blackboard의 <code>plan_id</code>로 참조한다.
+<code>pregrasp</code>는 표시·다른 노드 연결용이며 <code>MoveToPregrasp</code>는 저장한 경로를 실행한다.</p>
+<p>계획 ID와 <code>selected → pregrasp → approached → attached → lifted</code> 순서를 확인한다.
+다른 계획의 ID, 단계 생략, 같은 이동의 재실행을 거부한다. 실패·취소 시 임시 대상 제외와
+접촉 허용 규칙을 복원하고 미부착 계획을 무효화한다. 이미 확인한 부착 물체는 유지하며
+자동으로 그리퍼를 열지 않는다. 모든 이동 경로는 MuJoCo 검증 서비스를 요구한다.</p>
+<h2 id="_3">구현 경계<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>rwh_beyond_bt/src/action/grasp_stages.cpp</code>: 역할별 등록 타입 9개, typed ports, Action 전송·진단.</li>
+<li><code>rwh_beyond_msgs/action/RunGraspStage.action</code>: command 없는 공통 전송 형식. endpoint마다 사용하는 필드가 다르다.</li>
+<li><code>perception_stages.py</code>: RGB-D·TF 획득, SAM 마스크, 로컬 Depth 역투영.</li>
+<li><code>inference_stages.py</code>: 로컬 점군을 기존 <code>InferGrasps</code> Action으로 전달.</li>
+<li><code>selection_stages.py</code>: 충돌 장면과 실행 가능한 후보·경로 선택.</li>
+<li><code>motion_stages.py</code>: 이동, 접촉 부착, 물리 리프트 검증.</li>
+<li><code>grasp_coordinator.py</code>: ROS 연결·관측/계획 수명·단계별 endpoint·공유 락·취소/정리.</li>
+</ul>
+<p>노드는 같은 <code>librwh_beyond_bt_nodes.so</code>에 등록되지만 서로 다른 BT 타입과 포트를 가진다.
+백엔드는 한 ROS 프로세스에 유지한다. MoveIt 장면과 부착 상태를 공유하고 취소를 직렬화하기
+위한 구성이다. 모델 컨테이너는 계속 SAM과 GraspGenX로 분리된다.</p>
+<p>기존 <code>GraspStep</code>, <code>/grasp_step</code>, <code>RunGraspStep</code>은 이전 XML·클라이언트 호환용으로 남긴다.
+legacy <code>prepare</code>는 분할·점군·추론·선택을 묶어 호출한다. 기본 트리는 이를 호출하지 않는다.
+다른 노드에 <code>server_name</code>을 재지정할 때도 같은 역할의 endpoint 규약을 지켜야 한다.</p>
+<h2 id="groot2">빌드와 Groot2<a class="headerlink" href="#groot2" title="Permanent link">&para;</a></h2>
+<pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
+cd /root/ros2_ws
+colcon build --packages-select rwh_beyond_msgs rwh_beyond_bt rwh_beyond_grasp_bridge \
+  rwh_beyond_navigator rwh_beyond_bringup --symlink-install
+source install/setup.bash
+ros2 run rwh_beyond_bt generate_tree_nodes_xml \
+  src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
+</code></pre>
+<p>Action 타입을 추가했으므로 기존 ROS Bridge/navigator는 빌드 후 재시작한다.
+Groot2에서도 갱신된 노드 모델 XML을 다시 불러온다. 모델 서버를 재시작할 필요는 없다.
+실행은 <a href="../grasp-pipeline-guide/">최종 가이드</a>를 따른다.</p>
+<h2 id="2026-11-11">2026-11-11 검증<a class="headerlink" href="#2026-11-11" title="Permanent link">&para;</a></h2>
+<ul>
+<li>관련 패키지 빌드, Bridge Python 테스트 57개, BT GTest 28개, navigator pytest 5개 통과.</li>
+<li>BT의 실제 ROS Action 테스트에서 마스크 → 점군 → 후보 → 계획 ID 전달과 실패 시 뒤 단계 미실행 확인.</li>
+<li>잘못된 관측/계획 ID, 수정된 마스크·점군, 오래된 관측, 단계 생략·중복 실행, 취소 후 정리 검사 통과.</li>
+<li>첫 실제 모델 시험: 로컬 점군 2,775개, 접근·닫기·양쪽 접촉까지 성공했으나 리프트 Cartesian
+  fraction=0.95238로 실행 거부. 충돌/경로 판정 기준은 완화하지 않았다.</li>
+<li>두 번째 전체 시험: 2,777개 점, 물리 리프트 7.70 cm, 마지막 홈 복귀·양쪽 접촉 유지.</li>
+<li>최종 모듈 분리 후 전체 시험: 2,772개 점, 물리 리프트 7.58 cm, 홈 복귀·양쪽 접촉 유지.</li>
+<li>별도 runner 시험: 후보 선택 중 cancel → 선택 영역 제외 해제, 임시 물체 제거, 양쪽 손가락의
+  충돌 허용 복원, 미부착 상태 확인. <code>SAM_RUNNER_CANCEL_ONLY=1</code> 모드이며 재집기·5초 유지 시험은 제외했다.</li>
+<li>문서 strict 빌드와 Groot2 노드 모델 재생성 통과.</li>
+</ul>
+<p>성공 2회와 실패 1회의 제한된 회귀 시험이며 일반 물체·실물 파지 성공률을 뜻하지 않는다.
+검증용 ROS 프로세스는 종료하고 기존 두 GPU 모델 서버는 유지한다.
+<a href="../validation/bt-split-2026-11-11.json">요약 JSON</a>에 실제 단계·결과를 기록했다.</p>
+<p>전체 BT 시험은 컨테이너 안에서 모델 서버가 실행 중일 때 다음처럼 수행한다.</p>
+<pre><code class="language-bash">source /opt/ros/jazzy/setup.bash
+source /root/ros2_ws/install/setup.bash
+ROS_DOMAIN_ID=94 SAM_PICK_FULL_TREE=1 SAM_PICK_LOG_PREFIX=/tmp/bt-split-check \
+  python3 /root/ros2_ws/src/rwh_beyond/rwh_beyond_grasp_bridge/test/sam_pick_integration.py
+# 취소와 장면 복원만 검증하는 별도 실행
+ROS_DOMAIN_ID=95 SAM_RUNNER_CANCEL_ONLY=1 \
+  python3 /root/ros2_ws/src/rwh_beyond/rwh_beyond_grasp_bridge/test/sam_runner_pick_integration.py
+</code></pre></div>
+            </div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js"></script>
+        <script src="../assets/javascripts/mermaid.mjs" type="module"></script>
+        <script src="../search/main.js"></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="searchModalLabel">Search</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>From here you can search these documents. Enter your search terms below.</p>
+                <form>
+                    <div class="form-group">
+                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
