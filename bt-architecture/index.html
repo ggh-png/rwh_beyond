@@ -77,6 +77,10 @@
 </li>
                                     
 <li>
+    <a href="../bt-code-style/" class="dropdown-item">Nav2 코드 구성</a>
+</li>
+                                    
+<li>
     <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
 </li>
                                     
@@ -341,7 +345,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 <tr>
 <td>등록 파일</td>
 <td><code>navigator_plugins.xml</code></td>
-<td><code>src/register_nodes.cpp</code></td>
+<td>각 <code>plugins/action/*_action.cpp</code></td>
 </tr>
 <tr>
 <td>설정 키</td>
@@ -360,9 +364,10 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 </tr>
 </tbody>
 </table>
-<p>BT 라이브러리의 실제 파일명은 <code>librwh_beyond_bt_nodes.so</code>입니다.
-<code>BT_REGISTER_NODES</code>가 8개 노드를 등록하며, <code>BT_PLUGIN_EXPORT</code> compile definition이
-<code>BT_RegisterNodesFromPlugin</code> 심볼을 공개합니다.</p>
+<p>현재 BT 노드는 각 <code>librwh_beyond_&lt;name&gt;_action_bt_node.so</code>로 나뉩니다.
+각 CPP의 <code>BT_REGISTER_NODES</code>와 <code>BT_PLUGIN_EXPORT</code>가 등록 함수를 공개합니다.
+기존 <code>librwh_beyond_bt_nodes.so</code>는 19개 개별 라이브러리를 불러오는 호환 로더입니다.
+<a href="../bt-code-style/">헤더·CPP 구성과 Nav2 스타일</a>을 참고하세요.</p>
 <h2 id="goal">Goal을 받으면 일어나는 일<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
 <pre><code class="language-mermaid">sequenceDiagram
     participant C as Client
@@ -430,13 +435,14 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 작업을 표현한 별도 예제다.</p>
 <h2 id="_5">소스에서 찾아볼 위치<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
 <pre><code class="language-text">rwh_beyond_bt/
-├── src/action/                  # 이동·그리퍼·역할별 파지 Action 노드
-├── src/condition/               # condition 추가 위치, 현재 구현 없음
-├── src/register_nodes.cpp       # 노드 ID 등록
+├── plugins/action/                         # 노드별 구현·BT_REGISTER_NODES
+├── include/rwh_beyond_bt/plugins/action/   # 노드별 공개 선언
+├── include/rwh_beyond_bt/bt_*.hpp          # 공통 Action 베이스 선언
+├── src/bt_*.cpp                           # 공통 베이스 구현
+├── src/register_nodes.cpp                 # 기존 설정용 호환 로더
 ├── src/generate_tree_nodes_xml.cpp
-├── include/rwh_beyond_bt/action/ # 공통 action 베이스
-├── behavior_trees/              # 실행 트리와 Groot2 노드 모델 XML
-└── test/test_custom_actions.cpp  # mock 테스트
+├── behavior_trees/                        # 실행 트리·Groot2 모델
+└── test/                                  # 동작·플러그인 로딩·lint 검사
 </code></pre>
 <h2 id="_6">참고<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
 <ul>
