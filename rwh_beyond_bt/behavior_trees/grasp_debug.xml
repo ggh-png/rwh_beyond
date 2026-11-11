@@ -1,0 +1,16 @@
+<root BTCPP_format="4" main_tree_to_execute="GraspDebug">
+  <!-- Simulation observation and grasp planning only; no approach, closing or lift. -->
+  <BehaviorTree ID="GraspDebug">
+    <Sequence>
+      <CheckGraspReady server_timeout="1000"/>
+      <ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>
+      <MoveHome/>
+      <OpenGripper/>
+      <MoveObservation/>
+      <SegmentObject server_timeout="1000" observation_id="{observation}" mask="{object_mask}"/>
+      <BuildObjectCloud server_timeout="1000" observation_id="{observation}" mask="{object_mask}" cloud="{object_cloud}"/>
+      <InferGrasps server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}"/>
+      <SelectFeasibleGrasp server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}" plan_id="{grasp_plan}" pregrasp="{pregrasp}"/>
+    </Sequence>
+  </BehaviorTree>
+</root>

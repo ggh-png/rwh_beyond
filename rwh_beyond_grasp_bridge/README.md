@@ -197,3 +197,18 @@ SAM 서버는 마스크를 반환하고, 로봇 PC의 ROS CPU가 Depth/K로 객�
 따라서 BT에서는 RGBD Action을 통해 SAM을 다시 호출하지 않는다. 단독 RGBD Action
 클라이언트 인터페이스는 계속 사용할 수 있다. 기본 트리는 관측 자세와 마지막 홈 복귀를 포함한다.
 전체 시뮬레이션 실험과 제한은 [검증 문서](../docs/sam3-perception.md)를 참고한다.
+
+## Observation visualization
+
+The coordinator publishes retained mask/cloud results plus a 0/255 mask preview,
+registered RGB overlay and acquisition-time base-frame cloud. Open the viewer with
+`ros2 launch rwh_beyond_grasp_bridge grasp_visualization.launch.py`.
+See [RViz topics and observation-only BT](../docs/grasp-visualization.md).
+
+The existing MoveIt viewer can be attached without restarting simulation using
+`ros2 launch rwh_beyond_bringup moveit_rviz.launch.py`. It includes segmentation, point
+clouds, model candidate arrows/scores and selected TCP/pregrasp markers.
+`grasp_debug.xml` observes and selects a feasible grasp without approach/close/lift.
+`bt_demo.launch.py` opens the integrated viewer by default. The simulator runner
+does not start another viewer. Use `RWH_BT_RVIZ=false` before starting the runner
+(or `bt_demo.launch.py rviz:=false`) for headless operation.

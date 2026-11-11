@@ -47,7 +47,7 @@ class PerceptionStages:
         else:raise ValueError('segmentation_backend must be sam3 or explicit color_demo')
         self.perception=dict(frame=frame,mask=mask,base_T_camera=pose_matrix(camera),backend=backend,captured_at=captured_at,capture_joints=capture_joints)
         self.observation_id=uuid.uuid4().hex;self.plan_id=""
-        self.mask_pub.publish(mask)
+        self.visualization.publish_segmentation(rgb,depth,mask)
 
     def perception_context(self):
         if self.perception is None:raise RuntimeError('No segmented target; run segment_target first')
@@ -68,6 +68,6 @@ class PerceptionStages:
         xyz=depth_xyz(frame['depth'],frame['info'],context['mask'])
         cloud=create_cloud_xyz32(frame['depth'].header,xyz.tolist())
         context.update(xyz=xyz,cloud=cloud)
-        self.points_pub.publish(cloud)
+        self.visualization.publish_cloud(cloud,xyz,context['base_T_camera'])
         self.stage(f'local_object_cloud points={len(xyz)} frame={cloud.header.frame_id}')
 

@@ -19,7 +19,10 @@
   <exec_depend>rviz2</exec_depend>
   <exec_depend>nav2_rviz_plugins</exec_depend>
   <exec_depend>agx_arm_ctrl</exec_depend>
+  <exec_depend>agx_arm_moveit</exec_depend>
   <exec_depend>moma_bringup</exec_depend>
+  <exec_depend>moveit_configs_utils</exec_depend>
+  <exec_depend>moveit_ros_visualization</exec_depend>
   <exec_depend>nav2_bt_navigator</exec_depend>
   <exec_depend>nav2_lifecycle_manager</exec_depend>
   <exec_depend>rwh_beyond_bt</exec_depend>

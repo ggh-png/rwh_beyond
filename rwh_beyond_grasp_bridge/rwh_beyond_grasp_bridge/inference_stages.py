@@ -18,5 +18,6 @@ class InferenceStages:
             inference.cancel_goal_async();raise
         result=response.result().result
         if not result.success or not result.message.startswith('OK:'):raise RuntimeError('Real GraspGenX inference failed: '+result.message)
+        self.visualization.publish_candidates(result.candidates,context['cloud'].header,context['base_T_camera'])
         return {'candidates':result.candidates}
 

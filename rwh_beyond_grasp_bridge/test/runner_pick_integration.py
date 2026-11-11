@@ -20,14 +20,14 @@ params_file=Path('/tmp/runner-red-pick-bt.yaml');params_file.write_text(yaml.saf
 config=yaml.safe_load(Path('/root/ros2_ws/src/ros_runner/config/runners.yaml').read_text())
 for runner in config['runners']:
  runner['on_launch']=False
- if runner['name']=='bt_demo':runner['activate_script']=[runner['activate_script'][0]+f' params_file:={params_file}']
+ if runner['name']=='bt_demo_sim':runner['activate_script']=[runner['activate_script'][0]+f' params_file:={params_file}']
 config_file=Path('/tmp/runner-red-pick-config.yaml');config_file.write_text(yaml.safe_dump(config))
-env=dict(os.environ,RWH_PIPER_SIM_GUI='false',RWH_PIPER_SIM_RVIZ='false',MUJOCO_GL='osmesa',ROS_RUNNER_LOG_DIR='/tmp/red-pick-runner-logs')
+env=dict(os.environ,RWH_PIPER_SIM_GUI='false',RWH_PIPER_SIM_RVIZ='false',RWH_BT_RVIZ=os.environ.get('RWH_BT_RVIZ','false'),MUJOCO_GL='osmesa',ROS_RUNNER_LOG_DIR='/tmp/red-pick-runner-logs')
 log_path=Path('/tmp/red-pick-runner.log');log=log_path.open('w')
 process=subprocess.Popen(['ros2','run','ros_runner','ros_runner','--ros-args','-r','__node:=grasp_runner_test',
  '-p',f'config_yaml:={config_file}','-p','auto_start:=true'],env=env,stdout=log,stderr=subprocess.STDOUT,start_new_session=True)
-activate=node.create_client(Empty,'grasp_runner_test/activate_bt_demo')
-deactivate=node.create_client(Empty,'grasp_runner_test/deactivate_bt_demo')
+activate=node.create_client(Empty,'grasp_runner_test/activate_bt_demo_sim')
+deactivate=node.create_client(Empty,'grasp_runner_test/deactivate_bt_demo_sim')
 state=node.create_client(GetState,'bt_navigator/get_state')
 physics=node.create_client(Trigger,'simulation/grasp_state')
 scene=node.create_client(GetPlanningScene,'get_planning_scene')

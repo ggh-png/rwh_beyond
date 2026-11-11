@@ -2,7 +2,7 @@
 
 - `rwh_beyond_bt`: BT action/condition plugins, execution XML and Groot2 node models.
 - `rwh_beyond_navigator`: Nav2 navigator exposing `/run_demo` (`rwh_beyond_msgs/action/RunDemo`).
-- `rwh_beyond_bringup`: `bt_demo.launch.py`, loading the navigator and lifecycle manager.
+- `rwh_beyond_bringup`: `bt_demo.launch.py`, loading the grasp pipeline, navigator and lifecycle manager.
 
 Package names are robot-neutral. The current demo still targets the PiPER model:
 its `arm` group, joint1–joint6 zero home, `base_link`, `tcp_link`, and gripper.
@@ -12,12 +12,11 @@ after MuJoCo and MoveIt are ready:
 
 ```bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
-ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py
 ros2 launch rwh_beyond_bringup bt_demo.launch.py
 ```
 
-With `ros_runner`, activate only `bt_demo`: it requires `grasp_bridge`, which
-requires `piper_sim`. Stopping the simulator also stops its dependents.
+With `ros_runner`, activate only `bt_demo_sim`: it requires `piper_moveit_sim` and
+starts the grasp pipeline itself. Stopping the simulator also stops its dependents.
 Launching does not send a demo goal.
 
 ## Plugin layout

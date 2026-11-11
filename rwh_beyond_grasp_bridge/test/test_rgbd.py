@@ -128,13 +128,25 @@ def test_local_cloud_published_before_grasp_and_uses_original_camera_frame():
     from rwh_beyond_grasp_bridge.grasp_coordinator import GraspCoordinator
     goal=rgbd_goal();mask=fake_segmentation({'rgb':np.zeros((32,32,3),np.uint8)})['mask']
     mask=Image(header=goal.depth_image.header,height=32,width=32,encoding='mono8',step=32,data=mask.tobytes())
-    context=dict(captured_at=time.monotonic(),frame={'depth':goal.depth_image,'info':goal.camera_info},mask=mask)
-    clouds=[];stages=[]
-    node=SimpleNamespace(perception_context=lambda:context,points_pub=SimpleNamespace(publish=clouds.append),stage=stages.append)
+    from rwh_beyond_grasp_bridge.visualization import GraspVisualization
+    from sensor_msgs_py.point_cloud2 import read_points_numpy
+    transform=np.eye(4);transform[0,3]=1.0
+    context=dict(captured_at=time.monotonic(),frame={'depth':goal.depth_image,'info':goal.camera_info},
+                 mask=mask,base_T_camera=transform)
+    published={};stages=[]
+    def publisher(message_type,topic,qos):
+        published[topic]=[]
+        return SimpleNamespace(publish=published[topic].append)
+    visualization=GraspVisualization(SimpleNamespace(create_publisher=publisher),'base_link')
+    clouds=published['grasp/object_cloud']
+    node=SimpleNamespace(perception_context=lambda:context,visualization=visualization,stage=stages.append)
     GraspCoordinator.build_object_cloud(node)
     assert len(clouds)==1 and clouds[0].header==goal.depth_image.header
     assert clouds[0].width==24*24 and context['xyz'].shape==(24*24,3)
     assert clouds[0] is context['cloud'] and stages[0].startswith('local_object_cloud')
+    base=published['grasp/object_cloud_base'][0]
+    assert base.header.frame_id=='base_link'
+    np.testing.assert_allclose(read_points_numpy(base),read_points_numpy(clouds[0])+[1,0,0])
 
 
 def test_local_snapshot_invalidated_when_arm_moves_but_not_when_gripper_changes():

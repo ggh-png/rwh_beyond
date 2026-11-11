@@ -27,8 +27,7 @@ try:
  file=Path('/tmp/red-pick-test-params.yaml');file.write_text(yaml.safe_dump(params))
  for cmd in [
   ['ros2','launch','moma_bringup','simulation.launch.py','moveit:=true','gui:=false','rviz:=false'],
-  ['ros2','launch','rwh_beyond_grasp_bridge','grasp_pipeline.launch.py','segmentation_backend:=color_demo'],
-  ['ros2','launch','rwh_beyond_bringup','bt_demo.launch.py',f'params_file:={file}']]:
+  ['ros2','launch','rwh_beyond_bringup','bt_demo.launch.py','rviz:=false','segmentation_backend:=color_demo',f'params_file:={file}']]:
   processes.append(subprocess.Popen(cmd,stdout=log,stderr=subprocess.STDOUT,start_new_session=True))
  client=ActionClient(node,RunDemo,'run_demo');physics=node.create_client(Trigger,'simulation/grasp_state')
  assert client.wait_for_server(timeout_sec=45)

@@ -1,16 +1,19 @@
-"""Verify that the BT demo launch does not start a simulation."""
+"""Verify the BT demo launch includes the grasp pipeline, but not a simulation."""
 
 import importlib.util
+import os
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
-from launch.actions import DeclareLaunchArgument
+from launch import LaunchContext
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch_ros.actions import Node
 import yaml
 
 
 class BtDemoLaunchTest(unittest.TestCase):
-    def test_only_navigator_and_lifecycle_manager_are_launched(self):
+    def test_grasp_pipeline_and_navigator_with_optional_rviz(self):
         launch_path = Path(__file__).resolve().parents[1] / 'launch' / 'bt_demo.launch.py'
         spec = importlib.util.spec_from_file_location('bt_demo_launch', launch_path)
         module = importlib.util.module_from_spec(spec)
@@ -19,8 +22,43 @@ class BtDemoLaunchTest(unittest.TestCase):
 
         arguments = [entity for entity in entities if isinstance(entity, DeclareLaunchArgument)]
         nodes = [entity for entity in entities if isinstance(entity, Node)]
-        self.assertEqual(len(entities), 3)
-        self.assertEqual([argument.name for argument in arguments], ['params_file'])
+        argument_map = {argument.name: argument for argument in arguments}
+        self.assertEqual(
+            set(argument_map),
+            {'params_file', 'rviz', 'rviz_config', 'tcp_offset', 'segmentation_endpoint',
+             'segmentation_backend', 'target_text', 'endpoint'})
+        includes = [entity for entity in entities if isinstance(entity, IncludeLaunchDescription)]
+        self.assertEqual(len(includes), 2)
+        pipeline, rviz = includes
+        self.assertIsNone(pipeline.condition)
+        context = LaunchContext()
+        self.assertIn("FindPackageShare(pkg='rwh_beyond_bringup')",
+                      rviz.launch_description_source.location)
+        self.assertIn('moveit_rviz.launch.py', rviz.launch_description_source.location)
+        names = ('segmentation_endpoint', 'segmentation_backend', 'target_text', 'endpoint')
+        context.launch_configurations.update({name: f'test_{name}' for name in names})
+        self.assertEqual(
+            {name: value.perform(context) for name, value in pipeline.launch_arguments},
+            {name: f'test_{name}' for name in names})
+        env_vars = {
+            'segmentation_endpoint': ('RWH_SEGMENTATION_ENDPOINT', 'tcp://127.0.0.1:5567'),
+            'segmentation_backend': ('RWH_SEGMENTATION_BACKEND', 'sam3'),
+            'target_text': ('RWH_GRASP_TARGET_TEXT', 'red box'),
+            'endpoint': ('RWH_GRASP_ENDPOINT', 'tcp://127.0.0.1:5566'),
+        }
+        with patch.dict(os.environ, {}, clear=True):
+            context = LaunchContext()
+            for name, (env_name, default) in env_vars.items():
+                self.assertEqual(argument_map[name].default_value[0].perform(context), default)
+                os.environ[env_name] = f'env_{name}'
+                self.assertEqual(
+                    argument_map[name].default_value[0].perform(context), f'env_{name}')
+        context.launch_configurations['rviz'] = 'true'
+        self.assertTrue(rviz.condition.evaluate(context))
+        context.launch_configurations['rviz'] = 'false'
+        self.assertFalse(rviz.condition.evaluate(context))
+        self.assertEqual(''.join(part.perform(context) for part in argument_map['rviz'].default_value),
+                         'true')
         self.assertEqual(
             [(node.node_package, node.node_executable) for node in nodes],
             [('nav2_bt_navigator', 'bt_navigator'),

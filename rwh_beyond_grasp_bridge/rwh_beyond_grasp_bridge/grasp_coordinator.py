@@ -14,7 +14,6 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from rclpy.duration import Duration
 from sensor_msgs.msg import Image, CameraInfo, JointState, PointCloud2
-from geometry_msgs.msg import PoseStamped
 from std_srvs.srv import Trigger, SetBool, Empty
 from moveit_msgs.msg import PlanningScene, PlanningSceneComponents as PC, CollisionObject, RobotState
 from moveit_msgs.srv import (GetPlanningScene, ApplyPlanningScene, GetPositionIK,
@@ -37,6 +36,7 @@ from .inference_stages import InferenceStages
 from .selection_stages import SelectionStages
 
 from .motion_stages import MotionStages
+from .visualization import GraspVisualization
 
 class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, PerceptionStages, Node):
     def __init__(self):
@@ -48,7 +48,7 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
             # Model gripper +X is closing; PiPER physical closing is +/-Y.
             # Model fingertip is +Z 0.130 m (official piper_hand config).
             'model_to_tcp_xyz':[0.0,0.0,0.13],'model_to_tcp_rpy':[0.0,0.0,-math.pi/2],
-            'num_grasps':100,'top_k':100,'simulation_only':True,'max_candidates':100}
+            'debug_max_candidates':10,'num_grasps':100,'top_k':100,'simulation_only':True,'max_candidates':100}
         for k,v in defaults.items():self.declare_parameter(k,v)
         for name in ('object_dimensions','model_to_tcp_xyz','model_to_tcp_rpy'):
             value=np.asarray(self.get_parameter(name).value,dtype=float)
@@ -70,9 +70,7 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
             self.subs.append(self.create_subscription(typ,topic,lambda m,k=key:self.capture(k,m),qos_profile_sensor_data))
         self.subs.append(self.create_subscription(JointState,'feedback/joint_states',self.joint_callback,10))
         self.subs.append(self.create_subscription(PointCloud2,'camera/depth/filtered_points',self.cloud_callback,qos_profile_sensor_data))
-        self.mask_pub=self.create_publisher(Image,'grasp/object_mask',qos_profile_sensor_data)
-        self.points_pub=self.create_publisher(PointCloud2,'grasp/object_cloud',qos_profile_sensor_data)
-        self.pose_pub=self.create_publisher(PoseStamped,'grasp/selected_tcp',10)
+        self.visualization=GraspVisualization(self,self.base,self.get_parameter('debug_max_candidates').value)
         self.stage_clients={}
         for key,typ,name in [('scene',GetPlanningScene,'get_planning_scene'),('apply',ApplyPlanningScene,'apply_planning_scene'),
             ('ik',GetPositionIK,'compute_ik'),('cartesian',GetCartesianPath,'compute_cartesian_path'),

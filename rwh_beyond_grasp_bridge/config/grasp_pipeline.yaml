@@ -29,3 +29,5 @@ grasp_coordinator:
     num_grasps: 100
     top_k: 100
     max_candidates: 100
+    # Display only; never limits inference or feasibility selection.
+    debug_max_candidates: 10

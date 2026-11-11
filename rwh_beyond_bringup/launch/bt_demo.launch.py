@@ -1,14 +1,26 @@
-"""Launch the arm behavior-tree demo navigator and lifecycle manager."""
+"""Launch the grasp pipeline, BT navigator and integrated MoveIt/grasp RViz."""
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description():
     return LaunchDescription([
+        DeclareLaunchArgument(
+            'rviz', default_value='true',
+            description='Start the integrated MoveIt, SAM and grasp debug RViz'),
+        DeclareLaunchArgument(
+            'rviz_config', default_value=PathJoinSubstitution([
+                FindPackageShare('moma_bringup'), 'config', 'depth_planning.rviz']),
+            description='MoveIt and grasp debug RViz configuration'),
+        DeclareLaunchArgument(
+            'tcp_offset', default_value='[0.0,0.0,0.1425,0.0,0.0,0.0]',
+            description='Flange-to-TCP XYZ/RPY; match the running simulator'),
         DeclareLaunchArgument(
             'params_file',
             default_value=PathJoinSubstitution([
@@ -18,6 +30,43 @@ def generate_launch_description():
             ]),
             description='BT navigator and lifecycle manager parameter YAML',
         ),
+        DeclareLaunchArgument(
+            'segmentation_endpoint',
+            default_value=EnvironmentVariable(
+                'RWH_SEGMENTATION_ENDPOINT', default_value='tcp://127.0.0.1:5567'),
+            description='SAM segmentation server endpoint'),
+        DeclareLaunchArgument(
+            'segmentation_backend',
+            default_value=EnvironmentVariable('RWH_SEGMENTATION_BACKEND', default_value='sam3'),
+            description='Segmentation backend'),
+        DeclareLaunchArgument(
+            'target_text',
+            default_value=EnvironmentVariable('RWH_GRASP_TARGET_TEXT', default_value='red box'),
+            description='Target object description'),
+        DeclareLaunchArgument(
+            'endpoint',
+            default_value=EnvironmentVariable(
+                'RWH_GRASP_ENDPOINT', default_value='tcp://127.0.0.1:5566'),
+            description='Grasp inference server endpoint'),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([
+                FindPackageShare('rwh_beyond_grasp_bridge'), 'launch', 'grasp_pipeline.launch.py'])),
+            launch_arguments={
+                'segmentation_endpoint': LaunchConfiguration('segmentation_endpoint'),
+                'segmentation_backend': LaunchConfiguration('segmentation_backend'),
+                'target_text': LaunchConfiguration('target_text'),
+                'endpoint': LaunchConfiguration('endpoint'),
+            }.items()),
+        # RViz belongs to this BT launch, not the simulator dependency.
+        # The included launch starts only RViz using the same MoveIt robot parameters.
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(PathJoinSubstitution([
+                FindPackageShare('rwh_beyond_bringup'), 'launch', 'moveit_rviz.launch.py'])),
+            condition=IfCondition(LaunchConfiguration('rviz')),
+            launch_arguments={
+                'rviz_config': LaunchConfiguration('rviz_config'),
+                'tcp_offset': LaunchConfiguration('tcp_offset'),
+            }.items()),
         Node(
             package='nav2_bt_navigator',
             executable='bt_navigator',

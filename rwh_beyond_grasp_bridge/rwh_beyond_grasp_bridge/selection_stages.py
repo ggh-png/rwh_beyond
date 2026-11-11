@@ -4,7 +4,7 @@ from collections import Counter
 from pathlib import Path
 import numpy as np
 from scipy.spatial.transform import Rotation
-from geometry_msgs.msg import Pose, PoseStamped, Point
+from geometry_msgs.msg import Pose, Point
 from std_msgs.msg import Header, ColorRGBA
 from std_srvs.srv import SetBool, Empty
 from moveit_msgs.msg import (CollisionObject, PlanningScene, PlanningSceneWorld,
@@ -113,7 +113,7 @@ class SelectionStages:
                 if planned.error_code.val!=1:
                     reasons['pre_plan']+=1;continue
                 self.grasp_pose=grasp_pose;self.pre_trajectory=planned.trajectory;self.prepared=True
-                self.pose_pub.publish(PoseStamped(header=Header(frame_id=self.base),pose=grasp_pose))
+                self.visualization.publish_selection(pre_pose,grasp_pose,depth.header,candidate.score,index,flipped)
                 self.stage(f'selected candidate={index} score={candidate.score:.3f} tcp={tcp[:3,3].tolist()} rejected={dict(reasons)}')
                 return TcpPose(frame_id=self.base,pose=pre_pose)
         raise RuntimeError('No feasible model grasp; rejection counts: '+str(dict(reasons)))
