@@ -1,0 +1,25 @@
+/* Material/indigo layout inspired by GLIM, with Korean technical prose. */
+:root {
+  --md-text-font: "Roboto", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --md-code-font: "Roboto Mono", "D2Coding", monospace;
+}
+.md-grid { max-width: 76rem; }
+.md-typeset { line-height: 1.8; word-break: keep-all; overflow-wrap: break-word; }
+.md-typeset h1 { font-weight: 400; letter-spacing: -.025em; line-height: 1.4; }
+.md-typeset h2 { margin-top: 2.1em; font-weight: 500; line-height: 1.45; }
+.md-typeset h3 { line-height: 1.5; }
+.md-typeset p, .md-typeset ul, .md-typeset ol { margin-block: 1em; }
+.md-typeset table:not([class]) { font-size: .76rem; line-height: 1.65; }
+.md-typeset table:not([class]) th { white-space: nowrap; }
+.md-typeset table:not([class]) td { min-width: 5rem; vertical-align: top; }
+.md-typeset td code { overflow-wrap: anywhere; }
+.md-typeset pre { word-break: normal; overflow-wrap: normal; }
+.md-typeset pre > code { line-height: 1.65; }
+.md-typeset img { border-radius: .2rem; }
+.md-typeset .mermaid { margin-block: 1.5rem; padding: 1rem; overflow: auto; border: 1px solid var(--md-default-fg-color--lightest); border-radius: .2rem; }
+.md-nav__link { line-height: 1.5; }
+@media (max-width: 59.984375em) {
+  .md-typeset { word-break: normal; }
+  .md-typeset table:not([class]) { font-size: .7rem; }
+  .md-typeset .mermaid { padding: .5rem; }
+}

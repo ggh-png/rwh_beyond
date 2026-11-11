@@ -19,11 +19,26 @@ mkdocs build --strict
 
 [공식 MkDocs GitHub Pages 배포 안내](https://www.mkdocs.org/user-guide/deploying-your-docs/)
 
+## 문서 테마
+
+[GLIM 문서](https://koide3.github.io/glim/)와 같은 Material for MkDocs 기반의 인디고 테마를 사용합니다.
+좌측에는 문서 탐색, 우측에는 현재 페이지 목차가 있으며 상단에서 검색할 수 있습니다.
+좁은 화면에서는 메뉴와 목차가 접힙니다. 코드 블록에는 복사 버튼과 구문 강조를 제공합니다.
+
+- 테마·메뉴·Markdown 기능: `mkdocs.yml`
+- 버전 고정: `requirements-docs.txt`
+- 한국어 줄바꿈·표·다이어그램 여백: `docs/assets/stylesheets/docs.css`
+
+테마를 바꾼 뒤에는 기존 가상환경에서도 `pip install -r requirements-docs.txt`를 다시 실행합니다.
+GitHub Actions도 같은 requirements를 설치하므로 로컬과 배포 테마를 맞출 수 있습니다.
+
 ## Mermaid 다이어그램
 
 Markdown의 `mermaid` fenced block을 사용합니다. GitHub에서는 기본 Mermaid 지원으로,
-문서 사이트에서는 `assets/javascripts/mermaid.mjs`로 렌더링합니다.
-렌더러는 버전을 고정한 CDN 모듈을 사용하므로 브라우저의 CDN 접근이 필요합니다.
-모듈을 불러오지 못하면 원래 다이어그램 코드가 남습니다. 문서 빌드는 CDN 다운로드 없이 가능합니다.
+문서 사이트에서는 Material의 SuperFences 통합으로 렌더링합니다.
+이전 페이지별 custom JavaScript 렌더러는 제거했습니다.
 
-[Mermaid 공식 사용 안내](https://mermaid.js.org/intro/getting-started.html)
+Material은 다이어그램이 있는 페이지에서 Mermaid 모듈을 CDN으로 불러옵니다.
+브라우저의 CDN 접근이 필요하며 문서 strict 빌드 자체는 브라우저 렌더링을 대신하지 않습니다.
+
+[Material 다이어그램 설정](https://squidfunk.github.io/mkdocs-material/reference/diagrams/)
