@@ -1,5 +1,8 @@
 # GraspGenX 원격 추론 통합
 
+> 처음 읽는 경우 [전체 흐름](project-overview.md) → [현재 실행 절차](grasp-pipeline-guide.md) → [코드 안내](project-code-map.md) 순서로 보세요. 이 페이지의 상세·과거 예제보다 현재 실행 절차를 우선합니다.
+
+
 초기 Docker/ZMQ/ROS Action 구축 기록이다. 이후 MuJoCo 전용 TF/TCP·IK·충돌 검사와
 [빨간 상자 파지 BT](red-box-grasp.md)를 추가했다. 실물 PiPER 실행은 포함하지 않는다.
 

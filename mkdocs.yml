@@ -1,5 +1,5 @@
-site_name: RWH · Husky 사용 가이드
-site_description: Husky 연결부터 외부 Jazzy PC의 SLAM과 Nav2 운용까지
+site_name: RWH · PiPER 집기와 Husky 운용
+site_description: SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용
 site_url: https://ggh-png.github.io/rwh_beyond/
 repo_url: https://github.com/ggh-png/rwh_beyond
 repo_name: ggh-png/rwh_beyond
@@ -9,26 +9,38 @@ theme:
   locale: en
   color_mode: auto
 nav:
-  - 시작하기: index.md
-  - SSH와 본체 확인: connection.md
-  - 외부 PC 준비: setup.md
-  - SLAM과 Nav2 실행: operation.md
-  - TF와 토픽: interfaces.md
-  - 파라미터 설정: configuration.md
-  - ros_runner 운용: runner.md
-  - 로봇 팔 BT:
-      - 구조 이해: bt-architecture.md
-      - Depth 관측과 runner 흐름: depth-bt-flow.md
-      - 노드 사용법: bt-nodes.md
-      - 역할별 파지 플러그인: bt-grasp-stages.md
-      - Nav2 코드 구성: bt-code-style.md
+  - 문서 시작: index.md
+  - PiPER 집기 이해하기:
+      - 1. 전체 흐름 한눈에: project-overview.md
+      - 2. 컨테이너 구축: project-containers.md
+      - 3. 모델 데이터와 좌표계: project-data.md
+      - 4. 처음 터미널부터 실행: grasp-pipeline-guide.md
+      - 5. 코드를 따라 읽기: project-code-map.md
+      - SAM 3 구현: sam3-perception.md
+      - GraspGenX 구현: graspgenx-model.md
+      - RViz로 디버깅: grasp-visualization.md
+  - BT 개발 상세:
+      - 아키텍처: bt-architecture.md
+      - Depth와 runner 흐름: depth-bt-flow.md
+      - 노드 목록: bt-nodes.md
+      - 단계별 포트와 Action: bt-grasp-stages.md
+      - Nav2 헤더·CPP 구성: bt-code-style.md
       - 실행과 Groot2: bt-operation.md
-      - GraspGenX 원격 추론: graspgenx-integration.md
-      - 빨간 상자 파지: red-box-grasp.md
-      - 최종 파지 실행 가이드: grasp-pipeline-guide.md
-      - SAM 3 객체 분할·실험: sam3-perception.md
-  - 문제 해결: troubleshooting.md
-  - GraspGenX 작업 기록: work-log-2026-11-10.md
+  - 구축 상세와 실험 기록:
+      - GraspGenX 배포 상세: graspgenx-integration.md
+      - 초기 빨간 상자 통합: red-box-grasp.md
+      - SAM 통합 이력: sam3-history.md
+      - 11월 9일 작업 기록: work-log-2026-11-09.md
+      - 11월 10일 작업 기록: work-log-2026-11-10.md
+  - Husky SLAM·Nav2:
+      - 시작 안내: husky-guide.md
+      - SSH와 본체 확인: connection.md
+      - 외부 PC 준비: setup.md
+      - SLAM과 Nav2 실행: operation.md
+      - TF와 토픽: interfaces.md
+      - 파라미터 설정: configuration.md
+      - ros_runner 운용: runner.md
+      - 문제 해결: troubleshooting.md
   - 문서 관리: documentation.md
   - 구조와 출처: upstream.md
 markdown_extensions:

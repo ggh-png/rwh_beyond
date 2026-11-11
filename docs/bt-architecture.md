@@ -1,5 +1,8 @@
 # 로봇 팔 BT 아키텍처
 
+> 처음 읽는 경우 [전체 흐름](project-overview.md) → [현재 실행 절차](grasp-pipeline-guide.md) → [코드 안내](project-code-map.md) 순서로 보세요. 이 페이지의 상세·과거 예제보다 현재 실행 절차를 우선합니다.
+
+
 **BT XML이 작업 순서를 정하고, C++ 노드가 MoveIt과 그리퍼 controller를 호출합니다.**
 Nav2 BT Navigator는 이 트리를 `/run_demo` action으로 실행합니다.
 현재 데모의 실행 대상은 **PiPER MuJoCo 시뮬레이션**입니다. 시뮬레이션과
@@ -55,7 +58,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 | --- | --- |
 | `moma-mj-lab` | MuJoCo 시뮬레이션과 ROS bridge |
 | `agx_arm_ros` | 공식 모델, MoveIt 설정, 실물 드라이버 |
-| `ros_runner` | `bt_demo → piper_sim` 자동 의존성 실행 및 로봇 실행 경로 간 상호 비활성화 |
+| `ros_runner` | `bt_demo_sim → piper_moveit_sim` 자동 의존성 실행 및 로봇 실행 경로 간 상호 비활성화 |
 
 !!! note "현재 로봇 모델"
     패키지 이름은 공통으로 쓰지만 구현은 PiPER의 `arm` group,

@@ -1,15 +1,18 @@
 # Depth 관측과 BT 실행 흐름
 
-`bt_demo` runner로 시뮬레이션·추론 Bridge·BT navigator를 준비하고,
+> 처음 읽는 경우 [전체 흐름](project-overview.md) → [현재 실행 절차](grasp-pipeline-guide.md) → [코드 안내](project-code-map.md) 순서로 보세요. 이 페이지의 상세·과거 예제보다 현재 실행 절차를 우선합니다.
+
+
+`bt_demo_sim` runner로 시뮬레이션·추론 Bridge·BT navigator를 준비하고,
 `/run_demo` goal로 [빨간 상자 파지](red-box-grasp.md)를 실행한다.
 
 ```mermaid
 flowchart TD
-  U[bt_demo 활성화] --> G[grasp_bridge]
-  G --> P[piper_sim]
+  U[bt_demo_sim 활성화] --> P[piper_moveit_sim]
   P --> S[MuJoCo + robot_state_publisher]
-  P --> M[MoveIt + RViz]
-  G --> B[ROS InferGrasps Bridge + Grasp Coordinator]
+  P --> M[MoveIt]
+  U --> RV[통합 RViz]
+  U --> B[ROS InferGrasps Bridge + Grasp Coordinator]
   U --> N[BT Navigator active]
   D[렌더링 RGB-D + 촬영 시각 TF] --> R[빨간 영역 객체 점군]
   R --> B
@@ -23,7 +26,7 @@ flowchart TD
 ```
 
 runner 활성화는 프로세스 준비만 하며 이동 goal은 보내지 않는다.
-이미 켠 dependency는 재사용한다. 종료 시 사용되지 않는 Bridge/simulator도
+이미 켠 dependency는 재사용한다. 종료 시 Bridge와 사용되지 않는 simulator를
 정리하며, simulator를 끄면 그 dependent runner도 종료한다.
 GPU 모델 컨테이너는 별도 관리하고 호스트 Docker/Podman socket을 ROS에 노출하지 않는다.
 

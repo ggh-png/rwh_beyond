@@ -1,131 +1,236 @@
-# SAM → 로컬 PointCloud → GraspGenX → BT 실행 가이드
+# 처음 터미널부터 실행하기
 
-현재 기본 집기 흐름과 실행 방법을 정리한 문서다. 상세 실험 이력은
-[역할별 플러그인·최신 검증](bt-grasp-stages.md), [SAM 검증 기록](sam3-perception.md), 날짜별 변경은 [작업일지](work-log-2026-11-10.md)를 참고한다.
-현재 이동/접촉 검증은 MuJoCo 전용이며 실물 로봇 자동 집기는 지원하지 않는다.
+이 페이지는 **현재 PC에 준비된 컨테이너와 빌드**로 MuJoCo 집기 실험을 실행하는 절차입니다.
+전체 구조는 [한눈에 보기](project-overview.md), 이미지 생성 원리는 [컨테이너 구축](project-containers.md)을 참고하세요.
 
-## 데이터가 처리되는 위치
+> 현재 workspace 기준 runner 이름은 **`bt_demo_sim`**입니다. 이전 대화·기록의
+> `activate_bt_demo` 대신 **`activate_bt_demo_sim`**을 사용합니다.
+> 아래에서는 `node_name:=ros_runner`로 통일하므로 서비스 prefix는 `/ros_runner`입니다.
 
-```mermaid
-flowchart LR
-  R[로봇 PC: 등록 RGB-D / CameraInfo] -->|RGB + 대상 지정| S[SAM 컨테이너: 5567]
-  S -->|한 객체의 2D 마스크| L[로봇 PC ROS CPU: Depth 역투영]
-  R -->|원본 Depth / K| L
-  L -->|float32 XYZ N×3 / m| G[GraspGenX 컨테이너: 5566]
-  G -->|파지 행렬 / 점수| A[로봇 PC ROS Action]
-  A --> B[TF/TCP / IK / 충돌 검사 / BT 이동]
-```
+## 0. 터미널 역할
 
-SAM의 2D 마스크에는 깊이가 없다. 같은 촬영의 등록된 Depth와 CameraInfo를 로컬에서
-사용해 XYZ를 만든다. `/grasp/object_cloud` 발행이 파지 추론보다 먼저 일어난다.
-GraspGenX는 이 XYZ를 입력으로 사용하므로 triangle mesh 재구성을 추가하지 않았다.
-내보낸 PLY도 점군 파일이며 mesh가 아니다. 가려진 면의 정확한 형상은 복원하지 않는다.
+| 터미널 | 위치 | 실행할 것 |
+|---|---|---|
+| A | 호스트 → SAM 컨테이너 | SAM health 확인, 필요할 때 모델 서버 유지 |
+| B | 호스트 → GraspGenX 컨테이너 | Grasp health 확인, 필요할 때 모델 서버 유지 |
+| C | 호스트 → ROS 컨테이너 | runner 실행·로그 확인 |
+| D | 호스트 → ROS 컨테이너 | 활성화, BT goal, 상태 확인·종료 |
 
-현재 로컬 RTX 3060 PC에서는 두 GPU 모델을 별도 컨테이너에서 실행한다.
-원격 GPU 서버로 옮길 때도 ROS CPU 역투영은 로봇 PC에 남기고 ZMQ endpoint만 바꾼다.
-원격 공용 RTX 5090 서버의 Docker 배포는 아직 완료하지 않았다.
+이미 runner나 수동 simulation/Bridge가 실행 중이라면 같은 구성을 중복 실행하지 않습니다.
+아래 명령은 호스트의 `docker` 호환 명령을 `sudo` 없이 사용합니다.
 
-## BT 단계
-
-| 노드 | 수행 내용 |
-|---|---|
-| CheckGraspReady / ClearOctomap | 시뮬레이터·실제 모델 준비 확인, 최초 지도 재생성 |
-| MoveHome / OpenGripper / MoveObservation | 초기 자세·그리퍼·카메라 관측 자세 준비 |
-| SegmentObject | 새 관측과 TF 저장, SAM 서버에서 객체 마스크 수신 |
-| BuildObjectCloud | 로컬 CPU에서 Depth/K 역투영, 객체 PointCloud2 발행 |
-| InferGrasps | 같은 점군을 POINT_CLOUD Action으로 전송, 파지 후보 반환 |
-| SelectFeasibleGrasp | 전달된 후보로 충돌 모델·IK·접근/상승·사전 접근 경로 검사 |
-| MoveToPregrasp / ApproachGrasp / CloseGripper | 사전 접근·최종 접근·닫기 |
-| AttachObject / LiftObject | 실제 양쪽 접촉 확인, MoveIt 부착, 물리 리프트 검증 |
-| MoveHome | 닫힌 그리퍼로 홈 복귀; 내려놓기/열기는 포함하지 않음 |
-
-기본 파일은 `rwh_beyond_bt/behavior_trees/demo.xml`이다. [역할별 BT 플러그인](bt-grasp-stages.md)이
-마스크·점군·후보를 typed Blackboard 포트로 전달한다. 관측 ID와 계획 ID로 원본 관측과 경로를 연결한다.
-단계가 실패하면 뒤의 이동은 실행하지 않는다. 30초 지난 관측이나 촬영 후 팔 관절이
-0.02 rad 넘게 달라진 관측은 재관측을 요구한다. 움직이는 물체의 추적은 지원하지 않는다.
-
-별도의 RGBD 모드 InferGrasps Action은 분할·로컬 역투영·파지 추론을 한 요청에서
-처리하는 편의 API로 유지한다. 기본 BT는 이 API를 중복 호출하지 않고 분리된 단계를 사용한다.
-
-## 실행
-
-### 호스트 PC: 두 모델 서버
+## 1. 호스트에서 컨테이너 켜기
 
 ```bash
-# 컨테이너만 시작: 기존 모델 프로세스가 있으면 다시 기동하지 않는다.
-bash ~/sam3_workspace/deploy/local_podman.sh start
-bash ~/graspgenx_workspace/docker/scripts/local_podman.sh start
-
-# 각각 health를 확인한다.
-bash ~/sam3_workspace/deploy/local_podman.sh health
-bash ~/graspgenx_workspace/docker/scripts/local_podman.sh health
+# ROS 컨테이너가 두 모델 컨테이너의 네트워크 기준이므로 먼저 시작
+docker start moma_mj_lab_1.1.2_gui
+docker start rwh-sam3-local rwh-graspgenx-local
+docker ps
 ```
 
-컨테이너만 켜져 있고 모델이 꺼져 있다면 각 터미널에서 다음을 실행한다.
+이 명령은 기존 컨테이너를 시작합니다. 이미지 build·모델 다운로드는 매 실험마다 필요하지 않습니다.
+
+## 2. 터미널 A: SAM 모델 준비
+
+호스트에서 접속합니다.
 
 ```bash
-bash ~/sam3_workspace/deploy/local_podman.sh model-start
-bash ~/graspgenx_workspace/docker/scripts/local_podman.sh model-start
+docker exec -it rwh-sam3-local bash
 ```
 
-각 명령은 foreground로 실행되므로 별도 터미널이 필요하다. Ctrl+C는 해당 모델만
-종료하며 idle 컨테이너는 유지한다. 이미 healthy인 서버를 중복 실행하지 않는다.
-endpoint는 **로봇 ROS 컨테이너 내부**의 localhost 5567/5566이다.
-호스트 localhost와 같다고 가정하지 않는다. 상세 생성 옵션·인증·복구는
-[SAM 운영 문서](sam3-perception.md)와 `deploy/graspgenx-docker/LOCAL_PODMAN.md`를 참고한다.
+**SAM 컨테이너 안에서** 상태를 확인합니다.
 
-### 로봇 ROS 컨테이너: runner와 BT
+```bash
+cd /opt/segmentation
+python -c 'from wire import request; print(request("tcp://127.0.0.1:5567", {"action":"health"}, 3))'
+```
 
-인터페이스 변경 후 관련 패키지를 함께 빌드하고 기존 Action 프로세스와 runner를 재시작한다.
-runner는 새 `ros_runner/config/runners.yaml`을 읽어야 한다. GPU 모델은 runner가 관리하지 않는다.
+`status: ok`, `backend: sam3`, `mock: False`이면 다음으로 넘어갑니다.
+응답이 없고 서버가 꺼져 있을 때만 시작합니다.
+
+```bash
+python -u /opt/segmentation/server.py
+```
+
+서버를 시작한 터미널은 유지합니다. `Ctrl+C`는 이 모델 프로세스를 종료합니다.
+
+## 3. 터미널 B: GraspGenX 모델 준비
+
+호스트에서 접속합니다.
+
+```bash
+docker exec -it rwh-graspgenx-local bash
+```
+
+**GraspGenX 컨테이너 안에서** 확인합니다.
+
+```bash
+python /opt/deploy/scripts/health_check.py --endpoint tcp://127.0.0.1:5566
+```
+
+`GraspGenX healthy`이면 다음으로 넘어갑니다. 서버가 꺼져 있을 때만 시작하고 터미널을 유지합니다.
+
+```bash
+bash /opt/deploy/scripts/start_server.sh
+```
+
+두 health 검사가 모두 성공해야 합니다. 컨테이너 `Up`과 모델 `healthy`는 다른 상태입니다.
+
+## 4. 터미널 C: ROS runner 실행
+
+호스트에서 접속합니다.
+
+```bash
+docker exec -it moma_mj_lab_1.1.2_gui bash
+```
+
+**ROS 컨테이너 안에서** 실행합니다.
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-cd /root/ros2_ws
-colcon build --symlink-install --packages-select \
-  rwh_beyond_msgs rwh_beyond_grasp_bridge rwh_beyond_bt rwh_beyond_navigator \
-  moma_mujoco_ros moma_bringup rwh_beyond_bringup
-source install/setup.bash
+source /root/ros2_ws/install/setup.bash
+export ROS_DOMAIN_ID=42
+export RWH_PIPER_SIM_GUI=true
+export RWH_BT_RVIZ=true
+export RWH_SEGMENTATION_BACKEND=sam3
+export RWH_GRASP_TARGET_TEXT="red box"
 
-# 기존 runner를 새 설정으로 재시작한 후:
-ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty "{}"
-# navigator가 active가 된 뒤에만 goal 전송:
+ros2 launch ros_runner runner.launch.py   node_name:=ros_runner   config_yaml:=/root/ros2_ws/src/ros_runner/config/runners.yaml
+```
+
+이 터미널을 유지합니다. 환경변수는 자식 launch에 상속되므로 runner **시작 전** 설정합니다.
+runner 설정을 바꿨다면 기존 runner를 종료한 뒤 다시 켜야 합니다.
+
+## 5. 터미널 D: 시뮬레이터·BT·통합 RViz 활성화
+
+호스트에서 같은 ROS 컨테이너에 추가 접속합니다.
+
+```bash
+docker exec -it moma_mj_lab_1.1.2_gui bash
+```
+
+이 터미널도 ROS 환경과 도메인을 맞춥니다.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+source /root/ros2_ws/install/setup.bash
+export ROS_DOMAIN_ID=42
+
+ros2 service call /ros_runner/activate_bt_demo_sim std_srvs/srv/Empty "{}"
+ros2 lifecycle get /bt_navigator
+```
+
+navigator가 `active [3]`이 될 때까지 기다립니다. 아직 시작 중이면 lifecycle 명령을 다시 확인합니다.
+
+```text
+ros_runner: bt_demo_sim
+    ├─ requires: piper_moveit_sim
+    │     └─ MuJoCo + MoveIt (rviz:=false)
+    └─ bt_demo.launch.py
+          ├─ grasp_pipeline.launch.py → coordinator + inference bridge
+          ├─ BT navigator + lifecycle manager
+          └─ MoveIt/SAM/점군/파지 통합 RViz
+```
+
+RViz는 BT launch에서 기본 실행합니다. `RWH_BT_RVIZ=false`일 때만 끕니다.
+이전 `RWH_PIPER_SIM_RVIZ` 대신 현재 runner에서는 `RWH_BT_RVIZ`를 사용합니다.
+GPU 모델은 runner가 자동 시작하지 않습니다.
+
+## 6. 먼저 영상·점군 확인
+
+터미널 D에서 실행합니다.
+
+```bash
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo   "{behavior_tree: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/perception_preview.xml}"   --feedback
+```
+
+홈·그리퍼 열기·관측 자세까지 **팔이 움직입니다**. SAM 분할과 객체 점군까지만 생성하고 집지는 않습니다.
+RViz에서 마스크·RGB overlay·객체 점군을 확인합니다. 결과는 연속 동영상 분할이 아니라
+**BT가 관측한 순간의 스냅샷**입니다. coordinator가 살아 있으면 늦게 연 RViz도 마지막 결과를 받습니다.
+
+## 7. 파지 후보·선택 결과까지만 확인
+
+```bash
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo   "{behavior_tree: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/grasp_debug.xml}"   --feedback
+```
+
+새 관측 → 점군 → GraspGenX → 실행 가능 후보 선택까지 수행합니다.
+최종 접근·닫기·리프트는 하지 않습니다. 후보/점수·선택 TCP·pregrasp를 RViz에서 볼 수 있습니다.
+후보 표시는 기본 최대 10개이며 실제 추론·선택 후보 개수와 별도입니다.
+
+## 8. 전체 집기
+
+```bash
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo "{}" --feedback
 ```
 
-runner 이름이 다르면 service prefix도 바꾼다. runner와 수동 simulation/Bridge launch를
-동시에 실행하지 않는다. Groot2는 갱신된 demo.xml을 다시 연다.
-기본 대상 문구는 `red box`이며 runner 시작 전 `RWH_GRASP_TARGET_TEXT`로 바꿀 수 있다.
-복수 객체는 기본 unique 정책에서 거부하므로 텍스트·박스·선택 픽셀로 대상을 지정한다.
-SAM이 실패하면 색상 알고리즘이나 mock으로 자동 대체하지 않는다.
+빈 goal은 기본 `demo.xml`을 사용합니다. 접근·닫기·접촉 확인·리프트·홈 복귀까지 실행합니다.
+성공 후에도 그리퍼는 닫혀 있습니다. 반복 실험은 아래 초기화 절차를 사용하세요.
 
-다시 집을 때는 기존 물체를 내려놓거나 시뮬레이션을 초기화해야 한다.
-현재는 내려놓기 시퀀스가 없어 이미 잡은 상태의 새 goal은 거부한다.
+## 9. 다른 물체 지정 {#target}
+
+대상은 `action` 문자열이 아니라 `target_text`로 바꿉니다.
+BT 실행이 끝난 상태에서, 다음 관측 **전에** 설정합니다.
 
 ```bash
-ros2 service call /runner_manager_node/deactivate_piper_sim std_srvs/srv/Empty "{}"
-ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty "{}"
+ros2 param set /grasp_coordinator target_text "blue cup"
+ros2 param get /grasp_coordinator target_text
 ```
 
-## 관측·검증 결과
+또는 터미널 C의 runner 시작 전에 `RWH_GRASP_TARGET_TEXT="blue cup"`을 지정합니다.
+이 환경변수는 재시작 시 초기값이며 실행 중의 파라미터 변경은 재시작 후 유지되지 않습니다.
+`/run_demo` goal에는 현재 대상 텍스트 필드가 없고 `behavior_tree`만 있습니다.
 
-| 항목 | 결과 |
+복수 객체 구분이 필요하면 원본 영상의 pixel 박스나 선택점을 지정할 수 있습니다. 아래 숫자는 예시입니다.
+
+```bash
+ros2 param set /grasp_coordinator target_box "[100.0, 60.0, 220.0, 180.0]"
+ros2 param set /grasp_coordinator selection_point "[160, 120]"
+# 다시 텍스트만 사용할 때는 두 제한을 모두 해제
+ros2 param set /grasp_coordinator target_box "[0.0, 0.0, 0.0, 0.0]"
+ros2 param set /grasp_coordinator selection_point "[-1, -1]"
+```
+
+기본 `unique`는 모호한 다중 검출을 거부합니다. 점은 SAM의 직접 point prompt가 아니라
+검출된 mask 중 해당 픽셀을 포함하는 객체를 고릅니다.
+
+**SAM 경로는 관측 점군에서 물체 크기·지지면을 추정합니다.** 고정 `object_dimensions`는
+`color_demo`에서 사용합니다. 현재 SAM 실험에서 다른 물체를 고르기 위해 이 값을 매번 바꾸는 구조는 아닙니다.
+다만 시뮬레이션 장면에 그 물체가 존재해야 하고, 현재 하향 파지 선택 조건·그리퍼 크기·접촉 fixture 제약도
+만족해야 합니다. 대상 텍스트 변경은 임의 물체의 집기 성공을 보장하지 않습니다.
+
+## 10. 초기화와 종료
+
+BT goal이 끝난 뒤 시뮬레이션을 초기화하고 다시 활성화합니다.
+
+```bash
+ros2 service call /ros_runner/deactivate_piper_moveit_sim std_srvs/srv/Empty "{}"
+ros2 service call /ros_runner/activate_bt_demo_sim std_srvs/srv/Empty "{}"
+ros2 lifecycle get /bt_navigator
+```
+
+실험을 종료하려면 `deactivate_piper_moveit_sim` 호출 후 runner 터미널 C에서 `Ctrl+C`를 누릅니다.
+모델 서버는 별도이므로 유지하거나, 직접 시작했던 A/B에서 각각 `Ctrl+C`로 종료합니다.
+컨테이너도 끄려면 호스트에서 다음 순서로 실행합니다.
+
+```bash
+docker stop rwh-sam3-local rwh-graspgenx-local
+docker stop moma_mj_lab_1.1.2_gui
+```
+
+## 문제를 어느 단계에서 확인하나
+
+| 증상 | 먼저 확인 |
 |---|---|
-| 마스크 / 로컬 점군 / 선택 TCP | /grasp/object_mask, /grasp/object_cloud, /grasp/selected_tcp |
-| 실제 RGBD 편의 Action | 파지 후보 20개, 약 1.06초; 단일 관측 |
-| 명시적 BT의 로컬 점군 | 2783점, optical frame·m 단위 보존, 추론 전에 발행 |
-| 기본 전체 BT | 약 7.6 cm 리프트 후 홈 복귀 성공, 최종 양쪽 접촉 유지 |
-| 추가 runner 실험 | 취소/영역 복원·재실행 리프트 후, 5초 유지에서 한 번 미끄러짐 |
-| 시작 실패 기록 | START_STATE_INVALID, 다른 시도에서 lifecycle 시작 요청 실패 |
-| 단위·프로토콜 | 52 tests + 3 subtests 통과 |
+| 모델 연결 실패 | A/B의 health, 모델 프로세스, [공유 네트워크](project-containers.md) |
+| 활성화 서비스 없음 | runner 이름·실행 여부, `ros2 service list`, 도메인 42 일치 |
+| `active`가 안 됨 | C 로그, simulation clock·MoveIt·Bridge 준비 상태 |
+| RViz 안 뜸 | `RWH_BT_RVIZ`, GUI 환경, 새 runner 설정 재시작 |
+| 영상/점군 없음 | 관측 BT 실행 여부, target 검출, [표시 토픽/QoS](grasp-visualization.md) |
+| `START_STATE_INVALID` | 해당 이동의 시작 상태·Planning Scene·충돌 상태. 다음 단계는 실행되지 않음 |
+| `No feasible model grasp` | 선택기의 rejection counts: IK·하향 조건·충돌·접근/리프트 경로 |
+| 오래된 관측/팔 이동 | 새 BT goal로 재관측. 오래된 ID·선택 경로 재사용 금지 |
+| 이미 물체를 잡고 있음 | 현재 트리에는 내려놓기가 없으므로 시뮬레이션 초기화 |
 
-성공한 실행만으로 반복 성공률을 주장하지 않는다. 시작 실패와 추가 유지 실패는
-[원시 결과 JSON](validation/sam3-local-2026-11-10.json)에 함께 기록했다.
-물리 접촉/높이의 시뮬레이터 정답은 검증에만 쓰고 SAM 입력·파지 목표를 만드는 데 쓰지 않는다.
-
-현재 모델 프로세스 관측 VRAM은 SAM 약 5480 MiB, GraspGenX 약 1002 MiB다.
-정확한 peak나 다른 장면의 성능 보장은 아니다. 실물·복수 객체·조명 변화·동적 장애물,
-장시간 파지 안정성은 추가 검증이 필요하다.
-
-실험 아티팩트는 호스트 `~/sam3_workspace/logs`의 `object-cloud.ply`,
-`object-cloud.npy`, `validation.json`, `observation.png`, `mask-overlay.png`다.
+이 문서 개편에서 새 물리 집기 시험은 수행하지 않았습니다. 과거 시험의 성공·실패는
+[검증 범위](project-overview.md#validation)에서 구분해 확인하세요.

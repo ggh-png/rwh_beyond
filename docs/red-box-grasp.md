@@ -1,5 +1,8 @@
 # 빨간 상자 파지 BT
 
+> 처음 읽는 경우 [전체 흐름](project-overview.md) → [현재 실행 절차](grasp-pipeline-guide.md) → [코드 안내](project-code-map.md) 순서로 보세요. 이 페이지의 상세·과거 예제보다 현재 실행 절차를 우선합니다.
+
+
 > 2026-11-11: 기본 BT는 [역할별 플러그인](bt-grasp-stages.md)으로 전환했다.
 > 아래 `GraspStep` 예제와 이전 실험 기록은 호환 경로·변경 이력이다. 현재 XML은 `demo.xml`을 기준으로 한다.
 
@@ -7,7 +10,7 @@
 > SAM 3이며 [새 분할 경로](sam3-perception.md)를 먼저 참고한다.
 > 기존 회귀 실행은 `RWH_SEGMENTATION_BACKEND=color_demo`를 명시한다.
 
-`bt_demo → grasp_bridge → piper_sim`으로 환경을 준비하고 `/run_demo` goal로
+`bt_demo_sim → piper_moveit_sim`으로 환경을 준비하고, BT launch에서 grasp pipeline을 시작한 뒤 `/run_demo` goal로
 RGB-D 인식, 실제 GraspGenX 추론, MoveIt 계획, 접촉 확인, 들어올리기를 실행한다.
 **MuJoCo 전용**이며 실물 CAN driver를 시작하지 않는다.
 
@@ -21,7 +24,7 @@ runner 시작 전 `RWH_GRASP_ENDPOINT`로 지정한다. runner는 GPU 컨테이�
 
 ```bash
 source /root/ros2_ws/install/setup.bash
-ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/activate_bt_demo_sim std_srvs/srv/Empty "{}"
 # bt_navigator가 active가 된 다음 실행
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo "{}" --feedback
 ```
@@ -35,8 +38,8 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo "{}" --feedback
 초기화하려면 다음처럼 simulator와 그 의존 runner들을 껐다가 시작한다.
 
 ```bash
-ros2 service call /runner_manager_node/deactivate_piper_sim std_srvs/srv/Empty "{}"
-ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/deactivate_piper_moveit_sim std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/activate_bt_demo_sim std_srvs/srv/Empty "{}"
 ```
 
 runner 활성화 자체는 이동 goal을 보내지 않는다. Groot2 모델 XML을 다시
@@ -65,9 +68,9 @@ Groot2의 `name`은 각 역할을 구분한다. **모델 추론은 prepare에서
 
 ```mermaid
 flowchart TD
-  R[bt_demo 활성화] --> G[grasp_bridge]
-  G --> S[piper_sim: MuJoCo + MoveIt + RViz]
-  G --> B[InferGrasps Bridge + Grasp Coordinator]
+  R[bt_demo_sim 활성화] --> S[piper_moveit_sim: MuJoCo + MoveIt]
+  R --> B[InferGrasps Bridge + Grasp Coordinator]
+  R --> RV[통합 RViz]
   R --> N[BT Navigator]
   N --> C[시뮬레이터/모델/빈 그리퍼 확인]
   C --> O[ClearOctomap 최초 성공 1회]

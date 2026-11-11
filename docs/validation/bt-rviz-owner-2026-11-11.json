@@ -1,0 +1,8 @@
+{
+  "status": "PASS",
+  "rviz_owner": "bt_demo.launch.py",
+  "rviz_process_count": 1,
+  "move_group_count": 1,
+  "motion_goal_sent": false,
+  "rviz_stopped_on_bt_deactivate": true
+}

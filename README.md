@@ -1,6 +1,20 @@
 # rwh_beyond
 
-**[Husky 사용 가이드](https://ggh-png.github.io/rwh_beyond/)** — SSH 접속, 외부 PC 연결, SLAM·Nav2, TF·토픽과 문제 해결.
+## PiPER · SAM 3 · GraspGenX를 처음 보는 경우
+
+현재 집기 통합의 시작 문서는 **[전체 흐름 한눈에](docs/project-overview.md)**입니다.
+
+1. [컨테이너 구축과 파일 위치](docs/project-containers.md)
+2. [모델 요청·응답과 좌표계](docs/project-data.md)
+3. [처음 터미널부터 실행](docs/grasp-pipeline-guide.md)
+4. [코드를 따라 읽기](docs/project-code-map.md)
+5. [SAM 3 구현](docs/sam3-perception.md) · [GraspGenX 구현](docs/graspgenx-model.md)
+
+기본 경로는 실제 SAM·GraspGenX를 사용하는 MuJoCo 시뮬레이션입니다.
+현재 runner는 `bt_demo_sim`, BT launch는 grasp pipeline과 통합 RViz를 함께 실행합니다.
+아래 Husky/Nav2 안내는 별도 운용 경로입니다.
+
+**[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** — PiPER 집기 전체 흐름·실행·코드 안내와 Husky SLAM·Nav2 운용.
 
 문서 소스는 [`docs/index.md`](docs/index.md), 로컬 빌드는 `pip install -r requirements-docs.txt && mkdocs serve`를 사용합니다.
 
@@ -207,7 +221,7 @@ ros2 launch rwh_beyond_grasp_bridge inference.launch.py mock:=true
 수신을 검증했다. 로컬 서비스는 `tcp://127.0.0.1:5566`(robot 컨테이너 내부)를
 사용한다. [로컬 컨테이너 운영](deploy/graspgenx-docker/LOCAL_PODMAN.md)을 참고한다.
 
-[빨간 상자 파지 BT 사용법](docs/red-box-grasp.md): `bt_demo → grasp_bridge → piper_sim`, `/run_demo`로 실행.
+[빨간 상자 파지 BT 사용법](docs/red-box-grasp.md): `bt_demo_sim → piper_moveit_sim`, BT launch에서 grasp pipeline을 시작하고 `/run_demo`로 실행.
 
 SAM 3 기반 RGB-D 객체 분할 확장은 [운영·검증 기록](docs/sam3-perception.md)을 참고한다.
 

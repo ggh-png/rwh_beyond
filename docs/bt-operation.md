@@ -1,5 +1,8 @@
 # BT 실행과 Groot2
 
+> 처음 읽는 경우 [전체 흐름](project-overview.md) → [현재 실행 절차](grasp-pipeline-guide.md) → [코드 안내](project-code-map.md) 순서로 보세요. 이 페이지의 상세·과거 예제보다 현재 실행 절차를 우선합니다.
+
+
 [최종 SAM 파지 실행 가이드](grasp-pipeline-guide.md) · [전체 구조](bt-architecture.md) · [BT 노드 사용법](bt-nodes.md)
 
 ## 1. 빌드하고 실행하기
@@ -16,8 +19,10 @@ source install/setup.bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 ```
 
-MuJoCo·MoveIt이 준비되면 다른 터미널에서 `ros2 launch rwh_beyond_grasp_bridge grasp_pipeline.launch.py`를 실행하고, 그다음 navigator를 실행합니다. 기본 트리는 [빨간 상자 파지](red-box-grasp.md)이며 실제 SAM 3와 GraspGenX 서버가 모두 필요합니다.
-GUI를 표시하려면 시뮬레이션 launch에 `gui:=true rviz:=true`를 사용합니다.
+MuJoCo·MoveIt이 준비되면 다른 터미널에서 아래 BT launch를 실행합니다. 이 launch가
+grasp pipeline도 시작하므로 별도로 실행하지 않습니다. 기본 트리는
+[빨간 상자 파지](red-box-grasp.md)이며 실제 SAM 3와 GraspGenX 서버가 모두 필요합니다.
+GUI를 표시하려면 시뮬레이션 launch에 `gui:=true rviz:=false`를 사용합니다.
 
 ```bash
 source /opt/ros/jazzy/setup.bash
@@ -25,30 +30,34 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch rwh_beyond_bringup bt_demo.launch.py
 ```
 
+BT launch가 MoveIt/SAM/파지 통합 RViz도 함께 실행합니다. GUI 없이 실행하려면
+`bt_demo.launch.py rviz:=false`를 사용합니다. runner의 경우 RViz는 bt_demo_sim이 소유하며
+`piper_moveit_sim`은 별도 창을 만들지 않습니다.
+
 BT navigator와 lifecycle manager의 설정은
 `rwh_beyond_bringup/params/bt_demo_params.yaml`에서 관리합니다. 값을 수정한 뒤
 `rwh_beyond_bringup`을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
 `ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml`로
 지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.
 
-`ros_runner`에서 **`bt_demo`만 활성화**하면 `bt_demo → grasp_bridge → piper_sim`에 의해
-MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_sim`은 재사용합니다.
-추론 Bridge/coordinator도 자동 시작합니다. BT launch 자체는 navigator만 실행하며, runner가 시뮬레이션 의존성을 관리합니다.
+`ros_runner`에서 **`bt_demo_sim`만 활성화**하면 `bt_demo_sim → piper_moveit_sim`에 의해
+MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_moveit_sim`은 재사용합니다.
+BT launch가 추론 Bridge/coordinator를 직접 시작하며, runner가 시뮬레이션 의존성을 관리합니다.
 **자동으로 demo goal을 보내지는 않습니다.**
 
 ```bash
-ros2 service call /runner_manager_node/activate_bt_demo std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/activate_bt_demo_sim std_srvs/srv/Empty "{}"
 # navigator와 사용되지 않는 simulator 의존성 종료
-ros2 service call /runner_manager_node/deactivate_bt_demo std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/deactivate_bt_demo_sim std_srvs/srv/Empty "{}"
 ```
 
-`piper_sim`을 중지하면 이에 의존하는 `bt_demo`도 중지됩니다.
+`piper_moveit_sim`을 중지하면 이에 의존하는 `bt_demo_sim`도 중지됩니다.
 다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
 YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.
 
 ### 트리 안에서 Octomap 초기화
 
-Launch는 navigator와 lifecycle manager만 실행합니다. **지도 초기화는 이동 전 ClearOctomap 노드가 수행**합니다.
+Launch는 navigator와 lifecycle manager, grasp pipeline 및 선택적 RViz를 실행합니다. **지도 초기화는 이동 전 ClearOctomap 노드가 수행**합니다.
 
 ```xml
 <Sequence>
@@ -105,13 +114,12 @@ Octomap을 사용하지 않는 트리에서는 해당 노드를 넣지 않으면
 Octomap은 별도 `/octomap` display가 아니라 MotionPlanning의 Scene Geometry에 표시됩니다.
 점군·영상은 센서의 Best Effort QoS에 맞췄습니다. 겹쳐 보이면 Displays에서 점군을 끄고
 Octomap만 확인하세요. 최초 계획 전 카메라 영상과 Octomap 수신을 확인하세요.
-GUI 옵션은 runner 시작 전 `RWH_PIPER_SIM_GUI`, `RWH_PIPER_SIM_RVIZ` 환경변수로 바꿀 수 있습니다.
+GUI 옵션은 runner 시작 전 `RWH_PIPER_SIM_GUI`, `RWH_BT_RVIZ` 환경변수로 바꿀 수 있습니다.
 
 | 실행 경로 | 대상 |
 | --- | --- |
-| `piper_sim` | MuJoCo + MoveIt (GUI, RViz 및 그리퍼 설정 가능) |
-| `bt_demo` | `piper_sim` 자동 시작 + BT navigator 및 lifecycle manager |
-| `piper_moveit_sim` | MuJoCo + MoveIt |
+| `bt_demo_sim` | `piper_moveit_sim` 자동 시작 + grasp pipeline 및 BT navigator와 RViz |
+| `piper_moveit_sim` | MuJoCo + MoveIt (RViz 별도 실행) |
 | `piper_moveit` | 실물 CAN 드라이버 + MoveIt |
 
 ## 2. 서버 등록 확인하기
@@ -234,7 +242,7 @@ Groot2는 모델 XML로 포트를 표시합니다. 실행 구현은 navigator가
 
 ### 실시간 모니터 연결
 
-`bt_demo` navigator가 활성화되면 Groot2의 **Monitor** 모드에서 navigator가 실행되는
+BT navigator가 활성화되면 Groot2의 **Monitor** 모드에서 navigator가 실행되는
 호스트와 포트 `5555`로 연결합니다. 같은 호스트에서는 `127.0.0.1:5555`를 사용합니다.
 `5555`는 요청 포트이고 `5556`은 상태 전송 포트이므로 원격 연결 시 둘 다 접근 가능해야 합니다.
 연결 후 goal을 보내면 트리 노드의 상태가 실시간으로 표시됩니다.
