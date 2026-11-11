@@ -31,7 +31,7 @@ ros2 launch rwh_beyond_bringup bt_demo.launch.py
 
 BT launch가 MoveIt/SAM/파지 통합 RViz도 함께 실행합니다. GUI 없이 실행하려면
 `bt_demo.launch.py rviz:=false`를 사용합니다. runner의 경우 RViz는 bt_demo_sim이 소유하며
-`piper_moveit_sim`은 별도 창을 만들지 않습니다.
+`piper_sim`은 별도 창을 만들지 않습니다.
 
 BT navigator와 lifecycle manager의 설정은
 `rwh_beyond_bringup/params/bt_demo_params.yaml`에서 관리합니다. 값을 수정한 뒤
@@ -39,8 +39,8 @@ BT navigator와 lifecycle manager의 설정은
 `ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml`로
 지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.
 
-`ros_runner`에서 **`bt_demo_sim`만 활성화**하면 `bt_demo_sim → piper_moveit_sim`에 의해
-MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_moveit_sim`은 재사용합니다.
+`ros_runner`에서 **`bt_demo_sim`만 활성화**하면 `bt_demo_sim → piper_sim`에 의해
+MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_sim`은 재사용합니다.
 BT launch가 추론 Bridge/coordinator를 직접 시작하며, runner가 시뮬레이션 의존성을 관리합니다.
 **자동으로 demo goal을 보내지는 않습니다.**
 
@@ -50,7 +50,7 @@ ros2 service call /runner_manager_node/activate_bt_demo_sim std_srvs/srv/Empty "
 ros2 service call /runner_manager_node/deactivate_bt_demo_sim std_srvs/srv/Empty "{}"
 ```
 
-`piper_moveit_sim`을 중지하면 이에 의존하는 `bt_demo_sim`도 중지됩니다.
+`piper_sim`을 중지하면 이에 의존하는 `bt_demo_sim`도 중지됩니다.
 다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
 YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.
 
@@ -117,8 +117,8 @@ GUI 옵션은 runner 시작 전 `RWH_PIPER_SIM_GUI`, `RWH_BT_RVIZ` 환경변수�
 
 | 실행 경로 | 대상 |
 | --- | --- |
-| `bt_demo_sim` | `piper_moveit_sim` 자동 시작 + grasp pipeline 및 BT navigator와 RViz |
-| `piper_moveit_sim` | MuJoCo + MoveIt (RViz 별도 실행) |
+| `bt_demo_sim` | `piper_sim` 자동 시작 + grasp pipeline 및 BT navigator와 RViz |
+| `piper_sim` | MuJoCo + MoveIt (RViz 별도 실행) |
 | `piper_moveit` | 실물 CAN 드라이버 + MoveIt |
 
 ## 2. 서버 등록 확인하기

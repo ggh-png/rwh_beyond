@@ -235,3 +235,13 @@ ros2 launch rwh_beyond_grasp_bridge inference.launch.py mock:=true
 SAM 3 기반 RGB-D 객체 분할 확장은 [운영·검증 기록](docs/sam3-perception.md)을 참고한다.
 
 현재 SAM → 로컬 PointCloud → GraspGenX → BT 구성은 [최종 실행 가이드](docs/grasp-pipeline-guide.md)를 참고한다.
+
+## 현재 실물·시뮬레이션 안내
+
+- [문서 시작](docs/index.md)
+- [새 ROS 컨테이너·CAN·모델 네트워크](docs/piper-runtime.md)
+- [실물 MoveIt·티칭 전환·시뮬 설정 비교](docs/piper-hardware-moveit.md)
+- [MuJoCo 집기 실행](docs/grasp-pipeline-guide.md)
+- [2026-11-11 변경·검증·남은 제약](docs/work-log-2026-11-11.md)
+
+실물 MoveIt과 MuJoCo 전체 집기는 지원 범위가 다릅니다. 실물 grasp BT는 아직 지원하지 않습니다.

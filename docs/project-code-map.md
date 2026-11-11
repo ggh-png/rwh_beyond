@@ -8,7 +8,7 @@
 
 | 순서 | 파일 | 확인할 내용 |
 |---|---|---|
-| 1 | `../ros_runner/config/runners.yaml` | `bt_demo_sim` → `piper_moveit_sim` 의존성, 환경변수 |
+| 1 | `../ros_runner/config/runners.yaml` | `bt_demo_sim` → `piper_sim` 의존성, 환경변수 |
 | 2 | `rwh_beyond_bringup/launch/bt_demo.launch.py` | grasp pipeline·RViz include, navigator·lifecycle manager, `grasp_params_file`의 별도 scope |
 | 3 | `rwh_beyond_bringup/params/bt_demo_params.yaml` | custom navigator 플러그인, BT 라이브러리, Groot2 |
 | 4 | `rwh_beyond_grasp_pipeline/launch/grasp_pipeline.launch.py` | SAM bridge·GraspGenX bridge·coordinator 세 노드 생성 |

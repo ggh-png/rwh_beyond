@@ -61,7 +61,7 @@ MoveIt/SAM/파지 통합 RViz를 기본 실행한다(`rviz:=true`). RViz 부분�
 description·SRDF·kinematics를 사용한다. 로봇 모델과 기본 RViz 설정은 `moma_bringup`의
 설정을 참조하며, 시뮬레이터나 move_group을 추가로 시작하지 않는다.
 
-runner의 `piper_moveit_sim`은 `rviz:=false`로 실행하고, **bt_demo_sim이 RViz를 소유**한다.
+runner의 `piper_sim`은 `rviz:=false`로 실행하고, **bt_demo_sim이 RViz를 소유**한다.
 따라서 새 runner 설정으로 `/ros_runner/activate_bt_demo_sim`을 호출하면 통합 RViz가 한 번만
 열리고, bt_demo_sim을 중지하면 그 RViz도 함께 종료된다. 기존 runner는 설정을 다시 읽도록
 한 번 재시작한다. 별도 RViz launch 명령은 기본 실행에 필요하지 않다.
@@ -80,7 +80,7 @@ GUI 없이 실행하려면 직접 launch에서는 `rviz:=false`, runner에서는
 export RWH_BT_RVIZ=false
 ```
 
-`RWH_BT_RVIZ`의 기본값은 true다. `piper_moveit_sim` 단독 실행 시에도 RViz는
+`RWH_BT_RVIZ`의 기본값은 true다. `piper_sim` 단독 실행 시에도 RViz는
 시작되지 않는다. 사용자 config는 `bt_demo.launch.py rviz_config:=/path/to/config.rviz`로
 지정할 수 있다.
 

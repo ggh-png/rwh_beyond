@@ -13,6 +13,15 @@
 | 4 | [처음 터미널부터 실행](grasp-pipeline-guide.md) | Docker 접근, 모델 시작, runner, RViz, 관측·집기·종료 |
 | 5 | [코드를 따라 읽기](project-code-map.md) | BT XML에서 SAM·GraspGenX·MoveIt 호출까지 파일과 함수 추적 |
 
+## 지금 실물 PiPER를 시험하려면
+
+- [새 ROS 컨테이너·CAN·모델 네트워크](piper-runtime.md): 현재 작업 환경과 이미지 보존·복구
+- [실물 MoveIt 실행·티칭 전환·설정 비교](piper-hardware-moveit.md): runner부터 상태·Plan·Execute 구분
+- [11월 11일 변경과 검증 기록](work-log-2026-11-11.md): 완료한 것과 아직 지원하지 않는 것
+
+현재 실물에서 검증한 범위는 CAN 피드백·MoveIt 기동입니다. 설정 통일 후의 계획 검증은
+CAN driver를 제외한 격리 환경에서 수행했으며, 실물 이동 성공으로 집계하지 않습니다.
+
 ## 필요한 부분 바로 찾기
 
 - **모델별 ROS 패키지·서버는 어디에 있나?** [ROS bridge 분리 구조](model-bridges.md)

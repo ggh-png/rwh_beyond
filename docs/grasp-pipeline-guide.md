@@ -5,6 +5,8 @@
 
 > 현재 workspace 기준 runner 이름은 **`bt_demo_sim`**입니다. 이전 대화·기록의
 > `activate_bt_demo` 대신 **`activate_bt_demo_sim`**을 사용합니다.
+> 실제 MuJoCo runner는 **`piper_sim`**입니다. `piper_moveit_sim`은 현재 실물 runner의 기존 이름이므로
+> 시뮬레이터 활성화 명령으로 사용하지 마세요. 실물 MoveIt 시험은 [별도 절차](piper-hardware-moveit.md)를 사용합니다.
 > 아래에서는 `node_name:=ros_runner`로 통일하므로 서비스 prefix는 `/ros_runner`입니다.
 
 ## 0. 터미널 역할
@@ -23,7 +25,7 @@
 
 ```bash
 # ROS 컨테이너가 두 모델 컨테이너의 네트워크 기준이므로 먼저 시작
-docker start moma_mj_lab_1.1.2_gui
+docker start moma_mj_lab_1.1.2_hostcan
 docker start rwh-sam3-local rwh-graspgenx-local
 docker ps
 ```
@@ -81,7 +83,7 @@ bash /opt/deploy/scripts/start_server.sh
 호스트에서 접속합니다.
 
 ```bash
-docker exec -it moma_mj_lab_1.1.2_gui bash
+docker exec -it moma_mj_lab_1.1.2_hostcan bash
 ```
 
 **ROS 컨테이너 안에서** 실행합니다.
@@ -106,7 +108,7 @@ runner 설정을 바꿨다면 기존 runner를 종료한 뒤 다시 켜야 합�
 호스트에서 같은 ROS 컨테이너에 추가 접속합니다.
 
 ```bash
-docker exec -it moma_mj_lab_1.1.2_gui bash
+docker exec -it moma_mj_lab_1.1.2_hostcan bash
 ```
 
 이 터미널도 ROS 환경과 도메인을 맞춥니다.
@@ -124,7 +126,7 @@ navigator가 `active [3]`이 될 때까지 기다립니다. 아직 시작 중이
 
 ```text
 ros_runner: bt_demo_sim
-    ├─ requires: piper_moveit_sim
+    ├─ requires: piper_sim
     │     └─ MuJoCo + MoveIt (rviz:=false)
     └─ bt_demo.launch.py
           ├─ grasp_pipeline.launch.py → SAM bridge + GraspGenX bridge + coordinator
@@ -204,18 +206,18 @@ ros2 param set /grasp_coordinator selection_point "[-1, -1]"
 BT goal이 끝난 뒤 시뮬레이션을 초기화하고 다시 활성화합니다.
 
 ```bash
-ros2 service call /ros_runner/deactivate_piper_moveit_sim std_srvs/srv/Empty "{}"
+ros2 service call /ros_runner/deactivate_piper_sim std_srvs/srv/Empty "{}"
 ros2 service call /ros_runner/activate_bt_demo_sim std_srvs/srv/Empty "{}"
 ros2 lifecycle get /bt_navigator
 ```
 
-실험을 종료하려면 `deactivate_piper_moveit_sim` 호출 후 runner 터미널 C에서 `Ctrl+C`를 누릅니다.
+실험을 종료하려면 `deactivate_piper_sim` 호출 후 runner 터미널 C에서 `Ctrl+C`를 누릅니다.
 모델 서버는 별도이므로 유지하거나, 직접 시작했던 A/B에서 각각 `Ctrl+C`로 종료합니다.
 컨테이너도 끄려면 호스트에서 다음 순서로 실행합니다.
 
 ```bash
 docker stop rwh-sam3-local rwh-graspgenx-local
-docker stop moma_mj_lab_1.1.2_gui
+docker stop moma_mj_lab_1.1.2_hostcan
 ```
 
 ## 문제를 어느 단계에서 확인하나

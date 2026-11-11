@@ -8,7 +8,7 @@ PiPER가 실제로 실행할 수 있는 경로를 골라 MuJoCo에서 집는 시
 ```mermaid
 flowchart TB
   subgraph HOST["같은 호스트 PC · 같은 GPU 사용"]
-    subgraph ROS["moma_mj_lab_1.1.2_gui · ROS 2 Jazzy"]
+    subgraph ROS["moma_mj_lab_1.1.2_hostcan · ROS 2 Jazzy"]
       SIM["MuJoCo: 로봇 · 물체 · RGB-D 카메라"]
       BT["BT navigator: 단계 순서와 실패 관리"]
       CO["grasp_coordinator: 관측 · 선택 · 이동 관리"]
@@ -37,7 +37,11 @@ flowchart TB
 
 SAM과 GraspGenX는 별도 컨테이너입니다. SAM 이미지가 GraspGenX 이미지를 기반으로 만들어졌어도
 실행 중인 두 모델 프로세스와 파일시스템은 각각 독립적입니다. 둘 다 ROS 컨테이너의 네트워크 공간을
-공유하므로 ROS 컨테이너 안에서 `127.0.0.1:5567`, `127.0.0.1:5566`으로 접속합니다.
+공유하며 현재 ROS 컨테이너는 host 네트워크입니다. ROS 컨테이너 안에서 `127.0.0.1:5567`, `127.0.0.1:5566`으로 접속합니다.
+
+집기 BT는 여전히 MuJoCo 경로입니다. 실물 CAN·MoveIt·RViz는 별도로 검증했지만,
+실물 집기 coordinator와 카메라/접촉 검증은 아직 구현하지 않았습니다.
+[실행 환경 전환](piper-runtime.md), [실물 MoveIt 시험과 설정 비교](piper-hardware-moveit.md)를 참고하세요.
 
 ## 2. 저장소와 책임
 
@@ -87,6 +91,8 @@ RViz 결과 보존과 활성화/종료 시험도 기록되어 있습니다. 아�
 
 | 기록 | 내용 |
 |---|---|
+| [실물 MoveIt 초기 검증](validation/piper-hardware-moveit-2026-11-11.json) | 실제 CAN 피드백, 현재 자세의 범위 초과 거부 |
+| [실물·시뮬 설정 통일](validation/piper-moveit-parity-2026-11-11.json) | 파라미터 비교, 격리 환경 controller·RViz·계획 검증 |
 | [모델별 ROS 분리](validation/model-bridges-2026-11-11.json) | 독립 서버·실제 모델 전체 BT·취소 복원 |
 | [BT 역할 분리](validation/bt-split-2026-11-11.json) | 데이터 전달, 전체 집기, 취소 복원 |
 | [Nav2 스타일](bt-code-style.md) | 헤더/CPP·플러그인 로딩·검사 |

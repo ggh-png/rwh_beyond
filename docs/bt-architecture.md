@@ -58,7 +58,7 @@ TF는 상대 이동과 현재 자세 유지에 필요한 TCP pose를 제공합�
 | --- | --- |
 | `moma-mj-lab` | MuJoCo 시뮬레이션과 ROS bridge |
 | `agx_arm_ros` | 공식 모델, MoveIt 설정, 실물 드라이버 |
-| `ros_runner` | `bt_demo_sim → piper_moveit_sim` 자동 의존성 실행 및 로봇 실행 경로 간 상호 비활성화 |
+| `ros_runner` | `bt_demo_sim → piper_sim` 자동 의존성 실행 및 로봇 실행 경로 간 상호 비활성화 |
 
 !!! note "현재 로봇 모델"
     패키지 이름은 공통으로 쓰지만 구현은 PiPER의 `arm` group,

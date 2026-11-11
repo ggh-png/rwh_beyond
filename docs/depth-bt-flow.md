@@ -8,7 +8,7 @@
 
 ```mermaid
 flowchart TD
-  U[bt_demo_sim 활성화] --> P[piper_moveit_sim]
+  U[bt_demo_sim 활성화] --> P[piper_sim]
   P --> S[MuJoCo + robot_state_publisher]
   P --> M[MoveIt]
   U --> RV[통합 RViz]

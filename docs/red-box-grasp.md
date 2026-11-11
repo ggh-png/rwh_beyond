@@ -10,7 +10,7 @@
 > SAM 3이며 [새 분할 경로](sam3-perception.md)를 먼저 참고한다.
 > 기존 회귀 실행은 `RWH_SEGMENTATION_BACKEND=color_demo`를 명시한다.
 
-`bt_demo_sim → piper_moveit_sim`으로 환경을 준비하고, BT launch에서 grasp pipeline을 시작한 뒤 `/run_demo` goal로
+`bt_demo_sim → piper_sim`으로 환경을 준비하고, BT launch에서 grasp pipeline을 시작한 뒤 `/run_demo` goal로
 RGB-D 인식, 실제 GraspGenX 추론, MoveIt 계획, 접촉 확인, 들어올리기를 실행한다.
 **MuJoCo 전용**이며 실물 CAN driver를 시작하지 않는다.
 
@@ -38,7 +38,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo "{}" --feedback
 초기화하려면 다음처럼 simulator와 그 의존 runner들을 껐다가 시작한다.
 
 ```bash
-ros2 service call /runner_manager_node/deactivate_piper_moveit_sim std_srvs/srv/Empty "{}"
+ros2 service call /runner_manager_node/deactivate_piper_sim std_srvs/srv/Empty "{}"
 ros2 service call /runner_manager_node/activate_bt_demo_sim std_srvs/srv/Empty "{}"
 ```
 
@@ -68,7 +68,7 @@ Groot2의 `name`은 각 역할을 구분한다. **모델 추론은 prepare에서
 
 ```mermaid
 flowchart TD
-  R[bt_demo_sim 활성화] --> S[piper_moveit_sim: MuJoCo + MoveIt]
+  R[bt_demo_sim 활성화] --> S[piper_sim: MuJoCo + MoveIt]
   R --> B[InferGrasps Bridge + Grasp Coordinator]
   R --> RV[통합 RViz]
   R --> N[BT Navigator]

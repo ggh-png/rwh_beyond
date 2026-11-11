@@ -62,6 +62,13 @@ TCP endpoint는 각 bridge가 소유합니다. coordinator에서 모델 endpoint
 기본 runner 환경변수 `RWH_SEGMENTATION_ENDPOINT`, `RWH_GRASP_ENDPOINT`,
 `RWH_GRASP_TARGET_TEXT`는 유지합니다.
 
+## 현재 로컬 네트워크
+
+ROS 작업 컨테이너를 `moma_mj_lab_1.1.2_hostcan`으로 옮긴 뒤 두 모델도 같은 host
+네트워크로 전환했습니다. endpoint와 ROS API는 유지됩니다. 기존 GUI 컨테이너의
+네트워크에 모델이 남아 있으면 `check_ready`에서 timeout이 발생합니다.
+[전환·복구 절차](piper-runtime.md)를 참고하세요.
+
 ## 실행
 
 전체 실험은 [처음 터미널부터 실행](grasp-pipeline-guide.md)의 runner 절차를 사용합니다.

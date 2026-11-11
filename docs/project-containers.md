@@ -8,8 +8,8 @@
 
 | 항목 | ROS·MoveIt | SAM 3 | GraspGenX |
 |---|---|---|---|
-| 컨테이너 | `moma_mj_lab_1.1.2_gui` | `rwh-sam3-local` | `rwh-graspgenx-local` |
-| 이미지 | `localhost/moma-mj-lab:1.1.2-gui` | `localhost/rwh-sam3:f1647e8-cu130` | `localhost/rwh-graspgenx:44eb1d7-cu130` |
+| 컨테이너 | `moma_mj_lab_1.1.2_hostcan` | `rwh-sam3-local` | `rwh-graspgenx-local` |
+| 최근 보존 이미지 | `localhost/rwh-piper-dev:moveit-sim-matched-20261111` | `localhost/rwh-sam3:f1647e8-cu130` | `localhost/rwh-graspgenx:44eb1d7-cu130` |
 | 핵심 환경 | ROS 2 Jazzy, MoveIt, MuJoCo, RViz | Python, PyTorch, SAM 3 | Python, PyTorch, GraspGenX |
 | 작업 코드 | `/root/ros2_ws/src` | `/opt/sam3`, `/opt/segmentation` | `/opt/GraspGenX`, `/opt/deploy` |
 | 실행 | runner → simulation + BT launch | `python -u /opt/segmentation/server.py` | `bash /opt/deploy/scripts/start_server.sh` |
@@ -24,6 +24,10 @@
 `localhost/wsyoon-solution:workspace-1.1.2-robot-legacy` 이미지를 확장합니다.
 MoveIt perception·OpenGL/GUI 관련 시스템 패키지를 더하고 `/opt/moma-venv`에 MuJoCo 의존성을 설치합니다.
 ROS workspace는 `/root/ros2_ws`에서 `colcon build --symlink-install`로 빌드합니다.
+
+현재 작업 컨테이너는 이 기반의 이전 GUI 컨테이너를 스냅샷으로 보존한 뒤 host 네트워크로
+생성했습니다. 이후 실물 SDK와 공식 패키지 재빌드·MoveIt 설정 통일을 반영했습니다.
+[CAN·스냅샷·모델 네트워크 전환](piper-runtime.md)에 생성·복구 절차를 정리했습니다.
 
 이 컨테이너는 기존 로컬 기반 이미지와 GUI 연결 설정을 사용합니다. 이 문서만으로 빈 PC에서
 동일한 ROS 기반 이미지까지 새로 재현한다고 가정하지 않습니다. 해당 기반과 GUI 설정은
@@ -81,14 +85,21 @@ GraspGenX 0.6으로 지정되어 있지만 GPU 전체의 독립적인 VRAM 할�
 
 ## 왜 별도 컨테이너인데 localhost로 통신하나
 
-두 모델 helper가 `--network container:moma_mj_lab_1.1.2_gui`로 실행하기 때문입니다.
-네트워크 공간만 공유하고 파일시스템·프로세스는 분리합니다.
+현재 ROS 컨테이너는 `--network host`이고, 두 모델도 새 ROS 컨테이너의 네트워크로
+전환되어 같은 호스트 네트워크를 사용합니다. 파일시스템·모델 프로세스는 별개입니다.
 
 - ROS 안의 `tcp://127.0.0.1:5567`: SAM 서버.
 - ROS 안의 `tcp://127.0.0.1:5566`: GraspGenX 서버.
-- 호스트의 localhost가 같은 공간이라는 뜻은 아닙니다. 현재 별도 host 포트 publish를 사용하지 않습니다.
-- ROS 컨테이너를 **삭제 후 재생성**하면 모델 컨테이너의 네트워크 연결도 재확인해야 합니다.
-- 모델을 원격으로 옮길 때는 endpoint·접근 경로를 바꿔야 합니다. 현재 원격 배포 검증은 완료하지 않았습니다.
+- 현재는 호스트 localhost와 같은 공간이며 두 모델은 `127.0.0.1`에만 bind합니다.
+- 이전 `slirp4netns` 구성과 달리 host 네트워크에서는 `can0`를 직접 볼 수 있습니다.
+- 기존 모델 helper로 컨테이너를 **새로 만들 때**는 이전 GUI 컨테이너 이름이 아닌
+  `SAM3_ROBOT_CONTAINER=moma_mj_lab_1.1.2_hostcan`,
+  `GRASPGENX_ROBOT_CONTAINER=moma_mj_lab_1.1.2_hostcan`을 지정해야 합니다.
+- 기존 컨테이너 stop/start는 네트워크를 변경하지 않습니다. 최초 전환은
+  `ros2-docker/scripts/migrate-piper-models.py`로 완료했으며, 설정·이전 컨테이너를 보존했습니다.
+- GraspGenX는 새 loopback 전용 YAML을 read-only mount합니다. 최근 실행 설정과 모델 볼륨은
+  `~/wsyoon/ros2-docker/build/piper-models/`에 기록했습니다.
+- 원격 모델 서버는 별도 endpoint·접근 경로가 필요하며 원격 배포 검증은 완료하지 않았습니다.
 
 모델 GPU 통신에는 `ROS_DOMAIN_ID`가 사용되지 않습니다. 이 값은 ROS 노드 사이의 DDS 도메인을 맞춥니다.
 
