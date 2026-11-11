@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-11",
+  "container": "moma_mj_lab_1.1.2_hostcan",
+  "status": "LAUNCH_AND_FEEDBACK_PASS_CURRENT_POSE_PLAN_REJECTED",
+  "observed_test_result": {
+    "motion_goal_sent": false,
+    "motor_enable_called": false,
+    "domain": 168,
+    "feedback_names": [
+      "joint1",
+      "joint2",
+      "joint3",
+      "joint4",
+      "joint5",
+      "joint6",
+      "gripper"
+    ],
+    "feedback_positions": [
+      -0.12376129725891791,
+      0.0022514747350726853,
+      0.01111774733520388,
+      0.045867252742410984,
+      0.037786378305677236,
+      -0.07120943348136864,
+      0.0776
+    ],
+    "auto_enable": false,
+    "control_enabled": false,
+    "driver_use_sim_time": false,
+    "speed_percent": 10,
+    "planning_error_code": 99999,
+    "trajectory_points": 0,
+    "status": "FAIL",
+    "error": "Plan-only request failed: 99999"
+  },
+  "planning_rejection": {
+    "adapter": "CheckStartStateBounds",
+    "joint": "joint3",
+    "measured_rad": 0.01111774733520388,
+    "model_min_rad": -2.96706,
+    "model_max_rad": 0.0,
+    "deviation_deg": 0.637
+  },
+  "firmware": "S-V1.7-3",
+  "sdk_commit": "d90e234ba8e408cfa964b38aa9120b3131fc9f85",
+  "rviz_startup": "Verified in runner log; no manual UI interaction",
+  "repairs": [
+    "Rebuild official packages after archiving stale build/install directories",
+    "Install pyAgxArm and python-can",
+    "Set execute permission on agx_arm_control_gate",
+    "Remove empty firmware CLI override"
+  ],
+  "safety_checks": {
+    "auto_enable": false,
+    "control_enabled": false,
+    "use_sim_time": false,
+    "joint_limits_modified": false,
+    "feedback_clamped": false
+  },
+  "configuration_tests": {
+    "passed": 11,
+    "subtests_passed": 7
+  }
+}

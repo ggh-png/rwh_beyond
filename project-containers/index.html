@@ -670,6 +670,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ROS 환경·CAN·모델 네트워크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 PiPER MoveIt 시험
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1073,6 +1129,34 @@
     
   
     11월 10일 작업 기록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work-log-2026-11-11/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11월 11일 작업 기록
   
 
     
@@ -1554,13 +1638,13 @@
 <tbody>
 <tr>
 <td>컨테이너</td>
-<td><code>moma_mj_lab_1.1.2_gui</code></td>
+<td><code>moma_mj_lab_1.1.2_hostcan</code></td>
 <td><code>rwh-sam3-local</code></td>
 <td><code>rwh-graspgenx-local</code></td>
 </tr>
 <tr>
-<td>이미지</td>
-<td><code>localhost/moma-mj-lab:1.1.2-gui</code></td>
+<td>최근 보존 이미지</td>
+<td><code>localhost/rwh-piper-dev:moveit-sim-matched-20261111</code></td>
 <td><code>localhost/rwh-sam3:f1647e8-cu130</code></td>
 <td><code>localhost/rwh-graspgenx:44eb1d7-cu130</code></td>
 </tr>
@@ -1597,6 +1681,9 @@
 <code>localhost/wsyoon-solution:workspace-1.1.2-robot-legacy</code> 이미지를 확장합니다.
 MoveIt perception·OpenGL/GUI 관련 시스템 패키지를 더하고 <code>/opt/moma-venv</code>에 MuJoCo 의존성을 설치합니다.
 ROS workspace는 <code>/root/ros2_ws</code>에서 <code>colcon build --symlink-install</code>로 빌드합니다.</p>
+<p>현재 작업 컨테이너는 이 기반의 이전 GUI 컨테이너를 스냅샷으로 보존한 뒤 host 네트워크로
+생성했습니다. 이후 실물 SDK와 공식 패키지 재빌드·MoveIt 설정 통일을 반영했습니다.
+<a href="../piper-runtime/">CAN·스냅샷·모델 네트워크 전환</a>에 생성·복구 절차를 정리했습니다.</p>
 <p>이 컨테이너는 기존 로컬 기반 이미지와 GUI 연결 설정을 사용합니다. 이 문서만으로 빈 PC에서
 동일한 ROS 기반 이미지까지 새로 재현한다고 가정하지 않습니다. 해당 기반과 GUI 설정은
 <code>moma-mj-lab/README.md</code>, <code>docker/Dockerfile</code>, 실행 스크립트를 함께 확인하세요.</p>
@@ -1680,14 +1767,21 @@ GraspGenX 0.6으로 지정되어 있지만 GPU 전체의 독립적인 VRAM 할�
 컨테이너 재생성 → health 확인 순서가 필요합니다. 모델·캐시 볼륨은 보존합니다.
 이 페이지의 설명만으로 실행 중인 컨테이너를 자동 재생성하지는 않습니다.</p>
 <h2 id="localhost">왜 별도 컨테이너인데 localhost로 통신하나<a class="headerlink" href="#localhost" title="Permanent link">&para;</a></h2>
-<p>두 모델 helper가 <code>--network container:moma_mj_lab_1.1.2_gui</code>로 실행하기 때문입니다.
-네트워크 공간만 공유하고 파일시스템·프로세스는 분리합니다.</p>
+<p>현재 ROS 컨테이너는 <code>--network host</code>이고, 두 모델도 새 ROS 컨테이너의 네트워크로
+전환되어 같은 호스트 네트워크를 사용합니다. 파일시스템·모델 프로세스는 별개입니다.</p>
 <ul>
 <li>ROS 안의 <code>tcp://127.0.0.1:5567</code>: SAM 서버.</li>
 <li>ROS 안의 <code>tcp://127.0.0.1:5566</code>: GraspGenX 서버.</li>
-<li>호스트의 localhost가 같은 공간이라는 뜻은 아닙니다. 현재 별도 host 포트 publish를 사용하지 않습니다.</li>
-<li>ROS 컨테이너를 <strong>삭제 후 재생성</strong>하면 모델 컨테이너의 네트워크 연결도 재확인해야 합니다.</li>
-<li>모델을 원격으로 옮길 때는 endpoint·접근 경로를 바꿔야 합니다. 현재 원격 배포 검증은 완료하지 않았습니다.</li>
+<li>현재는 호스트 localhost와 같은 공간이며 두 모델은 <code>127.0.0.1</code>에만 bind합니다.</li>
+<li>이전 <code>slirp4netns</code> 구성과 달리 host 네트워크에서는 <code>can0</code>를 직접 볼 수 있습니다.</li>
+<li>기존 모델 helper로 컨테이너를 <strong>새로 만들 때</strong>는 이전 GUI 컨테이너 이름이 아닌
+  <code>SAM3_ROBOT_CONTAINER=moma_mj_lab_1.1.2_hostcan</code>,
+  <code>GRASPGENX_ROBOT_CONTAINER=moma_mj_lab_1.1.2_hostcan</code>을 지정해야 합니다.</li>
+<li>기존 컨테이너 stop/start는 네트워크를 변경하지 않습니다. 최초 전환은
+  <code>ros2-docker/scripts/migrate-piper-models.py</code>로 완료했으며, 설정·이전 컨테이너를 보존했습니다.</li>
+<li>GraspGenX는 새 loopback 전용 YAML을 read-only mount합니다. 최근 실행 설정과 모델 볼륨은
+  <code>~/wsyoon/ros2-docker/build/piper-models/</code>에 기록했습니다.</li>
+<li>원격 모델 서버는 별도 endpoint·접근 경로가 필요하며 원격 배포 검증은 완료하지 않았습니다.</li>
 </ul>
 <p>모델 GPU 통신에는 <code>ROS_DOMAIN_ID</code>가 사용되지 않습니다. 이 값은 ROS 노드 사이의 DDS 도메인을 맞춥니다.</p>
 <p>다음: <a href="../project-data/">실제로 오가는 데이터</a></p>

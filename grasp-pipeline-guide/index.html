@@ -753,6 +753,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ROS 환경·CAN·모델 네트워크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 PiPER MoveIt 시험
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1156,6 +1212,34 @@
     
   
     11월 10일 작업 기록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work-log-2026-11-11/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11월 11일 작업 기록
   
 
     
@@ -1709,6 +1793,8 @@
 <blockquote>
 <p>현재 workspace 기준 runner 이름은 <strong><code>bt_demo_sim</code></strong>입니다. 이전 대화·기록의
 <code>activate_bt_demo</code> 대신 <strong><code>activate_bt_demo_sim</code></strong>을 사용합니다.
+실제 MuJoCo runner는 <strong><code>piper_sim</code></strong>입니다. <code>piper_moveit_sim</code>은 현재 실물 runner의 기존 이름이므로
+시뮬레이터 활성화 명령으로 사용하지 마세요. 실물 MoveIt 시험은 <a href="../piper-hardware-moveit/">별도 절차</a>를 사용합니다.
 아래에서는 <code>node_name:=ros_runner</code>로 통일하므로 서비스 prefix는 <code>/ros_runner</code>입니다.</p>
 </blockquote>
 <h2 id="0">0. 터미널 역할<a class="headerlink" href="#0" title="Permanent link">&para;</a></h2>
@@ -1747,7 +1833,7 @@
 아래 명령은 호스트의 <code>docker</code> 호환 명령을 <code>sudo</code> 없이 사용합니다.</p>
 <h2 id="1">1. 호스트에서 컨테이너 켜기<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># ROS 컨테이너가 두 모델 컨테이너의 네트워크 기준이므로 먼저 시작</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>start<span class="w"> </span>moma_mj_lab_1.1.2_gui
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>start<span class="w"> </span>moma_mj_lab_1.1.2_hostcan
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>docker<span class="w"> </span>start<span class="w"> </span>rwh-sam3-local<span class="w"> </span>rwh-graspgenx-local
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>docker<span class="w"> </span>ps
 </code></pre></div>
@@ -1778,7 +1864,7 @@
 <p>두 health 검사가 모두 성공해야 합니다. 컨테이너 <code>Up</code>과 모델 <code>healthy</code>는 다른 상태입니다.</p>
 <h2 id="4-c-ros-runner">4. 터미널 C: ROS runner 실행<a class="headerlink" href="#4-c-ros-runner" title="Permanent link">&para;</a></h2>
 <p>호스트에서 접속합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_gui<span class="w"> </span>bash
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_hostcan<span class="w"> </span>bash
 </code></pre></div>
 <p><strong>ROS 컨테이너 안에서</strong> 실행합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
@@ -1795,7 +1881,7 @@
 runner 설정을 바꿨다면 기존 runner를 종료한 뒤 다시 켜야 합니다.</p>
 <h2 id="5-d-bt-rviz">5. 터미널 D: 시뮬레이터·BT·통합 RViz 활성화<a class="headerlink" href="#5-d-bt-rviz" title="Permanent link">&para;</a></h2>
 <p>호스트에서 같은 ROS 컨테이너에 추가 접속합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_gui<span class="w"> </span>bash
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_hostcan<span class="w"> </span>bash
 </code></pre></div>
 <p>이 터미널도 ROS 환경과 도메인을 맞춥니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
@@ -1807,7 +1893,7 @@ runner 설정을 바꿨다면 기존 runner를 종료한 뒤 다시 켜야 합�
 </code></pre></div>
 <p>navigator가 <code>active [3]</code>이 될 때까지 기다립니다. 아직 시작 중이면 lifecycle 명령을 다시 확인합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>ros_runner: bt_demo_sim
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    ├─ requires: piper_moveit_sim
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    ├─ requires: piper_sim
 <a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    │     └─ MuJoCo + MoveIt (rviz:=false)
 <a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    └─ bt_demo.launch.py
 <a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>          ├─ grasp_pipeline.launch.py → SAM bridge + GraspGenX bridge + coordinator
@@ -1859,15 +1945,15 @@ BT 실행이 끝난 상태에서, 다음 관측 <strong>전에</strong> 설정�
 만족해야 합니다. 대상 텍스트 변경은 임의 물체의 집기 성공을 보장하지 않습니다.</p>
 <h2 id="10">10. 초기화와 종료<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
 <p>BT goal이 끝난 뒤 시뮬레이션을 초기화하고 다시 활성화합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/deactivate_piper_moveit_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/deactivate_piper_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
 <a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
 <a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>ros2<span class="w"> </span>lifecycle<span class="w"> </span>get<span class="w"> </span>/bt_navigator
 </code></pre></div>
-<p>실험을 종료하려면 <code>deactivate_piper_moveit_sim</code> 호출 후 runner 터미널 C에서 <code>Ctrl+C</code>를 누릅니다.
+<p>실험을 종료하려면 <code>deactivate_piper_sim</code> 호출 후 runner 터미널 C에서 <code>Ctrl+C</code>를 누릅니다.
 모델 서버는 별도이므로 유지하거나, 직접 시작했던 A/B에서 각각 <code>Ctrl+C</code>로 종료합니다.
 컨테이너도 끄려면 호스트에서 다음 순서로 실행합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>docker<span class="w"> </span>stop<span class="w"> </span>rwh-sam3-local<span class="w"> </span>rwh-graspgenx-local
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>docker<span class="w"> </span>stop<span class="w"> </span>moma_mj_lab_1.1.2_gui
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>docker<span class="w"> </span>stop<span class="w"> </span>moma_mj_lab_1.1.2_hostcan
 </code></pre></div>
 <h2 id="_2">문제를 어느 단계에서 확인하나<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>

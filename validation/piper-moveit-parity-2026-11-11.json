@@ -1,0 +1,79 @@
+{
+  "date": "2026-11-11",
+  "status": "PASS_CONFIGURATION_PARITY_AND_ISOLATED_PLAN_ONLY",
+  "runtime": {
+    "status": "PASS",
+    "CAN_driver_started": false,
+    "real_robot_command_sent": false,
+    "feedback": "synthetic isolated ROS_DOMAIN_ID=172",
+    "controllers": {
+      "gripper_controller": "active",
+      "arm_controller": "active",
+      "joint_state_broadcaster": "active"
+    },
+    "planning_error_code": 1,
+    "trajectory_points": 6,
+    "tcp_z": 0.1425,
+    "pipeline": "ompl",
+    "rviz_motionplanning_ready": true
+  },
+  "tests": {
+    "passed": 18,
+    "subtests_passed": 12,
+    "strict_docs_build": "PASS"
+  },
+  "parity": "With the same camera_model, evaluated MoveIt parameters are equal except use_sim_time",
+  "unmodified": [
+    "URDF joint limits",
+    "raw hardware feedback",
+    "MuJoCo simulation implementation",
+    "hardware motor enable and teach behavior"
+  ],
+  "changes": {
+    "tcp_z_m": {
+      "before": 0.0,
+      "after": 0.1425
+    },
+    "planning_pipelines": {
+      "before": [
+        "stomp",
+        "pilz_industrial_motion_planner",
+        "ompl",
+        "chomp"
+      ],
+      "after": [
+        "ompl"
+      ]
+    },
+    "pointcloud_padding_m": {
+      "before": 0.1,
+      "after": 0.02
+    },
+    "pointcloud_max_range_m": {
+      "before": 5.0,
+      "after": 2.0
+    },
+    "pointcloud_subsample": {
+      "before": 1,
+      "after": 2
+    },
+    "pointcloud_update_hz": {
+      "before": 1.0,
+      "after": 2.0
+    },
+    "octomap_resolution_m": 0.01,
+    "trajectory_duration_scaling": 3.0,
+    "trajectory_goal_margin_s": 2.0
+  },
+  "intentional_hardware_differences": [
+    "use_sim_time=false",
+    "official CAN driver and trajectory-to-command transport",
+    "camera mount opt-in; physical calibration not established",
+    "control gate preserved"
+  ],
+  "limitations": [
+    "No real robot execution test after configuration change",
+    "Existing joint3/gripper feedback outside limits still requires diagnosis",
+    "Gripper-only execution gate remains the official arm-only behavior; this task does not implement a new gripper control path"
+  ]
+}

@@ -73,6 +73,14 @@
          <lastmod>2026-11-11</lastmod>
     </url>
     <url>
+         <loc>https://ggh-png.github.io/rwh_beyond/piper-hardware-moveit/</loc>
+         <lastmod>2026-11-11</lastmod>
+    </url>
+    <url>
+         <loc>https://ggh-png.github.io/rwh_beyond/piper-runtime/</loc>
+         <lastmod>2026-11-11</lastmod>
+    </url>
+    <url>
          <loc>https://ggh-png.github.io/rwh_beyond/project-code-map/</loc>
          <lastmod>2026-11-11</lastmod>
     </url>
@@ -122,6 +130,10 @@
     </url>
     <url>
          <loc>https://ggh-png.github.io/rwh_beyond/work-log-2026-11-10/</loc>
+         <lastmod>2026-11-11</lastmod>
+    </url>
+    <url>
+         <loc>https://ggh-png.github.io/rwh_beyond/work-log-2026-11-11/</loc>
          <lastmod>2026-11-11</lastmod>
     </url>
 </urlset>

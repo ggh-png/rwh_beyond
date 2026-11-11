@@ -555,6 +555,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ROS 환경·CAN·모델 네트워크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 PiPER MoveIt 시험
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1142,6 +1198,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work-log-2026-11-11/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11월 11일 작업 기록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1673,21 +1757,21 @@ GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=false</co
 </code></pre></div>
 <p>BT launch가 MoveIt/SAM/파지 통합 RViz도 함께 실행합니다. GUI 없이 실행하려면
 <code>bt_demo.launch.py rviz:=false</code>를 사용합니다. runner의 경우 RViz는 bt_demo_sim이 소유하며
-<code>piper_moveit_sim</code>은 별도 창을 만들지 않습니다.</p>
+<code>piper_sim</code>은 별도 창을 만들지 않습니다.</p>
 <p>BT navigator와 lifecycle manager의 설정은
 <code>rwh_beyond_bringup/params/bt_demo_params.yaml</code>에서 관리합니다. 값을 수정한 뒤
 <code>rwh_beyond_bringup</code>을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
 <code>ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml</code>로
 지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.</p>
-<p><code>ros_runner</code>에서 <strong><code>bt_demo_sim</code>만 활성화</strong>하면 <code>bt_demo_sim → piper_moveit_sim</code>에 의해
-MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_moveit_sim</code>은 재사용합니다.
+<p><code>ros_runner</code>에서 <strong><code>bt_demo_sim</code>만 활성화</strong>하면 <code>bt_demo_sim → piper_sim</code>에 의해
+MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_sim</code>은 재사용합니다.
 BT launch가 추론 Bridge/coordinator를 직접 시작하며, runner가 시뮬레이션 의존성을 관리합니다.
 <strong>자동으로 demo goal을 보내지는 않습니다.</strong></p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/runner_manager_node/activate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># navigator와 사용되지 않는 simulator 의존성 종료</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/runner_manager_node/deactivate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
 </code></pre></div>
-<p><code>piper_moveit_sim</code>을 중지하면 이에 의존하는 <code>bt_demo_sim</code>도 중지됩니다.
+<p><code>piper_sim</code>을 중지하면 이에 의존하는 <code>bt_demo_sim</code>도 중지됩니다.
 다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
 YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.</p>
 <h3 id="octomap">트리 안에서 Octomap 초기화<a class="headerlink" href="#octomap" title="Permanent link">&para;</a></h3>
@@ -1817,10 +1901,10 @@ GUI 옵션은 runner 시작 전 <code>RWH_PIPER_SIM_GUI</code>, <code>RWH_BT_RVI
 <tbody>
 <tr>
 <td><code>bt_demo_sim</code></td>
-<td><code>piper_moveit_sim</code> 자동 시작 + grasp pipeline 및 BT navigator와 RViz</td>
+<td><code>piper_sim</code> 자동 시작 + grasp pipeline 및 BT navigator와 RViz</td>
 </tr>
 <tr>
-<td><code>piper_moveit_sim</code></td>
+<td><code>piper_sim</code></td>
 <td>MuJoCo + MoveIt (RViz 별도 실행)</td>
 </tr>
 <tr>

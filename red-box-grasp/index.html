@@ -555,6 +555,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ROS 환경·CAN·모델 네트워크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 PiPER MoveIt 시험
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1136,6 +1192,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work-log-2026-11-11/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11월 11일 작업 기록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1646,7 +1730,7 @@
 SAM 3이며 <a href="../sam3-perception/">새 분할 경로</a>를 먼저 참고한다.
 기존 회귀 실행은 <code>RWH_SEGMENTATION_BACKEND=color_demo</code>를 명시한다.</p>
 </blockquote>
-<p><code>bt_demo_sim → piper_moveit_sim</code>으로 환경을 준비하고, BT launch에서 grasp pipeline을 시작한 뒤 <code>/run_demo</code> goal로
+<p><code>bt_demo_sim → piper_sim</code>으로 환경을 준비하고, BT launch에서 grasp pipeline을 시작한 뒤 <code>/run_demo</code> goal로
 RGB-D 인식, 실제 GraspGenX 추론, MoveIt 계획, 접촉 확인, 들어올리기를 실행한다.
 <strong>MuJoCo 전용</strong>이며 실물 CAN driver를 시작하지 않는다.</p>
 <h2 id="_1">실행<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
@@ -1666,7 +1750,7 @@ runner 시작 전 <code>RWH_GRASP_ENDPOINT</code>로 지정한다. runner는 GPU
 이는 내려놓기가 아니며 홈 복귀 중 물체가 미끄러질 수 있다. 이미 든 상태에서 새 goal은
 이동/열기 전에 거부한다. 내려놓기/놓기 시퀀스는 아직 없다. 새 시뮬레이션으로
 초기화하려면 다음처럼 simulator와 그 의존 runner들을 껐다가 시작한다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/runner_manager_node/deactivate_piper_moveit_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/runner_manager_node/deactivate_piper_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/runner_manager_node/activate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
 </code></pre></div>
 <p>runner 활성화 자체는 이동 goal을 보내지 않는다. Groot2 모델 XML을 다시
@@ -1722,7 +1806,7 @@ Groot2의 <code>name</code>은 각 역할을 구분한다. <strong>모델 추론
 <code>TcpPose</code>이며 시각화/다른 트리에 연결할 수 있다. 기본 트리는 IK 분기가 달라지지
 않도록 검증한 관절 pregrasp 경로를 실행한다. 기존 <code>MoveTcp</code>도 계속 제공한다.</p>
 <pre class="mermaid"><code>flowchart TD
-  R[bt_demo_sim 활성화] --&gt; S[piper_moveit_sim: MuJoCo + MoveIt]
+  R[bt_demo_sim 활성화] --&gt; S[piper_sim: MuJoCo + MoveIt]
   R --&gt; B[InferGrasps Bridge + Grasp Coordinator]
   R --&gt; RV[통합 RViz]
   R --&gt; N[BT Navigator]

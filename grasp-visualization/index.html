@@ -16,7 +16,7 @@
         <link rel="prev" href="../graspgenx-model/">
       
       
-        <link rel="next" href="../bt-architecture/">
+        <link rel="next" href="../piper-runtime/">
       
       
         
@@ -726,6 +726,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ROS 환경·CAN·모델 네트워크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 PiPER MoveIt 시험
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1129,6 +1185,34 @@
     
   
     11월 10일 작업 기록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work-log-2026-11-11/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11월 11일 작업 기록
   
 
     
@@ -1750,7 +1834,7 @@ MoveIt/SAM/파지 통합 RViz를 기본 실행한다(<code>rviz:=true</code>). R
 <code>rwh_beyond_bringup/moveit_rviz.launch.py</code>를 include하여 시뮬레이터와 동일한 robot
 description·SRDF·kinematics를 사용한다. 로봇 모델과 기본 RViz 설정은 <code>moma_bringup</code>의
 설정을 참조하며, 시뮬레이터나 move_group을 추가로 시작하지 않는다.</p>
-<p>runner의 <code>piper_moveit_sim</code>은 <code>rviz:=false</code>로 실행하고, <strong>bt_demo_sim이 RViz를 소유</strong>한다.
+<p>runner의 <code>piper_sim</code>은 <code>rviz:=false</code>로 실행하고, <strong>bt_demo_sim이 RViz를 소유</strong>한다.
 따라서 새 runner 설정으로 <code>/ros_runner/activate_bt_demo_sim</code>을 호출하면 통합 RViz가 한 번만
 열리고, bt_demo_sim을 중지하면 그 RViz도 함께 종료된다. 기존 runner는 설정을 다시 읽도록
 한 번 재시작한다. 별도 RViz launch 명령은 기본 실행에 필요하지 않다.</p>
@@ -1762,7 +1846,7 @@ Bridge를 별도로 실행하지 않는다.</p>
 지정한다. 과거 <code>RWH_PIPER_SIM_RVIZ</code> 대신 BT 화면은 이 변수를 사용한다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_BT_RVIZ</span><span class="o">=</span><span class="nb">false</span>
 </code></pre></div>
-<p><code>RWH_BT_RVIZ</code>의 기본값은 true다. <code>piper_moveit_sim</code> 단독 실행 시에도 RViz는
+<p><code>RWH_BT_RVIZ</code>의 기본값은 true다. <code>piper_sim</code> 단독 실행 시에도 RViz는
 시작되지 않는다. 사용자 config는 <code>bt_demo.launch.py rviz_config:=/path/to/config.rviz</code>로
 지정할 수 있다.</p>
 <p>화면은 왼쪽 MotionPlanning·Displays, 가운데 로봇/계획 장면, 오른쪽 분할 영상 2개로
@@ -1895,13 +1979,13 @@ launch/runner 단위 검사 5개와 3개 backend subtest가 통과했다. 별도
         
         
           
-          <a href="../bt-architecture/" class="md-footer__link md-footer__link--next" aria-label="다음: 아키텍처">
+          <a href="../piper-runtime/" class="md-footer__link md-footer__link--next" aria-label="다음: ROS 환경·CAN·모델 네트워크">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                아키텍처
+                ROS 환경·CAN·모델 네트워크
               </div>
             </div>
             <div class="md-footer__button md-icon">
