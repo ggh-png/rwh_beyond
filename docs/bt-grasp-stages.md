@@ -72,8 +72,9 @@ Blackboard에는 이름 문자열만 저장되는 것이 아니라 실제 `senso
 
 노드는 각각 `librwh_beyond_<name>_action_bt_node.so`로 빌드하며 공개 헤더와 CPP를 분리한다.
 기존 `librwh_beyond_bt_nodes.so`는 이들을 불러오는 호환 로더다. [Nav2 스타일 구성](bt-code-style.md)을 참고한다.
-백엔드는 한 ROS 프로세스에 유지한다. MoveIt 장면과 부착 상태를 공유하고 취소를 직렬화하기
-위한 구성이다. 모델 컨테이너는 계속 SAM과 GraspGenX로 분리된다.
+모델 통신은 SAM·GraspGenX 각각 별도 ROS bridge 프로세스로 분리했다. MoveIt 장면·관측·부착 상태와
+이동/취소 관리는 pipeline coordinator에 유지한다. GPU 모델 컨테이너도 계속 분리된다.
+[모델별 패키지와 Action](model-bridges.md)을 참고한다.
 
 기존 `GraspStep`, `/grasp_step`, `RunGraspStep`은 이전 XML·클라이언트 호환용으로 남긴다.
 legacy `prepare`는 분할·점군·추론·선택을 묶어 호출한다. 기본 트리는 이를 호출하지 않는다.
@@ -84,8 +85,8 @@ legacy `prepare`는 분할·점군·추론·선택을 묶어 호출한다. 기�
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
-colcon build --packages-select rwh_beyond_msgs rwh_beyond_bt rwh_beyond_grasp_bridge \
-  rwh_beyond_navigator rwh_beyond_bringup --symlink-install
+colcon build --symlink-install --packages-up-to \
+  rwh_beyond_bringup rwh_beyond_grasp_bridge ros_runner
 source install/setup.bash
 ros2 run rwh_beyond_bt generate_tree_nodes_xml \
   src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml

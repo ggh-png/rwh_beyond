@@ -1,0 +1,6 @@
+sam3_bridge:
+  ros__parameters:
+    use_sim_time: true
+    endpoint: tcp://127.0.0.1:5567
+    timeout: 60.0
+    allow_mock: false

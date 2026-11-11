@@ -11,8 +11,8 @@
 | 1 | `../ros_runner/config/runners.yaml` | `bt_demo_sim` → `piper_moveit_sim` 의존성, 환경변수 |
 | 2 | `rwh_beyond_bringup/launch/bt_demo.launch.py` | grasp pipeline·RViz include, navigator·lifecycle manager, `grasp_params_file`의 별도 scope |
 | 3 | `rwh_beyond_bringup/params/bt_demo_params.yaml` | custom navigator 플러그인, BT 라이브러리, Groot2 |
-| 4 | `rwh_beyond_grasp_bridge/launch/grasp_pipeline.launch.py` | inference server와 coordinator 두 노드 생성 |
-| 5 | `rwh_beyond_grasp_bridge/config/grasp_pipeline.yaml` | 대상, endpoint, 프레임, TCP 보정, 후보 수 |
+| 4 | `rwh_beyond_grasp_pipeline/launch/grasp_pipeline.launch.py` | SAM bridge·GraspGenX bridge·coordinator 세 노드 생성 |
+| 5 | `rwh_beyond_grasp_pipeline/config/grasp_pipeline.yaml` | 대상, endpoint, 프레임, TCP 보정, 후보 수 |
 
 시뮬레이터·MoveIt 구성은
 `../moma-mj-lab/ros2_ws/src/moma_bringup/launch/simulation.launch.py`에서 이어집니다.
@@ -46,7 +46,8 @@ rwh_beyond_bt/src/bt_grasp_action_node.cpp
 
 ## 3. Python에서 단계별 구현 찾기
 
-아래 Python 파일은 모두 `rwh_beyond_grasp_bridge/rwh_beyond_grasp_bridge/` 안에 있습니다.
+아래 단계 구현은 `rwh_beyond_grasp_pipeline/rwh_beyond_grasp_pipeline/` 안에 있습니다.
+모델 서버 노드는 [모델별 ROS bridge](model-bridges.md)에 별도 위치를 정리했습니다.
 
 | BT 노드 | Action endpoint | 구현의 시작점 |
 |---|---|---|
@@ -74,8 +75,9 @@ segment_object_action.cpp
   → perception_stages.py::segment_target()
       snapshot() → 새 RGB/Depth/Info
       lookup_transform() → 촬영 시각 TF
-      segmentation_client.py::segment_image()
-        zmq_client.py::request()
+      rwh_beyond_sam3_bridge.action_client::segment_via_action()
+        /segment_image Action → sam3_bridge.action_server
+        segmentation_client.py::segment_image() → zmq_client.py::request()
           → SAM 컨테이너 /opt/segmentation/server.py
           → 공식 Sam3Processor
       관측 context와 observation_id 저장
@@ -93,15 +95,15 @@ BT InferGrasps
   → /grasp/infer_grasps           # RunGraspStage: 관측 ID와 BT 데이터 연결
   → coordinator / inference_stages.py
   → /infer_grasps                 # InferGrasps: 독립 추론 인터페이스
-  → inference_action_server.py
-      cloud_converter.py::cloud_xyz()
+  → rwh_beyond_graspgenx_bridge/inference_action_server.py
+      rwh_beyond_model_utils/cloud_converter.py::cloud_xyz()
       zmq_client.py::request() → GraspGenX 5566
-      pose_converter.py::validate_candidates() / quaternion_xyzw()
+      rwh_beyond_model_utils/pose_converter.py::validate_candidates() / quaternion_xyzw()
   → 후보 배열 반환 → coordinator → BT Blackboard
 ```
 
 `/grasp/infer_grasps`와 `/infer_grasps`는 이름이 비슷하지만 서로 다른 Action입니다.
-기본 BT는 POINT_CLOUD 모드이며, 독립 RGBD/Depth 경로는 `inference_action_server.py`에서 분기합니다.
+기본 BT는 POINT_CLOUD 모드이며, 독립 RGBD/Depth 경로는 GraspGenX bridge에서 분기하며 RGBD는 SAM Action을 호출합니다.
 
 ## 6. 선택·실행과 시뮬레이터
 
@@ -124,7 +126,7 @@ BT InferGrasps
 | SAM 대상 바꾸기 | coordinator 파라미터 `target_text`, `target_box`, `selection_point` |
 | SAM 추론 API/선택 규칙 | `deploy/sam3-docker/server.py`, `segmentation_core.py` |
 | GraspGenX 시작 옵션 | `deploy/graspgenx-docker/config/server.local.yaml`, `deploy/graspgenx-docker/scripts/run_server.py` |
-| 파지 후보 수 | `rwh_beyond_grasp_bridge/config/grasp_pipeline.yaml`: `num_grasps`, `top_k`, `max_candidates` |
+| 파지 후보 수 | `rwh_beyond_grasp_pipeline/config/grasp_pipeline.yaml`: `num_grasps`, `top_k`, `max_candidates` |
 | TCP 변환·접근/리프트 거리 | 같은 YAML의 `model_to_tcp_*`, `pregrasp_distance`, `lift_distance` |
 | 파지 선택 조건 | `selection_stages.py` |
 | BT 노드 추가 | `plugins/action/*.cpp`, `include/.../plugins/action/*.hpp`, CMake, XML 모델 |
@@ -138,7 +140,8 @@ ROS 컨테이너에서 실행합니다. 아래는 관련 코드 변경 후의 �
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
-colcon build --symlink-install --packages-select   rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator rwh_beyond_grasp_bridge   rwh_beyond_bringup moma_mujoco_ros moma_bringup ros_runner
+colcon build --symlink-install --packages-up-to \
+  rwh_beyond_bringup rwh_beyond_grasp_bridge ros_runner
 source install/setup.bash
 ```
 
@@ -155,3 +158,7 @@ Python/BT 테스트와 실제 GPU·물리 통합 시험은 범위가 다릅니�
 `rwh_beyond_grasp_bridge/test/test_*.py`는 단위/프로토콜 검사,
 `sam_pick_integration.py`, `sam_runner_pick_integration.py`는 모델·시뮬레이터가 필요한 통합 시험입니다.
 실제 시험은 별도 ROS domain에서 실행하며 [기존 검증 방법](bt-grasp-stages.md)을 따릅니다.
+
+
+이전 패키지 안의 Python 파일은 호환 import 래퍼입니다. 실제 구현을 수정할 때는
+[소유 패키지와 API 목록](model-bridges.md)에서 위치를 확인하세요.

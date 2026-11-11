@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rwh_beyond_model_utils</name>
+  <version>0.1.0</version>
+  <description>Shared CPU data conversion and model transport utilities.</description>
+  <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>sensor_msgs_py</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-zmq</exec_depend>
+  <exec_depend>python3-msgpack</exec_depend>
+  <exec_depend>python3-msgpack-numpy</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

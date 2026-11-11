@@ -48,8 +48,8 @@ PoseStamped 두 토픽은 마지막 성공한 선택 값으로 남으므로 기�
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
-colcon build --symlink-install --packages-select \
-  rwh_beyond_grasp_bridge rwh_beyond_bt moma_bringup
+colcon build --symlink-install --packages-up-to \
+  rwh_beyond_bringup rwh_beyond_grasp_bridge ros_runner
 source install/setup.bash
 ```
 
@@ -101,7 +101,7 @@ ros2 launch rwh_beyond_bringup moveit_rviz.launch.py
 시뮬레이터·모델·BT goal을 시작하지 않는다.
 
 ```bash
-ros2 launch rwh_beyond_grasp_bridge grasp_visualization.launch.py
+ros2 launch rwh_beyond_grasp_pipeline grasp_visualization.launch.py
 ```
 
 처음에는 결과가 없다. 아래 관측 BT 또는 기본 집기 BT를 실행하면 왼쪽에 마스크·오버레이,

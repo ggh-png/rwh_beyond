@@ -14,6 +14,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import PointCloud2, PointField
 from sensor_msgs_py.point_cloud2 import create_cloud_xyz32
 from std_msgs.msg import Header
+from rwh_beyond_sam3_bridge.action_server import SegmentationActionServer
 from rwh_beyond_msgs.action import InferGrasps
 from rwh_beyond_grasp_bridge.inference_action_server import InferenceActionServer
 from rwh_beyond_grasp_bridge.cloud_converter import cloud_xyz
@@ -71,24 +72,39 @@ def wait(future, timeout=5):
     return future.result()
 
 @pytest.fixture
-def bridge(mock):
-    rclpy.init()
+def bridge(mock, request):
+    # Use an unreachable action name for the independent case; DDS discovery
+    # can briefly retain the SAM server from the preceding fixture context.
+    include_sam = getattr(request, 'param', True)
+    args = None if include_sam else [
+        '--ros-args', '-r', 'segment_image:=/intentionally_absent_sam_test']
+    rclpy.init(args=args)
     node = InferenceActionServer()
     node.endpoint = mock.endpoint
     node.timeout = .3
+    sam = SegmentationActionServer() if include_sam else None
+    if sam is not None:
+        sam.set_parameters([rclpy.parameter.Parameter('timeout', value=.3)])
+    node.test_sam_node = sam
     client_node = Node('test_graspgenx_client')
-    executor = MultiThreadedExecutor(num_threads=4)
+    executor = MultiThreadedExecutor(num_threads=6)
     executor.add_node(node)
+    if sam is not None:
+        executor.add_node(sam)
     executor.add_node(client_node)
     thread = threading.Thread(target=executor.spin, daemon=True)
     thread.start()
     client = ActionClient(client_node, InferGrasps, 'infer_grasps')
     assert client.wait_for_server(timeout_sec=5)
+    if sam is not None:
+        assert node.segment.wait_for_server(timeout_sec=5)
     yield node, client, client_node
     client.destroy()
     executor.shutdown(timeout_sec=3)
     thread.join(3)
     node.destroy_node()
+    if sam is not None:
+        sam.destroy_node()
     client_node.destroy_node()
     rclpy.shutdown()
 
@@ -266,3 +282,11 @@ def test_mock_response_is_labeled(bridge,mock):
     mock.handler=response
     result=run(bridge).result
     assert result.success and result.message.startswith('MOCK_ONLY')
+
+
+@pytest.mark.parametrize('bridge', [False], indirect=True)
+def test_point_cloud_grasp_bridge_runs_without_a_sam_ros_server(bridge):
+    assert not bridge[0].segment.server_is_ready()
+    outcome = run(bridge)
+    assert outcome.status == 4 and outcome.result.success
+    assert len(outcome.result.candidates) == 2

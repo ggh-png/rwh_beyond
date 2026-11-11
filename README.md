@@ -24,7 +24,11 @@ ROS 2 Jazzy 기반 Husky 외부 PC navigation과 커스텀 서비스 확장을 �
 ```text
 rwh_beyond/                         # C++ lifecycle/component 서버
 rwh_beyond_msgs/                    # 공용 msg/action/srv: RunDemo, InferGrasps 등
-rwh_beyond_grasp_bridge/            # ROS Action ↔ GraspGenX ZMQ, GPU 모델과 분리
+rwh_beyond_sam3_bridge/             # /segment_image ↔ SAM ZMQ
+rwh_beyond_graspgenx_bridge/        # /infer_grasps ↔ GraspGenX ZMQ
+rwh_beyond_grasp_pipeline/          # 관측·점군·후보 선택·MoveIt·시각화
+rwh_beyond_model_utils/             # 공통 변환·wire helper
+rwh_beyond_grasp_bridge/            # 이전 실행 명령/import 호환
 rwh_beyond_bringup/
   launch/
     bringup.launch.py              # navigation + localization/SLAM + sensor + RViz
@@ -200,7 +204,12 @@ vcs import --recursive --skip-existing src < src/rwh_beyond/moma-mj-lab.repos
 토픽·TF·MoveIt 통합 및 빌드는 `src/moma-mj-lab/README.md` 안내를 따릅니다.
 manifest는 두 저장소를 같은 ROS workspace에 나란히 checkout합니다.
 
-## GraspGenX 추론 Bridge
+## 모델별 ROS bridge
+
+[패키지·Action·설정 파일 안내](docs/model-bridges.md)를 참고하세요. 모델 컨테이너는 그대로 유지하고
+SAM·GraspGenX의 ROS 인터페이스를 각각 독립 노드로 실행합니다.
+
+## GraspGenX 추론 Bridge (호환 진입점)
 
 `rwh_beyond_grasp_bridge`는 `/infer_grasps` Action을 제공하고 인터페이스는
 기존 `rwh_beyond_msgs`에서 관리한다. 객체 점군 또는 Depth/CameraInfo/마스크를

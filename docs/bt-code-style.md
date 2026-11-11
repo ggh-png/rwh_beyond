@@ -79,7 +79,7 @@ ROS 2 Jazzy 기본 설정의 `ament_uncrustify`, `ament_cpplint`를 CMake 테스
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
-colcon build --packages-select rwh_beyond_bt rwh_beyond_navigator rwh_beyond_bringup \
+colcon build --packages-up-to rwh_beyond_bt rwh_beyond_navigator rwh_beyond_bringup \
   --symlink-install
 source install/setup.bash
 colcon test --packages-select rwh_beyond_bt rwh_beyond_navigator \

@@ -34,7 +34,8 @@ def test_rgbd_action_synthetic_mask_to_grasp_wire_and_header(bridge,mock):
     segment=MockServer()
     try:
         segment.handler=fake_segmentation
-        bridge[0].set_parameters([Parameter('segmentation_endpoint',value=segment.endpoint),Parameter('allow_mock_segmentation',value=True)])
+        bridge[0].test_sam_node.set_parameters([Parameter('endpoint',value=segment.endpoint),Parameter('allow_mock',value=True)])
+        bridge[0].set_parameters([Parameter('allow_mock_segmentation',value=True)])
         result=run(bridge,rgbd_goal()).result
         assert result.success and result.message.startswith('MOCK_ONLY:')
         assert result.segmentation_score==pytest.approx(.85)
@@ -50,7 +51,7 @@ def test_mock_segmentation_rejected_by_default_and_grasp_not_called(bridge,mock)
     segment=MockServer()
     try:
         segment.handler=fake_segmentation
-        bridge[0].set_parameters([Parameter('segmentation_endpoint',value=segment.endpoint)])
+        bridge[0].test_sam_node.set_parameters([Parameter('endpoint',value=segment.endpoint)])
         result=run(bridge,rgbd_goal()).result
         assert not result.success and result.message.startswith('INVALID_RESPONSE:')
         assert not mock.requests
@@ -101,7 +102,8 @@ def test_segmentation_failure_never_reaches_grasp_model(bridge,mock,failure):
         return value
     try:
         segment.handler=bad
-        bridge[0].set_parameters([Parameter('segmentation_endpoint',value=segment.endpoint),Parameter('allow_mock_segmentation',value=True)])
+        bridge[0].test_sam_node.set_parameters([Parameter('endpoint',value=segment.endpoint),Parameter('allow_mock',value=True)])
+        bridge[0].set_parameters([Parameter('allow_mock_segmentation',value=True)])
         result=run(bridge,rgbd_goal()).result
         expected={'malformed':'INVALID_RESPONSE:','no_object':'SERVER_ERROR:','timeout':'TIMEOUT:'}[failure]
         assert not result.success and result.message.startswith(expected)

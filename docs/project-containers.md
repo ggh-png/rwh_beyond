@@ -13,7 +13,7 @@
 | 핵심 환경 | ROS 2 Jazzy, MoveIt, MuJoCo, RViz | Python, PyTorch, SAM 3 | Python, PyTorch, GraspGenX |
 | 작업 코드 | `/root/ros2_ws/src` | `/opt/sam3`, `/opt/segmentation` | `/opt/GraspGenX`, `/opt/deploy` |
 | 실행 | runner → simulation + BT launch | `python -u /opt/segmentation/server.py` | `bash /opt/deploy/scripts/start_server.sh` |
-| 통신 | ROS 2 Topic/Service/Action + ZMQ client | ZMQ REP 5567 | ZMQ server 5566 |
+| 통신 | ROS 2 Topic/Service/Action + 모델별 bridge의 ZMQ client | ZMQ REP 5567 | ZMQ server 5566 |
 
 이 PC의 `docker`는 Podman 호환 명령입니다. 아래 실행 안내는 `sudo` 없이 `docker`를 사용합니다.
 빌드 helper의 실제 구현은 `podman`입니다. 일반 Docker daemon의 컨테이너와 목록이 자동 공유되지는 않습니다.

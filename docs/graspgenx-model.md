@@ -68,4 +68,8 @@ ROS 쪽 `/infer_grasps`는 입력 모드 POINT_CLOUD/DEPTH_IMAGE/RGBD를 제공�
 | 로봇 실행 후보 선택 규칙 | ROS `selection_stages.py` |
 
 공식 모델 구현을 읽고 싶으면 `grasp_server.py`와 `serving/zmq_server.py`부터,
-이 프로젝트의 연결을 바꾸려면 `inference_action_server.py`와 `pose_converter.py`부터 읽으세요.
+이 프로젝트의 연결을 바꾸려면 `rwh_beyond_graspgenx_bridge/inference_action_server.py`와 공통 `pose_converter.py`부터 읽으세요.
+
+
+현재 ROS 서버는 `rwh_beyond_graspgenx_bridge` 패키지에서 실행합니다. RGBD 편의 API도
+SAM을 직접 ZMQ로 호출하지 않고 `/segment_image` Action을 사용합니다. [노드 분리 구조](model-bridges.md)를 참고하세요.

@@ -127,7 +127,7 @@ ros_runner: bt_demo_sim
     ├─ requires: piper_moveit_sim
     │     └─ MuJoCo + MoveIt (rviz:=false)
     └─ bt_demo.launch.py
-          ├─ grasp_pipeline.launch.py → coordinator + inference bridge
+          ├─ grasp_pipeline.launch.py → SAM bridge + GraspGenX bridge + coordinator
           ├─ BT navigator + lifecycle manager
           └─ MoveIt/SAM/점군/파지 통합 RViz
 ```
@@ -248,7 +248,8 @@ ros2 param get /graspgenx_bridge use_sim_time
 ```
 
 현재 MuJoCo 경로에서는 둘 다 `True`여야 한다. BT launch의 `params_file`은 navigator용,
-`grasp_params_file`은 coordinator·추론 bridge용이다. 내부 grasp pipeline include는 launch 설정을
+`grasp_params_file`은 pipeline용이다. 모델 bridge는 각각 자신의 YAML을 읽는다.
+패키지·Action·설정 파일 대응은 [ROS bridge 분리](model-bridges.md)를 참고한다. 내부 grasp pipeline include는 launch 설정을
 별도 scope에 두고 올바른 YAML을 전달한다. 이 두 파일을 같은 인자로 혼용하지 않는다.
 수정 후에는 관련 패키지를 빌드하고 기존 runner를 종료·재시작한다. 이 문제 때문에 SAM 컨테이너를
 재시작할 필요는 없다.

@@ -32,6 +32,7 @@ nav:
       - 3. 모델 데이터와 좌표계: project-data.md
       - 4. 처음 터미널부터 실행: grasp-pipeline-guide.md
       - 5. 코드를 따라 읽기: project-code-map.md
+      - 모델별 ROS 노드 분리: model-bridges.md
       - SAM 3 구현: sam3-perception.md
       - GraspGenX 구현: graspgenx-model.md
       - RViz로 디버깅: grasp-visualization.md

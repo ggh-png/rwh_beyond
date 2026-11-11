@@ -33,8 +33,8 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'grasp_params_file',
             default_value=PathJoinSubstitution([
-                FindPackageShare('rwh_beyond_grasp_bridge'), 'config', 'grasp_pipeline.yaml']),
-            description='Grasp coordinator and inference bridge parameter YAML'),
+                FindPackageShare('rwh_beyond_grasp_pipeline'), 'config', 'grasp_pipeline.yaml']),
+            description='Grasp pipeline coordinator parameter YAML'),
         DeclareLaunchArgument(
             'segmentation_endpoint',
             default_value=EnvironmentVariable(
@@ -57,7 +57,7 @@ def generate_launch_description():
         # its grasp YAML neither inherits nor overwrites the navigator YAML.
         GroupAction(scoped=True, actions=[IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([
-                FindPackageShare('rwh_beyond_grasp_bridge'), 'launch', 'grasp_pipeline.launch.py'])),
+                FindPackageShare('rwh_beyond_grasp_pipeline'), 'launch', 'grasp_pipeline.launch.py'])),
             launch_arguments={
                 'params_file': LaunchConfiguration('grasp_params_file'),
                 'segmentation_endpoint': LaunchConfiguration('segmentation_endpoint'),

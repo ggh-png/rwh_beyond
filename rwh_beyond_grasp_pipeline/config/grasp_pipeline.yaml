@@ -1,0 +1,22 @@
+grasp_coordinator:
+  ros__parameters:
+    use_sim_time: true
+    simulation_only: true
+    segmentation_backend: sam3
+    target_text: red box
+    target_box: [0.0, 0.0, 0.0, 0.0]
+    selection_point: [-1, -1]
+    selection_policy: unique
+    base_frame: base_link
+    tcp_link: tcp_link
+    object_dimensions: [0.04, 0.04, 0.05]
+    pregrasp_distance: 0.08
+    lift_distance: 0.08
+    # Model +X closing -> physical PiPER +/-Y closing; official fingertip at +Z .130 m.
+    model_to_tcp_xyz: [0.0, 0.0, 0.13]
+    model_to_tcp_rpy: [0.0, 0.0, -1.5707963267948966]
+    num_grasps: 100
+    top_k: 100
+    max_candidates: 100
+    # Display only; never limits inference or feasibility selection.
+    debug_max_candidates: 10

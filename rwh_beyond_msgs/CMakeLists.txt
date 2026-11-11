@@ -8,6 +8,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetGraspRegion.srv"
   "msg/TcpPose.msg"
   "msg/GraspCandidate.msg"
+  "action/SegmentImage.action"
   "action/InferGrasps.action"
   "action/RunGraspStep.action"
   "action/RunGraspStage.action"

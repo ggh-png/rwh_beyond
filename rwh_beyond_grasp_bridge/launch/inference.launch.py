@@ -16,6 +16,8 @@ def generate_launch_description():
         Node(package='rwh_beyond_grasp_bridge', executable='mock_zmq_server',
              condition=IfCondition(LaunchConfiguration('mock')), output='screen',
              arguments=['--endpoint', LaunchConfiguration('endpoint')]),
-        Node(package='rwh_beyond_grasp_bridge', executable='inference_action_server',
+        Node(package='rwh_beyond_sam3_bridge', executable='segmentation_action_server',
+             output='screen', parameters=[{'endpoint': LaunchConfiguration('segmentation_endpoint')}]),
+        Node(package='rwh_beyond_graspgenx_bridge', executable='inference_action_server',
              output='screen', parameters=[LaunchConfiguration('params_file'),
-                                         {'endpoint': LaunchConfiguration('endpoint'), 'segmentation_endpoint': LaunchConfiguration('segmentation_endpoint')}])])
+                                         {'endpoint': LaunchConfiguration('endpoint')}])])

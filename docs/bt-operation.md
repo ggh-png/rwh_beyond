@@ -12,9 +12,8 @@
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
-colcon build --packages-select \
-  rwh_beyond_msgs rwh_beyond_bt rwh_beyond_navigator rwh_beyond_grasp_bridge \
-  moma_mujoco_ros moma_bringup rwh_beyond_bringup --symlink-install
+colcon build --symlink-install --packages-up-to \
+  rwh_beyond_bringup rwh_beyond_grasp_bridge ros_runner
 source install/setup.bash
 ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
 ```

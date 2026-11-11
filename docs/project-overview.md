@@ -12,7 +12,8 @@ flowchart TB
       SIM["MuJoCo: 로봇 · 물체 · RGB-D 카메라"]
       BT["BT navigator: 단계 순서와 실패 관리"]
       CO["grasp_coordinator: 관측 · 선택 · 이동 관리"]
-      BR["graspgenx_bridge: ROS Action ↔ 모델 통신"]
+      SB["sam3_bridge: 분할 ROS Action ↔ SAM"]
+      BR["graspgenx_bridge: 추론 ROS Action ↔ GraspGenX"]
       MV["MoveIt: IK · 충돌 · 경로 계획"]
       RV["RViz: 로봇 · SAM · 점군 · 파지 시각화"]
     end
@@ -21,8 +22,10 @@ flowchart TB
   end
   SIM -->|RGB / Depth / CameraInfo / TF| CO
   BT -->|단계별 ROS Action| CO
-  CO -->|RGB + 대상 설명| SAM
-  SAM -->|2D 마스크| CO
+  CO -->|RGB + 대상 설명 / ROS Action| SB
+  SB -->|ZMQ| SAM
+  SAM -->|2D 마스크| SB
+  SB -->|ROS 결과| CO
   CO -->|로컬 객체 점군 / ROS Action| BR
   BR -->|XYZ / ZMQ| GX
   GX -->|파지 행렬 + 점수| BR
@@ -42,7 +45,7 @@ SAM과 GraspGenX는 별도 컨테이너입니다. SAM 이미지가 GraspGenX 이
 
 | 저장소 | 책임 | 자주 보는 위치 |
 |---|---|---|
-| `rwh_beyond` | BT, 공용 메시지, 모델 Bridge, coordinator, 통합 launch, 이 문서 | `rwh_beyond_bt/`, `rwh_beyond_grasp_bridge/` |
+| `rwh_beyond` | BT, 공용 메시지, 모델 Bridge, coordinator, 통합 launch, 이 문서 | `rwh_beyond_bt/`, `rwh_beyond_grasp_pipeline/`, 모델별 bridge |
 | `ros_runner` | launch 프로세스를 의존성에 따라 시작·종료 | `config/runners.yaml` |
 | `moma-mj-lab` | MuJoCo 물리, 카메라, ROS 연결, 시뮬레이션 bringup | `ros2_ws/src/moma_mujoco_ros/`, `ros2_ws/src/moma_bringup/` |
 | `agx_arm_ros` | AgileX 공식 PiPER description·MoveIt·실물 driver | `agx_arm_moveit/`, `agx_arm_ctrl/` |
@@ -67,14 +70,15 @@ SAM과 GraspGenX는 별도 컨테이너입니다. SAM 이미지가 GraspGenX 이
 ## 4. BT와 Python의 관계
 
 BT C++ 플러그인은 단계 순서·Action 요청·성공/실패/취소를 관리합니다.
-Python coordinator는 카메라 관측, 모델 호출, MoveIt 검사와 저장된 경로를 관리합니다.
+Python coordinator는 카메라 관측, 모델 ROS Action 요청, MoveIt 검사와 저장된 경로를 관리합니다.
+SAM·GraspGenX의 ZMQ 통신은 각각 별도 ROS bridge 프로세스가 담당합니다.
 
 - Blackboard: 실제 마스크·점군·후보 메시지와 `observation_id`, `plan_id`를 단계 사이에 전달합니다.
 - coordinator 내부: 원본 RGB-D·촬영 TF·관절 상태·선택된 궤적·부착 상태를 보관합니다.
 - GPU 서버: 분할 또는 파지 추론만 수행합니다. 로봇의 관절·충돌 장면·이동 명령은 처리하지 않습니다.
 
-노드별로 C++ 헤더·CPP와 endpoint를 분리했지만, Python 백엔드는 상태 공유를 위해 한 coordinator
-프로세스에 역할별 모듈을 연결한 구조입니다. 각 단계가 모두 별도 Python 서버인 구성은 아닙니다.
+C++ BT 노드별 헤더·CPP·endpoint와 모델별 ROS 프로세스를 분리했습니다. 관측·선택·이동 모듈은
+상태 공유를 위해 coordinator에 유지합니다. [모델별 ROS bridge](model-bridges.md)를 참고하세요.
 
 ## 5. 검증 결과와 제한 {#validation}
 
@@ -83,6 +87,7 @@ RViz 결과 보존과 활성화/종료 시험도 기록되어 있습니다. 아�
 
 | 기록 | 내용 |
 |---|---|
+| [모델별 ROS 분리](validation/model-bridges-2026-11-11.json) | 독립 서버·실제 모델 전체 BT·취소 복원 |
 | [BT 역할 분리](validation/bt-split-2026-11-11.json) | 데이터 전달, 전체 집기, 취소 복원 |
 | [Nav2 스타일](bt-code-style.md) | 헤더/CPP·플러그인 로딩·검사 |
 | [MoveIt 통합 화면](validation/moveit-grasp-debug-2026-11-11.json) | SAM·점군·후보·선택 자세 표시 |

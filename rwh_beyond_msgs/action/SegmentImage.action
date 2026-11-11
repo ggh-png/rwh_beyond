@@ -1,0 +1,18 @@
+# SAM bridge input: one RGB image and target selection; no robot motion.
+sensor_msgs/Image rgb_image
+string target_text
+float32[4] target_box
+bool use_selection_point
+uint32 selection_u
+uint32 selection_v
+string selection_policy
+---
+bool success
+string message
+# Depth-safe mono8 binary mask, same header and resolution as rgb_image.
+sensor_msgs/Image object_mask
+float32 score
+uint32 instance_count
+bool mock
+---
+string stage

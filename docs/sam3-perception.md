@@ -10,6 +10,8 @@ RGB에서 3D 모델을 생성하는 SAM 3D나 동영상 추적 기능은 현재 
 
 ```text
 ROS perception_stages.py::segment_target()
+  → action_client.py::segment_via_action()
+      /segment_image ROS Action → SAM ROS action_server.py
   → segmentation_client.py::segment_image()
       RGB + text/box/selection_point → ZMQ 5567
   → server.py::serve()
@@ -49,7 +51,7 @@ GPU 추론은 `torch.inference_mode()`와 CUDA bfloat16 autocast 안에서 실�
 연결하지 않았습니다.** 기본 파라미터는 `target_text="red box"`, 박스·점 미지정, `unique`입니다.
 선택 조건·마스크 수 검사는 `segmentation_core.py::select_instance()`가 담당합니다.
 
-## 응답 이후 ROS에서 처리하는 것
+## 응답 이후 SAM ROS bridge에서 처리하는 것
 
 1. `backend="sam3"`, `mock=False` 확인. 색상 기반/mocked 결과로 자동 대체하지 않음.
 2. 마스크 크기·`uint8`·0/1 값·점수·인스턴스 수 확인.
@@ -68,8 +70,8 @@ RViz의 `/grasp/object_mask_preview`는 흑백으로 보이도록 0/255로 변�
 | 찾을 물체·박스·선택점 | coordinator 파라미터, [실행 중 대상 변경](grasp-pipeline-guide.md#target) |
 | 모델 confidence threshold / autocast / 공식 API | 배포 `server.py::Sam3` |
 | 여러 mask 중 선택 규칙 | 배포 `segmentation_core.py` |
-| ROS 요청 payload·마스크 후처리 | Bridge `segmentation_client.py` |
-| 촬영·TF 저장·분할 단계 흐름 | Bridge `perception_stages.py` |
+| ROS 요청 payload·마스크 후처리 | SAM bridge `segmentation_client.py` |
+| 촬영·TF 저장·분할 단계 흐름 | pipeline `perception_stages.py` |
 | 체크포인트 경로·GPU·볼륨 | 배포 `Dockerfile`, `local_podman.sh` |
 
 서버 코드를 바꾸면 이미지 rebuild·컨테이너 재생성이 필요하고, ROS 쪽 코드 변경과는 배포 경로가 다릅니다.
@@ -81,3 +83,7 @@ RViz의 `/grasp/object_mask_preview`는 흑백으로 보이도록 0/255로 변�
 새 물체·실물·복수 물체·조명 변화의 일반적인 성공률이나 동적 추적은 검증하지 않았습니다.
 초기 승인 전 테스트, 승인 후 실제 모델, 과거 `GraspStep` 방식과 실패 기록은
 [이전 SAM 통합 기록](sam3-history.md)에 별도로 보존했습니다.
+
+
+현재 ROS 서버는 `rwh_beyond_sam3_bridge/action_server.py`이고, coordinator는
+`rwh_beyond_grasp_pipeline`에 있습니다. [분리된 패키지와 실행](model-bridges.md)을 참고하세요.

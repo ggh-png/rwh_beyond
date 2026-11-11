@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>rwh_beyond_grasp_pipeline</name>
+  <version>0.1.0</version>
+  <description>RGB-D observation, grasp selection and MoveIt orchestration.</description>
+  <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>rwh_beyond_msgs</exec_depend>
+  <exec_depend>rwh_beyond_model_utils</exec_depend>
+  <exec_depend>rwh_beyond_sam3_bridge</exec_depend>
+  <exec_depend>rwh_beyond_graspgenx_bridge</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>sensor_msgs_py</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>shape_msgs</exec_depend>
+  <exec_depend>tf2_ros_py</exec_depend>
+  <exec_depend>visualization_msgs</exec_depend>
+  <exec_depend>rviz2</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>python3-scipy</exec_depend>
+  <exec_depend>python3-yaml</exec_depend>
+  <test_depend>python3-pytest</test_depend>
+  <export><build_type>ament_python</build_type></export>
+</package>

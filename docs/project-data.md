@@ -21,6 +21,9 @@ RGB와 Depth는 같은 해상도·같은 optical frame으로 정합되어야 합
 
 ## 2. ROS → SAM → ROS
 
+coordinator → `/segment_image` ROS Action → `sam3_bridge` → SAM ZMQ 순서입니다.
+Action 입력은 RGB와 대상 조건이며 Depth는 pipeline에 남깁니다.
+
 ZMQ 주소 `tcp://127.0.0.1:5567`. 아래는 배열을 생략한 요청 구조 예시입니다.
 
 ```python
@@ -42,12 +45,12 @@ ZMQ 주소 `tcp://127.0.0.1:5567`. 아래는 배열을 생략한 요청 구조 �
 | `backend`, `mock` | 실제 `sam3`, `False`인지 확인 |
 | `elapsed` | 서버 분할 처리 시간(초) |
 
-Depth·TF·관절값은 SAM에 보내지 않습니다. ROS client는 마스크를 3×3 침식 1회 처리해
+Depth·TF·관절값은 SAM에 보내지 않습니다. SAM ROS bridge는 마스크를 3×3 침식 1회 처리해
 경계의 배경 Depth 혼입을 줄입니다. [공식 SAM API를 호출하는 방법](sam3-perception.md)도 참고하세요.
 
 ## 3. 마스크 + Depth + K → 객체 점군
 
-ROS CPU의 `depth_converter.py::depth_xyz()`가 마스크 안의 유효한 깊이 픽셀만 역투영합니다.
+ROS CPU의 `rwh_beyond_model_utils.depth_converter::depth_xyz()`가 마스크 안의 유효한 깊이 픽셀만 역투영합니다.
 일반적인 pinhole 표현은 아래와 같습니다. 실제 코드는 K 역행렬을 사용합니다.
 
 ```text
@@ -126,6 +129,7 @@ RViz 토픽은 디버깅 출력이며 다음 BT 단계가 토픽에서 결과를
 ## 7. 독립 추론 API와 기본 BT의 차이 {#standalone}
 
 `rwh_beyond_msgs/action/InferGrasps.action`은 세 입력 모드를 지원합니다.
+RGBD 모드는 별도 SAM ROS Action을 호출합니다. [모델별 노드/API](model-bridges.md)를 참고하세요.
 
 | 모드 | 입력 | Bridge 처리 |
 |---|---|---|

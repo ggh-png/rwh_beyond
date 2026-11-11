@@ -1,2 +1,5 @@
-class Canceled(Exception):
-    """The active grasp stage was canceled."""
+"""Compatibility import; implementation lives in rwh_beyond_grasp_pipeline."""
+import importlib
+import sys
+
+sys.modules[__name__] = importlib.import_module("rwh_beyond_grasp_pipeline.stage_errors")

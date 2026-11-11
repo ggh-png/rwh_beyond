@@ -1,0 +1,11 @@
+graspgenx_bridge:
+  ros__parameters:
+    use_sim_time: true
+    endpoint: tcp://127.0.0.1:5566
+    allow_mock_segmentation: false
+    timeout: 60.0
+    min_points: 100
+    max_points: 200000
+    max_grasps: 1000
+    max_depth_pixels: 2073600
+    sensor_sync_tolerance: 0.1

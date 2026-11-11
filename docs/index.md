@@ -15,6 +15,8 @@
 
 ## 필요한 부분 바로 찾기
 
+- **모델별 ROS 패키지·서버는 어디에 있나?** [ROS bridge 분리 구조](model-bridges.md)
+
 - **두 모델을 구체적으로 어떻게 썼나?** [SAM 3 구현](sam3-perception.md), [GraspGenX 구현](graspgenx-model.md)
 - **다른 물체를 지정하고 싶다:** [대상 변경](grasp-pipeline-guide.md#target)
 - **마스크·점군·파지 후보가 안 보인다:** [RViz 토픽과 설정](grasp-visualization.md)

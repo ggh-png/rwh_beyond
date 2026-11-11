@@ -82,7 +82,7 @@ ROS가 컨테이너 내부라면 호스트 SSH 터널의 localhost와 다를 수
 ```bash
 source /opt/ros/jazzy/setup.bash
 cd /root/ros2_ws
-colcon build --packages-select rwh_beyond_msgs rwh_beyond_grasp_bridge
+colcon build --symlink-install --packages-up-to rwh_beyond_grasp_bridge
 source install/setup.bash
 PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 ROS_DOMAIN_ID=93 python3 -m pytest -q src/rwh_beyond/rwh_beyond_grasp_bridge/test
 ```
