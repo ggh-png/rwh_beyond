@@ -1,262 +1,1725 @@
-<!DOCTYPE html>
-<html lang="en" data-bs-theme="auto">
-    <head>
-        <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
-        
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용">
+      
+      
+      
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/bt-nodes/">
-        <link rel="shortcut icon" href="../img/favicon.ico">
+      
+      
+        <link rel="prev" href="../depth-bt-flow/">
+      
+      
+        <link rel="next" href="../bt-grasp-stages/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
         <title>노드 목록 - RWH · PiPER 집기와 Husky 운용</title>
-        <link href="../css/bootstrap.min.css" rel="stylesheet">
-        <link href="../css/fontawesome.min.css" rel="stylesheet">
-        <link href="../css/brands.min.css" rel="stylesheet">
-        <link href="../css/solid.min.css" rel="stylesheet">
-        <link href="../css/v4-font-face.min.css" rel="stylesheet">
-        <link href="../css/base.css" rel="stylesheet">
-        <link id="hljs-light" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" disabled>
-        <link id="hljs-dark" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github-dark.min.css" disabled>
-        <link href="../assets/stylesheets/bt-docs.css" rel="stylesheet">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-        <script>hljs.highlightAll();</script> 
-    </head>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
 
-    <body>
-        <div class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
-            <div class="container">
-                <a class="navbar-brand" href="..">RWH · PiPER 집기와 Husky 운용</a>
-                <!-- Expander button -->
-                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar-collapse" aria-controls="navbar-collapse" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <!-- Expanded navigation -->
-                <div id="navbar-collapse" class="navbar-collapse collapse">
-                        <!-- Main navigation -->
-                        <ul class="nav navbar-nav">
-                            <li class="nav-item">
-                                <a href=".." class="nav-link">문서 시작</a>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">PiPER 집기 이해하기</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../project-overview/" class="dropdown-item">1. 전체 흐름 한눈에</a>
-</li>
-                                    
-<li>
-    <a href="../project-containers/" class="dropdown-item">2. 컨테이너 구축</a>
-</li>
-                                    
-<li>
-    <a href="../project-data/" class="dropdown-item">3. 모델 데이터와 좌표계</a>
-</li>
-                                    
-<li>
-    <a href="../grasp-pipeline-guide/" class="dropdown-item">4. 처음 터미널부터 실행</a>
-</li>
-                                    
-<li>
-    <a href="../project-code-map/" class="dropdown-item">5. 코드를 따라 읽기</a>
-</li>
-                                    
-<li>
-    <a href="../sam3-perception/" class="dropdown-item">SAM 3 구현</a>
-</li>
-                                    
-<li>
-    <a href="../graspgenx-model/" class="dropdown-item">GraspGenX 구현</a>
-</li>
-                                    
-<li>
-    <a href="../grasp-visualization/" class="dropdown-item">RViz로 디버깅</a>
-</li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle active" aria-current="page" role="button" data-bs-toggle="dropdown"  aria-expanded="false">BT 개발 상세</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../bt-architecture/" class="dropdown-item">아키텍처</a>
-</li>
-                                    
-<li>
-    <a href="../depth-bt-flow/" class="dropdown-item">Depth와 runner 흐름</a>
-</li>
-                                    
-<li>
-    <a href="./" class="dropdown-item active" aria-current="page">노드 목록</a>
-</li>
-                                    
-<li>
-    <a href="../bt-grasp-stages/" class="dropdown-item">단계별 포트와 Action</a>
-</li>
-                                    
-<li>
-    <a href="../bt-code-style/" class="dropdown-item">Nav2 헤더·CPP 구성</a>
-</li>
-                                    
-<li>
-    <a href="../bt-operation/" class="dropdown-item">실행과 Groot2</a>
-</li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">구축 상세와 실험 기록</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../graspgenx-integration/" class="dropdown-item">GraspGenX 배포 상세</a>
-</li>
-                                    
-<li>
-    <a href="../red-box-grasp/" class="dropdown-item">초기 빨간 상자 통합</a>
-</li>
-                                    
-<li>
-    <a href="../sam3-history/" class="dropdown-item">SAM 통합 이력</a>
-</li>
-                                    
-<li>
-    <a href="../work-log-2026-11-09/" class="dropdown-item">11월 9일 작업 기록</a>
-</li>
-                                    
-<li>
-    <a href="../work-log-2026-11-10/" class="dropdown-item">11월 10일 작업 기록</a>
-</li>
-                                </ul>
-                            </li>
-                            <li class="nav-item dropdown">
-                                <a href="#" class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"  aria-expanded="false">Husky SLAM·Nav2</a>
-                                <ul class="dropdown-menu">
-                                    
-<li>
-    <a href="../husky-guide/" class="dropdown-item">시작 안내</a>
-</li>
-                                    
-<li>
-    <a href="../connection/" class="dropdown-item">SSH와 본체 확인</a>
-</li>
-                                    
-<li>
-    <a href="../setup/" class="dropdown-item">외부 PC 준비</a>
-</li>
-                                    
-<li>
-    <a href="../operation/" class="dropdown-item">SLAM과 Nav2 실행</a>
-</li>
-                                    
-<li>
-    <a href="../interfaces/" class="dropdown-item">TF와 토픽</a>
-</li>
-                                    
-<li>
-    <a href="../configuration/" class="dropdown-item">파라미터 설정</a>
-</li>
-                                    
-<li>
-    <a href="../runner/" class="dropdown-item">ros_runner 운용</a>
-</li>
-                                    
-<li>
-    <a href="../troubleshooting/" class="dropdown-item">문제 해결</a>
-</li>
-                                </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../documentation/" class="nav-link">문서 관리</a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="../upstream/" class="nav-link">구조와 출처</a>
-                            </li>
-                        </ul>
-
-                    <ul class="nav navbar-nav ms-md-auto">
-                        <li class="nav-item">
-                            <a href="#" class="nav-link" data-bs-toggle="modal" data-bs-target="#mkdocs_search_modal">
-                                <i class="fa fa-search"></i> Search
-                            </a>
-                        </li>
-                            <li class="nav-item">
-                                <a rel="prev" href="../depth-bt-flow/" class="nav-link">
-                                    <i class="fa fa-arrow-left"></i> Previous
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a rel="next" href="../bt-grasp-stages/" class="nav-link">
-                                    Next <i class="fa fa-arrow-right"></i>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="https://github.com/ggh-png/rwh_beyond/edit/main/docs/bt-nodes.md" class="nav-link">Edit on ggh-png/rwh_beyond
-                                    </a>
-                            </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <script src="../js/darkmode.js"></script>
-
-        <div class="container">
-            <div class="row">
-                    <div class="col-md-3"><div class="navbar-expand-md bs-sidebar hidden-print affix" role="complementary">
-    <div class="navbar-header">
-        <button type="button" class="navbar-toggler collapsed" data-bs-toggle="collapse" data-bs-target="#toc-collapse" title="Table of Contents">
-            <span class="fa fa-angle-down"></span>
-        </button>
-    </div>
 
     
-    <div id="toc-collapse" class="navbar-collapse collapse card bg-body-tertiary">
-        <ul class="nav flex-column">
-            
-            <li class="nav-item" data-bs-level="1"><a href="#bt" class="nav-link">BT 노드 사용법</a>
-              <ul class="nav flex-column">
-            <li class="nav-item" data-bs-level="2"><a href="#_1" class="nav-link">노드 목록</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#clearoctomap" class="nav-link">ClearOctomap — 이동 전 지도 초기화</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#setgripper" class="nav-link">SetGripper — 개방 폭 지정</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#tcppose" class="nav-link">TcpPose — 목표를 객체 하나로 관리</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#maketcppose" class="nav-link">MakeTcpPose — 객체 만들기</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#movetcp" class="nav-link">MoveTcp — 객체로 이동하기</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#_3" class="nav-link">실패와 그리퍼 접촉 처리</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#_5" class="nav-link">역할별 파지 플러그인</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-            <li class="nav-item" data-bs-level="2"><a href="#graspstep-xml" class="nav-link">GraspStep — 기존 XML 호환용 공통 플러그인</a>
-              <ul class="nav flex-column">
-              </ul>
-            </li>
-              </ul>
-            </li>
-        </ul>
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/docs.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bt" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
     </div>
-</div></div>
-                    <div class="col-md-9" role="main">
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-header__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            RWH · PiPER 집기와 Husky 운용
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              노드 목록
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="검색" placeholder="검색" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="검색">
+        
+        <button type="reset" class="md-search__icon md-icon" title="지우기" aria-label="지우기" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            검색 초기화
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/ggh-png/rwh_beyond" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ggh-png/rwh_beyond
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-nav__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
+
+    </a>
+    RWH · PiPER 집기와 Husky 운용
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/ggh-png/rwh_beyond" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    ggh-png/rwh_beyond
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    문서 시작
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PiPER 집기 이해하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    PiPER 집기 이해하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    1. 전체 흐름 한눈에
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-containers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2. 컨테이너 구축
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    3. 모델 데이터와 좌표계
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-pipeline-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    4. 처음 터미널부터 실행
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-code-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    5. 코드를 따라 읽기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sam3-perception/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAM 3 구현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graspgenx-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraspGenX 구현
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RViz로 디버깅
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BT 개발 상세
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    BT 개발 상세
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    아키텍처
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../depth-bt-flow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Depth와 runner 흐름
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    노드 목록
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    노드 목록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        노드 목록
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clearoctomap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClearOctomap — 이동 전 지도 초기화
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setgripper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetGripper — 개방 폭 지정
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tcppose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TcpPose — 목표를 객체 하나로 관리
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#maketcppose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MakeTcpPose — 객체 만들기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MakeTcpPose — 객체 만들기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        현재 자세를 유지하며 상대 이동
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        다른 C++ 노드에서도 메시지를 바로 저장할 수 있습니다
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#movetcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MoveTcp — 객체로 이동하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MoveTcp — 객체로 이동하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#moveit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MoveIt 계획 설정
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        실패와 그리퍼 접촉 처리
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="실패와 그리퍼 접촉 처리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        새 노드의 성공 판정
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mujoco" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MuJoCo의 닫기 성공 조건
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        역할별 파지 플러그인
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graspstep-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GraspStep — 기존 XML 호환용 공통 플러그인
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-grasp-stages/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    단계별 포트와 Action
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-code-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Nav2 헤더·CPP 구성
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-operation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실행과 Groot2
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    구축 상세와 실험 기록
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    구축 상세와 실험 기록
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graspgenx-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraspGenX 배포 상세
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../red-box-grasp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    초기 빨간 상자 통합
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sam3-history/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAM 통합 이력
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work-log-2026-11-09/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11월 9일 작업 기록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../work-log-2026-11-10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    11월 10일 작업 기록
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Husky SLAM·Nav2
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Husky SLAM·Nav2
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../husky-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시작 안내
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../connection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SSH와 본체 확인
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../setup/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    외부 PC 준비
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SLAM과 Nav2 실행
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../interfaces/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TF와 토픽
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    파라미터 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../runner/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ros_runner 운용
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    문제 해결
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    문서 관리
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upstream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    구조와 출처
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        노드 목록
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#clearoctomap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ClearOctomap — 이동 전 지도 초기화
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setgripper" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SetGripper — 개방 폭 지정
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tcppose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TcpPose — 목표를 객체 하나로 관리
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#maketcppose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MakeTcpPose — 객체 만들기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MakeTcpPose — 객체 만들기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        현재 자세를 유지하며 상대 이동
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#c" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        다른 C++ 노드에서도 메시지를 바로 저장할 수 있습니다
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#movetcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MoveTcp — 객체로 이동하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MoveTcp — 객체로 이동하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#moveit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MoveIt 계획 설정
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        실패와 그리퍼 접촉 처리
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="실패와 그리퍼 접촉 처리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        새 노드의 성공 판정
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mujoco" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MuJoCo의 닫기 성공 조건
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        역할별 파지 플러그인
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graspstep-xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GraspStep — 기존 XML 호환용 공통 플러그인
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
 
 <h1 id="bt">BT 노드 사용법<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
 <p>그리퍼는 <strong>정수 mm</strong>, 팔 위치는 <strong>m</strong>, 팔 자세는 <strong>quaternion</strong>으로 입력합니다.
@@ -335,16 +1798,16 @@
 </table>
 <p>ROS Action 기반 이동/그리퍼/GraspStep 노드는 Nav2의 <code>server_name</code>, <code>server_timeout</code> 포트를 상속합니다. ClearOctomap과 MakeTcpPose는 별도 포트를 사용합니다.</p>
 <h2 id="clearoctomap">ClearOctomap — 이동 전 지도 초기화<a class="headerlink" href="#clearoctomap" title="Permanent link">&para;</a></h2>
-<pre><code class="language-xml">&lt;ClearOctomap once=&quot;true&quot; timeout=&quot;30.0&quot; fresh_clouds=&quot;2&quot;/&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;ClearOctomap</span><span class="w"> </span><span class="na">once=</span><span class="s">"true"</span><span class="w"> </span><span class="na">timeout=</span><span class="s">"30.0"</span><span class="w"> </span><span class="na">fresh_clouds=</span><span class="s">"2"</span><span class="nt">/&gt;</span>
+</code></pre></div>
 <p>서비스를 한 번 호출하고 새 관측 지도까지 확인하는 비동기 action 노드입니다.
 준비 중에는 <code>RUNNING</code>, 완료 시 <code>SUCCESS</code>, timeout이나 서비스 오류 시 <code>FAILURE</code>를 반환합니다.
 <code>once=true</code>는 이 노드 인스턴스의 첫 성공 이후 초기화를 건너뜁니다.
 Groot2에서 트리 맨 앞에 배치하세요. 상세 포트와 실행 기준은 <a href="../bt-operation/">실행 안내</a>를 참고하세요.</p>
 <h2 id="setgripper">SetGripper — 개방 폭 지정<a class="headerlink" href="#setgripper" title="Permanent link">&para;</a></h2>
 <p><strong>50 mm 열기:</strong></p>
-<pre><code class="language-xml">&lt;SetGripper opening=&quot;50&quot; duration=&quot;2.5&quot;/&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;SetGripper</span><span class="w"> </span><span class="na">opening=</span><span class="s">"50"</span><span class="w"> </span><span class="na">duration=</span><span class="s">"2.5"</span><span class="nt">/&gt;</span>
+</code></pre></div>
 <table>
 <thead>
 <tr>
@@ -375,24 +1838,23 @@ Groot2에서 트리 맨 앞에 배치하세요. 상세 포트와 실행 기준�
 Controller에는 <code>gripper=0.05</code> m로 전달합니다.
 <code>0</code>이면 닫힘, <code>100</code>이면 현재 모델의 최대 개방 폭입니다.</p>
 <p>Blackboard 값도 연결할 수 있습니다.</p>
-<pre><code class="language-xml">&lt;SetGripper opening=&quot;{gripper_opening_mm}&quot;/&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&lt;SetGripper</span><span class="w"> </span><span class="na">opening=</span><span class="s">"{gripper_opening_mm}"</span><span class="nt">/&gt;</span>
+</code></pre></div>
 <p><code>unit="percent"</code>를 명시하면 0~100% 개방률로 해석합니다.
 현재 모델의 최대 폭이 100 mm여서 두 단위의 숫자가 일치합니다.
 소수·범위 초과·잘못된 단위·유효하지 않은 시간은 goal 전송 전에 거부합니다.</p>
 <h2 id="tcppose">TcpPose — 목표를 객체 하나로 관리<a class="headerlink" href="#tcppose" title="Permanent link">&para;</a></h2>
 <p>위치 3개와 quaternion 4개를 따로 blackboard에 저장하는 대신,
 <strong><code>rwh_beyond_msgs/msg/TcpPose</code> 객체 하나</strong>를 저장합니다.</p>
-<pre><code class="language-mermaid">flowchart LR
-    M[&quot;MakeTcpPose&quot;] --&gt; P[&quot;target_pose 객체&quot;]
-    P --&gt; T[&quot;MoveTcp&quot;]
-</code></pre>
+<pre class="mermaid"><code>flowchart LR
+    M["MakeTcpPose"] --&gt; P["target_pose 객체"]
+    P --&gt; T["MoveTcp"]</code></pre>
 <p>메시지 정의:</p>
-<pre><code class="language-text">string frame_id &quot;base_link&quot;
-geometry_msgs/Pose pose
-bool relative false
-bool keep_current_orientation false
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>string frame_id "base_link"
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>geometry_msgs/Pose pose
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>bool relative false
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>bool keep_current_orientation false
+</code></pre></div>
 <table>
 <thead>
 <tr>
@@ -432,13 +1894,13 @@ bool keep_current_orientation false
 </div>
 <h2 id="maketcppose">MakeTcpPose — 객체 만들기<a class="headerlink" href="#maketcppose" title="Permanent link">&para;</a></h2>
 <p>XML에서 <strong>한 번 생성하고 이후에는 객체 이름만 연결</strong>합니다.</p>
-<pre><code class="language-xml">&lt;Sequence&gt;
-  &lt;MakeTcpPose x=&quot;0.25&quot; y=&quot;0&quot; z=&quot;0.35&quot;
-               qx=&quot;0&quot; qy=&quot;0&quot; qz=&quot;0&quot; qw=&quot;1&quot;
-               pose=&quot;{target_pose}&quot;/&gt;
-  &lt;MoveTcp pose=&quot;{target_pose}&quot;/&gt;
-&lt;/Sequence&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">&lt;Sequence&gt;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">&lt;MakeTcpPose</span><span class="w"> </span><span class="na">x=</span><span class="s">"0.25"</span><span class="w"> </span><span class="na">y=</span><span class="s">"0"</span><span class="w"> </span><span class="na">z=</span><span class="s">"0.35"</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">               </span><span class="na">qx=</span><span class="s">"0"</span><span class="w"> </span><span class="na">qy=</span><span class="s">"0"</span><span class="w"> </span><span class="na">qz=</span><span class="s">"0"</span><span class="w"> </span><span class="na">qw=</span><span class="s">"1"</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">               </span><span class="na">pose=</span><span class="s">"{target_pose}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="nt">&lt;MoveTcp</span><span class="w"> </span><span class="na">pose=</span><span class="s">"{target_pose}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="nt">&lt;/Sequence&gt;</span>
+</code></pre></div>
 <table>
 <thead>
 <tr>
@@ -480,26 +1942,26 @@ bool keep_current_orientation false
 이 노드는 <strong>객체 생성만 수행</strong>하며 로봇을 움직이지 않습니다.
 검증에 실패하면 출력 객체를 덮어쓰지 않고 FAILURE를 반환합니다.</p>
 <h3 id="_2">현재 자세를 유지하며 상대 이동<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
-<pre><code class="language-xml">&lt;Sequence&gt;
-  &lt;MakeTcpPose x=&quot;0&quot; y=&quot;0&quot; z=&quot;0.30&quot; relative=&quot;true&quot; pose=&quot;{lift_pose}&quot;/&gt;
-  &lt;MoveTcp pose=&quot;{lift_pose}&quot;/&gt;
-&lt;/Sequence&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">&lt;Sequence&gt;</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="nt">&lt;MakeTcpPose</span><span class="w"> </span><span class="na">x=</span><span class="s">"0"</span><span class="w"> </span><span class="na">y=</span><span class="s">"0"</span><span class="w"> </span><span class="na">z=</span><span class="s">"0.30"</span><span class="w"> </span><span class="na">relative=</span><span class="s">"true"</span><span class="w"> </span><span class="na">pose=</span><span class="s">"{lift_pose}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="nt">&lt;MoveTcp</span><span class="w"> </span><span class="na">pose=</span><span class="s">"{lift_pose}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="nt">&lt;/Sequence&gt;</span>
+</code></pre></div>
 <p>기준 프레임 Z축 방향으로 0.30 m 상승하는 예제입니다.
 <code>relative</code>는 위치에만 적용되며, 입력 quaternion은 항상 <code>frame_id</code> 기준 <strong>절대 자세</strong>입니다.</p>
 <h3 id="c">다른 C++ 노드에서도 메시지를 바로 저장할 수 있습니다<a class="headerlink" href="#c" title="Permanent link">&para;</a></h3>
-<pre><code class="language-cpp">rwh_beyond_msgs::msg::TcpPose target;
-target.pose.position.x = 0.25;
-target.pose.position.z = 0.35;
-target.pose.orientation.w = 1.0;
-blackboard-&gt;set(&quot;target_pose&quot;, target);
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">rwh_beyond_msgs</span><span class="o">::</span><span class="n">msg</span><span class="o">::</span><span class="n">TcpPose</span><span class="w"> </span><span class="n">target</span><span class="p">;</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">target</span><span class="p">.</span><span class="n">pose</span><span class="p">.</span><span class="n">position</span><span class="p">.</span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.25</span><span class="p">;</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">target</span><span class="p">.</span><span class="n">pose</span><span class="p">.</span><span class="n">position</span><span class="p">.</span><span class="n">z</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.35</span><span class="p">;</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">target</span><span class="p">.</span><span class="n">pose</span><span class="p">.</span><span class="n">orientation</span><span class="p">.</span><span class="n">w</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.0</span><span class="p">;</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">blackboard</span><span class="o">-&gt;</span><span class="n">set</span><span class="p">(</span><span class="s">"target_pose"</span><span class="p">,</span><span class="w"> </span><span class="n">target</span><span class="p">);</span>
+</code></pre></div>
 <p>Blackboard key를 일곱 개 만들 필요 없이 <code>{target_pose}</code> 하나를 재사용합니다.
 문자열이나 XML의 <code>&lt;SetBlackboard&gt;</code>로 넣은 임의 문자열은 이 메시지 객체를 대신하지 않습니다.
 <code>RunDemo</code> goal은 XML 경로만 받으며, 외부 ROS 메시지가 자동으로 blackboard에 들어오지는 않습니다.</p>
 <h2 id="movetcp">MoveTcp — 객체로 이동하기<a class="headerlink" href="#movetcp" title="Permanent link">&para;</a></h2>
-<pre><code class="language-xml">&lt;MoveTcp pose=&quot;{target_pose}&quot; tcp_link=&quot;tcp_link&quot;/&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nt">&lt;MoveTcp</span><span class="w"> </span><span class="na">pose=</span><span class="s">"{target_pose}"</span><span class="w"> </span><span class="na">tcp_link=</span><span class="s">"tcp_link"</span><span class="nt">/&gt;</span>
+</code></pre></div>
 <table>
 <thead>
 <tr>
@@ -628,93 +2090,117 @@ blackboard-&gt;set(&quot;target_pose&quot;, target);
 <p>같은 노드를 여러 번 쓰지만 <code>command</code>에 따라 다른 단계를 수행한다. <code>segment_target</code>은 SAM 분할,
 <code>build_object_cloud</code>는 로컬 ROS CPU의 Depth 역투영·PointCloud 발행, <code>prepare</code>는 GraspGenX 추론과 후보 검사를 한다.
 기존 prepare 단독 호출도 내부적으로 앞의 두 단계를 실행할 수 있다. legacy <code>prepare</code>는 이미 분할·생성된 점군이 있으면 재사용하고 없으면 먼저 생성한다. XML <code>name</code>으로 Groot2에서 단계를 구분한다.</p>
-<pre><code class="language-xml">&lt;GraspStep name=&quot;SegmentTargetWithSAM&quot; command=&quot;segment_target&quot; server_timeout=&quot;1000&quot;/&gt;
-&lt;GraspStep name=&quot;BuildLocalObjectCloud&quot; command=&quot;build_object_cloud&quot; server_timeout=&quot;1000&quot;/&gt;
-&lt;GraspStep name=&quot;PrepareRedBoxGrasp&quot; command=&quot;prepare&quot; server_timeout=&quot;1000&quot; pregrasp=&quot;{red_pregrasp}&quot;/&gt;
-&lt;GraspStep name=&quot;MoveToRedPregrasp&quot; command=&quot;move_pregrasp&quot; server_timeout=&quot;1000&quot;/&gt;
-&lt;GraspStep name=&quot;ApproachRedBox&quot; command=&quot;approach&quot; server_timeout=&quot;1000&quot;/&gt;
-&lt;CloseGripper/&gt;
-&lt;GraspStep name=&quot;VerifyAndAttachRedBox&quot; command=&quot;attach&quot; server_timeout=&quot;1000&quot;/&gt;
-&lt;GraspStep name=&quot;LiftAndVerifyRedBox&quot; command=&quot;lift&quot; server_timeout=&quot;1000&quot;/&gt;
-</code></pre>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">&lt;GraspStep</span><span class="w"> </span><span class="na">name=</span><span class="s">"SegmentTargetWithSAM"</span><span class="w"> </span><span class="na">command=</span><span class="s">"segment_target"</span><span class="w"> </span><span class="na">server_timeout=</span><span class="s">"1000"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">&lt;GraspStep</span><span class="w"> </span><span class="na">name=</span><span class="s">"BuildLocalObjectCloud"</span><span class="w"> </span><span class="na">command=</span><span class="s">"build_object_cloud"</span><span class="w"> </span><span class="na">server_timeout=</span><span class="s">"1000"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nt">&lt;GraspStep</span><span class="w"> </span><span class="na">name=</span><span class="s">"PrepareRedBoxGrasp"</span><span class="w"> </span><span class="na">command=</span><span class="s">"prepare"</span><span class="w"> </span><span class="na">server_timeout=</span><span class="s">"1000"</span><span class="w"> </span><span class="na">pregrasp=</span><span class="s">"{red_pregrasp}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nt">&lt;GraspStep</span><span class="w"> </span><span class="na">name=</span><span class="s">"MoveToRedPregrasp"</span><span class="w"> </span><span class="na">command=</span><span class="s">"move_pregrasp"</span><span class="w"> </span><span class="na">server_timeout=</span><span class="s">"1000"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nt">&lt;GraspStep</span><span class="w"> </span><span class="na">name=</span><span class="s">"ApproachRedBox"</span><span class="w"> </span><span class="na">command=</span><span class="s">"approach"</span><span class="w"> </span><span class="na">server_timeout=</span><span class="s">"1000"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nt">&lt;CloseGripper/&gt;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="nt">&lt;GraspStep</span><span class="w"> </span><span class="na">name=</span><span class="s">"VerifyAndAttachRedBox"</span><span class="w"> </span><span class="na">command=</span><span class="s">"attach"</span><span class="w"> </span><span class="na">server_timeout=</span><span class="s">"1000"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="nt">&lt;GraspStep</span><span class="w"> </span><span class="na">name=</span><span class="s">"LiftAndVerifyRedBox"</span><span class="w"> </span><span class="na">command=</span><span class="s">"lift"</span><span class="w"> </span><span class="na">server_timeout=</span><span class="s">"1000"</span><span class="nt">/&gt;</span>
+</code></pre></div>
 <p>전체 기본 트리에는 앞에 시뮬레이터 확인·지도 준비·관측 자세 단계도 있다.
-<a href="../red-box-grasp/">각 command와 충돌/취소 처리</a>를 참고한다.</p></div>
-            </div>
-        </div>
+<a href="../red-box-grasp/">각 command와 충돌/취소 처리</a>를 참고한다.</p>
 
-        <footer class="col-md-12">
-            <hr>
-            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
-        </footer>
-        <script src="../js/bootstrap.bundle.min.js"></script>
-        <script>
-            var base_url = "..",
-                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
-        </script>
-        <script src="../js/base.js"></script>
-        <script src="../assets/javascripts/mermaid.mjs" type="module"></script>
-        <script src="../search/main.js"></script>
 
-        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="searchModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="searchModalLabel">Search</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
             </div>
-            <div class="modal-body">
-                <p>From here you can search these documents. Enter your search terms below.</p>
-                <form>
-                    <div class="form-group">
-                        <input type="search" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
-                    </div>
-                </form>
-                <div id="mkdocs-search-results" data-no-results-text="No results found"></div>
-            </div>
-            <div class="modal-footer">
-            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
         </div>
-    </div>
-</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="keyboardModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h4 class="modal-title" id="keyboardModalLabel">Keyboard Shortcuts</h4>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  맨위로
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
+        
+          
+          <a href="../depth-bt-flow/" class="md-footer__link md-footer__link--prev" aria-label="이전: Depth와 runner 흐름">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
             </div>
-            <div class="modal-body">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th style="width: 20%;">Keys</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="help shortcut"><kbd>?</kbd></td>
-                    <td>Open this help</td>
-                  </tr>
-                  <tr>
-                    <td class="next shortcut"><kbd>n</kbd></td>
-                    <td>Next page</td>
-                  </tr>
-                  <tr>
-                    <td class="prev shortcut"><kbd>p</kbd></td>
-                    <td>Previous page</td>
-                  </tr>
-                  <tr>
-                    <td class="search shortcut"><kbd>s</kbd></td>
-                    <td>Search</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                이전
+              </span>
+              <div class="md-ellipsis">
+                Depth와 runner 흐름
+              </div>
             </div>
-            <div class="modal-footer">
+          </a>
+        
+        
+          
+          <a href="../bt-grasp-stages/" class="md-footer__link md-footer__link--next" aria-label="다음: 단계별 포트와 Action">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                다음
+              </span>
+              <div class="md-ellipsis">
+                단계별 포트와 Action
+              </div>
             </div>
-        </div>
-    </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
 </div>
-
-    </body>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tracking", "navigation.top", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "\ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ub428", "clipboard.copy": "\ud074\ub9bd\ubcf4\ub4dc\ub85c \ubcf5\uc0ac", "search.result.more.one": "\uc774 \ubb38\uc11c\uc5d0\uc11c 1\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.more.other": "\uc774 \ubb38\uc11c\uc5d0\uc11c #\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.none": "\uac80\uc0c9\uc5b4\uc640 \uc77c\uce58\ud558\ub294 \ubb38\uc11c\uac00 \uc5c6\uc2b5\ub2c8\ub2e4", "search.result.one": "1\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.other": "#\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.placeholder": "\uac80\uc0c9\uc5b4\ub97c \uc785\ub825\ud558\uc138\uc694", "search.result.term.missing": "\ud3ec\ud568\ub418\uc9c0 \uc54a\uc740 \uac80\uc0c9\uc5b4", "select.version": "\ubc84\uc804 \uc120\ud0dd"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
 </html>
