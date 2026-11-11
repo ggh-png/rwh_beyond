@@ -585,6 +585,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="문제를 어느 단계에서 확인하나">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rgb-d-timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RGB-D 수신 timeout과 시간 설정
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1619,6 +1636,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="문제를 어느 단계에서 확인하나">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rgb-d-timeout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RGB-D 수신 timeout과 시간 설정
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1845,6 +1879,10 @@ BT 실행이 끝난 상태에서, 다음 관측 <strong>전에</strong> 설정�
 <td>선택기의 rejection counts: IK·하향 조건·충돌·접근/리프트 경로</td>
 </tr>
 <tr>
+<td><code>acquire_object_rgbd</code> timeout</td>
+<td>먼저 확인: coordinator의 <code>use_sim_time</code>, 카메라 3종 수신·동일 stamp. 아래 시간 설정 절 참고</td>
+</tr>
+<tr>
 <td>오래된 관측/팔 이동</td>
 <td>새 BT goal로 재관측. 오래된 ID·선택 경로 재사용 금지</td>
 </tr>
@@ -1856,6 +1894,17 @@ BT 실행이 끝난 상태에서, 다음 관측 <strong>전에</strong> 설정�
 </table>
 <p>이 문서 개편에서 새 물리 집기 시험은 수행하지 않았습니다. 과거 시험의 성공·실패는
 <a href="../project-overview/#validation">검증 범위</a>에서 구분해 확인하세요.</p>
+<h3 id="rgb-d-timeout">RGB-D 수신 timeout과 시간 설정<a class="headerlink" href="#rgb-d-timeout" title="Permanent link">&para;</a></h3>
+<p><code>acquire_object_rgbd</code>는 SAM 요청 전 단계다. RGB·Depth·CameraInfo가 수신되어도
+coordinator가 시스템 시간을 사용하고 카메라가 시뮬레이션 시간을 쓰면 새 관측 조건을 만족할 수 없다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/grasp_coordinator<span class="w"> </span>use_sim_time
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/graspgenx_bridge<span class="w"> </span>use_sim_time
+</code></pre></div>
+<p>현재 MuJoCo 경로에서는 둘 다 <code>True</code>여야 한다. BT launch의 <code>params_file</code>은 navigator용,
+<code>grasp_params_file</code>은 coordinator·추론 bridge용이다. 내부 grasp pipeline include는 launch 설정을
+별도 scope에 두고 올바른 YAML을 전달한다. 이 두 파일을 같은 인자로 혼용하지 않는다.
+수정 후에는 관련 패키지를 빌드하고 기존 runner를 종료·재시작한다. 이 문제 때문에 SAM 컨테이너를
+재시작할 필요는 없다.</p>
 
 
 
