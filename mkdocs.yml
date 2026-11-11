@@ -20,6 +20,7 @@ nav:
       - 구조 이해: bt-architecture.md
       - Depth 관측과 runner 흐름: depth-bt-flow.md
       - 노드 사용법: bt-nodes.md
+      - 역할별 파지 플러그인: bt-grasp-stages.md
       - 실행과 Groot2: bt-operation.md
       - GraspGenX 원격 추론: graspgenx-integration.md
       - 빨간 상자 파지: red-box-grasp.md

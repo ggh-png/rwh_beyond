@@ -1,7 +1,7 @@
 # SAM → 로컬 PointCloud → GraspGenX → BT 실행 가이드
 
 현재 기본 집기 흐름과 실행 방법을 정리한 문서다. 상세 실험 이력은
-[SAM 검증 기록](sam3-perception.md), 날짜별 변경은 [작업일지](work-log-2026-11-10.md)를 참고한다.
+[역할별 플러그인·최신 검증](bt-grasp-stages.md), [SAM 검증 기록](sam3-perception.md), 날짜별 변경은 [작업일지](work-log-2026-11-10.md)를 참고한다.
 현재 이동/접촉 검증은 MuJoCo 전용이며 실물 로봇 자동 집기는 지원하지 않는다.
 
 ## 데이터가 처리되는 위치
@@ -27,19 +27,20 @@ GraspGenX는 이 XYZ를 입력으로 사용하므로 triangle mesh 재구성을 
 
 ## BT 단계
 
-| 노드/command | 수행 내용 |
+| 노드 | 수행 내용 |
 |---|---|
-| check_ready / ClearOctomap | 시뮬레이터·실제 모델 준비 확인, 최초 지도 재생성 |
+| CheckGraspReady / ClearOctomap | 시뮬레이터·실제 모델 준비 확인, 최초 지도 재생성 |
 | MoveHome / OpenGripper / MoveObservation | 초기 자세·그리퍼·카메라 관측 자세 준비 |
-| GraspStep / segment_target | 새 관측과 TF 저장, SAM 서버에서 객체 마스크 수신 |
-| GraspStep / build_object_cloud | 로컬 CPU에서 Depth/K 역투영, 객체 PointCloud2 발행 |
-| GraspStep / prepare | 같은 점군을 POINT_CLOUD Action으로 전송, 후보·충돌/경로 검사 |
-| move_pregrasp / approach / CloseGripper | 사전 접근·최종 접근·닫기 |
-| attach / lift | 실제 양쪽 접촉 확인, MoveIt 부착, 물리 리프트 검증 |
+| SegmentObject | 새 관측과 TF 저장, SAM 서버에서 객체 마스크 수신 |
+| BuildObjectCloud | 로컬 CPU에서 Depth/K 역투영, 객체 PointCloud2 발행 |
+| InferGrasps | 같은 점군을 POINT_CLOUD Action으로 전송, 파지 후보 반환 |
+| SelectFeasibleGrasp | 전달된 후보로 충돌 모델·IK·접근/상승·사전 접근 경로 검사 |
+| MoveToPregrasp / ApproachGrasp / CloseGripper | 사전 접근·최종 접근·닫기 |
+| AttachObject / LiftObject | 실제 양쪽 접촉 확인, MoveIt 부착, 물리 리프트 검증 |
 | MoveHome | 닫힌 그리퍼로 홈 복귀; 내려놓기/열기는 포함하지 않음 |
 
-기본 파일은 `rwh_beyond_bt/behavior_trees/demo.xml`이다. 같은 GraspStep 플러그인을
-command별로 재사용하며 세 단계에서 동일한 관측 context를 이어받는다.
+기본 파일은 `rwh_beyond_bt/behavior_trees/demo.xml`이다. [역할별 BT 플러그인](bt-grasp-stages.md)이
+마스크·점군·후보를 typed Blackboard 포트로 전달한다. 관측 ID와 계획 ID로 원본 관측과 경로를 연결한다.
 단계가 실패하면 뒤의 이동은 실행하지 않는다. 30초 지난 관측이나 촬영 후 팔 관절이
 0.02 rad 넘게 달라진 관측은 재관측을 요구한다. 움직이는 물체의 추적은 지원하지 않는다.
 

@@ -59,7 +59,7 @@ Self-filter의 20 mm padding은 가까운 환경점에도 영향을 줄 수 있�
 ## 지도 준비와 접촉
 
 - 최초 `ClearOctomap once=true`가 clear 후 새 점군 2개/지도 생성을 확인한다.
-- 각 `prepare`는 대상의 의미적 분리를 위해 RGB 점 제외 → clear → 새 관측 지도 확인을
+- 각 `SelectFeasibleGrasp`(legacy `prepare`)는 대상의 의미적 분리를 위해 RGB 점 제외 → clear → 새 관측 지도 확인을
   다시 수행한다. 물체 자체는 CollisionObject로 유지하며 빈 지도에서 이동하지 않는다.
 - target과 두 손가락의 ACM pair만 허용한다. 그리퍼와 Octomap 전체는 계속 검사한다.
 - 파지 후 AttachedCollisionObject는 들고 있는 물체의 환경 충돌 검사에 사용한다.

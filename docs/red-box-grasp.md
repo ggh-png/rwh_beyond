@@ -1,5 +1,8 @@
 # 빨간 상자 파지 BT
 
+> 2026-11-11: 기본 BT는 [역할별 플러그인](bt-grasp-stages.md)으로 전환했다.
+> 아래 `GraspStep` 예제와 이전 실험 기록은 호환 경로·변경 이력이다. 현재 XML은 `demo.xml`을 기준으로 한다.
+
 > 아래 색상 기반 설명·집기 측정은 기존 color_demo 기록이다. 현재 runner 기본값은
 > SAM 3이며 [새 분할 경로](sam3-perception.md)를 먼저 참고한다.
 > 기존 회귀 실행은 `RWH_SEGMENTATION_BACKEND=color_demo`를 명시한다.

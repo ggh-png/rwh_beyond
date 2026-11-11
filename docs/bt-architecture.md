@@ -133,8 +133,9 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 **준비 확인 → 지도 초기화 → home → 열기 → 관측 자세 → RGB-D/실제 모델 추론과 후보 검증
 → pregrasp → 직선 접근 → 닫기 → 접촉 확인·부착 → 상승·물리 검증**
 
-`GraspStep`은 `command`에 해당하는 한 단계를 실행하는 공통 플러그인으로,
-모델 추론은 `prepare`에서만 실행한다. [상세 흐름과 포트](red-box-grasp.md)를 참고한다.
+현재 기본 트리는 [역할별 플러그인](bt-grasp-stages.md)으로 마스크·점군·후보를 Blackboard에 전달한다.
+모델 추론은 `InferGrasps`, IK·충돌·경로 검사는 `SelectFeasibleGrasp`가 담당한다.
+기존 `GraspStep + command`는 호환용으로 남긴다.
 
 예전 고정 home/up/close/home/open은 `legacy_demo.xml`에 보존했다.
 `parameterized_demo.xml`은 `MakeTcpPose → MoveTcp`와 `SetGripper`로 같은 원래
@@ -144,7 +145,7 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 
 ```text
 rwh_beyond_bt/
-├── src/action/                  # action 노드 10개
+├── src/action/                  # 이동·그리퍼·역할별 파지 Action 노드
 ├── src/condition/               # condition 추가 위치, 현재 구현 없음
 ├── src/register_nodes.cpp       # 노드 ID 등록
 ├── src/generate_tree_nodes_xml.cpp

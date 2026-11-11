@@ -7,7 +7,9 @@
 
 | 노드 | 바꿀 수 있는 값 | 동작 |
 | --- | --- | --- |
-| `GraspStep` | command, pregrasp 출력 | 분할·로컬 점군·파지 준비 등 단계별 Action 호출 |
+| `SegmentObject`, `BuildObjectCloud`, `InferGrasps`, `SelectFeasibleGrasp` | mask, cloud, candidates, observation_id, plan_id | [역할별 파지 포트](bt-grasp-stages.md) |
+| `CheckGraspReady`, `MoveToPregrasp`, `ApproachGrasp`, `AttachObject`, `LiftObject` | plan_id(준비 확인 제외) | 준비 확인·이동·접촉·리프트 |
+| `GraspStep` | command, pregrasp 출력 | 기존 XML 호환용 공통 플러그인 |
 | `MoveObservation` | 고정 | MuJoCo의 카메라 관측 자세로 MoveIt 이동 |
 | `ClearOctomap` | 1회 실행 여부·대기 시간·새 점군 수 | clear 후 새 관측 지도 확인 |
 | `SetGripper` | 개방 폭, 단위, 시간 | 지정한 폭으로 그리퍼 이동 |
@@ -214,12 +216,16 @@ Force는 MuJoCo `actuator_force`의 절댓값으로 읽습니다.
 이는 actuator force를 통한 접촉 추정입니다. 물체가 안정적으로 파지됐는지를
 독립적으로 검증하는 조건은 아닙니다.
 
-## GraspStep — 파지 단계별 공통 플러그인
+## 역할별 파지 플러그인
+
+현재 기본 트리는 [역할별 파지 플러그인과 데이터 포트](bt-grasp-stages.md)를 사용한다.
+추론과 후보 선택은 각각 `InferGrasps`, `SelectFeasibleGrasp`로 나뉜다.
+
+## GraspStep — 기존 XML 호환용 공통 플러그인
 
 같은 노드를 여러 번 쓰지만 `command`에 따라 다른 단계를 수행한다. `segment_target`은 SAM 분할,
 `build_object_cloud`는 로컬 ROS CPU의 Depth 역투영·PointCloud 발행, `prepare`는 GraspGenX 추론과 후보 검사를 한다.
-기존 prepare 단독 호출도 내부적으로 앞의 두 단계를 실행할 수 있다. `prepare`에서만
-RGB-D 인식과 GraspGenX 추론을 한 번 실행한다. XML `name`으로 Groot2에서 단계를 구분한다.
+기존 prepare 단독 호출도 내부적으로 앞의 두 단계를 실행할 수 있다. legacy `prepare`는 이미 분할·생성된 점군이 있으면 재사용하고 없으면 먼저 생성한다. XML `name`으로 Groot2에서 단계를 구분한다.
 
 ```xml
 <GraspStep name="SegmentTargetWithSAM" command="segment_target" server_timeout="1000"/>

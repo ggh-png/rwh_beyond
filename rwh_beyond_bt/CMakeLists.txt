@@ -23,6 +23,7 @@ add_library(${PROJECT_NAME}_nodes SHARED
   src/action/move_home.cpp
   src/action/move_observation.cpp
   src/action/grasp_step.cpp
+  src/action/grasp_stages.cpp
   src/action/move_tcp_up.cpp
   src/action/close_gripper.cpp
   src/action/open_gripper.cpp

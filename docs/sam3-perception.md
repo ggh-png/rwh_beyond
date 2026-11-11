@@ -1,5 +1,8 @@
 # SAM 3 객체 분할과 GraspGenX 연결
 
+> 2026-11-11: 기본 BT는 [역할별 플러그인](bt-grasp-stages.md)으로 전환했다.
+> 아래 `GraspStep` 예제와 이전 실험 기록은 호환 경로·변경 이력이다. 현재 XML은 `demo.xml`을 기준으로 한다.
+
 현재 구성의 실행은 [최종 파지 실행 가이드](grasp-pipeline-guide.md)를 먼저 참고한다.
 이 페이지는 확장 과정과 단계별 실험 이력을 포함한다.
 
@@ -10,10 +13,10 @@
 
 ```mermaid
 flowchart LR
-  A[BT segment_target: RGB + 대상 지정] --> C[ZMQ 5567: SAM 3 컨테이너]
+  A[BT SegmentObject: RGB + 대상 지정] --> C[ZMQ 5567: SAM 3 컨테이너]
   C --> D[선택 객체 마스크 + 분할 점수]
-  D --> E[BT build_object_cloud: 로컬 ROS CPU + Depth/K]
-  E --> B[BT prepare: InferGrasps POINT_CLOUD Action]
+  D --> E[BT BuildObjectCloud: 로컬 ROS CPU + Depth/K]
+  E --> B[BT InferGrasps: POINT_CLOUD Action]
   B --> F[ZMQ 5566: 기존 GraspGenX 컨테이너]
   F --> G[PoseStamped 후보 + 파지 점수]
   G --> H[시뮬레이션 coordinator: TF/TCP/충돌 검사]
@@ -114,7 +117,7 @@ runner 기본값은 SAM 3다. `RWH_SEGMENTATION_ENDPOINT`(기본 5567),
 `RWH_GRASP_ENDPOINT`(5566), `RWH_GRASP_TARGET_TEXT`(기본 red box)로 지정한다.
 박스/선택 픽셀은 grasp_coordinator의 target_box/selection_point 파라미터로 지정한다.
 기존 색상 demo를 의도적으로 실행할 때만 `RWH_SEGMENTATION_BACKEND=color_demo`를 사용한다.
-runner는 GPU 모델 프로세스를 자동 시작하지 않는다. 기존 GraspStep prepare를 재사용하며
+runner는 GPU 모델 프로세스를 자동 시작하지 않는다. 역할별 BT 노드를 사용하며
 check_ready에서 실제 SAM 서버도 확인한다.
 
 SAM 경로에서는 고정 4×4×5 cm 크기를 쓰지 않는다. 선택된 표면과 주변 Depth에서

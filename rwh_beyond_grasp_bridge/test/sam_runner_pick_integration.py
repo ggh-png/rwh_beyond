@@ -17,7 +17,7 @@ if os.environ.get('ROS_DOMAIN_ID','0')=='0':raise RuntimeError('A private nonzer
 tree=ET.parse('/root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/demo.xml')
 sequence=tree.find('.//Sequence')
 if sequence.find('MoveObservation') is None:
- index=next(i for i,n in enumerate(sequence) if n.tag=='GraspStep' and n.get('command') in ('segment_target','prepare'))
+ index=next(i for i,n in enumerate(sequence) if n.tag=='SegmentObject' or (n.tag=='GraspStep' and n.get('command') in ('segment_target','prepare')))
  sequence.insert(index,ET.Element('MoveObservation'))
 if sequence[-1].tag=='MoveHome':sequence.remove(sequence[-1])
 tree_path=Path('/tmp/sam3-runner-baseline.xml');tree.write(tree_path,encoding='unicode')
@@ -82,6 +82,9 @@ try:
   if 'red_grasp_target' in matrix.entry_names:
    assert not matrix.entry_values[matrix.entry_names.index(finger)].enabled[matrix.entry_names.index('red_grasp_target')]
  print('PASS: cancellation restored selected target region exclusion and finger contact rules',flush=True)
+ if os.environ.get('SAM_RUNNER_CANCEL_ONLY')=='1':
+  print('PASS: cancellation-only integration completed',flush=True)
+  raise SystemExit(0)
  handle=goal();outcome=result(handle.get_result_async(),240)
  hold_until=time.monotonic()+5
  while time.monotonic()<hold_until:rclpy.spin_once(node,timeout_sec=.05)

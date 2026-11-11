@@ -14,7 +14,8 @@ if os.environ.get('ROS_DOMAIN_ID', '0') == '0':
  raise RuntimeError('Use a private nonzero ROS_DOMAIN_ID; never run this test in the hardware graph')
 
 rclpy.init();node=rclpy.create_node('red_pick_check')
-logpath=Path('/tmp/sam3-pick-full.log');log=logpath.open('w');processes=[]
+prefix=os.environ.get('SAM_PICK_LOG_PREFIX','/tmp/sam3-pick-full')
+logpath=Path(prefix+'.log');log=logpath.open('w');processes=[]
 def wait(future,timeout=240):
  end=time.monotonic()+timeout
  while not future.done() and time.monotonic()<end:rclpy.spin_once(node,timeout_sec=.05)
@@ -32,7 +33,7 @@ try:
  tree=ET.parse('/root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/demo.xml')
  sequence=tree.find('.//Sequence')
  if sequence.find('MoveObservation') is None:
-  index=next(i for i,n in enumerate(sequence) if n.tag=='GraspStep' and n.get('command') in ('segment_target','prepare'))
+  index=next(i for i,n in enumerate(sequence) if n.tag=='SegmentObject' or (n.tag=='GraspStep' and n.get('command') in ('segment_target','prepare')))
   sequence.insert(index,ET.Element('MoveObservation'))
  full_tree=os.environ.get('SAM_PICK_FULL_TREE')=='1'
  if not full_tree and sequence[-1].tag=='MoveHome':sequence.remove(sequence[-1])
@@ -58,7 +59,7 @@ try:
  final=json.loads(final_response.message)
  report=dict(full_default_tree=full_tree,local_cloud_points=clouds[-1].width if clouds else 0,local_cloud_frame=clouds[-1].header.frame_id if clouds else None,stages=stages,status=outcome.status,error_code=outcome.result.error_code,error_name=outcome.result.error_name,
     message=outcome.result.error_msg,stage=outcome.result.failed_stage,initial=initial,final=final)
- Path('/tmp/sam3-pick-full-result.json').write_text(json.dumps(report,indent=2))
+ Path(prefix+'-result.json').write_text(json.dumps(report,indent=2))
  print(json.dumps(report,indent=2),flush=True)
  assert clouds and clouds[-1].width>=100
  local_index=next(i for i,s in enumerate(stages) if s.startswith('local_object_cloud'))

@@ -2,6 +2,10 @@
 > 서버/클라이언트 재시작이 필요합니다. 최신 운영 방법·승인 상태·제한은
 > [SAM 3 객체 분할](../docs/sam3-perception.md)을 참고하세요.
 
+> 기본 BT는 [역할별 파지 플러그인](../docs/bt-grasp-stages.md)을 사용합니다.
+> `/grasp/*` endpoint의 `RunGraspStage`로 마스크·점군·후보를 전달하며,
+> 기존 `/grasp_step`은 이전 클라이언트 호환용으로 유지합니다.
+
 # rwh_beyond_grasp_bridge
 
 Beyond 레포의 ROS 2 Jazzy ↔ GraspGenX ZMQ Bridge. 인터페이스는 기존 `rwh_beyond_msgs`를 공유한다.

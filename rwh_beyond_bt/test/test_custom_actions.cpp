@@ -506,3 +506,89 @@ TEST_F(CustomActions, ObservationUsesSimulationJointPoseAndMoveItCollisionPlanni
   EXPECT_NEAR(joints[1].position, 1.0279353924406198, 1e-12);
   EXPECT_FALSE(arm_goal_.planning_options.plan_only);
 }
+
+// Exercise real ROS action transport and Blackboard payloads across the split nodes.
+#include "rwh_beyond_msgs/action/run_grasp_stage.hpp"
+using GraspStageAction = rwh_beyond_msgs::action::RunGraspStage;
+
+TEST_F(CustomActions, SplitGraspStagesPassTypedArtifacts)
+{
+  std::vector<rclcpp_action::Server<GraspStageAction>::SharedPtr> servers;
+  std::vector<std::string> calls;
+  const std::vector<std::string> stages = {"segment_object", "build_object_cloud", "infer_grasps",
+    "select_feasible_grasp", "move_pregrasp", "approach", "attach", "lift"};
+  for (const auto & stage : stages) {
+    servers.push_back(rclcpp_action::create_server<GraspStageAction>(server_, "grasp/" + stage,
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+      [&, stage](auto handle) {
+        calls.push_back(stage);
+        auto goal = handle->get_goal();
+        auto result = std::make_shared<GraspStageAction::Result>();
+        result->success = true;
+        result->observation_id = "capture-42";
+        if (stage == "segment_object") {result->object_mask.width = 37;}
+        if (stage == "build_object_cloud") {
+          EXPECT_EQ(goal->observation_id, "capture-42");
+          EXPECT_EQ(goal->object_mask.width, 37u);
+          result->object_cloud.width = 321;
+          result->object_cloud.header.frame_id = "camera";
+        }
+        if (stage == "infer_grasps" || stage == "select_feasible_grasp") {
+          EXPECT_EQ(goal->observation_id, "capture-42");
+          EXPECT_EQ(goal->object_cloud.width, 321u);
+          EXPECT_EQ(goal->object_cloud.header.frame_id, "camera");
+        }
+        if (stage == "infer_grasps") {
+          rwh_beyond_msgs::msg::GraspCandidate candidate;
+          candidate.id = "candidate-7";
+          result->candidates.push_back(candidate);
+        }
+        if (stage == "select_feasible_grasp") {
+          EXPECT_EQ(goal->candidates.size(), 1u);
+          if (!goal->candidates.empty()) {EXPECT_EQ(goal->candidates[0].id, "candidate-7");}
+          result->plan_id = "plan-9";
+          result->pregrasp.frame_id = "base_link";
+        }
+        if (stage == "move_pregrasp" || stage == "approach" || stage == "attach" || stage == "lift") {
+          EXPECT_EQ(goal->plan_id, "plan-9");
+        }
+        handle->succeed(result);
+      }));
+  }
+  EXPECT_EQ(runXml(R"(
+    <root BTCPP_format="4"><BehaviorTree ID="Test"><Sequence>
+      <SegmentObject observation_id="{obs}" mask="{mask}"/>
+      <BuildObjectCloud observation_id="{obs}" mask="{mask}" cloud="{cloud}"/>
+      <InferGrasps observation_id="{obs}" cloud="{cloud}" candidates="{candidates}"/>
+      <SelectFeasibleGrasp observation_id="{obs}" cloud="{cloud}" candidates="{candidates}" plan_id="{plan}" pregrasp="{pre}"/>
+      <MoveToPregrasp plan_id="{plan}"/><ApproachGrasp plan_id="{plan}"/>
+      <AttachObject plan_id="{plan}"/><LiftObject plan_id="{plan}"/>
+    </Sequence></BehaviorTree></root>)"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(calls, stages);
+  EXPECT_EQ(blackboard_->get<TcpPose>("pre").frame_id, "base_link");
+}
+
+TEST_F(CustomActions, SplitGraspStageFailureStopsSequence)
+{
+  int moves = 0;
+  auto infer = rclcpp_action::create_server<GraspStageAction>(server_, "grasp/infer_grasps",
+    [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+    [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+    [](auto handle) {
+      auto result = std::make_shared<GraspStageAction::Result>();
+      result->message = "inference failed";
+      handle->abort(result);
+    });
+  auto move = rclcpp_action::create_server<GraspStageAction>(server_, "grasp/move_pregrasp",
+    [&](auto, auto) {++moves; return rclcpp_action::GoalResponse::REJECT;},
+    [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
+  blackboard_->set("obs", std::string("capture"));
+  blackboard_->set("cloud", sensor_msgs::msg::PointCloud2());
+  EXPECT_EQ(runXml(R"(
+    <root BTCPP_format="4"><BehaviorTree ID="Test"><Sequence>
+      <InferGrasps observation_id="{obs}" cloud="{cloud}" candidates="{candidates}"/>
+      <MoveToPregrasp plan_id="unused"/>
+    </Sequence></BehaviorTree></root>)"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(moves, 0);
+}

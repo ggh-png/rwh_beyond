@@ -1,5 +1,26 @@
 <root BTCPP_format="4">
     <TreeNodesModel>
+        <Action ID="ApproachGrasp">
+            <input_port name="plan_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="AttachObject">
+            <input_port name="plan_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="BuildObjectCloud">
+            <input_port name="observation_id" type="std::string"/>
+            <output_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="CheckGraspReady">
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
         <Action ID="ClearOctomap">
             <input_port name="scene_service" type="std::string" default="/get_planning_scene">MoveIt planning scene service</input_port>
             <input_port name="cloud_topic" type="std::string" default="/camera/depth/filtered_points">Robot-filtered depth XYZ</input_port>
@@ -15,6 +36,18 @@
         <Action ID="GraspStep">
             <input_port name="command" type="std::string">Simulation grasp stage</input_port>
             <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Collision-validated pregrasp TCP</output_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="InferGrasps">
+            <input_port name="observation_id" type="std::string"/>
+            <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <output_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="LiftObject">
+            <input_port name="plan_id" type="std::string"/>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
@@ -48,7 +81,27 @@
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
+        <Action ID="MoveToPregrasp">
+            <input_port name="plan_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
         <Action ID="OpenGripper">
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="SegmentObject">
+            <output_port name="observation_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <output_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="SelectFeasibleGrasp">
+            <input_port name="observation_id" type="std::string"/>
+            <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+            <output_port name="plan_id" type="std::string"/>
+            <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>

@@ -1,0 +1,18 @@
+# Fixed-purpose endpoints under grasp/: no command dispatch in the client.
+# observation_id binds the mask/cloud/candidates to one stationary RGB-D capture.
+string observation_id
+sensor_msgs/Image object_mask
+sensor_msgs/PointCloud2 object_cloud
+rwh_beyond_msgs/GraspCandidate[] candidates
+string plan_id
+---
+bool success
+string message
+string observation_id
+sensor_msgs/Image object_mask
+sensor_msgs/PointCloud2 object_cloud
+rwh_beyond_msgs/GraspCandidate[] candidates
+string plan_id
+rwh_beyond_msgs/TcpPose pregrasp
+---
+string stage
