@@ -7,7 +7,7 @@ import unittest
 from unittest.mock import patch
 
 from launch import LaunchContext
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, SetLaunchConfiguration
 from launch_ros.actions import Node
 import yaml
 
@@ -26,10 +26,11 @@ class BtDemoLaunchTest(unittest.TestCase):
         self.assertEqual(
             set(argument_map),
             {'params_file', 'rviz', 'rviz_config', 'tcp_offset', 'segmentation_endpoint',
-             'segmentation_backend', 'target_text', 'endpoint'})
-        includes = [entity for entity in entities if isinstance(entity, IncludeLaunchDescription)]
-        self.assertEqual(len(includes), 2)
-        pipeline, rviz = includes
+             'segmentation_backend', 'target_text', 'endpoint', 'grasp_params_file'})
+        group = next(entity for entity in entities if isinstance(entity, GroupAction))
+        pipeline = next(entity for entity in group.get_sub_entities()
+                        if isinstance(entity, IncludeLaunchDescription))
+        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription))
         self.assertIsNone(pipeline.condition)
         context = LaunchContext()
         self.assertIn("FindPackageShare(pkg='rwh_beyond_bringup')",
@@ -37,9 +38,10 @@ class BtDemoLaunchTest(unittest.TestCase):
         self.assertIn('moveit_rviz.launch.py', rviz.launch_description_source.location)
         names = ('segmentation_endpoint', 'segmentation_backend', 'target_text', 'endpoint')
         context.launch_configurations.update({name: f'test_{name}' for name in names})
+        context.launch_configurations['grasp_params_file'] = '/tmp/grasp.yaml'
         self.assertEqual(
             {name: value.perform(context) for name, value in pipeline.launch_arguments},
-            {name: f'test_{name}' for name in names})
+            {**{name: f'test_{name}' for name in names}, 'params_file': '/tmp/grasp.yaml'})
         env_vars = {
             'segmentation_endpoint': ('RWH_SEGMENTATION_ENDPOINT', 'tcp://127.0.0.1:5567'),
             'segmentation_backend': ('RWH_SEGMENTATION_BACKEND', 'sam3'),
@@ -64,6 +66,32 @@ class BtDemoLaunchTest(unittest.TestCase):
             [('nav2_bt_navigator', 'bt_navigator'),
              ('nav2_lifecycle_manager', 'lifecycle_manager')],
         )
+
+    def test_grasp_yaml_is_scoped_and_does_not_replace_navigator_yaml(self):
+        launch_path = Path(__file__).resolve().parents[1] / 'launch' / 'bt_demo.launch.py'
+        spec = importlib.util.spec_from_file_location('bt_demo_scoping', launch_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        group = next(entity for entity in module.generate_launch_description().entities
+                     if isinstance(entity, GroupAction))
+        context = LaunchContext()
+        context.launch_configurations.update({
+            'params_file': '/tmp/navigator.yaml',
+            'grasp_params_file': '/tmp/grasp.yaml',
+            'segmentation_endpoint': 'tcp://127.0.0.1:5567',
+            'segmentation_backend': 'sam3', 'target_text': 'red box',
+            'endpoint': 'tcp://127.0.0.1:5566',
+        })
+        for action in group.execute(context):
+            if isinstance(action, IncludeLaunchDescription):
+                # IncludeLaunchDescription applies these SetLaunchConfiguration
+                # actions before evaluating the child launch's Node parameters.
+                for name, value in action.launch_arguments:
+                    SetLaunchConfiguration(name, value).execute(context)
+                self.assertEqual(context.launch_configurations['params_file'], '/tmp/grasp.yaml')
+            else:
+                action.execute(context)
+        self.assertEqual(context.launch_configurations['params_file'], '/tmp/navigator.yaml')
 
     def test_default_parameters_preserve_previous_values(self):
         params_path = Path(__file__).resolve().parents[1] / 'params' / 'bt_demo_params.yaml'

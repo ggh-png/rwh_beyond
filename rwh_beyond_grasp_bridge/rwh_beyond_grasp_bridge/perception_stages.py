@@ -17,7 +17,14 @@ class PerceptionStages:
         after=self.get_clock().now().nanoseconds
         def ready():
             return any(set(v)=={'rgb','depth','info'} and k[0]*10**9+k[1]>after for k,v in list(self.frames.items()))
-        self.wait(ready,10)
+        try:
+            self.wait(ready,10)
+        except TimeoutError as error:
+            samples = [(stamp, sorted(frame)) for stamp, frame in list(self.frames.items())]
+            raise TimeoutError(
+                f'RGB-D snapshot unavailable: use_sim_time={self.get_parameter("use_sim_time").value}, '
+                f'after_ns={after}, now_ns={self.get_clock().now().nanoseconds}, '
+                f'buffered_frames={samples}') from error
         keys=[k for k,v in list(self.frames.items()) if set(v)=={'rgb','depth','info'} and k[0]*10**9+k[1]>after]
         return copy.deepcopy(self.frames[max(keys)])
 

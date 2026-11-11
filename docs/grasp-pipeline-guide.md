@@ -229,8 +229,26 @@ docker stop moma_mj_lab_1.1.2_gui
 | 영상/점군 없음 | 관측 BT 실행 여부, target 검출, [표시 토픽/QoS](grasp-visualization.md) |
 | `START_STATE_INVALID` | 해당 이동의 시작 상태·Planning Scene·충돌 상태. 다음 단계는 실행되지 않음 |
 | `No feasible model grasp` | 선택기의 rejection counts: IK·하향 조건·충돌·접근/리프트 경로 |
+| `acquire_object_rgbd` timeout | 먼저 확인: coordinator의 `use_sim_time`, 카메라 3종 수신·동일 stamp. 아래 시간 설정 절 참고 |
 | 오래된 관측/팔 이동 | 새 BT goal로 재관측. 오래된 ID·선택 경로 재사용 금지 |
 | 이미 물체를 잡고 있음 | 현재 트리에는 내려놓기가 없으므로 시뮬레이션 초기화 |
 
 이 문서 개편에서 새 물리 집기 시험은 수행하지 않았습니다. 과거 시험의 성공·실패는
 [검증 범위](project-overview.md#validation)에서 구분해 확인하세요.
+
+
+### RGB-D 수신 timeout과 시간 설정
+
+`acquire_object_rgbd`는 SAM 요청 전 단계다. RGB·Depth·CameraInfo가 수신되어도
+coordinator가 시스템 시간을 사용하고 카메라가 시뮬레이션 시간을 쓰면 새 관측 조건을 만족할 수 없다.
+
+```bash
+ros2 param get /grasp_coordinator use_sim_time
+ros2 param get /graspgenx_bridge use_sim_time
+```
+
+현재 MuJoCo 경로에서는 둘 다 `True`여야 한다. BT launch의 `params_file`은 navigator용,
+`grasp_params_file`은 coordinator·추론 bridge용이다. 내부 grasp pipeline include는 launch 설정을
+별도 scope에 두고 올바른 YAML을 전달한다. 이 두 파일을 같은 인자로 혼용하지 않는다.
+수정 후에는 관련 패키지를 빌드하고 기존 runner를 종료·재시작한다. 이 문제 때문에 SAM 컨테이너를
+재시작할 필요는 없다.
