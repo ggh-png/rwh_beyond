@@ -358,11 +358,11 @@ def test_place_moves_in_base_frame_then_releases_attachment():
         state=lambda: RobotState(joint_state=JointState(
             name=[f'joint{i}' for i in range(1, 7)], position=[0.]*6)),
         call=Mock(return_value=NS(error_code=NS(val=1), pose_stamped=[NS(pose=home_pose)])),
-        execute_cartesian=Mock(), stage=Mock(), command_gripper=Mock(), wait=Mock(),
+        execute_place=Mock(), stage=Mock(), command_gripper=Mock(), wait=Mock(),
         apply=Mock(), cleanup=Mock(),
     )
     HardwareGraspCoordinator.move_place(state, .20, .15)
-    target = state.execute_cartesian.call_args.args[0]
+    target = state.execute_place.call_args.args[0]
     np.testing.assert_allclose(
         [target.position.x, target.position.y, target.position.z], [.5, -.1, .35], atol=1e-10
     )
@@ -445,3 +445,83 @@ def test_home_preparation_removes_only_existing_legacy_table(legacy_table):
     else:
         state.apply.assert_not_called()
     state.cleanup.assert_called_once()
+
+
+def place_transfer_state(fraction=.126984, ik_ok=True, plan_code=1):
+    trajectory = NS(joint_trajectory=NS(points=[NS(time_from_start=NS(sec=1, nanosec=0))]))
+    goal = RobotState(joint_state=JointState(
+        name=[f'joint{i}' for i in range(1, 7)], position=[.1]*6))
+    return NS(
+        state=Mock(return_value=RobotState(is_diff=True)),
+        cartesian=Mock(return_value=NS(fraction=fraction, error_code=NS(val=1), solution=trajectory)),
+        ik=Mock(return_value=goal if ik_ok else None),
+        call=Mock(return_value=NS(motion_plan_response=NS(
+            error_code=NS(val=plan_code), trajectory=trajectory))),
+        stage=Mock(), execute_trajectory=Mock())
+
+
+def test_place_partial_cartesian_uses_complete_collision_checked_joint_plan():
+    state = place_transfer_state()
+    target = Pose()
+    HardwareGraspCoordinator.execute_place(state, target)
+    state.ik.assert_called_once_with(target, state.state.return_value)
+    request = state.call.call_args.args[1].motion_plan_request
+    assert request.start_state.is_diff
+    assert request.pipeline_id == 'ompl'
+    assert request.max_velocity_scaling_factor == .1
+    assert len(request.goal_constraints[0].joint_constraints) == 6
+    state.execute_trajectory.assert_called_once_with(
+        state.call.return_value.motion_plan_response.trajectory)
+
+
+def test_place_complete_cartesian_skips_joint_fallback():
+    state = place_transfer_state(fraction=1.)
+    HardwareGraspCoordinator.execute_place(state, Pose())
+    state.ik.assert_not_called()
+    state.call.assert_not_called()
+    state.execute_trajectory.assert_called_once_with(state.cartesian.return_value.solution)
+
+
+@pytest.mark.parametrize('ik_ok,code,message', [
+    (False, 1, 'no collision-free IK'), (True, -1, 'transfer planning failed')])
+def test_place_fallback_failure_never_executes(ik_ok, code, message):
+    state = place_transfer_state(ik_ok=ik_ok, plan_code=code)
+    with pytest.raises(RuntimeError, match=message):
+        HardwareGraspCoordinator.execute_place(state, Pose())
+    state.execute_trajectory.assert_not_called()
+
+
+def test_place_execution_failure_is_not_retried():
+    state = place_transfer_state(fraction=1.)
+    state.execute_trajectory.side_effect = RuntimeError('execution stopped')
+    with pytest.raises(RuntimeError, match='execution stopped'):
+        HardwareGraspCoordinator.execute_place(state, Pose())
+    state.ik.assert_not_called()
+    state.execute_trajectory.assert_called_once()
+
+
+def test_place_fallback_rejects_zero_duration_plan():
+    state = place_transfer_state()
+    state.call.return_value.motion_plan_response.trajectory.joint_trajectory.points[0].time_from_start.sec = 0
+    with pytest.raises(RuntimeError, match='positive duration'):
+        HardwareGraspCoordinator.execute_place(state, Pose())
+    state.execute_trajectory.assert_not_called()
+
+
+def test_new_place_attempt_invalidates_old_release_readiness():
+    state = NS(release_ready=True,
+               get_parameter=lambda name: NS(value=[0.]*6),
+               prepare_observation_motion=Mock(return_value=False))
+    with pytest.raises(RuntimeError, match='requires an attached target'):
+        HardwareGraspCoordinator.move_place(state, .2, .15)
+    assert not state.release_ready
+
+
+@pytest.mark.parametrize('fraction,code', [(float('nan'), 1), (.1, -1)])
+def test_place_invalid_cartesian_response_never_retries_or_executes(fraction, code):
+    state = place_transfer_state(fraction=fraction)
+    state.cartesian.return_value.error_code.val = code
+    with pytest.raises(RuntimeError, match='Cartesian planning failed'):
+        HardwareGraspCoordinator.execute_place(state, Pose())
+    state.ik.assert_not_called()
+    state.execute_trajectory.assert_not_called()

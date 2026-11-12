@@ -15,7 +15,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 
 `mode: 1`은 pick(`demo.xml`), `mode: 2`는 place/release(`place.xml`)를 실행합니다.
 `place.xml`은 물체를 든 상태에서 home → home TCP 위치에서 base +X 0.20 m 및 base +Z 0.15 m →
-개방·attachment 해제 → home 순으로 실행합니다. `behavior_tree` 경로를 명시하면 mode 대신
+개방·attachment 해제 → home 순으로 실행합니다. 배치 직선 경로가 불완전하면 동일한 목표 위치·자세에 대해 충돌 검사 IK와 OMPL 우회 계획을 시도합니다. 완전한 계획만 실행하며 계획·실행 실패 시 물체 부착을 유지합니다. `behavior_tree` 경로를 명시하면 mode 대신
 그 사용자 지정 트리를 실행합니다. mode를 생략한 기존 호출은 pick으로 호환됩니다.
 
 home·열기·관측은 `MoveHome`·`OpenGripper`·`MoveObservation`, 인식·추론·선택·접근·부착·리프트는 역할별 Action 노드입니다.

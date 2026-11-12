@@ -155,7 +155,57 @@ class ScenarioMotion:
         self.command_gripper(opening, duration=duration, closing=False)
         self.wait(lambda: abs(self.feedback()['gripper'] - opening) < 0.005, 10)
 
+    def execute_place(self, target):
+        """Plan the whole transfer before moving; retain payload collision checking."""
+        state = self.state()
+        path = self.cartesian(target, state)
+        if (path.error_code.val != 1 or not math.isfinite(path.fraction)
+                or not 0.0 <= path.fraction <= 1.0):
+            raise RuntimeError(
+                f'Place Cartesian planning failed: fraction={path.fraction}, '
+                f'code={path.error_code.val}')
+        if path.fraction >= 0.999:
+            self.execute_trajectory(path.solution)
+            return
+        self.stage(
+            f'place_cartesian_incomplete fraction={path.fraction}; '
+            'planning_collision_checked_joint_transfer')
+        # A transfer need not follow a straight line. Keep the exact target pose,
+        # attached geometry and normal collision checks for both IK and OMPL.
+        goal = self.ik(target, state)
+        if goal is None:
+            raise RuntimeError(
+                f'Place target has no collision-free IK; Cartesian fraction={path.fraction}')
+        positions = dict(zip(goal.joint_state.name, goal.joint_state.position))
+        names = [f'joint{i}' for i in range(1, 7)]
+        if not all(name in positions and math.isfinite(positions[name]) for name in names):
+            raise RuntimeError('Place IK returned incomplete or nonfinite arm joints')
+        request = GetMotionPlan.Request()
+        plan = request.motion_plan_request
+        plan.group_name = 'arm'
+        plan.pipeline_id = 'ompl'
+        plan.planner_id = 'RRTConnectkConfigDefault'
+        plan.allowed_planning_time = 10.0
+        plan.max_velocity_scaling_factor = 0.1
+        plan.max_acceleration_scaling_factor = 0.1
+        plan.start_state = state
+        plan.goal_constraints = [Constraints(joint_constraints=[
+            JointConstraint(joint_name=name, position=float(positions[name]),
+                            tolerance_above=0.001, tolerance_below=0.001, weight=1.0)
+            for name in names])]
+        response = self.call('plan', request, 15).motion_plan_response
+        if response.error_code.val != 1:
+            raise RuntimeError(f'Place transfer planning failed: {response.error_code.val}')
+        points = response.trajectory.joint_trajectory.points
+        if not points or (
+            points[-1].time_from_start.sec == 0 and points[-1].time_from_start.nanosec == 0
+        ):
+            raise RuntimeError('Place transfer plan has no positive duration')
+        self.stage('place_collision_checked_joint_transfer_planned')
+        self.execute_trajectory(response.trajectory)
+
     def move_place(self, forward, z, home=None):
+        self.release_ready = False
         if not all(math.isfinite(value) for value in (forward, z)):
             raise ValueError('Place forward and Z offsets must be finite')
         if not 0.0 <= forward <= 0.30 or not 0.0 <= z <= 0.30:
@@ -186,7 +236,7 @@ class ScenarioMotion:
         target.position.x += forward
         target.position.z += z
         self.stage(f'place_target base_x_offset_m={forward} base_z_offset_m={z}')
-        self.execute_cartesian(target)
+        self.execute_place(target)
         self.release_ready = True
         self.stage('place_pose_reached_ready_for_release')
 
