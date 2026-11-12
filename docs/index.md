@@ -14,6 +14,8 @@ PiPER 로봇의 접근·그리퍼 닫기·리프트·복귀를 실행하는 ROS 
 
 ## 개발과 디버깅
 
+외부 서버의 접속·컨테이너·모델 시작/중지는 [추론 서버 운영](inference-server-operation.md)을 참고하세요.
+
 - [데이터·좌표계](project-data.md) · [코드 안내](project-code-map.md)
 - [모델별 ROS 인터페이스](model-bridges.md) · [SAM 3](sam3-perception.md) · [GraspGenX](graspgenx-model.md)
 - [D405와 TF](d405-sensors.md) · [실물 제어](piper-hardware-moveit.md)

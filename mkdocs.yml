@@ -33,6 +33,7 @@ nav:
       - 심·실물 공통 BT와 설정: real-bt.md
       - Manipulation Action 인터페이스: bt-operation.md
   - 센서와 실행 환경:
+      - 외부 GPU 추론 서버 운영: inference-server-operation.md
       - 런타임·CAN·모델 연결: piper-runtime.md
       - 실물 PiPER 제어: piper-hardware-moveit.md
       - D405 센서·장착 TF: d405-sensors.md

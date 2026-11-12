@@ -43,3 +43,5 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 가중치 접근 승인·다운로드와 GPU 환경은 ROS 실행 전에 준비합니다.
 
 [모델 ROS 인터페이스](model-bridges.md) · [런타임 설정](piper-runtime.md)
+
+서버 SSH 접속과 컨테이너·모델 시작/중지·로그·health는 [외부 GPU 추론 서버 운영](inference-server-operation.md)을 참고하세요.

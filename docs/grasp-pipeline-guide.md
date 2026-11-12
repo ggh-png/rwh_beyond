@@ -2,6 +2,7 @@
 
 명령은 ROS 컨테이너 `moma_mj_lab_1.1.2_hostcan` 안에서 실행합니다.
 GPU 모델 서버와 필요한 네트워크 연결을 먼저 준비합니다.
+서버 접속·컨테이너 시작·모델 health는 [외부 GPU 추론 서버 운영](inference-server-operation.md)을 따릅니다.
 
 ## 1. 환경과 runner 시작
 

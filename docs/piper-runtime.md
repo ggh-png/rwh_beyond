@@ -101,3 +101,5 @@ runner 설정은 `ros_runner/config/runners.yaml`이며 변경 후 runner를 재
 모델 timeout이면 endpoint·터널·GPU 서버 준비를, ROS 서버가 안 보이면 domain·RMW·노드 실행을 확인합니다.
 
 [환경과 빌드](project-containers.md) · [실물 제어](piper-hardware-moveit.md)
+
+서버 SSH 접속과 컨테이너·모델 시작/중지·로그·health는 [외부 GPU 추론 서버 운영](inference-server-operation.md)을 참고하세요.

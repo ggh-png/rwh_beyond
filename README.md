@@ -12,7 +12,7 @@ PiPER 물체 인식·파지·리프트 프로젝트입니다.
 
 ## 시작하기
 
-1. [환경과 빌드](docs/project-containers.md)
+1. [환경과 빌드](docs/project-containers.md) · [외부 GPU 추론 서버 운영](docs/inference-server-operation.md)
 2. [실행 가이드](docs/grasp-pipeline-guide.md)
 3. [공통 BT와 설정](docs/real-bt.md)
 4. [Action 인터페이스](docs/bt-operation.md)

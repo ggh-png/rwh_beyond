@@ -35,3 +35,5 @@ GPU·가중치·서버 실행 환경은 별도로 준비하며 모델 주소는 
 검사에서 모두 탈락하면 이동 목표를 실행하지 않습니다.
 
 [좌표 변환](project-data.md) · [ROS API](model-bridges.md)
+
+서버 SSH 접속과 컨테이너·모델 시작/중지·로그·health는 [외부 GPU 추론 서버 운영](inference-server-operation.md)을 참고하세요.

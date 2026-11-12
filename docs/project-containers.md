@@ -30,6 +30,8 @@ source install/setup.bash
 
 ## 모델 실행 환경
 
+외부 서버의 접속·컨테이너·모델 시작/중지는 [추론 서버 운영](inference-server-operation.md)을 참고하세요.
+
 SAM 3와 GraspGenX는 각각 별도 GPU 모델 프로세스로 실행합니다.
 ROS 컨테이너에 두 모델을 import하지 않고 ROS bridge가 모델 서버에 요청합니다.
 배포 소스는 저장소의 `deploy/sam3-docker/`, `deploy/graspgenx-docker/`입니다.
