@@ -6,14 +6,14 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용">
+        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/piper-runtime/">
       
       
-        <link rel="prev" href="../grasp-visualization/">
+        <link rel="prev" href="../bt-operation/">
       
       
         <link rel="next" href="../piper-hardware-moveit/">
@@ -27,7 +27,7 @@
     
     
       
-        <title>ROS 환경·CAN·모델 네트워크 - RWH · PiPER 집기와 Husky 운용</title>
+        <title>런타임·CAN·모델 연결 - BEYOND Grasp</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#ros-can" class="md-skip">
+        <a href="#can" class="md-skip">
           콘텐츠로 이동
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="상단/헤더">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-header__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-header__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
@@ -108,13 +108,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            RWH · PiPER 집기와 Husky 운용
+            BEYOND Grasp
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ROS 환경·CAN·모델 네트워크
+              런타임·CAN·모델 연결
             
           </span>
         </div>
@@ -206,13 +206,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-nav__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-nav__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
 
     </a>
-    RWH · PiPER 집기와 Husky 운용
+    BEYOND Grasp
   </label>
   
     <div class="md-nav__source">
@@ -260,20 +260,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -283,7 +281,7 @@
   <span class="md-ellipsis">
     
   
-    PiPER 집기 이해하기
+    시작하기
   
 
     
@@ -294,12 +292,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    PiPER 집기 이해하기
+    시작하기
   
 
           </label>
@@ -319,7 +317,7 @@
   <span class="md-ellipsis">
     
   
-    1. 전체 흐름 한눈에
+    시스템 구성
   
 
     
@@ -347,35 +345,7 @@
   <span class="md-ellipsis">
     
   
-    2. 컨테이너 구축
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    3. 모델 데이터와 좌표계
+    환경과 빌드
   
 
     
@@ -403,7 +373,7 @@
   <span class="md-ellipsis">
     
   
-    4. 처음 터미널부터 실행
+    실행 가이드
   
 
     
@@ -424,14 +394,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../project-code-map/" class="md-nav__link">
+      <a href="../real-bt/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    5. 코드를 따라 읽기
+    심·실물 공통 BT와 설정
   
 
     
@@ -452,14 +422,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../model-bridges/" class="md-nav__link">
+      <a href="../bt-operation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    모델별 ROS 노드 분리
+    Manipulation Action 인터페이스
   
 
     
@@ -473,49 +443,41 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sam3-perception/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SAM 3 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
-              
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../graspgenx-model/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 구현
+    센서와 실행 환경
   
 
     
@@ -523,39 +485,19 @@
   
   
 
-      </a>
-    </li>
-  
-
-              
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
             
-              
-                
   
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RViz로 디버깅
+    센서와 실행 환경
   
 
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -580,7 +522,7 @@
   <span class="md-ellipsis">
     
   
-    ROS 환경·CAN·모델 네트워크
+    런타임·CAN·모델 연결
   
 
     
@@ -598,7 +540,7 @@
   <span class="md-ellipsis">
     
   
-    ROS 환경·CAN·모델 네트워크
+    런타임·CAN·모델 연결
   
 
     
@@ -624,10 +566,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#ros" class="md-nav__link">
     <span class="md-ellipsis">
       
-        현재 사용하는 환경
+        ROS 컨테이너
       
     </span>
   </a>
@@ -635,10 +577,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#can0" class="md-nav__link">
+  <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
-        왜 can0가 보이지 않았나
+        모델 endpoint
       
     </span>
   </a>
@@ -646,54 +588,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-ros" class="md-nav__link">
+  <a href="#runner" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 실행 중인 ROS 컨테이너를 이미지로 저장
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-host" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. host 네트워크 컨테이너 생성
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-samgraspgenx" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. SAM·GraspGenX 네트워크 전환
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-runner" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. 실물 runner로 넘어가기
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        현재 환경을 다시 저장할 때
+        주요 runner 설정
       
     </span>
   </a>
@@ -723,7 +621,7 @@
   <span class="md-ellipsis">
     
   
-    실물 PiPER MoveIt 시험
+    실물 PiPER 제어
   
 
     
@@ -751,7 +649,7 @@
   <span class="md-ellipsis">
     
   
-    D405 장착·센서 선택
+    D405 센서·장착 TF
   
 
     
@@ -772,236 +670,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../real-bt/" class="md-nav__link">
+      <a href="../grasp-visualization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    실물 집기 BT 준비·실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    BT 개발 상세
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    BT 개발 상세
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    아키텍처
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../depth-bt-flow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Depth와 runner 흐름
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-nodes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    노드 목록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-grasp-stages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    단계별 포트와 Action
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-code-style/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Nav2 헤더·CPP 구성
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실행과 Groot2
+    RViz 디버깅
   
 
     
@@ -1047,7 +723,7 @@
   <span class="md-ellipsis">
     
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
     
@@ -1063,7 +739,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
           </label>
@@ -1076,14 +752,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../graspgenx-integration/" class="md-nav__link">
+      <a href="../project-data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 배포 상세
+    데이터와 좌표계
   
 
     
@@ -1104,14 +780,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../red-box-grasp/" class="md-nav__link">
+      <a href="../model-bridges/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    초기 빨간 상자 통합
+    모델별 ROS 인터페이스
   
 
     
@@ -1132,14 +808,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sam3-history/" class="md-nav__link">
+      <a href="../sam3-perception/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SAM 통합 이력
+    SAM 3 객체 분할
   
 
     
@@ -1160,14 +836,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-09/" class="md-nav__link">
+      <a href="../graspgenx-model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 9일 작업 기록
+    GraspGenX 파지 후보
   
 
     
@@ -1188,14 +864,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-10/" class="md-nav__link">
+      <a href="../bt-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 10일 작업 기록
+    BT와 실행 구조
   
 
     
@@ -1216,96 +892,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-11/" class="md-nav__link">
+      <a href="../bt-grasp-stages/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 11일 작업 기록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Husky SLAM·Nav2
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Husky SLAM·Nav2
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../husky-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    시작 안내
+    BT 단계·포트·Action
   
 
     
@@ -1326,182 +920,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection/" class="md-nav__link">
+      <a href="../project-code-map/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SSH와 본체 확인
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    외부 PC 준비
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SLAM과 Nav2 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    TF와 토픽
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    파라미터 설정
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../runner/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ros_runner 운용
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    문제 해결
+    코드를 따라 읽기
   
 
     
@@ -1563,7 +989,7 @@
   <span class="md-ellipsis">
     
   
-    구조와 출처
+    구성 요소와 출처
   
 
     
@@ -1603,10 +1029,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#ros" class="md-nav__link">
     <span class="md-ellipsis">
       
-        현재 사용하는 환경
+        ROS 컨테이너
       
     </span>
   </a>
@@ -1614,10 +1040,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#can0" class="md-nav__link">
+  <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
-        왜 can0가 보이지 않았나
+        모델 endpoint
       
     </span>
   </a>
@@ -1625,54 +1051,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1-ros" class="md-nav__link">
+  <a href="#runner" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 실행 중인 ROS 컨테이너를 이미지로 저장
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2-host" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. host 네트워크 컨테이너 생성
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#3-samgraspgenx" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. SAM·GraspGenX 네트워크 전환
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-runner" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. 실물 runner로 넘어가기
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        현재 환경을 다시 저장할 때
+        주요 runner 설정
       
     </span>
   </a>
@@ -1699,182 +1081,84 @@
   
 
 
-<h1 id="ros-can">ROS 실행 환경·CAN·모델 네트워크 전환<a class="headerlink" href="#ros-can" title="Permanent link">&para;</a></h1>
-<p>이 페이지의 저장·생성 스크립트는 <strong>호스트의 <code>~/wsyoon/ros2-docker</code> 저장소</strong>에 있습니다.
-RWH 패키지 안의 ROS launch와 구분하세요.</p>
-<p>이전 MuJoCo 개발 컨테이너 <code>moma_mj_lab_1.1.2_gui</code>의 <code>/root/ros2_ws</code>를
-이미지로 저장하고, host 네트워크를 사용하는 별도 컨테이너에서 재사용합니다.
-기존 Panda/Husky용 <code>start-robot-dev.sh</code>와 Compose는 그대로 사용할 수 있습니다.</p>
-<h2 id="_1">현재 사용하는 환경<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>현재 작업 컨테이너는 <strong><code>moma_mj_lab_1.1.2_hostcan</code></strong>입니다.
-<code>moma_mj_lab_1.1.2_gui</code>는 이전 환경이며 새 작업 경로에서는 사용하지 않습니다.</p>
+<h1 id="can">런타임·CAN·모델 연결<a class="headerlink" href="#can" title="Permanent link">&para;</a></h1>
+<h2 id="ros">ROS 컨테이너<a class="headerlink" href="#ros" title="Permanent link">&para;</a></h2>
+<p>현재 컨테이너는 <code>moma_mj_lab_1.1.2_hostcan</code>, workspace는 <code>/root/ros2_ws</code>입니다.
+host 네트워크에서 호스트의 SocketCAN 인터페이스와 네트워크 포트 공간을 사용합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 호스트에서 ROS 컨테이너 진입</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>podman<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_hostcan<span class="w"> </span>bash
+</code></pre></div>
+<p>컨테이너에는 GPU runtime, GUI를 사용할 경우 X11 연결, D405 USB 접근이 필요합니다.
+CAN은 파일 장치가 아닌 네트워크 인터페이스입니다. 호스트에서 로봇과 일치하는 bitrate로 준비합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ip<span class="w"> </span>-details<span class="w"> </span>link<span class="w"> </span>show<span class="w"> </span>can0
+</code></pre></div>
+<p>실물 runner는 기본 <code>can0</code>를 사용하며 인터페이스가 UP인지 확인합니다.
+현재 장비의 CAN bitrate는 1 Mbps입니다.</p>
+<h2 id="endpoint">모델 endpoint<a class="headerlink" href="#endpoint" title="Permanent link">&para;</a></h2>
+<p>공통 YAML 기본 주소는 SAM <code>tcp://127.0.0.1:5567</code>, GraspGenX <code>tcp://127.0.0.1:5566</code>입니다.
+loopback 주소는 로봇 PC에서 접근 가능한 모델 또는 SSH 포워딩 endpoint를 뜻합니다.
+외부 서버 주소가 자동으로 검색되는 것은 아닙니다.</p>
+<p>runner는 <code>RWH_MODEL_ENV_FILE</code>의 파일을 읽으며 기본 경로는 <code>$HOME/rwh-inference/remote.env</code>입니다.
+다음 변수를 통해 endpoint를 지정할 수 있습니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># runner 시작 전에 실제 구성에 맞게 지정</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_GRASP_ENDPOINT</span><span class="o">=</span>tcp://127.0.0.1:5566
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_SEGMENTATION_ENDPOINT</span><span class="o">=</span>tcp://127.0.0.1:5567
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 다른 환경 파일을 쓸 때:</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_MODEL_ENV_FILE</span><span class="o">=</span>/path/to/model.env
+</code></pre></div>
+<p>환경 파일은 지정한 값을 덮어쓸 수 있으므로 최종 파일 내용과 runner 시작 로그의 endpoint를 확인합니다.
+SSH 터널을 사용한다면 해당 터널을 먼저 연결하고 포워딩 포트에 맞춥니다.
+모델 가중치·GPU 프로세스는 ROS runner와 별도로 준비합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/sam3/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/graspgenx/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+</code></pre></div>
+<p><code>ROS_DOMAIN_ID</code>는 ROS DDS 통신에 사용되며 모델 ZMQ endpoint와는 별개입니다.</p>
+<h2 id="runner">주요 runner 설정<a class="headerlink" href="#runner" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>항목</th>
-<th>현재 설정</th>
+<th>변수</th>
+<th>용도</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>ROS workspace</td>
-<td><code>/root/ros2_ws</code> (컨테이너 writable layer)</td>
+<td><code>RWH_PIPER_CAN_PORT</code></td>
+<td>실물 CAN 인터페이스</td>
 </tr>
 <tr>
-<td>네트워크</td>
-<td>host: 호스트의 <code>can0</code>와 TCP 포트 공간 공유</td>
+<td><code>RWH_PIPER_EXECUTION_TRANSPORT</code></td>
+<td>실물 BT는 <code>feedback</code> 필요</td>
 </tr>
 <tr>
-<td>CAN</td>
-<td><code>can0</code>, 호스트에서 UP·1 Mbps 설정</td>
+<td><code>RWH_PIPER_AUTO_ENABLE</code></td>
+<td>모터 자동 활성화, 기본 false</td>
 </tr>
 <tr>
-<td>GPU</td>
-<td>NVIDIA CDI, RTX 3060 확인</td>
+<td><code>RWH_PIPER_SPEED_PERCENT</code></td>
+<td>실물 driver 속도 설정</td>
 </tr>
 <tr>
-<td>GUI</td>
-<td>X11·Xauthority bind mount</td>
+<td><code>RWH_BT_RVIZ</code></td>
+<td>심 BT의 RViz 활성화</td>
 </tr>
 <tr>
-<td>최근 보존 이미지</td>
-<td><code>localhost/rwh-piper-dev:moveit-sim-matched-20261111</code></td>
+<td><code>RWH_PIPER_RVIZ</code></td>
+<td>실물 MoveIt RViz 활성화</td>
 </tr>
 <tr>
-<td>모델 서버</td>
-<td>SAM <code>127.0.0.1:5567</code>, GraspGenX <code>127.0.0.1:5566</code></td>
+<td><code>RWH_PIPER_START_SENSORS</code></td>
+<td>실물 MoveIt의 센서 포함 여부</td>
+</tr>
+<tr>
+<td><code>RWH_ENABLE_D405</code></td>
+<td>D405 사용 여부</td>
 </tr>
 </tbody>
 </table>
-<p>최근 이미지는 실행 중인 컨테이너에 추가한 SDK·빌드·설정을 보존한 스냅샷입니다.
-실행 중인 컨테이너의 최초 기반 이미지 이름과 최근 스냅샷 이름은 다를 수 있습니다.
-새 컨테이너 생성 스크립트는 sleep만 실행하고 로봇을 자동 활성화하지 않습니다.</p>
-<h2 id="can0">왜 can0가 보이지 않았나<a class="headerlink" href="#can0" title="Permanent link">&para;</a></h2>
-<p>기존 MuJoCo 컨테이너는 rootless Podman의 <code>slirp4netns</code> 네트워크를 사용합니다.
-호스트에서는 <code>can0</code>가 있어도 컨테이너에는 <code>lo</code>, <code>tap0</code>만 있습니다.
-SocketCAN의 <code>can0</code>는 네트워크 인터페이스이므로 <code>--device /dev/can0</code>로 전달하지 않습니다.
-새 실행 스크립트는 <code>--network host</code>를 사용합니다. 호스트에서 CAN을 설정하고,
-컨테이너는 이미 올라온 인터페이스를 사용합니다.</p>
-<p>현재 장비에서는 rootless Podman + host network로 별도 <code>--privileged</code>나
-<code>NET_ADMIN</code> 없이 CAN RAW 소켓을 열 수 있음을 확인했습니다.
-소켓을 여는 검사는 로봇 연결·CAN 프레임 수신·모터 동작까지 검증하지 않습니다.</p>
-<h2 id="1-ros">1. 실행 중인 ROS 컨테이너를 이미지로 저장<a class="headerlink" href="#1-ros" title="Permanent link">&para;</a></h2>
-<p>호스트에서 실행합니다. 소스 수정·빌드가 진행되지 않는 시점에 저장하세요.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>~/wsyoon/ros2-docker
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./scripts/snapshot-piper-dev.sh
-</code></pre></div>
-<ul>
-<li>기본 원본: <code>moma_mj_lab_1.1.2_gui</code> (최초 전환용)</li>
-<li>생성 이미지: <code>localhost/rwh-piper-dev:snapshot-YYYYMMDD-HHMMSS</code></li>
-<li>마지막 이미지 설정: <code>build/piper-snapshot.env</code></li>
-<li>컨테이너·이미지 메타데이터: <code>build/piper-backups/&lt;시간&gt;/</code></li>
-</ul>
-<p>원본은 중지·삭제하지 않습니다. 실행 중인 프로세스는 이미지에서 재개되지 않습니다.
-스냅샷은 pause 없이 writable layer를 저장하므로 실행 중인 데이터베이스 등의
-일관성을 보장하는 백업 방식은 아닙니다. <code>/root/ros2_ws</code>의 소스·설치·빌드 결과와
-컨테이너 안에 설치한 패키지는 보존합니다.</p>
-<p><code>/work</code>, X11 소켓, Xauthority 등 bind mount의 내용은 이미지에 포함되지 않습니다.
-<code>/work</code>의 원본은 <code>~/wsyoon/moma-mj-lab</code>이며 별도로 보관해야 합니다.
-메타데이터에는 환경변수·마운트 정보가 있으므로 Git에 올리지 않습니다.</p>
-<p>다른 장비로 옮길 TAR 파일도 필요하면 저장된 이미지 이름으로 내보냅니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">source</span><span class="w"> </span>build/piper-snapshot.env
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>podman<span class="w"> </span>save<span class="w"> </span>-o<span class="w"> </span>build/piper-dev.oci.tar<span class="w"> </span><span class="s2">"</span><span class="nv">$SNAPSHOT_IMAGE</span><span class="s2">"</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># 복원할 장비에서: podman load -i piper-dev.oci.tar</span>
-</code></pre></div>
-<h2 id="2-host">2. host 네트워크 컨테이너 생성<a class="headerlink" href="#2-host" title="Permanent link">&para;</a></h2>
-<p>먼저 호스트에서 확인합니다. PiPER의 통신 설정과 bitrate가 일치해야 합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ip<span class="w"> </span>-details<span class="w"> </span>link<span class="w"> </span>show<span class="w"> </span>can0
-</code></pre></div>
-<p>현재 확인된 설정은 UP, 1,000,000 bit/s입니다. 이미 올라온 인터페이스를
-스크립트가 재설정하거나 내리지 않습니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>~/wsyoon/ros2-docker
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./start-piper-dev.sh
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>podman<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_hostcan<span class="w"> </span>bash
-</code></pre></div>
-<p>기본값으로 마지막 스냅샷을 사용합니다. 다른 이미지·이름을 지정할 수도 있습니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nv">SNAPSHOT_IMAGE</span><span class="o">=</span>localhost/rwh-piper-dev:snapshot-YYYYMMDD-HHMMSS<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nv">CONTAINER_NAME</span><span class="o">=</span>piper-hardware<span class="w"> </span>./start-piper-dev.sh
-</code></pre></div>
-<p>GPU는 NVIDIA CDI로 연결하며 <code>ENABLE_GPU=0</code>으로 생략할 수 있습니다.
-<code>CONTAINER_ENGINE=docker</code>도 지원하지만 이미지는 그 엔진에 먼저 load해야 합니다.
-GUI DISPLAY는 호스트의 값을 사용합니다. GUI 인증 파일 위치가 다르면
-<code>PIPER_XAUTHORITY</code>, <code>/work</code> 경로는 <code>PIPER_WORK_DIR</code>로 지정합니다.</p>
-<p>새 컨테이너는 다음을 적용합니다.</p>
-<ul>
-<li>host network: 호스트의 <code>can0</code>와 TCP 포트 공간 공유, <code>-p</code> 매핑 없음</li>
-<li>이미지 내부 <code>/root/ros2_ws</code> 사용: workspace 볼륨으로 덮어쓰지 않음</li>
-<li><code>RWH_PIPER_CAN_PORT=can0</code>, <code>RWH_PIPER_AUTO_ENABLE=false</code></li>
-<li>CAN RAW 소켓 bind 검사만 수행, CAN 프레임 전송 없음</li>
-<li>sleep만 실행: driver·runner·MuJoCo·모델 자동 실행 없음</li>
-</ul>
-<p>이미 같은 이름이 있으면 중단합니다. 이후에는 <code>podman stop/start</code>로 관리합니다.
-기존 ROS 컨테이너와 새 컨테이너의 writable layer는 서로 독립적이므로,
-새로 수정한 코드는 해당 컨테이너에서 commit/push하거나 다시 snapshot해야 합니다.</p>
-<h2 id="3-samgraspgenx">3. SAM·GraspGenX 네트워크 전환<a class="headerlink" href="#3-samgraspgenx" title="Permanent link">&para;</a></h2>
-<p>이전 두 모델 컨테이너는 <code>--network container:moma_mj_lab_1.1.2_gui</code>로 생성되어 있었습니다.
-새 ROS 컨테이너의 <code>127.0.0.1</code>은 호스트이므로 기존 모델의 localhost와 달랐고,
-<code>check_ready</code>에서 GraspGenX timeout이 발생했습니다.</p>
-<p><strong>현재는 아래 전환을 완료했습니다.</strong> 두 모델은 새 ROS 컨테이너와 같은 host 네트워크를
-사용하며, 실제 모델 health와 ROS Action을 통한 분할·파지 후보 반환을 확인했습니다.
-이미 전환된 현재 환경에서 migration 스크립트를 반복 실행할 필요는 없습니다.</p>
-<p>다음 명령으로 현재 모델 설정을 보존해 새 네트워크로 전환합니다.
-호스트에서 실행하며 두 모델 서버가 잠시 중단됩니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>~/wsyoon/ros2-docker
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>./scripts/migrate-piper-models.py
-</code></pre></div>
-<p>이 스크립트는 다음을 수행합니다.</p>
-<ul>
-<li>두 컨테이너의 생성 인자·이미지·모델/캐시 볼륨·GPU 설정 보존</li>
-<li>기존 컨테이너를 중지하고 <code>*-pre-hostcan-&lt;시간&gt;</code>으로 이름 변경해 보존</li>
-<li>같은 이름의 새 모델 컨테이너를 새 ROS 컨테이너의 네트워크로 생성</li>
-<li>GraspGenX의 host를 <code>127.0.0.1</code>로 변경한 설정 파일을 read-only mount</li>
-<li>두 실제 모델 서버 시작 (ROS driver와 BT는 시작하지 않음)</li>
-</ul>
-<p>메타데이터와 GraspGenX 설정은 <code>build/piper-models/&lt;시간&gt;/</code>에 둡니다.
-기본 대상은 <code>moma_mj_lab_1.1.2_hostcan</code>이며 <code>PIPER_ROS_CONTAINER</code>로 바꿀 수 있습니다.
-동일 대상에 이미 전환된 경우 중단합니다. 자동 rollback은 하지 않으므로 실패 시
-보존된 컨테이너·메타데이터를 확인하세요. 기존 컨테이너 stop/start는 네트워크 모드를
-바꾸지 않습니다.</p>
-<p>모델 시작 로그:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>podman<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rwh-graspgenx-local<span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span><span class="m">30</span><span class="w"> </span>/data/logs/hostcan-startup.log
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>podman<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rwh-sam3-local<span class="w"> </span>tail<span class="w"> </span>-n<span class="w"> </span><span class="m">30</span><span class="w"> </span>/data/logs/hostcan-startup.log
-</code></pre></div>
-<p>정상 시작 후 새 ROS 컨테이너에서 사용할 주소는 다음과 같습니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>GraspGenX: tcp://127.0.0.1:5566
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>SAM 3:     tcp://127.0.0.1:5567
-</code></pre></div>
-<p>두 모델 모두 loopback에 bind합니다. 기존 컨테이너는
-<code>*-pre-hostcan-20261111-181036</code> 이름으로 중지·보존했습니다. 이미 전환된 컨테이너는 별도 helper의 <code>start</code>로
-다시 켤 수 있지만, idle 컨테이너이므로 모델 프로세스도 따로 시작해야 합니다.
-컨테이너를 삭제하고 재생성할 때는 옛 helper 기본값인 <code>moma_mj_lab_1.1.2_gui</code>를 쓰지 말고
-새 네트워크 대상을 지정하세요.</p>
-<h2 id="4-runner">4. 실물 runner로 넘어가기<a class="headerlink" href="#4-runner" title="Permanent link">&para;</a></h2>
-<p>실행 명령과 실제 검증 결과는 <a href="../piper-hardware-moveit/">실물 PiPER MoveIt 시험</a>을 참고하세요.</p>
-<p>새 컨테이너 안에서 환경과 패키지를 확인합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>ros2<span class="w"> </span>pkg<span class="w"> </span>prefix<span class="w"> </span>agx_arm_ctrl
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>ros2<span class="w"> </span>pkg<span class="w"> </span>prefix<span class="w"> </span>rwh_beyond_bringup
-</code></pre></div>
-<p>실물용 runner는 <code>piper_moveit</code>입니다. <code>piper_moveit_sim</code>은 현재 실물 runner의 기존 이름이며, 실제 MuJoCo 경로는
-<code>piper_sim</code>과 <code>bt_demo_sim</code>입니다. 실물 시험은 명확하게 <code>piper_moveit</code>을 사용하세요.
-현재 grasp coordinator는 <code>simulation_only=false</code>일 때 하드웨어 실행을 거부하며,
-<code>simulation_only=true</code> 경로는 MuJoCo 상태 서비스에 의존합니다. 실물 집기는 설정 변경만으로
-활성화할 수 없습니다. 실물 전용 준비·접촉·부착·리프트 검증 구현과 카메라
-RGB·Depth·CameraInfo·TF, <code>use_sim_time=false</code> 구성이 먼저 필요합니다. CAN 접근 성공은 그 설정의 완료를 뜻하지 않습니다.</p>
-<p>실물 runner는 <code>RWH_PIPER_AUTO_ENABLE=false</code> 기본값을 사용합니다.
-직접 <code>piper_moveit.launch.py</code>를 호출할 때도 <code>auto_enable:=false</code>를 명시하세요.
-이 문서의 생성·검증 명령은 driver 실행이나 모터 활성화를 수행하지 않습니다.</p>
-<h2 id="_2">현재 환경을 다시 저장할 때<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>이전 GUI 컨테이너를 다시 저장하면 새 환경의 수정이 빠집니다. 현재 작업 컨테이너를
-명시하고 새 태그를 사용합니다. <code>SNAPSHOT_IMAGE</code>의 예시 태그는 원하는 고유 이름으로 바꾸세요.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>~/wsyoon/ros2-docker
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">SOURCE_CONTAINER</span><span class="o">=</span>moma_mj_lab_1.1.2_hostcan<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">SNAPSHOT_IMAGE</span><span class="o">=</span>localhost/rwh-piper-dev:my-next-snapshot<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>./scripts/snapshot-piper-dev.sh
-</code></pre></div>
-<p>기존 태그가 있으면 스크립트가 중단하며 덮어쓰지 않습니다. Git commit/push와 이미지
-저장은 별개입니다. 이미지 저장만으로 소스 변경이 원격 저장소에 반영되지는 않습니다.</p>
+<p>runner 설정은 <code>ros_runner/config/runners.yaml</code>이며 변경 후 runner를 재시작합니다.
+모델 timeout이면 endpoint·터널·GPU 서버 준비를, ROS 서버가 안 보이면 domain·RMW·노드 실행을 확인합니다.</p>
+<p><a href="../project-containers/">환경과 빌드</a> · <a href="../piper-hardware-moveit/">실물 제어</a></p>
 
 
 
@@ -1910,7 +1194,7 @@ RGB·Depth·CameraInfo·TF, <code>use_sim_time=false</code> 구성이 먼저 필
       <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
         
           
-          <a href="../grasp-visualization/" class="md-footer__link md-footer__link--prev" aria-label="이전: RViz로 디버깅">
+          <a href="../bt-operation/" class="md-footer__link md-footer__link--prev" aria-label="이전: Manipulation Action 인터페이스">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1920,20 +1204,20 @@ RGB·Depth·CameraInfo·TF, <code>use_sim_time=false</code> 구성이 먼저 필
                 이전
               </span>
               <div class="md-ellipsis">
-                RViz로 디버깅
+                Manipulation Action 인터페이스
               </div>
             </div>
           </a>
         
         
           
-          <a href="../piper-hardware-moveit/" class="md-footer__link md-footer__link--next" aria-label="다음: 실물 PiPER MoveIt 시험">
+          <a href="../piper-hardware-moveit/" class="md-footer__link md-footer__link--next" aria-label="다음: 실물 PiPER 제어">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                실물 PiPER MoveIt 시험
+                실물 PiPER 제어
               </div>
             </div>
             <div class="md-footer__button md-icon">

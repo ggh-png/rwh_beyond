@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용">
+        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/grasp-pipeline-guide/">
       
       
-        <link rel="prev" href="../project-data/">
+        <link rel="prev" href="../project-containers/">
       
       
-        <link rel="next" href="../project-code-map/">
+        <link rel="next" href="../real-bt/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>4. 처음 터미널부터 실행 - RWH · PiPER 집기와 Husky 운용</title>
+        <title>실행 가이드 - BEYOND Grasp</title>
       
     
     
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="상단/헤더">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-header__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-header__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
@@ -108,13 +108,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            RWH · PiPER 집기와 Husky 운용
+            BEYOND Grasp
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              4. 처음 터미널부터 실행
+              실행 가이드
             
           </span>
         </div>
@@ -206,13 +206,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-nav__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-nav__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
 
     </a>
-    RWH · PiPER 집기와 Husky 운용
+    BEYOND Grasp
   </label>
   
     <div class="md-nav__source">
@@ -283,7 +283,7 @@
   <span class="md-ellipsis">
     
   
-    PiPER 집기 이해하기
+    시작하기
   
 
     
@@ -299,7 +299,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    PiPER 집기 이해하기
+    시작하기
   
 
           </label>
@@ -319,7 +319,7 @@
   <span class="md-ellipsis">
     
   
-    1. 전체 흐름 한눈에
+    시스템 구성
   
 
     
@@ -347,35 +347,7 @@
   <span class="md-ellipsis">
     
   
-    2. 컨테이너 구축
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    3. 모델 데이터와 좌표계
+    환경과 빌드
   
 
     
@@ -412,7 +384,7 @@
   <span class="md-ellipsis">
     
   
-    4. 처음 터미널부터 실행
+    실행 가이드
   
 
     
@@ -430,7 +402,7 @@
   <span class="md-ellipsis">
     
   
-    4. 처음 터미널부터 실행
+    실행 가이드
   
 
     
@@ -456,10 +428,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#0" class="md-nav__link">
+  <a href="#1-runner" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0. 터미널 역할
+        1. 환경과 runner 시작
       
     </span>
   </a>
@@ -467,10 +439,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1" class="md-nav__link">
+  <a href="#2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 호스트에서 컨테이너 켜기
+        2. 실행 모드 선택
       
     </span>
   </a>
@@ -478,10 +450,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-a-sam" class="md-nav__link">
+  <a href="#3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 터미널 A: SAM 모델 준비
+        3. 준비 확인
       
     </span>
   </a>
@@ -489,10 +461,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-b-graspgenx" class="md-nav__link">
+  <a href="#4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. 터미널 B: GraspGenX 모델 준비
+        4. 대상 지정과 실행
       
     </span>
   </a>
@@ -500,10 +472,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-c-ros-runner" class="md-nav__link">
+  <a href="#5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. 터미널 C: ROS runner 실행
+        5. 결과와 다음 실행
       
     </span>
   </a>
@@ -511,104 +483,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-d-bt-rviz" class="md-nav__link">
+  <a href="#launch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. 터미널 D: 시뮬레이터·BT·통합 RViz 활성화
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. 먼저 영상·점군 확인
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. 파지 후보·선택 결과까지만 확인
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. 전체 집기
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#target" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. 다른 물체 지정
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. 초기화와 종료
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        문제를 어느 단계에서 확인하나
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="문제를 어느 단계에서 확인하나">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rgb-d-timeout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        RGB-D 수신 timeout과 시간 설정
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rtx-5090-2026-11-11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        원격 RTX 5090 추론 품질 설정 (2026-11-11)
+        직접 launch
       
     </span>
   </a>
@@ -631,230 +509,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../project-code-map/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    5. 코드를 따라 읽기
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../model-bridges/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    모델별 ROS 노드 분리
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sam3-perception/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SAM 3 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../graspgenx-model/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    GraspGenX 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RViz로 디버깅
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../piper-runtime/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ROS 환경·CAN·모델 네트워크
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../piper-hardware-moveit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실물 PiPER MoveIt 시험
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../d405-sensors/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    D405 장착·센서 선택
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../real-bt/" class="md-nav__link">
         
   
@@ -862,7 +516,35 @@
   <span class="md-ellipsis">
     
   
-    실물 집기 BT 준비·실행
+    심·실물 공통 BT와 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-operation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manipulation Action 인터페이스
   
 
     
@@ -908,7 +590,7 @@
   <span class="md-ellipsis">
     
   
-    BT 개발 상세
+    센서와 실행 환경
   
 
     
@@ -924,7 +606,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    BT 개발 상세
+    센서와 실행 환경
   
 
           </label>
@@ -937,14 +619,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../bt-architecture/" class="md-nav__link">
+      <a href="../piper-runtime/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    아키텍처
+    런타임·CAN·모델 연결
   
 
     
@@ -965,14 +647,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../depth-bt-flow/" class="md-nav__link">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Depth와 runner 흐름
+    실물 PiPER 제어
   
 
     
@@ -993,14 +675,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../bt-nodes/" class="md-nav__link">
+      <a href="../d405-sensors/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    노드 목록
+    D405 센서·장착 TF
   
 
     
@@ -1021,70 +703,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../bt-grasp-stages/" class="md-nav__link">
+      <a href="../grasp-visualization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    단계별 포트와 Action
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-code-style/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Nav2 헤더·CPP 구성
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실행과 Groot2
+    RViz 디버깅
   
 
     
@@ -1130,7 +756,7 @@
   <span class="md-ellipsis">
     
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
     
@@ -1146,7 +772,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
           </label>
@@ -1159,14 +785,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../graspgenx-integration/" class="md-nav__link">
+      <a href="../project-data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 배포 상세
+    데이터와 좌표계
   
 
     
@@ -1187,14 +813,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../red-box-grasp/" class="md-nav__link">
+      <a href="../model-bridges/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    초기 빨간 상자 통합
+    모델별 ROS 인터페이스
   
 
     
@@ -1215,14 +841,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sam3-history/" class="md-nav__link">
+      <a href="../sam3-perception/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SAM 통합 이력
+    SAM 3 객체 분할
   
 
     
@@ -1243,14 +869,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-09/" class="md-nav__link">
+      <a href="../graspgenx-model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 9일 작업 기록
+    GraspGenX 파지 후보
   
 
     
@@ -1271,14 +897,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-10/" class="md-nav__link">
+      <a href="../bt-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 10일 작업 기록
+    BT와 실행 구조
   
 
     
@@ -1299,96 +925,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-11/" class="md-nav__link">
+      <a href="../bt-grasp-stages/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 11일 작업 기록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Husky SLAM·Nav2
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Husky SLAM·Nav2
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../husky-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    시작 안내
+    BT 단계·포트·Action
   
 
     
@@ -1409,182 +953,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection/" class="md-nav__link">
+      <a href="../project-code-map/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SSH와 본체 확인
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    외부 PC 준비
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SLAM과 Nav2 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    TF와 토픽
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    파라미터 설정
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../runner/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ros_runner 운용
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    문제 해결
+    코드를 따라 읽기
   
 
     
@@ -1646,7 +1022,7 @@
   <span class="md-ellipsis">
     
   
-    구조와 출처
+    구성 요소와 출처
   
 
     
@@ -1686,10 +1062,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#0" class="md-nav__link">
+  <a href="#1-runner" class="md-nav__link">
     <span class="md-ellipsis">
       
-        0. 터미널 역할
+        1. 환경과 runner 시작
       
     </span>
   </a>
@@ -1697,10 +1073,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#1" class="md-nav__link">
+  <a href="#2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 호스트에서 컨테이너 켜기
+        2. 실행 모드 선택
       
     </span>
   </a>
@@ -1708,10 +1084,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2-a-sam" class="md-nav__link">
+  <a href="#3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 터미널 A: SAM 모델 준비
+        3. 준비 확인
       
     </span>
   </a>
@@ -1719,10 +1095,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-b-graspgenx" class="md-nav__link">
+  <a href="#4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. 터미널 B: GraspGenX 모델 준비
+        4. 대상 지정과 실행
       
     </span>
   </a>
@@ -1730,10 +1106,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4-c-ros-runner" class="md-nav__link">
+  <a href="#5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4. 터미널 C: ROS runner 실행
+        5. 결과와 다음 실행
       
     </span>
   </a>
@@ -1741,104 +1117,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#5-d-bt-rviz" class="md-nav__link">
+  <a href="#launch" class="md-nav__link">
     <span class="md-ellipsis">
       
-        5. 터미널 D: 시뮬레이터·BT·통합 RViz 활성화
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6. 먼저 영상·점군 확인
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7. 파지 후보·선택 결과까지만 확인
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8. 전체 집기
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#target" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9. 다른 물체 지정
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#10" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        10. 초기화와 종료
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        문제를 어느 단계에서 확인하나
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="문제를 어느 단계에서 확인하나">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rgb-d-timeout" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        RGB-D 수신 timeout과 시간 설정
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#rtx-5090-2026-11-11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        원격 RTX 5090 추론 품질 설정 (2026-11-11)
+        직접 launch
       
     </span>
   </a>
@@ -1865,294 +1147,61 @@
   
 
 
-<h1 id="_1">처음 터미널부터 실행하기<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>이 페이지는 <strong>현재 PC에 준비된 컨테이너와 빌드</strong>로 MuJoCo 집기 실험을 실행하는 절차입니다.
-전체 구조는 <a href="../project-overview/">한눈에 보기</a>, 이미지 생성 원리는 <a href="../project-containers/">컨테이너 구축</a>을 참고하세요.</p>
-<blockquote>
-<p>현재 workspace 기준 runner 이름은 <strong><code>bt_demo_sim</code></strong>입니다. 이전 대화·기록의
-<code>activate_bt_demo</code> 대신 <strong><code>activate_bt_demo_sim</code></strong>을 사용합니다.
-실제 MuJoCo runner는 <strong><code>piper_sim</code></strong>입니다. <code>piper_moveit_sim</code>은 현재 실물 runner의 기존 이름이므로
-시뮬레이터 활성화 명령으로 사용하지 마세요. 실물 MoveIt 시험은 <a href="../piper-hardware-moveit/">별도 절차</a>를 사용합니다.
-아래에서는 <code>node_name:=ros_runner</code>로 통일하므로 서비스 prefix는 <code>/ros_runner</code>입니다.</p>
-</blockquote>
-<h2 id="0">0. 터미널 역할<a class="headerlink" href="#0" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>터미널</th>
-<th>위치</th>
-<th>실행할 것</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>A</td>
-<td>호스트 → SAM 컨테이너</td>
-<td>SAM health 확인, 필요할 때 모델 서버 유지</td>
-</tr>
-<tr>
-<td>B</td>
-<td>호스트 → GraspGenX 컨테이너</td>
-<td>Grasp health 확인, 필요할 때 모델 서버 유지</td>
-</tr>
-<tr>
-<td>C</td>
-<td>호스트 → ROS 컨테이너</td>
-<td>runner 실행·로그 확인</td>
-</tr>
-<tr>
-<td>D</td>
-<td>호스트 → ROS 컨테이너</td>
-<td>활성화, BT goal, 상태 확인·종료</td>
-</tr>
-</tbody>
-</table>
-<p>이미 runner나 수동 simulation/Bridge가 실행 중이라면 같은 구성을 중복 실행하지 않습니다.
-아래 명령은 호스트의 <code>docker</code> 호환 명령을 <code>sudo</code> 없이 사용합니다.</p>
-<h2 id="1">1. 호스트에서 컨테이너 켜기<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># ROS 컨테이너가 두 모델 컨테이너의 네트워크 기준이므로 먼저 시작</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>docker<span class="w"> </span>start<span class="w"> </span>moma_mj_lab_1.1.2_hostcan
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>docker<span class="w"> </span>start<span class="w"> </span>rwh-sam3-local<span class="w"> </span>rwh-graspgenx-local
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>docker<span class="w"> </span>ps
+<h1 id="_1">실행 가이드<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>명령은 ROS 컨테이너 <code>moma_mj_lab_1.1.2_hostcan</code> 안에서 실행합니다.
+GPU 모델 서버와 필요한 네트워크 연결을 먼저 준비합니다.</p>
+<h2 id="1-runner">1. 환경과 runner 시작<a class="headerlink" href="#1-runner" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>ros2<span class="w"> </span>launch<span class="w"> </span>ros_runner<span class="w"> </span>runner.launch.py
 </code></pre></div>
-<p>이 명령은 기존 컨테이너를 시작합니다. 이미지 build·모델 다운로드는 매 실험마다 필요하지 않습니다.</p>
-<h2 id="2-a-sam">2. 터미널 A: SAM 모델 준비<a class="headerlink" href="#2-a-sam" title="Permanent link">&para;</a></h2>
-<p>호스트에서 접속합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>rwh-sam3-local<span class="w"> </span>bash
+<p>runner는 모델 endpoint 환경 파일을 읽습니다. 다른 환경 파일·주소를 사용한다면
+runner 시작 전에 <a href="../piper-runtime/">런타임 설정</a>을 적용합니다.</p>
+<h2 id="2">2. 실행 모드 선택<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<p>별도 터미널에서 ROS 환경을 source한 뒤 아래 중 하나를 호출합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 심: piper_sim 의존 실행 + ROS bridge + coordinator + BT + RViz</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
 </code></pre></div>
-<p><strong>SAM 컨테이너 안에서</strong> 상태를 확인합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">cd</span><span class="w"> </span>/opt/segmentation
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s1">'from wire import request; print(request("tcp://127.0.0.1:5567", {"action":"health"}, 3))'</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># 실물: piper_moveit 의존 실행 + ROS bridge + coordinator + BT</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
 </code></pre></div>
-<p><code>status: ok</code>, <code>backend: sam3</code>, <code>mock: False</code>이면 다음으로 넘어갑니다.
-응답이 없고 서버가 꺼져 있을 때만 시작합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>python<span class="w"> </span>-u<span class="w"> </span>/opt/segmentation/server.py
+<p>활성화는 실행 환경을 시작하며 집기 Action 목표를 자동으로 보내지 않습니다.
+실물에서는 CAN·모터·제어 모드를 <a href="../piper-hardware-moveit/">실물 제어 안내</a>에 따라 준비합니다.</p>
+<h2 id="3">3. 준비 확인<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/sam3/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/graspgenx/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>ros2<span class="w"> </span>action<span class="w"> </span>info<span class="w"> </span>/run_demo
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>ros2<span class="w"> </span>topic<span class="w"> </span>hz<span class="w"> </span>/camera/color/image_raw
 </code></pre></div>
-<p>서버를 시작한 터미널은 유지합니다. <code>Ctrl+C</code>는 이 모델 프로세스를 종료합니다.</p>
-<h2 id="3-b-graspgenx">3. 터미널 B: GraspGenX 모델 준비<a class="headerlink" href="#3-b-graspgenx" title="Permanent link">&para;</a></h2>
-<p>호스트에서 접속합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>rwh-graspgenx-local<span class="w"> </span>bash
+<p>RGB·정렬 Depth·CameraInfo와 촬영 시각 TF가 필요합니다.
+같은 로봇에 대한 MoveIt, 센서, coordinator를 중복 실행하지 않습니다.</p>
+<h2 id="4">4. 대상 지정과 실행<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="s1">'{target_text: "yellow block"}'</span><span class="w"> </span>--feedback
 </code></pre></div>
-<p><strong>GraspGenX 컨테이너 안에서</strong> 확인합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>python<span class="w"> </span>/opt/deploy/scripts/health_check.py<span class="w"> </span>--endpoint<span class="w"> </span>tcp://127.0.0.1:5566
+<p><code>target_text</code>를 생략하면 공통 YAML의 기본 대상을 사용합니다.
+<code>behavior_tree</code>를 생략하면 심·실물 모두 <code>demo.xml</code>을 실행합니다.
+목표는 준비·home·관측 이동부터 시작합니다.</p>
+<p>현재 기본 관측은 home에서 base Z 방향 0.10 m 상승과 home 로컬 Y축 40° 기울임입니다.
+파지 후에는 같은 관측 자세를 거쳐 home으로 복귀하고 자동으로 그리퍼를 열지 않습니다.</p>
+<h2 id="5">5. 결과와 다음 실행<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<p>Action result의 <code>error_code=0</code>은 시퀀스 완료를 뜻합니다. 실제 물체 잡힘은 판정하지 않습니다.
+실패 시 <code>failed_stage</code>, <code>error_source</code>, <code>error_msg</code>를 확인합니다.
+계획용 부착이 남은 상태에서는 새 집기를 거부합니다. 물체 처리와 부착 상태 정리는 별도로 수행해야 합니다.</p>
+<p>Action 취소는 <a href="../bt-operation/">Action 인터페이스</a>를 참고하세요. ROS 프로세스 종료는 별도입니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/deactivate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="c1"># 실물 BT를 사용했다면:</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/deactivate_bt_demo<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
 </code></pre></div>
-<p><code>GraspGenX healthy</code>이면 다음으로 넘어갑니다. 서버가 꺼져 있을 때만 시작하고 터미널을 유지합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bash<span class="w"> </span>/opt/deploy/scripts/start_server.sh
+<p>BT 종료가 MoveIt 등 의존 runner 전체의 종료를 뜻하지는 않습니다. 모두 종료하려면
+<code>/ros_runner/deactivate_all</code>을 사용합니다.</p>
+<h2 id="launch">직접 launch<a class="headerlink" href="#launch" title="Permanent link">&para;</a></h2>
+<p>MoveIt·controller·센서가 이미 준비된 환경에서 실행합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>bt_demo.launch.py<span class="w"> </span>mode:<span class="o">=</span>sim
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># 실물 MoveIt이 이미 D405를 실행 중인 경우</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>bt_demo.launch.py<span class="w"> </span>mode:<span class="o">=</span>real<span class="w"> </span>start_sensors:<span class="o">=</span><span class="nb">false</span><span class="w"> </span>rviz:<span class="o">=</span><span class="nb">false</span>
 </code></pre></div>
-<p>두 health 검사가 모두 성공해야 합니다. 컨테이너 <code>Up</code>과 모델 <code>healthy</code>는 다른 상태입니다.</p>
-<h2 id="4-c-ros-runner">4. 터미널 C: ROS runner 실행<a class="headerlink" href="#4-c-ros-runner" title="Permanent link">&para;</a></h2>
-<p>호스트에서 접속합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_hostcan<span class="w"> </span>bash
-</code></pre></div>
-<p><strong>ROS 컨테이너 안에서</strong> 실행합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ROS_DOMAIN_ID</span><span class="o">=</span><span class="m">42</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_SIM_GUI</span><span class="o">=</span><span class="nb">true</span>
-<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_BT_RVIZ</span><span class="o">=</span><span class="nb">true</span>
-<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_SEGMENTATION_BACKEND</span><span class="o">=</span>sam3
-<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_GRASP_TARGET_TEXT</span><span class="o">=</span><span class="s2">"red box"</span>
-<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
-<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>ros2<span class="w"> </span>launch<span class="w"> </span>ros_runner<span class="w"> </span>runner.launch.py<span class="w">   </span>node_name:<span class="o">=</span>ros_runner<span class="w">   </span>config_yaml:<span class="o">=</span>/root/ros2_ws/src/ros_runner/config/runners.yaml
-</code></pre></div>
-<p>이 터미널을 유지합니다. 환경변수는 자식 launch에 상속되므로 runner <strong>시작 전</strong> 설정합니다.
-runner 설정을 바꿨다면 기존 runner를 종료한 뒤 다시 켜야 합니다.</p>
-<h2 id="5-d-bt-rviz">5. 터미널 D: 시뮬레이터·BT·통합 RViz 활성화<a class="headerlink" href="#5-d-bt-rviz" title="Permanent link">&para;</a></h2>
-<p>호스트에서 같은 ROS 컨테이너에 추가 접속합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>moma_mj_lab_1.1.2_hostcan<span class="w"> </span>bash
-</code></pre></div>
-<p>이 터미널도 ROS 환경과 도메인을 맞춥니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">ROS_DOMAIN_ID</span><span class="o">=</span><span class="m">42</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>ros2<span class="w"> </span>lifecycle<span class="w"> </span>get<span class="w"> </span>/bt_navigator
-</code></pre></div>
-<p>navigator가 <code>active [3]</code>이 될 때까지 기다립니다. 아직 시작 중이면 lifecycle 명령을 다시 확인합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>ros_runner: bt_demo_sim
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    ├─ requires: piper_sim
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    │     └─ MuJoCo + MoveIt (rviz:=false)
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    └─ bt_demo.launch.py
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>          ├─ grasp_pipeline.launch.py → SAM bridge + GraspGenX bridge + coordinator
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>          ├─ BT navigator + lifecycle manager
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>          └─ MoveIt/SAM/점군/파지 통합 RViz
-</code></pre></div>
-<p>RViz는 BT launch에서 기본 실행합니다. <code>RWH_BT_RVIZ=false</code>일 때만 끕니다.
-이전 <code>RWH_PIPER_SIM_RVIZ</code> 대신 현재 runner에서는 <code>RWH_BT_RVIZ</code>를 사용합니다.
-GPU 모델은 runner가 자동 시작하지 않습니다.</p>
-<h2 id="6">6. 먼저 영상·점군 확인<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
-<p>터미널 D에서 실행합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w">   </span><span class="s2">"{behavior_tree: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/perception_preview.xml}"</span><span class="w">   </span>--feedback
-</code></pre></div>
-<p>홈·그리퍼 열기·관측 자세까지 <strong>팔이 움직입니다</strong>. SAM 분할과 객체 점군까지만 생성하고 집지는 않습니다.
-RViz에서 마스크·RGB overlay·객체 점군을 확인합니다. 결과는 연속 동영상 분할이 아니라
-<strong>BT가 관측한 순간의 스냅샷</strong>입니다. coordinator가 살아 있으면 늦게 연 RViz도 마지막 결과를 받습니다.</p>
-<h2 id="7">7. 파지 후보·선택 결과까지만 확인<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w">   </span><span class="s2">"{behavior_tree: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/grasp_debug.xml}"</span><span class="w">   </span>--feedback
-</code></pre></div>
-<p>새 관측 → 점군 → GraspGenX → 실행 가능 후보 선택까지 수행합니다.
-최종 접근·닫기·리프트는 하지 않습니다. 후보/점수·선택 TCP·pregrasp를 RViz에서 볼 수 있습니다.
-후보 표시는 기본 최대 10개이며 실제 추론·선택 후보 개수와 별도입니다.</p>
-<h2 id="8">8. 전체 집기<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="s2">"{}"</span><span class="w"> </span>--feedback
-</code></pre></div>
-<p>빈 goal은 기본 <code>demo.xml</code>을 사용합니다. 접근·닫기·접촉 확인·리프트·홈 복귀까지 실행합니다.
-성공 후에도 그리퍼는 닫혀 있습니다. 반복 실험은 아래 초기화 절차를 사용하세요.</p>
-<h2 id="target">9. 다른 물체 지정<a class="headerlink" href="#target" title="Permanent link">&para;</a></h2>
-<p>대상은 <code>action</code> 문자열이 아니라 <code>target_text</code>로 바꿉니다.
-BT 실행이 끝난 상태에서, 다음 관측 <strong>전에</strong> 설정합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>ros2<span class="w"> </span>param<span class="w"> </span><span class="nb">set</span><span class="w"> </span>/grasp_coordinator<span class="w"> </span>target_text<span class="w"> </span><span class="s2">"blue cup"</span>
-<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/grasp_coordinator<span class="w"> </span>target_text
-</code></pre></div>
-<p>또는 터미널 C의 runner 시작 전에 <code>RWH_GRASP_TARGET_TEXT="blue cup"</code>을 지정합니다.
-이 환경변수는 재시작 시 초기값이며 실행 중의 파라미터 변경은 재시작 후 유지되지 않습니다.
-<code>/run_demo</code> goal에는 현재 대상 텍스트 필드가 없고 <code>behavior_tree</code>만 있습니다.</p>
-<p>복수 객체 구분이 필요하면 원본 영상의 pixel 박스나 선택점을 지정할 수 있습니다. 아래 숫자는 예시입니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>ros2<span class="w"> </span>param<span class="w"> </span><span class="nb">set</span><span class="w"> </span>/grasp_coordinator<span class="w"> </span>target_box<span class="w"> </span><span class="s2">"[100.0, 60.0, 220.0, 180.0]"</span>
-<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>ros2<span class="w"> </span>param<span class="w"> </span><span class="nb">set</span><span class="w"> </span>/grasp_coordinator<span class="w"> </span>selection_point<span class="w"> </span><span class="s2">"[160, 120]"</span>
-<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="c1"># 다시 텍스트만 사용할 때는 두 제한을 모두 해제</span>
-<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>ros2<span class="w"> </span>param<span class="w"> </span><span class="nb">set</span><span class="w"> </span>/grasp_coordinator<span class="w"> </span>target_box<span class="w"> </span><span class="s2">"[0.0, 0.0, 0.0, 0.0]"</span>
-<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>ros2<span class="w"> </span>param<span class="w"> </span><span class="nb">set</span><span class="w"> </span>/grasp_coordinator<span class="w"> </span>selection_point<span class="w"> </span><span class="s2">"[-1, -1]"</span>
-</code></pre></div>
-<p>기본 <code>unique</code>는 모호한 다중 검출을 거부합니다. 점은 SAM의 직접 point prompt가 아니라
-검출된 mask 중 해당 픽셀을 포함하는 객체를 고릅니다.</p>
-<p><strong>SAM 경로는 관측 점군에서 물체 크기·지지면을 추정합니다.</strong> 고정 <code>object_dimensions</code>는
-<code>color_demo</code>에서 사용합니다. 현재 SAM 실험에서 다른 물체를 고르기 위해 이 값을 매번 바꾸는 구조는 아닙니다.
-다만 시뮬레이션 장면에 그 물체가 존재해야 하고, 현재 하향 파지 선택 조건·그리퍼 크기·접촉 fixture 제약도
-만족해야 합니다. 대상 텍스트 변경은 임의 물체의 집기 성공을 보장하지 않습니다.</p>
-<h2 id="10">10. 초기화와 종료<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
-<p>BT goal이 끝난 뒤 시뮬레이션을 초기화하고 다시 활성화합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/deactivate_piper_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
-<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
-<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>ros2<span class="w"> </span>lifecycle<span class="w"> </span>get<span class="w"> </span>/bt_navigator
-</code></pre></div>
-<p>실험을 종료하려면 <code>deactivate_piper_sim</code> 호출 후 runner 터미널 C에서 <code>Ctrl+C</code>를 누릅니다.
-모델 서버는 별도이므로 유지하거나, 직접 시작했던 A/B에서 각각 <code>Ctrl+C</code>로 종료합니다.
-컨테이너도 끄려면 호스트에서 다음 순서로 실행합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>docker<span class="w"> </span>stop<span class="w"> </span>rwh-sam3-local<span class="w"> </span>rwh-graspgenx-local
-<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>docker<span class="w"> </span>stop<span class="w"> </span>moma_mj_lab_1.1.2_hostcan
-</code></pre></div>
-<h2 id="_2">문제를 어느 단계에서 확인하나<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>증상</th>
-<th>먼저 확인</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>모델 연결 실패</td>
-<td>A/B의 health, 모델 프로세스, <a href="../project-containers/">공유 네트워크</a></td>
-</tr>
-<tr>
-<td>활성화 서비스 없음</td>
-<td>runner 이름·실행 여부, <code>ros2 service list</code>, 도메인 42 일치</td>
-</tr>
-<tr>
-<td><code>active</code>가 안 됨</td>
-<td>C 로그, simulation clock·MoveIt·Bridge 준비 상태</td>
-</tr>
-<tr>
-<td>RViz 안 뜸</td>
-<td><code>RWH_BT_RVIZ</code>, GUI 환경, 새 runner 설정 재시작</td>
-</tr>
-<tr>
-<td>영상/점군 없음</td>
-<td>관측 BT 실행 여부, target 검출, <a href="../grasp-visualization/">표시 토픽/QoS</a></td>
-</tr>
-<tr>
-<td><code>START_STATE_INVALID</code></td>
-<td>해당 이동의 시작 상태·Planning Scene·충돌 상태. 다음 단계는 실행되지 않음</td>
-</tr>
-<tr>
-<td><code>No feasible model grasp</code></td>
-<td>선택기의 rejection counts: IK·하향 조건·충돌·접근/리프트 경로</td>
-</tr>
-<tr>
-<td><code>acquire_object_rgbd</code> timeout</td>
-<td>먼저 확인: coordinator의 <code>use_sim_time</code>, 카메라 3종 수신·동일 stamp. 아래 시간 설정 절 참고</td>
-</tr>
-<tr>
-<td>오래된 관측/팔 이동</td>
-<td>새 BT goal로 재관측. 오래된 ID·선택 경로 재사용 금지</td>
-</tr>
-<tr>
-<td>이미 물체를 잡고 있음</td>
-<td>현재 트리에는 내려놓기가 없으므로 시뮬레이션 초기화</td>
-</tr>
-</tbody>
-</table>
-<p>이 문서 개편에서 새 물리 집기 시험은 수행하지 않았습니다. 과거 시험의 성공·실패는
-<a href="../project-overview/#validation">검증 범위</a>에서 구분해 확인하세요.</p>
-<h3 id="rgb-d-timeout">RGB-D 수신 timeout과 시간 설정<a class="headerlink" href="#rgb-d-timeout" title="Permanent link">&para;</a></h3>
-<p><code>acquire_object_rgbd</code>는 SAM 요청 전 단계다. RGB·Depth·CameraInfo가 수신되어도
-coordinator가 시스템 시간을 사용하고 카메라가 시뮬레이션 시간을 쓰면 새 관측 조건을 만족할 수 없다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/grasp_coordinator<span class="w"> </span>use_sim_time
-<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/graspgenx_bridge<span class="w"> </span>use_sim_time
-</code></pre></div>
-<p>MuJoCo에서는 <code>True</code>, 실물에서는 <code>False</code>여야 하며 BT launch의 <code>mode</code>가 설정한다.
-BT launch는 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>을 모든 BT 관련 노드에 공통으로 전달한다.
-<code>params_file:=...</code>로 전체 YAML을 교체한다.
-패키지·Action·설정 파일 대응은 <a href="../model-bridges/">ROS bridge 분리</a>를 참고한다.
-수정 후에는 관련 패키지를 빌드하고 기존 runner를 종료·재시작한다. 이 문제 때문에 SAM 컨테이너를
-재시작할 필요는 없다.</p>
-<h2 id="rtx-5090-2026-11-11">원격 RTX 5090 추론 품질 설정 (2026-11-11)<a class="headerlink" href="#rtx-5090-2026-11-11" title="Permanent link">&para;</a></h2>
-<p><code>rwh_beyond_grasp_pipeline/config/grasp_pipeline.yaml</code>의 기본 설정을 다음과 같이
-조정했습니다. server 컨테이너 재시작은 필요하지 않으며, 요청을 보내는 ROS pipeline을
-재시작하면 반영됩니다.</p>
-<table>
-<thead>
-<tr>
-<th>파라미터</th>
-<th style="text-align: right;">기존</th>
-<th style="text-align: right;">현재</th>
-<th>의미</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>num_grasps</code></td>
-<td style="text-align: right;">100</td>
-<td style="text-align: right;">1000</td>
-<td>모델에서 생성할 파지 표본 수</td>
-</tr>
-<tr>
-<td><code>top_k</code></td>
-<td style="text-align: right;">100</td>
-<td style="text-align: right;">300</td>
-<td>점수순으로 ROS에 전달할 최대 후보 수</td>
-</tr>
-<tr>
-<td><code>max_candidates</code></td>
-<td style="text-align: right;">100</td>
-<td style="text-align: right;">300</td>
-<td>MoveIt 타당성 검사에 사용할 최대 후보 수</td>
-</tr>
-</tbody>
-</table>
-<p>모델 후보는 기존과 같이 점수순으로 정렬하고, 접근 방향·대상 위치·테이블 여유·IK·접근 및
-리프트 경로·충돌 계획을 통과한 첫 후보를 선택합니다. 후보를 늘려도 검사 기준이나
-속도, TCP, 충돌 여유를 완화하지 않습니다. RViz 후보 표시 개수는 10개로 유지합니다.</p>
-<p>저장된 단일 시뮬 RGB-D의 같은 분할 점군으로 각 설정을 5회 비교했습니다.
-생성 100 → 1000개에서 상위 20개 평균 모델 점수는 약 0.737 → 0.817,
-위에서 접근하는 후보의 최고 점수 평균은 약 0.735 → 0.812였습니다.
-GraspGenX 왕복 평균 시간은 약 0.164 → 0.255초였습니다.
-이 점수는 학습 모델의 confidence이며 실제 파지 성공률이나 분할 정확도를 뜻하지 않습니다.
-<a href="../validation/remote-grasp-tuning-2026-11-11.json">비교 원자료</a>를 참고하세요.</p>
-<p>SAM confidence threshold 0.5와 학습 모델의 입력 처리, 모호한 다중 객체를 거부하는
-<code>unique</code> 정책은 유지합니다. 정답 마스크나 여러 실물 물체의 성공률 데이터 없이
-임계값을 높여 정확도가 개선됐다고 판단하지 않습니다.</p>
-<p>기존 설정으로 돌아가려면 위 세 값을 각각 100으로 바꾸고 pipeline을 재시작합니다.
-현재 GraspGenX bridge의 <code>max_grasps</code>는 1000이므로 <code>num_grasps</code>를 더 높이려면
-bridge 제한과 서버 GPU 사용량을 먼저 검증해야 합니다.</p>
-<p>설정 적용 후 초기 시뮬레이션을 매번 다시 시작해 BT를 3회 시험했습니다.
-2회는 집기·물리 리프트·홈 복귀까지 SUCCESS였고, 1회는 추론 이전 MoveObservation에서
-joint3가 상한을 약 <code>0.000032 rad</code> 넘어 START_STATE_INVALID로 중단됐습니다.
-이를 파지 추론 성공률로 해석하지 않으며, 관절 제한 변경이나 feedback clamp는 적용하지
-않았습니다. 마지막 시험에서 ROS 후보 300개 전달도 확인했습니다.
-<a href="../validation/remote-grasp-tuning-simulation-2026-11-11.json">시뮬레이션 시험 결과</a>를 참고하세요.</p>
+<p><a href="../real-bt/">공통 BT와 설정</a> · <a href="../grasp-visualization/">RViz</a></p>
 
 
 
@@ -2188,7 +1237,7 @@ joint3가 상한을 약 <code>0.000032 rad</code> 넘어 START_STATE_INVALID로 
       <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
         
           
-          <a href="../project-data/" class="md-footer__link md-footer__link--prev" aria-label="이전: 3. 모델 데이터와 좌표계">
+          <a href="../project-containers/" class="md-footer__link md-footer__link--prev" aria-label="이전: 환경과 빌드">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2198,20 +1247,20 @@ joint3가 상한을 약 <code>0.000032 rad</code> 넘어 START_STATE_INVALID로 
                 이전
               </span>
               <div class="md-ellipsis">
-                3. 모델 데이터와 좌표계
+                환경과 빌드
               </div>
             </div>
           </a>
         
         
           
-          <a href="../project-code-map/" class="md-footer__link md-footer__link--next" aria-label="다음: 5. 코드를 따라 읽기">
+          <a href="../real-bt/" class="md-footer__link md-footer__link--next" aria-label="다음: 심·실물 공통 BT와 설정">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                5. 코드를 따라 읽기
+                심·실물 공통 BT와 설정
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용">
+        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
@@ -16,7 +16,7 @@
         <link rel="prev" href="../piper-hardware-moveit/">
       
       
-        <link rel="next" href="../real-bt/">
+        <link rel="next" href="../grasp-visualization/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>D405 장착·센서 선택 - RWH · PiPER 집기와 Husky 운용</title>
+        <title>D405 센서·장착 TF - BEYOND Grasp</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#d405" class="md-skip">
+        <a href="#d405-tf" class="md-skip">
           콘텐츠로 이동
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="상단/헤더">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-header__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-header__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
@@ -108,13 +108,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            RWH · PiPER 집기와 Husky 운용
+            BEYOND Grasp
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              D405 장착·센서 선택
+              D405 센서·장착 TF
             
           </span>
         </div>
@@ -206,13 +206,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-nav__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-nav__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
 
     </a>
-    RWH · PiPER 집기와 Husky 운용
+    BEYOND Grasp
   </label>
   
     <div class="md-nav__source">
@@ -260,20 +260,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -283,7 +281,7 @@
   <span class="md-ellipsis">
     
   
-    PiPER 집기 이해하기
+    시작하기
   
 
     
@@ -294,12 +292,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    PiPER 집기 이해하기
+    시작하기
   
 
           </label>
@@ -319,7 +317,7 @@
   <span class="md-ellipsis">
     
   
-    1. 전체 흐름 한눈에
+    시스템 구성
   
 
     
@@ -347,35 +345,7 @@
   <span class="md-ellipsis">
     
   
-    2. 컨테이너 구축
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    3. 모델 데이터와 좌표계
+    환경과 빌드
   
 
     
@@ -403,7 +373,7 @@
   <span class="md-ellipsis">
     
   
-    4. 처음 터미널부터 실행
+    실행 가이드
   
 
     
@@ -424,14 +394,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../project-code-map/" class="md-nav__link">
+      <a href="../real-bt/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    5. 코드를 따라 읽기
+    심·실물 공통 BT와 설정
   
 
     
@@ -452,14 +422,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../model-bridges/" class="md-nav__link">
+      <a href="../bt-operation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    모델별 ROS 노드 분리
+    Manipulation Action 인터페이스
   
 
     
@@ -473,49 +443,41 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sam3-perception/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SAM 3 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
-              
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../graspgenx-model/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 구현
+    센서와 실행 환경
   
 
     
@@ -523,39 +485,19 @@
   
   
 
-      </a>
-    </li>
-  
-
-              
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
             
-              
-                
   
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RViz로 디버깅
+    센서와 실행 환경
   
 
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -571,7 +513,7 @@
   <span class="md-ellipsis">
     
   
-    ROS 환경·CAN·모델 네트워크
+    런타임·CAN·모델 연결
   
 
     
@@ -599,7 +541,7 @@
   <span class="md-ellipsis">
     
   
-    실물 PiPER MoveIt 시험
+    실물 PiPER 제어
   
 
     
@@ -636,7 +578,7 @@
   <span class="md-ellipsis">
     
   
-    D405 장착·센서 선택
+    D405 센서·장착 TF
   
 
     
@@ -654,7 +596,7 @@
   <span class="md-ellipsis">
     
   
-    D405 장착·센서 선택
+    D405 센서·장착 TF
   
 
     
@@ -680,50 +622,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tf" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        장착 위치와 TF 소유권
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        센서 선택
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#piper-d405" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        실물 PiPER 실행 시 D405 자동 시작
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bt-launch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        BT launch의 모드 구분
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#rgb-d" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -735,10 +633,21 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        장착 설정
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        반영·검증 기록
+        센서 실행
       
     </span>
   </a>
@@ -749,18 +658,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        장착 회전 보정
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        고정 그리퍼 베이스와의 장착 접촉
+        고정 장착 접촉과 보정
       
     </span>
   </a>
@@ -783,236 +681,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../real-bt/" class="md-nav__link">
+      <a href="../grasp-visualization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    실물 집기 BT 준비·실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    BT 개발 상세
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    BT 개발 상세
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    아키텍처
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../depth-bt-flow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Depth와 runner 흐름
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-nodes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    노드 목록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-grasp-stages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    단계별 포트와 Action
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-code-style/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Nav2 헤더·CPP 구성
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실행과 Groot2
+    RViz 디버깅
   
 
     
@@ -1058,7 +734,7 @@
   <span class="md-ellipsis">
     
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
     
@@ -1074,7 +750,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
           </label>
@@ -1087,14 +763,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../graspgenx-integration/" class="md-nav__link">
+      <a href="../project-data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 배포 상세
+    데이터와 좌표계
   
 
     
@@ -1115,14 +791,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../red-box-grasp/" class="md-nav__link">
+      <a href="../model-bridges/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    초기 빨간 상자 통합
+    모델별 ROS 인터페이스
   
 
     
@@ -1143,14 +819,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sam3-history/" class="md-nav__link">
+      <a href="../sam3-perception/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SAM 통합 이력
+    SAM 3 객체 분할
   
 
     
@@ -1171,14 +847,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-09/" class="md-nav__link">
+      <a href="../graspgenx-model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 9일 작업 기록
+    GraspGenX 파지 후보
   
 
     
@@ -1199,14 +875,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-10/" class="md-nav__link">
+      <a href="../bt-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 10일 작업 기록
+    BT와 실행 구조
   
 
     
@@ -1227,96 +903,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-11/" class="md-nav__link">
+      <a href="../bt-grasp-stages/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 11일 작업 기록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Husky SLAM·Nav2
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Husky SLAM·Nav2
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../husky-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    시작 안내
+    BT 단계·포트·Action
   
 
     
@@ -1337,182 +931,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection/" class="md-nav__link">
+      <a href="../project-code-map/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SSH와 본체 확인
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    외부 PC 준비
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SLAM과 Nav2 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    TF와 토픽
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    파라미터 설정
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../runner/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ros_runner 운용
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    문제 해결
+    코드를 따라 읽기
   
 
     
@@ -1574,7 +1000,7 @@
   <span class="md-ellipsis">
     
   
-    구조와 출처
+    구성 요소와 출처
   
 
     
@@ -1614,50 +1040,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#tf" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        장착 위치와 TF 소유권
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        센서 선택
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#piper-d405" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        실물 PiPER 실행 시 D405 자동 시작
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#bt-launch" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        BT launch의 모드 구분
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#rgb-d" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1669,10 +1051,21 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        장착 설정
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        반영·검증 기록
+        센서 실행
       
     </span>
   </a>
@@ -1683,18 +1076,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        장착 회전 보정
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        고정 그리퍼 베이스와의 장착 접촉
+        고정 장착 접촉과 보정
       
     </span>
   </a>
@@ -1721,117 +1103,7 @@
   
 
 
-<h1 id="d405">D405 장착 모델·센서 선택·실물/시뮬 실행<a class="headerlink" href="#d405" title="Permanent link">&para;</a></h1>
-<h2 id="tf">장착 위치와 TF 소유권<a class="headerlink" href="#tf" title="Permanent link">&para;</a></h2>
-<p>이전 <code>link6</code>의 +X 쪽 박스 모델을 반대쪽 상단 장착부로 옮겼습니다.
-공식 <code>realsense2_description/meshes/d405.stl</code>을 그대로 복사하고 mm → m 스케일
-<code>0.001</code>을 적용했습니다. MuJoCo와 MoveIt은 같은 시각 모델 및 충돌 박스를 사용합니다.
-렌즈는 기존처럼 그리퍼가 뻗는 방향을 봅니다.</p>
-<p>장착 설정 원본은 moma-mj-lab의 <code>config/cameras/d405.yaml</code>입니다.
-현재 <code>link6 → d405_link</code>의 명목 이동은 <code>[-0.06, 0, 0.065] m</code>, 카메라 body RPY는
-<code>[pi, -pi/2, 0]</code>입니다. body는 ROS 카메라 좌표계이고 optical의 +Z가 렌즈 방향입니다.
-<strong>사진을 기준으로 배치한 명목 모델이며 실측 hand-eye 보정이 아닙니다.</strong>
-<code>calibrated: false</code>를 유지합니다. 실물 장착 치수를 측정하면 이 파일의 이동과 body RPY를
-수정한 뒤 moma_mujoco_ros/moma_bringup을 재빌드해야 합니다.</p>
-<table>
-<thead>
-<tr>
-<th>모드</th>
-<th>link6 → d405_link</th>
-<th>d405_link → 내부 optical 프레임</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>sim</td>
-<td>robot_state_publisher</td>
-<td>robot_state_publisher의 명목 extrinsics</td>
-</tr>
-<tr>
-<td>real</td>
-<td>robot_state_publisher</td>
-<td>RealSense SDK의 장치 내부 extrinsics</td>
-</tr>
-</tbody>
-</table>
-<p>실물 URDF는 내부 optical joint를 생략해 SDK와 중복 발행하지 않습니다.
-단독 센서 실행에서 로봇 모델이 mount TF를 발행하지 않는 경우에만
-<code>publish_d405_mount_tf:=true</code>로 같은 명목 mount를 별도 발행할 수 있습니다.</p>
-<h2 id="_1">센서 선택<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p><code>sensor.launch.py</code>의 기본값은 기존 SICK 호출과 호환됩니다.</p>
-<table>
-<thead>
-<tr>
-<th>인자</th>
-<th>기본값</th>
-<th>의미</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>mode</code></td>
-<td>real</td>
-<td>real 또는 sim</td>
-</tr>
-<tr>
-<td><code>enable_lidar</code></td>
-<td>true</td>
-<td>SICK driver·설정된 scan TF 사용</td>
-</tr>
-<tr>
-<td><code>enable_d405</code></td>
-<td>false</td>
-<td>D405 RGB-D·점군 사용</td>
-</tr>
-<tr>
-<td><code>d405_serial</code></td>
-<td>빈 문자열</td>
-<td>필요 시 특정 장치 선택</td>
-</tr>
-<tr>
-<td><code>d405_profile</code></td>
-<td>640x480x15</td>
-<td>D405 RGB·깊이 공통 해상도/FPS</td>
-</tr>
-<tr>
-<td><code>publish_d405_mount_tf</code></td>
-<td>false</td>
-<td>로봇 모델이 mount를 발행하지 않을 때만 true</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 실제 D405만 사용</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>sensor.launch.py<span class="w"> </span>mode:<span class="o">=</span>real<span class="w"> </span>enable_lidar:<span class="o">=</span><span class="nb">false</span><span class="w"> </span>enable_d405:<span class="o">=</span><span class="nb">true</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="c1"># 실제 LiDAR만 사용: 기존 hostname/namespace/params_file/start_driver 인자 유지</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>sensor.launch.py<span class="w"> </span>mode:<span class="o">=</span>real<span class="w"> </span>enable_lidar:<span class="o">=</span><span class="nb">true</span><span class="w"> </span>enable_d405:<span class="o">=</span><span class="nb">false</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 두 센서 모두 선택</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>sensor.launch.py<span class="w"> </span>mode:<span class="o">=</span>real<span class="w"> </span>enable_lidar:<span class="o">=</span><span class="nb">true</span><span class="w"> </span>enable_d405:<span class="o">=</span><span class="nb">true</span>
-</code></pre></div>
-<p><code>mode:=sim</code>에서는 물리 driver와 센서 static TF를 시작하지 않습니다. MuJoCo가 영상·깊이·
-점군을, 시뮬 robot_state_publisher가 센서 TF를 발행합니다.
-현재 <code>namespace</code>는 기존 SICK namespace를 제어하며 D405의 공통 영상 토픽은 <code>/camera</code>입니다.</p>
-<h2 id="piper-d405">실물 PiPER 실행 시 D405 자동 시작<a class="headerlink" href="#piper-d405" title="Permanent link">&para;</a></h2>
-<p>기존 <code>piper_moveit</code> runner를 활성화하면 이제 <code>sensor.launch.py</code>도 포함해 D405가 켜집니다.
-<code>camera_model=true</code>, <code>start_sensors=true</code>, <code>enable_d405=true</code>, <code>enable_lidar=false</code>가 기본입니다.
-모터 자동 활성화는 기존처럼 false입니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_CAN_PORT</span><span class="o">=</span>can0
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ros2<span class="w"> </span>launch<span class="w"> </span>ros_runner<span class="w"> </span>runner.launch.py
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># 별도 터미널에서 ROS 환경 source 후</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_piper_moveit<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
-</code></pre></div>
-<p>카메라를 생략하려면 runner 시작 전에 <code>export RWH_ENABLE_D405=false</code>를 지정합니다.
-이미 외부에서 센서를 실행한다면 <code>export RWH_PIPER_START_SENSORS=false</code>로 중복 기동을 막습니다.
-단독 <code>d405</code> runner도 공통 sensor launch를 사용합니다. 통합 piper_moveit을 시작하면
-단독 d405 runner를 종료하고 센서 소유권을 가져옵니다. piper_moveit 실행 중에 별도로
-단독 d405 runner를 다시 활성화하지 마세요.</p>
-<h2 id="bt-launch">BT launch의 모드 구분<a class="headerlink" href="#bt-launch" title="Permanent link">&para;</a></h2>
-<p><code>bt_demo.launch.py mode:=sim</code>은 기존 전체 시뮬 집기 BT입니다. 공통 sensor launch를
-호출하지만 물리 카메라는 열지 않습니다.</p>
-<p><code>bt_demo.launch.py mode:=real</code>은 이제 실물 coordinator와 BT navigator도 시작합니다.
-실물 runner는 <code>bt_demo</code>, 시뮬 runner는 <code>bt_demo_sim</code>입니다.
-실물 시작·동작 순서와 현재 검증 범위는 <a href="../real-bt/">실물 BT 안내</a>를 따르세요.
-실물 MoveIt이 D405를 실행하므로 runner는 <code>start_sensors:=false</code>로 중복 기동을 피합니다.</p>
+<h1 id="d405-tf">D405 센서·장착 TF<a class="headerlink" href="#d405-tf" title="Permanent link">&para;</a></h1>
 <h2 id="rgb-d">공통 RGB-D 토픽<a class="headerlink" href="#rgb-d" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1847,50 +1119,98 @@
 </tr>
 <tr>
 <td><code>/camera/depth/image_rect_raw</code></td>
-<td>RGB 기준으로 정렬한 깊이</td>
+<td>RGB 기준 정렬 Depth</td>
 </tr>
 <tr>
 <td><code>/camera/depth/camera_info</code></td>
-<td>위 정렬 깊이와 일치하는 intrinsics</td>
+<td>정렬 Depth에 대응하는 intrinsics</td>
 </tr>
 <tr>
 <td><code>/camera/depth/color/points</code></td>
-<td>컬러를 사용한 깊이 점군</td>
+<td>깊이 점군</td>
 </tr>
 <tr>
-<td><code>/camera/depth/image_raw</code></td>
-<td>실물의 원본 비정렬 깊이</td>
+<td><code>/camera/depth/planning_points</code></td>
+<td>실물 대상 영역 필터의 계획용 점군</td>
 </tr>
 <tr>
-<td><code>/camera/depth/raw_camera_info</code></td>
-<td>원본 깊이 intrinsics</td>
+<td><code>/camera/depth/filtered_points</code></td>
+<td>MoveIt 처리 후 점군 갱신</td>
 </tr>
 </tbody>
 </table>
-<p>실물에서는 D405의 RGB도 depth module에서 나오므로 <code>depth_module.color_profile</code>을
-깊이와 동일하게 지정합니다. 불필요한 IR 스트림 두 개는 끕니다.</p>
-<h2 id="_2">반영·검증 기록<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>센서/launch·빈 filtered cloud 갱신 검사 19개와 하위 검사 2개, runner 검사 8개를
-통과했습니다. 실제 D405의 정렬 RGB-D·점군과 합성 관절 상태를 사용한 base_link →
-optical TF 연결을 확인했습니다. 실물 CAN driver는 실행하지 않았습니다.
-최종 시뮬 BT는 SUCCESS(error_code=0)를 반환했습니다. 시험용 프로세스는 종료했습니다.</p>
-<p>새 시야에 이미 collision object로 표현한 테이블·대상만 남는 경우에도 MoveIt은
-정상적으로 빈 filtered cloud를 발행합니다. coordinator가 이를 무시하던 부분을 수정해
-유효한 frame과 timestamp를 가진 처리 결과로 인정합니다. 테이블 collision object와
-새 Octomap 확인, IK·충돌 검사는 유지했습니다.</p>
-<h2 id="_3">장착 회전 보정<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p>D405 둥근 장착 구멍이 link6 -X(위쪽 장착면)를 향하도록 렌즈 축 주위로 +90도
-회전했습니다. 렌즈는 link6 +Z 방향을 유지하며 body RPY는 <code>[pi,-pi/2,0]</code>,
-명목 optical RPY는 <code>[0,0,pi/2]</code>입니다. STL·충돌 모델·실물 TF·시뮬 optical 모델은
-공통 설정을 사용합니다. 실행 중인 실물 프로세스에는 적용하지 않았으므로
-기존 runner/MoveIt·BT를 종료하고 다시 시작해야 합니다.</p>
-<h2 id="_4">고정 그리퍼 베이스와의 장착 접촉<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<p>카메라를 그리퍼 쪽으로 30 mm 전진시킨 명목 위치 <code>[-0.06, 0, 0.065] m</code>에서는
-CAD 카메라 형상과 <code>gripper_base</code>가 약 3 mm 겹칩니다. 두 링크는 모두 link6에
-고정된 부품이므로 SRDF에 이 한 쌍을 <code>FixedMount</code> 접촉 예외로 등록하고,
-MuJoCo에도 동일한 고정 부품 contact exclusion을 적용했습니다.
-위치·렌즈 방향·카메라 collision 형상은 유지합니다. 움직이는 손가락과 외부 장애물에
-대한 카메라 충돌 검사는 유지합니다. 실제 장착 오프셋은 별도 실측 보정 대상입니다.</p>
+<p>coordinator는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니다.
+유효한 frame·timestamp를 가진 빈 filtered cloud도 갱신 결과로 처리합니다.</p>
+<h2 id="_1">장착 설정<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>원본은 <code>moma-mj-lab/config/cameras/d405.yaml</code>입니다.</p>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>현재 명목값</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>parent frame</td>
+<td><code>link6</code></td>
+</tr>
+<tr>
+<td>body frame</td>
+<td><code>d405_link</code></td>
+</tr>
+<tr>
+<td>translation</td>
+<td><code>[-0.06, 0.0, 0.065]</code> m</td>
+</tr>
+<tr>
+<td>body RPY</td>
+<td><code>[pi, -pi/2, 0]</code> rad</td>
+</tr>
+<tr>
+<td>calibrated</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<p>렌즈는 그리퍼가 뻗는 link6 +Z 방향입니다. STL visual과 collision box는 공통 장착 설정을 사용합니다.
+현재 값은 실측 hand-eye 보정 결과가 아닙니다.</p>
+<table>
+<thead>
+<tr>
+<th>모드</th>
+<th>link6 → d405_link</th>
+<th>body → optical</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sim</td>
+<td>robot_state_publisher</td>
+<td>robot_state_publisher 명목 extrinsics</td>
+</tr>
+<tr>
+<td>real</td>
+<td>robot_state_publisher</td>
+<td>RealSense SDK 장치 extrinsics</td>
+</tr>
+</tbody>
+</table>
+<p>실물 URDF는 내부 optical TF를 중복 발행하지 않습니다.
+로봇 모델 없이 센서만 실행할 때만 <code>publish_d405_mount_tf:=true</code>로 mount TF를 별도 발행합니다.</p>
+<h2 id="_2">센서 실행<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>실물 <code>piper_moveit</code>은 기본적으로 D405를 포함합니다. 별도 카메라 driver와 중복 실행하지 않습니다.
+센서만 실행할 때는 다음을 사용합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>sensor.launch.py<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span>mode:<span class="o">=</span>real<span class="w"> </span>enable_lidar:<span class="o">=</span><span class="nb">false</span><span class="w"> </span>enable_d405:<span class="o">=</span><span class="nb">true</span>
+</code></pre></div>
+<p><code>d405_serial</code>로 장치를 고르고 <code>d405_profile</code>로 해상도/FPS를 지정합니다. 기본은 <code>640x480x15</code>입니다.
+심 mode에서는 물리 카메라 driver를 시작하지 않고 MuJoCo 영상을 사용합니다.
+USB 장치와 udev 접근 권한은 실행 환경에서 준비합니다.</p>
+<h2 id="_3">고정 장착 접촉과 보정<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>명목 형상에서 <code>d405_link</code>와 <code>gripper_base</code>가 약 3 mm 겹쳐 이 고정 부품 쌍을 SRDF와
+MuJoCo의 접촉 제외로 등록했습니다. 카메라와 손가락·외부 장애물의 충돌 검사는 유지합니다.
+장착 위치를 보정하면 MoveIt·MuJoCo 모델을 빌드하고 관련 runner를 재시작합니다.</p>
 
 
 
@@ -1926,7 +1246,7 @@ MuJoCo에도 동일한 고정 부품 contact exclusion을 적용했습니다.
       <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
         
           
-          <a href="../piper-hardware-moveit/" class="md-footer__link md-footer__link--prev" aria-label="이전: 실물 PiPER MoveIt 시험">
+          <a href="../piper-hardware-moveit/" class="md-footer__link md-footer__link--prev" aria-label="이전: 실물 PiPER 제어">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -1936,20 +1256,20 @@ MuJoCo에도 동일한 고정 부품 contact exclusion을 적용했습니다.
                 이전
               </span>
               <div class="md-ellipsis">
-                실물 PiPER MoveIt 시험
+                실물 PiPER 제어
               </div>
             </div>
           </a>
         
         
           
-          <a href="../real-bt/" class="md-footer__link md-footer__link--next" aria-label="다음: 실물 집기 BT 준비·실행">
+          <a href="../grasp-visualization/" class="md-footer__link md-footer__link--next" aria-label="다음: RViz 디버깅">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                실물 집기 BT 준비·실행
+                RViz 디버깅
               </div>
             </div>
             <div class="md-footer__button md-icon">

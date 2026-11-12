@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용">
+        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>실물 PiPER MoveIt 시험 - RWH · PiPER 집기와 Husky 운용</title>
+        <title>실물 PiPER 제어 - BEYOND Grasp</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#piper-runner-moveit" class="md-skip">
+        <a href="#piper" class="md-skip">
           콘텐츠로 이동
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="상단/헤더">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-header__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-header__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
@@ -108,13 +108,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            RWH · PiPER 집기와 Husky 운용
+            BEYOND Grasp
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              실물 PiPER MoveIt 시험
+              실물 PiPER 제어
             
           </span>
         </div>
@@ -206,13 +206,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-nav__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-nav__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
 
     </a>
-    RWH · PiPER 집기와 Husky 운용
+    BEYOND Grasp
   </label>
   
     <div class="md-nav__source">
@@ -260,20 +260,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -283,7 +281,7 @@
   <span class="md-ellipsis">
     
   
-    PiPER 집기 이해하기
+    시작하기
   
 
     
@@ -294,12 +292,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    PiPER 집기 이해하기
+    시작하기
   
 
           </label>
@@ -319,7 +317,7 @@
   <span class="md-ellipsis">
     
   
-    1. 전체 흐름 한눈에
+    시스템 구성
   
 
     
@@ -347,35 +345,7 @@
   <span class="md-ellipsis">
     
   
-    2. 컨테이너 구축
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    3. 모델 데이터와 좌표계
+    환경과 빌드
   
 
     
@@ -403,7 +373,7 @@
   <span class="md-ellipsis">
     
   
-    4. 처음 터미널부터 실행
+    실행 가이드
   
 
     
@@ -424,14 +394,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../project-code-map/" class="md-nav__link">
+      <a href="../real-bt/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    5. 코드를 따라 읽기
+    심·실물 공통 BT와 설정
   
 
     
@@ -452,14 +422,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../model-bridges/" class="md-nav__link">
+      <a href="../bt-operation/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    모델별 ROS 노드 분리
+    Manipulation Action 인터페이스
   
 
     
@@ -473,49 +443,41 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sam3-perception/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SAM 3 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
+          </ul>
+        </nav>
+      
     </li>
   
 
-              
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../graspgenx-model/" class="md-nav__link">
-        
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 구현
+    센서와 실행 환경
   
 
     
@@ -523,39 +485,19 @@
   
   
 
-      </a>
-    </li>
-  
-
-              
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
             
-              
-                
   
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RViz로 디버깅
+    센서와 실행 환경
   
 
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -571,7 +513,7 @@
   <span class="md-ellipsis">
     
   
-    ROS 환경·CAN·모델 네트워크
+    런타임·CAN·모델 연결
   
 
     
@@ -608,7 +550,7 @@
   <span class="md-ellipsis">
     
   
-    실물 PiPER MoveIt 시험
+    실물 PiPER 제어
   
 
     
@@ -626,7 +568,7 @@
   <span class="md-ellipsis">
     
   
-    실물 PiPER MoveIt 시험
+    실물 PiPER 제어
   
 
     
@@ -652,32 +594,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#2026-11-11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        현재 장비 검증 결과 (2026-11-11)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        실행
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ros" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        티칭을 사용한 뒤 ROS 제어로 전환
+        준비
       
     </span>
   </a>
@@ -688,7 +608,18 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        먼저 상태와 계획 확인
+        모터와 제어 모드
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        실행 transport
       
     </span>
   </a>
@@ -699,62 +630,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        사용자가 실제 이동을 시작할 때
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        종료
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        구성 파일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#moveit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        실물·시뮬레이션 MoveIt 설정 통일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        현재 확인한 오류를 구분하기
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#d405" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        D405 자동 시작과 새 장착 모델
+        시작 상태의 작은 경계 초과
       
     </span>
   </a>
@@ -784,7 +660,7 @@
   <span class="md-ellipsis">
     
   
-    D405 장착·센서 선택
+    D405 센서·장착 TF
   
 
     
@@ -805,236 +681,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../real-bt/" class="md-nav__link">
+      <a href="../grasp-visualization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    실물 집기 BT 준비·실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    BT 개발 상세
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    BT 개발 상세
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    아키텍처
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../depth-bt-flow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Depth와 runner 흐름
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-nodes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    노드 목록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-grasp-stages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    단계별 포트와 Action
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-code-style/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Nav2 헤더·CPP 구성
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실행과 Groot2
+    RViz 디버깅
   
 
     
@@ -1080,7 +734,7 @@
   <span class="md-ellipsis">
     
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
     
@@ -1096,7 +750,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
           </label>
@@ -1109,14 +763,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../graspgenx-integration/" class="md-nav__link">
+      <a href="../project-data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 배포 상세
+    데이터와 좌표계
   
 
     
@@ -1137,14 +791,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../red-box-grasp/" class="md-nav__link">
+      <a href="../model-bridges/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    초기 빨간 상자 통합
+    모델별 ROS 인터페이스
   
 
     
@@ -1165,14 +819,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sam3-history/" class="md-nav__link">
+      <a href="../sam3-perception/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SAM 통합 이력
+    SAM 3 객체 분할
   
 
     
@@ -1193,14 +847,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-09/" class="md-nav__link">
+      <a href="../graspgenx-model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 9일 작업 기록
+    GraspGenX 파지 후보
   
 
     
@@ -1221,14 +875,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-10/" class="md-nav__link">
+      <a href="../bt-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 10일 작업 기록
+    BT와 실행 구조
   
 
     
@@ -1249,96 +903,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-11/" class="md-nav__link">
+      <a href="../bt-grasp-stages/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 11일 작업 기록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Husky SLAM·Nav2
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Husky SLAM·Nav2
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../husky-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    시작 안내
+    BT 단계·포트·Action
   
 
     
@@ -1359,182 +931,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection/" class="md-nav__link">
+      <a href="../project-code-map/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SSH와 본체 확인
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    외부 PC 준비
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SLAM과 Nav2 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    TF와 토픽
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    파라미터 설정
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../runner/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ros_runner 운용
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    문제 해결
+    코드를 따라 읽기
   
 
     
@@ -1596,7 +1000,7 @@
   <span class="md-ellipsis">
     
   
-    구조와 출처
+    구성 요소와 출처
   
 
     
@@ -1636,32 +1040,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#2026-11-11" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        현재 장비 검증 결과 (2026-11-11)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        실행
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ros" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        티칭을 사용한 뒤 ROS 제어로 전환
+        준비
       
     </span>
   </a>
@@ -1672,7 +1054,18 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        먼저 상태와 계획 확인
+        모터와 제어 모드
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        실행 transport
       
     </span>
   </a>
@@ -1683,62 +1076,7 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        사용자가 실제 이동을 시작할 때
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        종료
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        구성 파일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#moveit" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        실물·시뮬레이션 MoveIt 설정 통일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        현재 확인한 오류를 구분하기
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#d405" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        D405 자동 시작과 새 장착 모델
+        시작 상태의 작은 경계 초과
       
     </span>
   </a>
@@ -1765,251 +1103,50 @@
   
 
 
-<h1 id="piper-runner-moveit">실물 PiPER: runner로 MoveIt 시험<a class="headerlink" href="#piper-runner-moveit" title="Permanent link">&para;</a></h1>
-<p>새 ROS 컨테이너 <code>moma_mj_lab_1.1.2_hostcan</code> 안에서 실행합니다.
-이 경로는 실제 CAN driver와 MoveIt·RViz를 실행합니다. SAM·GraspGenX·카메라는
-필요하지 않으며 <code>bt_demo_sim</code>과 전체 grasp BT는 실행하지 않습니다.</p>
-<h2 id="2026-11-11">현재 장비 검증 결과 (2026-11-11)<a class="headerlink" href="#2026-11-11" title="Permanent link">&para;</a></h2>
-<p>runner 서비스 활성화로 공식 driver·MoveIt·RViz 기동과 실제 6축·그리퍼 피드백을
-확인했습니다. 펌웨어는 <code>S-V1.7-3</code>, SDK는 pyAgxArm 1.0.0
-(commit <code>d90e234ba8e408cfa964b38aa9120b3131fc9f85</code>)입니다.
-모터 활성화 서비스와 trajectory 실행은 호출하지 않았습니다.</p>
-<p><strong>현재 실측 자세의 계획은 거부됩니다.</strong> joint3 피드백은 약 <code>+0.01112 rad</code>
-(<code>+0.637°</code>)이고 공식 모델 범위는 <code>[-2.96706, 0] rad</code>입니다.
-MoveIt의 <code>CheckStartStateBounds</code>가 이를 거부하는 것을 확인했습니다.
-실제 자세·영점·기구 모델의 일치를 확인해 유효한 관절 상태가 들어오는 것이 먼저입니다.
-이 문제를 숨기기 위한 관절 제한 확대·피드백 clamp·검사 해제는 적용하지 않았습니다.
-Plan이 유효해지기 전에는 Execute하지 마세요.</p>
-<p>현재 컨테이너의 오래된 공식 MoveIt/description 빌드 캐시는 이전 MuJoCo 내부 경로를
-가리켰습니다. 기존 build/install 결과를 <code>/root/ros2_ws/.piper-build-backup/</code>에
-보관한 뒤 <code>/root/ros2_ws/src/agx_arm_ros</code>의 패키지로 재빌드했습니다.
-control gate 스크립트의 실행 권한과 누락된 SDK도 반영했습니다.</p>
-<h2 id="_1">실행<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>첫 번째 터미널에서 환경을 설정하고 runner를 시작합니다. 이미 켜 둔 runner는
-한 번 종료하고 다시 시작해야 새 YAML과 환경변수가 반영됩니다.</p>
+<h1 id="piper">실물 PiPER 제어<a class="headerlink" href="#piper" title="Permanent link">&para;</a></h1>
+<p>실물 runner <code>piper_moveit</code>은 공식 CAN driver, robot_state_publisher, MoveIt, D405,
+계획용 점군 필터와 선택한 실행 transport를 시작합니다.
+<code>bt_demo</code> runner는 이를 의존 실행하고 실물 coordinator와 BT를 추가합니다.</p>
+<h2 id="_1">준비<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>runner 시작 전에 CAN과 설정을 준비합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_CAN_PORT</span><span class="o">=</span>can0
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_AUTO_ENABLE</span><span class="o">=</span><span class="nb">false</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_SPEED_PERCENT</span><span class="o">=</span><span class="m">10</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_EXECUTION_TRANSPORT</span><span class="o">=</span>feedback
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ros2<span class="w"> </span>launch<span class="w"> </span>ros_runner<span class="w"> </span>runner.launch.py
 </code></pre></div>
-<p>두 번째 터미널에서 같은 ROS 환경을 source하고 활성화합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_piper_moveit<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
+<p>별도 터미널에서 실행합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/feedback/arm_status<span class="w"> </span>--once
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/feedback/joint_states<span class="w"> </span>--once
 </code></pre></div>
-<p>기본 그리퍼는 <code>agx_gripper</code>, RViz는 켜짐이며 실제 관절 피드백을
-사용합니다. 실제 그리퍼가 없으면 runner 시작 전에
-<code>export RWH_PIPER_EFFECTOR_TYPE=none</code>을 지정하세요.
-GUI 없이 시험할 때는 <code>export RWH_PIPER_RVIZ=false</code>를 지정합니다.</p>
-<h2 id="ros">티칭을 사용한 뒤 ROS 제어로 전환<a class="headerlink" href="#ros" title="Permanent link">&para;</a></h2>
-<p>티칭 종료를 BT에 자동 삽입하지 않았습니다. 현재 MuJoCo에는 티칭 모드나
-<code>/exit_teach_mode</code> 서비스가 없습니다. 실물은 상태를 확인해 필요한 경우에만 전환합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/feedback/arm_status<span class="w"> </span>--once
+<h2 id="_2">모터와 제어 모드<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>모터 활성화와 명령 수신 gate는 별개입니다. 필요한 경우 사용자가 모터를 활성화합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/enable_agx_arm<span class="w"> </span>std_srvs/srv/SetBool<span class="w"> </span><span class="s1">'{data: true}'</span>
 </code></pre></div>
-<p><code>ctrl_mode=1</code>은 CAN 제어, <code>2</code>는 티칭 모드입니다. <code>teach_status=2</code>(기록 종료)가
-보이더라도 <code>ctrl_mode=2</code>이면 CAN 제어 전환을 확인한 것이 아닙니다.</p>
-<p><strong>현재 펌웨어용 공식 <code>/exit_teach_mode</code>는 전체 관절의 원점 이동·모터 활성화까지
-수행합니다.</strong> 단순 플래그 변경이 아니므로 공간을 비우고 손을 뗀 상태에서 사용합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># 실제 로봇을 움직일 수 있는 명령</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/exit_teach_mode<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># 실제 전환과 관절 위치 확인</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/feedback/arm_status<span class="w"> </span>--once
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/feedback/joint_states<span class="w"> </span>--once
+<p>현재 driver 상태에서 <code>ctrl_mode=1</code>은 CAN 제어, <code>2</code>는 티칭 모드입니다.
+티칭에서 돌아올 때 필요한 서비스는 다음과 같습니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/exit_teach_mode<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
 </code></pre></div>
-<p><code>ctrl_mode=1</code>인지 확인하고, 필요할 때만 <code>/enable_agx_arm</code>을 호출한 뒤
-실측 관절 범위 확인 → RViz Plan → 경로 확인 → Execute 순서로 진행합니다.
-계속 티칭 모드이면 이동 명령을 반복하지 말고 상태와 driver 로그를 확인합니다.</p>
-<h2 id="_2">먼저 상태와 계획 확인<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ros2<span class="w"> </span>topic<span class="w"> </span><span class="nb">echo</span><span class="w"> </span>/feedback/joint_states<span class="w"> </span>--once
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/agx_arm_ctrl_single_node<span class="w"> </span>auto_enable
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/agx_arm_ctrl_single_node<span class="w"> </span>control_enabled
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/move_group<span class="w"> </span>use_sim_time
-</code></pre></div>
-<p>RViz에서 실제 로봇과 모델 자세가 일치하는지 확인합니다. MotionPlanning의
-Planning Group은 <code>arm</code>입니다. 먼저 <code>Plan</code>으로 가까운 목표의 경로를 확인합니다.
-MoveIt의 velocity/acceleration scaling은 처음에는 각각 0.1로 둡니다.
-SDK의 speed_percent=10은 MoveIt scaling과 별도의 설정입니다.</p>
-<p>실행 시 arm trajectory 상태에 따라 control gate가 자동으로 열리고 닫힙니다.
-이 gate는 모터 활성화 기능이나 안전 인터록을 대체하지 않습니다.
-<code>auto_enable=false</code>는 이미 켜진 모터를 끄라는 뜻이 아니라 자동 활성화를 요청하지 않는다는 뜻입니다.</p>
-<h2 id="_3">사용자가 실제 이동을 시작할 때<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p>주변 작업 공간과 경로를 확인한 뒤 명시적으로 모터를 활성화합니다.
-다음 명령은 설정 확인 명령과 달리 <strong>실물 모터를 활성화합니다</strong>.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/enable_agx_arm<span class="w"> </span>std_srvs/srv/SetBool<span class="w"> </span><span class="s1">'{data: true}'</span>
-</code></pre></div>
-<p>그다음 RViz에서 작은 변화의 목표를 <code>Plan</code>으로 확인하고 <code>Execute</code>합니다.
-<code>Plan &amp; Execute</code>는 확인 없이 바로 실행 단계로 이어지므로 첫 시험은 나눠서 진행합니다.
-실행 전후 <code>/feedback/joint_states</code>의 실제 값으로 결과를 확인합니다.</p>
-<h2 id="_4">종료<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/deactivate_piper_moveit<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
-</code></pre></div>
-<p>runner 종료나 control gate 닫힘을 모터 전원 해제·비상정지로 해석하면 안 됩니다.
-모터 disable은 하중을 지지한 상태에서 판단해야 하므로 종료 명령에 자동으로 넣지 않았습니다.</p>
-<h2 id="_5">구성 파일<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>ros_runner/config/runners.yaml</code>: CAN 사전 검사·실행·상호 배타 처리</li>
-<li><code>rwh_beyond_bringup/launch/piper_moveit.launch.py</code>: 실물용 기본값과 공식 launch include</li>
-<li><code>rwh_beyond_bringup/piper_hardware.py</code>: 시뮬레이션 기준 MoveIt 파라미터·실물 전송 구성</li>
-<li><code>agx_arm_ctrl/launch/start_single_agx_arm.launch.py</code>: 공식 CAN driver</li>
-</ul>
-<p>기본값은 <code>can0</code>, <code>agx_gripper</code>, <code>auto_enable=false</code>, <code>speed_percent=10</code>,
-실제 피드백 사용, <code>auto_control_gate=true</code>, RViz 켜짐입니다. 실물/시뮬레이터를
-동시에 활성화하지 않으며, 실물 runner 활성화 시 시뮬레이션 BT·grasp bridge도 종료합니다.</p>
-<h2 id="moveit">실물·시뮬레이션 MoveIt 설정 통일<a class="headerlink" href="#moveit" title="Permanent link">&para;</a></h2>
-<p>두 경로는 같은 공식 PiPER 모델·관절 제한·KDL IK·arm/gripper Action 이름을 사용합니다.
-실물 launch는 공식 CAN driver를 유지하면서 계획 설정을 MuJoCo baseline에 맞춥니다.</p>
-<table>
-<thead>
-<tr>
-<th>항목</th>
-<th>기존 실물</th>
-<th>통일 후 실물 / 시뮬레이션</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>flange → TCP</td>
-<td>0</td>
-<td>Z +0.1425 m</td>
-</tr>
-<tr>
-<td>계획 파이프라인</td>
-<td>OMPL·Pilz·STOMP·CHOMP 로드</td>
-<td>OMPL만 활성화</td>
-</tr>
-<tr>
-<td>속도·가속도 scaling</td>
-<td>0.1 / 0.1</td>
-<td>동일, 변경 없음</td>
-</tr>
-<tr>
-<td>IK</td>
-<td>KDL</td>
-<td>동일, 변경 없음</td>
-</tr>
-<tr>
-<td>관절·그리퍼 위치 제한</td>
-<td>공식 URDF</td>
-<td>동일, 변경 없음</td>
-</tr>
-<tr>
-<td>controller Action</td>
-<td>arm/gripper FollowJointTrajectory</td>
-<td>동일, 변경 없음</td>
-</tr>
-<tr>
-<td>self-filter padding</td>
-<td>0.1 m</td>
-<td>0.02 m</td>
-</tr>
-<tr>
-<td>점군 max_range / subsample</td>
-<td>5 m / 1</td>
-<td>2 m / 2</td>
-</tr>
-<tr>
-<td>점군 update_rate</td>
-<td>1 Hz</td>
-<td>2 Hz</td>
-</tr>
-<tr>
-<td>필터 점군</td>
-<td>filtered_cloud</td>
-<td>/camera/depth/filtered_points</td>
-</tr>
-<tr>
-<td>Octomap frame / resolution</td>
-<td>별도 기본값</td>
-<td>world / 0.01 m</td>
-</tr>
-<tr>
-<td>실행 시간 배율 / 여유</td>
-<td>별도 기본값</td>
-<td>3.0 / 2.0초</td>
-</tr>
-<tr>
-<td>RViz 파일</td>
-<td>공식 moveit.rviz</td>
-<td>시뮬과 같은 depth_planning.rviz</td>
-</tr>
-</tbody>
-</table>
-<p>관절 feedback의 음수 그리퍼 폭이나 범위 밖 joint3를 수정·clamp하지 않습니다.
-두 경로의 제한 자체가 이미 같았으므로, 설정 통일만으로 실제 영점·범위 오류가
-해결되지는 않습니다.</p>
-<p>다음 차이는 실제 장비에 필요합니다.</p>
-<ul>
-<li>실물 <code>use_sim_time=false</code>, 시뮬레이션 <code>true</code>.</li>
-<li>실물은 CAN driver와 공식 ros2_control command transport, 시뮬레이션은 MuJoCo Action 서버.</li>
-<li>실물 피드백은 CAN에서 수신하며 합성 상태로 대체하지 않음.</li>
-<li>실물의 모터·티칭·control gate는 유지. 시뮬레이터에 티칭 기능을 추가하지 않음.</li>
-<li>D405 장착 모델/TF는 실제 부착 위치가 확인되지 않아 실물에서는 기본 비활성화.</li>
-</ul>
-<p><code>RWH_PIPER_TCP_OFFSET</code>으로 실제 도구에 맞는 TCP를 지정할 수 있습니다.
-시뮬과 정확히 같은 D405 mount가 확인된 경우에만 runner 시작 전에
-<code>RWH_PIPER_CAMERA_MODEL=true</code>를 지정하세요. 이 옵션은 모델/TF를 추가할 뿐
-실물 카메라 driver를 시작하거나 외부 보정을 수행하지 않습니다.
-<code>RWH_PIPER_OCTOMAP=false</code>로 점군 처리를 끌 수 있지만, 이 경우 점군 장애물은 반영되지 않습니다.</p>
-<p>설정 반영 후 runner를 재시작해야 합니다. 현재 소스에서 <code>piper_moveit_sim</code>은
-실물 runner의 기존 이름으로 유지되어 있고, 실제 MuJoCo runner는 <code>piper_sim</code>입니다.
-실물은 명확하게 <code>activate_piper_moveit</code>을 사용하세요.</p>
-<p>검증은 같은 카메라 모델을 선택했을 때 실제 생성되는 MoveIt 파라미터가 clock 설정을
-제외하고 일치하는지, 카메라를 제외해도 공식 관절 제한은 동일한지 확인합니다.
-별도 ROS 도메인에서 CAN driver를 제외하고 합성 관절값으로 controller·RViz 초기화와
-plan-only 요청을 검증합니다. 이는 실제 로봇의 이동 성공 검증이 아닙니다.</p>
-<h2 id="_6">현재 확인한 오류를 구분하기<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>증상</th>
-<th>확인된 의미</th>
-<th>먼저 볼 것</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>can0</code> missing</td>
-<td>컨테이너 네트워크에서 CAN이 보이지 않음</td>
-<td>host network, 호스트 CAN UP·bitrate</td>
-</tr>
-<tr>
-<td><code>check_ready</code> GraspGenX deadline</td>
-<td>모델 endpoint 연결 실패</td>
-<td>같은 네트워크, 모델 프로세스 health</td>
-</tr>
-<tr>
-<td>joint3 <code>START_STATE_INVALID</code></td>
-<td>실측 각도가 공식 위치 범위를 벗어남</td>
-<td>실제 자세·영점·모델 일치</td>
-</tr>
-<tr>
-<td>gripper <code>-0.0006</code> 범위 오류</td>
-<td>실측 폭이 최소 0보다 0.6 mm 작음</td>
-<td>그리퍼 실제 개구·영점·피드백</td>
-</tr>
-<tr>
-<td>그리퍼 mimic 두 개도 범위 오류</td>
-<td>같은 그리퍼 값에서 파생된 두 손가락 값</td>
-<td>독립 고장 3개로 해석하지 않음</td>
-</tr>
-<tr>
-<td><code>/move_home</code> 응답은 왔지만 이동하지 않음</td>
-<td>Empty 응답 자체에는 성공 여부가 없음</td>
-<td>CAN 제어 모드·enable·실측 도달</td>
-</tr>
-</tbody>
-</table>
-<p>현재 공식 <code>/move_home</code>은 모든 arm 관절 목표를 0으로 보내고 <code>motion_status</code>를
-확인합니다. 실제 관절 오차를 대조하지 않으므로 성공 로그만으로 원점 도달을
-판정할 수 없습니다. <code>/move_home</code>과 <code>/exit_teach_mode</code>는 MoveIt 충돌 계획을 거치지 않습니다.</p>
-<p>범위 밖 상태는 캘리브레이션 실패의 확정 증거가 아닙니다. 현재 자세·기구 기준·영점·추종 오차를
-구분해야 하며, 임의 자세에서 영점을 재설정하거나 제한을 넓히는 수정은 하지 않았습니다.</p>
-<h2 id="d405">D405 자동 시작과 새 장착 모델<a class="headerlink" href="#d405" title="Permanent link">&para;</a></h2>
-<p>후속 변경에서 실물 runner가 D405를 함께 시작하고 상단 장착 STL·TF를 사용하도록 구성했습니다. <a href="../d405-sensors/">D405 장착·센서 선택·모드 구분</a>을 참고하세요. mount는 명목값이며 hand-eye 보정은 완료되지 않았습니다.</p>
-<p>실물 전체 집기 BT는 별도 <code>bt_demo</code> runner와 실제 피드백 기반 transport를 사용합니다.
-<a href="../real-bt/">실물 BT 준비·실행</a>을 따르세요. 새 경로는 실물 실험 미검증 상태입니다.</p>
+<p>이 서비스는 현재 driver에서 home 이동과 모터 활성화도 수행할 수 있으므로 실제 이동 공간을 확보한 뒤 호출합니다.
+BT는 이 서비스를 자동 호출하지 않습니다. 전환 후 arm status와 관절 피드백을 다시 확인합니다.
+실물 trajectory transport는 실행 중 <code>/control_enable</code> gate를 관리합니다.</p>
+<h2 id="transport">실행 transport<a class="headerlink" href="#transport" title="Permanent link">&para;</a></h2>
+<p>실물 BT runner는 <code>feedback</code> transport를 요구합니다. <code>physical_trajectory</code>가
+FollowJointTrajectory를 받아 실제 joint feedback을 확인하며 명령을 전달합니다.
+직접 <code>piper_moveit.launch.py</code>를 호출할 때는 기본값이 <code>official</code>이므로
+실물 BT용이면 <code>execution_transport:=feedback</code>을 명시합니다.</p>
+<p>열기와 팔 이동은 실제 endpoint 확인을 사용합니다. 닫기는 설정한 폭을 4초간 명령한 뒤
+완료하며 물체 잡힘은 판정하지 않습니다. 취소와 피드백 통신 오류는 별도로 처리합니다.</p>
+<h2 id="_3">시작 상태의 작은 경계 초과<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p><code>planning_start_bounds_tolerance</code>는 최대 0.05 rad입니다.
+URDF 한계를 이 범위 안에서 벗어난 관절만 계획용 복사본에서 경계값으로 보정합니다.
+실제 피드백과 URDF 한계는 변경하지 않으며 큰 초과는 거부합니다.
+MoveIt 시작점 검사와 physical transport도 같은 허용량을 사용합니다.
+transport는 실측 상태에서 계획 시작점까지 연결 구간을 만들어 명령 점프를 줄입니다.</p>
+<p>계획 오류와 실행 오류를 구분해 확인합니다. 부분 Cartesian 경로는 실행하지 않습니다.
+팔·카메라의 충돌과 실제 장착 TF는 <a href="../d405-sensors/">카메라 문서</a>를 참고하세요.</p>
 
 
 
@@ -2045,7 +1182,7 @@ plan-only 요청을 검증합니다. 이는 실제 로봇의 이동 성공 검�
       <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
         
           
-          <a href="../piper-runtime/" class="md-footer__link md-footer__link--prev" aria-label="이전: ROS 환경·CAN·모델 네트워크">
+          <a href="../piper-runtime/" class="md-footer__link md-footer__link--prev" aria-label="이전: 런타임·CAN·모델 연결">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2055,20 +1192,20 @@ plan-only 요청을 검증합니다. 이는 실제 로봇의 이동 성공 검�
                 이전
               </span>
               <div class="md-ellipsis">
-                ROS 환경·CAN·모델 네트워크
+                런타임·CAN·모델 연결
               </div>
             </div>
           </a>
         
         
           
-          <a href="../d405-sensors/" class="md-footer__link md-footer__link--next" aria-label="다음: D405 장착·센서 선택">
+          <a href="../d405-sensors/" class="md-footer__link md-footer__link--next" aria-label="다음: D405 센서·장착 TF">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                D405 장착·센서 선택
+                D405 센서·장착 TF
               </div>
             </div>
             <div class="md-footer__button md-icon">

@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용">
+        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
@@ -27,7 +27,7 @@
     
     
       
-        <title>1. 전체 흐름 한눈에 - RWH · PiPER 집기와 Husky 운용</title>
+        <title>시스템 구성 - BEYOND Grasp</title>
       
     
     
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="상단/헤더">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-header__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-header__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
@@ -108,13 +108,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            RWH · PiPER 집기와 Husky 운용
+            BEYOND Grasp
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              1. 전체 흐름 한눈에
+              시스템 구성
             
           </span>
         </div>
@@ -206,13 +206,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-nav__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-nav__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
 
     </a>
-    RWH · PiPER 집기와 Husky 운용
+    BEYOND Grasp
   </label>
   
     <div class="md-nav__source">
@@ -283,7 +283,7 @@
   <span class="md-ellipsis">
     
   
-    PiPER 집기 이해하기
+    시작하기
   
 
     
@@ -299,7 +299,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    PiPER 집기 이해하기
+    시작하기
   
 
           </label>
@@ -328,7 +328,7 @@
   <span class="md-ellipsis">
     
   
-    1. 전체 흐름 한눈에
+    시스템 구성
   
 
     
@@ -346,7 +346,7 @@
   <span class="md-ellipsis">
     
   
-    1. 전체 흐름 한눈에
+    시스템 구성
   
 
     
@@ -372,10 +372,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 프로그램은 어디서 실행되나
+        실행 경계
       
     </span>
   </a>
@@ -383,10 +383,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 저장소와 책임
+        공통 시나리오
       
     </span>
   </a>
@@ -394,32 +394,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. 한 번의 집기에서 벌어지는 일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-bt-python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. BT와 Python의 관계
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. 검증 결과와 제한
+        현재 범위
       
     </span>
   </a>
@@ -449,35 +427,7 @@
   <span class="md-ellipsis">
     
   
-    2. 컨테이너 구축
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    3. 모델 데이터와 좌표계
+    환경과 빌드
   
 
     
@@ -505,231 +455,7 @@
   <span class="md-ellipsis">
     
   
-    4. 처음 터미널부터 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-code-map/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    5. 코드를 따라 읽기
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../model-bridges/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    모델별 ROS 노드 분리
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sam3-perception/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SAM 3 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../graspgenx-model/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    GraspGenX 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RViz로 디버깅
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../piper-runtime/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ROS 환경·CAN·모델 네트워크
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../piper-hardware-moveit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실물 PiPER MoveIt 시험
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../d405-sensors/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    D405 장착·센서 선택
+    실행 가이드
   
 
     
@@ -757,7 +483,35 @@
   <span class="md-ellipsis">
     
   
-    실물 집기 BT 준비·실행
+    심·실물 공통 BT와 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-operation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Manipulation Action 인터페이스
   
 
     
@@ -803,7 +557,7 @@
   <span class="md-ellipsis">
     
   
-    BT 개발 상세
+    센서와 실행 환경
   
 
     
@@ -819,7 +573,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    BT 개발 상세
+    센서와 실행 환경
   
 
           </label>
@@ -832,14 +586,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../bt-architecture/" class="md-nav__link">
+      <a href="../piper-runtime/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    아키텍처
+    런타임·CAN·모델 연결
   
 
     
@@ -860,14 +614,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../depth-bt-flow/" class="md-nav__link">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    Depth와 runner 흐름
+    실물 PiPER 제어
   
 
     
@@ -888,14 +642,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../bt-nodes/" class="md-nav__link">
+      <a href="../d405-sensors/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    노드 목록
+    D405 센서·장착 TF
   
 
     
@@ -916,70 +670,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../bt-grasp-stages/" class="md-nav__link">
+      <a href="../grasp-visualization/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    단계별 포트와 Action
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-code-style/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Nav2 헤더·CPP 구성
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실행과 Groot2
+    RViz 디버깅
   
 
     
@@ -1025,7 +723,7 @@
   <span class="md-ellipsis">
     
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
     
@@ -1041,7 +739,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
           </label>
@@ -1054,14 +752,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../graspgenx-integration/" class="md-nav__link">
+      <a href="../project-data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 배포 상세
+    데이터와 좌표계
   
 
     
@@ -1082,14 +780,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../red-box-grasp/" class="md-nav__link">
+      <a href="../model-bridges/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    초기 빨간 상자 통합
+    모델별 ROS 인터페이스
   
 
     
@@ -1110,14 +808,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sam3-history/" class="md-nav__link">
+      <a href="../sam3-perception/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SAM 통합 이력
+    SAM 3 객체 분할
   
 
     
@@ -1138,14 +836,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-09/" class="md-nav__link">
+      <a href="../graspgenx-model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 9일 작업 기록
+    GraspGenX 파지 후보
   
 
     
@@ -1166,14 +864,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-10/" class="md-nav__link">
+      <a href="../bt-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 10일 작업 기록
+    BT와 실행 구조
   
 
     
@@ -1194,96 +892,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-11/" class="md-nav__link">
+      <a href="../bt-grasp-stages/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 11일 작업 기록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Husky SLAM·Nav2
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Husky SLAM·Nav2
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../husky-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    시작 안내
+    BT 단계·포트·Action
   
 
     
@@ -1304,182 +920,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection/" class="md-nav__link">
+      <a href="../project-code-map/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SSH와 본체 확인
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    외부 PC 준비
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SLAM과 Nav2 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    TF와 토픽
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    파라미터 설정
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../runner/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ros_runner 운용
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    문제 해결
+    코드를 따라 읽기
   
 
     
@@ -1541,7 +989,7 @@
   <span class="md-ellipsis">
     
   
-    구조와 출처
+    구성 요소와 출처
   
 
     
@@ -1581,10 +1029,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 프로그램은 어디서 실행되나
+        실행 경계
       
     </span>
   </a>
@@ -1592,10 +1040,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#2" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 저장소와 책임
+        공통 시나리오
       
     </span>
   </a>
@@ -1603,32 +1051,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3" class="md-nav__link">
+  <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. 한 번의 집기에서 벌어지는 일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4-bt-python" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. BT와 Python의 관계
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5. 검증 결과와 제한
+        현재 범위
       
     </span>
   </a>
@@ -1655,152 +1081,61 @@
   
 
 
-<h1 id="_1">전체 흐름 한눈에<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>이 프로젝트는 <strong>카메라 영상에서 지정한 물체를 찾고, 그 물체를 잡을 자세를 추론한 뒤,
-PiPER가 실제로 실행할 수 있는 경로를 골라 MuJoCo에서 집는 시스템</strong>입니다.</p>
-<h2 id="1">1. 프로그램은 어디서 실행되나<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
-  subgraph HOST["같은 호스트 PC · 같은 GPU 사용"]
-    subgraph ROS["moma_mj_lab_1.1.2_hostcan · ROS 2 Jazzy"]
-      SIM["MuJoCo: 로봇 · 물체 · RGB-D 카메라"]
-      BT["BT navigator: 단계 순서와 실패 관리"]
-      CO["grasp_coordinator: 관측 · 선택 · 이동 관리"]
-      SB["sam3_bridge: 분할 ROS Action ↔ SAM"]
-      BR["graspgenx_bridge: 추론 ROS Action ↔ GraspGenX"]
-      MV["MoveIt: IK · 충돌 · 경로 계획"]
-      RV["RViz: 로봇 · SAM · 점군 · 파지 시각화"]
-    end
-    SAM["rwh-sam3-local · SAM 3 GPU 분할 · 5567"]
-    GX["rwh-graspgenx-local · GraspGenX GPU 추론 · 5566"]
-  end
-  SIM --&gt;|RGB / Depth / CameraInfo / TF| CO
-  BT --&gt;|단계별 ROS Action| CO
-  CO --&gt;|RGB + 대상 설명 / ROS Action| SB
-  SB --&gt;|ZMQ| SAM
-  SAM --&gt;|2D 마스크| SB
-  SB --&gt;|ROS 결과| CO
-  CO --&gt;|로컬 객체 점군 / ROS Action| BR
-  BR --&gt;|XYZ / ZMQ| GX
-  GX --&gt;|파지 행렬 + 점수| BR
-  BR --&gt;|후보 PoseStamped| CO
-  CO &lt;--&gt;|계획 · 실행| MV
-  MV &lt;--&gt;|관절 상태 · 궤적| SIM
-  CO --&gt;|결과 토픽| RV</code></pre>
-<p>SAM과 GraspGenX는 별도 컨테이너입니다. SAM 이미지가 GraspGenX 이미지를 기반으로 만들어졌어도
-실행 중인 두 모델 프로세스와 파일시스템은 각각 독립적입니다. 둘 다 ROS 컨테이너의 네트워크 공간을
-공유하며 현재 ROS 컨테이너는 host 네트워크입니다. ROS 컨테이너 안에서 <code>127.0.0.1:5567</code>, <code>127.0.0.1:5566</code>으로 접속합니다.</p>
-<p>집기 BT는 여전히 MuJoCo 경로입니다. 실물 CAN·MoveIt·RViz는 별도로 검증했지만,
-실물 집기 coordinator와 카메라/접촉 검증은 아직 구현하지 않았습니다.
-<a href="../piper-runtime/">실행 환경 전환</a>, <a href="../piper-hardware-moveit/">실물 MoveIt 시험과 설정 비교</a>를 참고하세요.</p>
-<h2 id="2">2. 저장소와 책임<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p>아래 경로는 모두 ROS 컨테이너의 <code>/root/ros2_ws/src</code> 기준입니다.</p>
+<h1 id="_1">시스템 구성<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>BEYOND Grasp는 물체 인식, 파지 후보 생성, 로봇 경로 계획과 실행을 연결합니다.</p>
+<pre class="mermaid"><code>flowchart LR
+  D[D405 RGB-D] --&gt; P[로봇 PC: RGB-D·TF]
+  A[RunDemo: target_text] --&gt; B[로봇 PC: BT Navigator]
+  B --&gt; C[로봇 PC: Grasp Coordinator]
+  P --&gt; C
+  C --&gt; S[로봇 PC: SAM ROS Bridge]
+  S &lt;--&gt;|RGB·텍스트 / 마스크| SG[GPU 서버: SAM 3]
+  S --&gt; X[로봇 PC: 물체 XYZ 점군]
+  X --&gt; G[로봇 PC: GraspGenX ROS Bridge]
+  G &lt;--&gt;|XYZ / 파지 후보| GG[GPU 서버: GraspGenX]
+  G --&gt; M[로봇 PC: MoveIt 2]
+  M --&gt; T[Trajectory·CAN Driver]
+  T &lt;--&gt; R[PiPER·그리퍼]</code></pre>
+<h2 id="_2">실행 경계<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>저장소</th>
-<th>책임</th>
-<th>자주 보는 위치</th>
+<th>위치</th>
+<th>실행 기능</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>rwh_beyond</code></td>
-<td>BT, 공용 메시지, 모델 Bridge, coordinator, 통합 launch, 이 문서</td>
-<td><code>rwh_beyond_bt/</code>, <code>rwh_beyond_grasp_pipeline/</code>, 모델별 bridge</td>
+<td>로봇 PC</td>
+<td>센서 수신, TF, Depth 역투영, ROS bridge, BT, 후보 선택, MoveIt, 실물 명령 전달</td>
 </tr>
 <tr>
-<td><code>ros_runner</code></td>
-<td>launch 프로세스를 의존성에 따라 시작·종료</td>
-<td><code>config/runners.yaml</code></td>
+<td>GPU 서버</td>
+<td>SAM 3 이미지 분할, GraspGenX 파지 후보 생성</td>
 </tr>
 <tr>
-<td><code>moma-mj-lab</code></td>
-<td>MuJoCo 물리, 카메라, ROS 연결, 시뮬레이션 bringup</td>
-<td><code>ros2_ws/src/moma_mujoco_ros/</code>, <code>ros2_ws/src/moma_bringup/</code></td>
-</tr>
-<tr>
-<td><code>agx_arm_ros</code></td>
-<td>AgileX 공식 PiPER description·MoveIt·실물 driver</td>
-<td><code>agx_arm_moveit/</code>, <code>agx_arm_ctrl/</code></td>
+<td>MuJoCo</td>
+<td>심 모드의 센서·관절 피드백·controller backend</td>
 </tr>
 </tbody>
 </table>
-<p><code>rwh_beyond/deploy/sam3-docker</code>, <code>rwh_beyond/deploy/graspgenx-docker</code>는 모델 배포 소스입니다.
-호스트의 <code>~/sam3_workspace</code>, <code>~/graspgenx_workspace</code>는 이미지 빌드·모델·로그를 보관하는 운영 공간입니다.</p>
-<h2 id="3">3. 한 번의 집기에서 벌어지는 일<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
-<ol>
-<li><code>ros_runner</code>를 켜고 <code>activate_bt_demo_sim</code>을 호출합니다. 시뮬레이터·MoveIt이 시작되고,
-   <code>bt_demo.launch.py</code>가 grasp pipeline·navigator·lifecycle manager·통합 RViz를 시작합니다.</li>
-<li><code>/run_demo</code> goal을 보내면 기본 <code>demo.xml</code>을 실행합니다. <strong>활성화 자체는 집기를 시작하지 않습니다.</strong></li>
-<li>준비 확인 → 지도 갱신 → 홈 → 그리퍼 열기 → 관측 자세로 이동합니다.</li>
-<li><code>SegmentObject</code>가 같은 시점 RGB-D·CameraInfo·TF·관절 상태를 저장하고, SAM에 RGB와 대상 조건을 보냅니다.</li>
-<li><code>BuildObjectCloud</code>가 SAM 마스크 안의 Depth만 골라 ROS CPU에서 XYZ 점군을 만듭니다.</li>
-<li><code>InferGrasps</code>가 그 점군을 GraspGenX로 보내 파지 후보와 점수를 받습니다.</li>
-<li><code>SelectFeasibleGrasp</code>가 좌표/TCP 보정, 관측 기반 충돌 형상, IK·접근·리프트·사전 접근 경로를 검사합니다.</li>
-<li>선택한 계획으로 사전 접근 → 최종 접근 → 닫기 → 접촉 확인·부착 → 리프트 → 홈 복귀합니다.</li>
-</ol>
-<p>마지막에 자동으로 내려놓거나 그리퍼를 열지 않습니다. 실패한 단계 뒤의 단계는 실행하지 않습니다.</p>
-<h2 id="4-bt-python">4. BT와 Python의 관계<a class="headerlink" href="#4-bt-python" title="Permanent link">&para;</a></h2>
-<p>BT C++ 플러그인은 단계 순서·Action 요청·성공/실패/취소를 관리합니다.
-Python coordinator는 카메라 관측, 모델 ROS Action 요청, MoveIt 검사와 저장된 경로를 관리합니다.
-SAM·GraspGenX의 ZMQ 통신은 각각 별도 ROS bridge 프로세스가 담당합니다.</p>
+<p>모델 통신은 ZeroMQ/TCP를 사용합니다. 외부 GPU 서버에 SSH 터널로 연결할 수도 있습니다.
+모델이 같은 PC에 있는 구성도 bridge endpoint만 맞추면 사용할 수 있습니다.</p>
+<h2 id="_3">공통 시나리오<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>준비 확인 → Octomap 갱신 → home → 그리퍼 열기 → 관측 이동 → Octomap 갱신 →
+SAM 분할 → 물체 점군 → 파지 추론·선택 → 사전 접근 → 최종 접근 → 닫기·계획용 부착 →
+리프트 → 관측 자세 복귀 → home 복귀.</p>
+<p>심·실물의 차이는 backend와 시간 설정입니다. 시나리오·home/관측 목표 계산·계획용 부착·리프트는 공유합니다.
+실물 닫기는 4초 명령 완료로 처리하며 물체를 잡았는지는 확인하지 않습니다.
+계획용 부착은 물체를 들고 있다고 가정한 충돌 모델입니다.</p>
+<h2 id="_4">현재 범위<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Blackboard: 실제 마스크·점군·후보 메시지와 <code>observation_id</code>, <code>plan_id</code>를 단계 사이에 전달합니다.</li>
-<li>coordinator 내부: 원본 RGB-D·촬영 TF·관절 상태·선택된 궤적·부착 상태를 보관합니다.</li>
-<li>GPU 서버: 분할 또는 파지 추론만 수행합니다. 로봇의 관절·충돌 장면·이동 명령은 처리하지 않습니다.</li>
+<li>대상은 Action의 <code>target_text</code>로 지정합니다.</li>
+<li>실제 잡힘 여부 확인, 자동 놓기, Place, Navigation 연동은 포함하지 않습니다.</li>
+<li>카메라 장착 TF는 명목값이며 hand-eye 실측 보정이 필요합니다.</li>
+<li>물체 인식 성공과 로봇의 도달·파지 성공은 별개입니다.</li>
 </ul>
-<p>C++ BT 노드별 헤더·CPP·endpoint와 모델별 ROS 프로세스를 분리했습니다. 관측·선택·이동 모듈은
-상태 공유를 위해 coordinator에 유지합니다. <a href="../model-bridges/">모델별 ROS bridge</a>를 참고하세요.</p>
-<h2 id="validation">5. 검증 결과와 제한<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
-<p>기존 실제 모델 시험에서 분할·점군·파지·약 7.4~7.7 cm 리프트·홈 복귀를 확인했습니다.
-RViz 결과 보존과 활성화/종료 시험도 기록되어 있습니다. 아래 원시 기록은 서로 다른 시점의 시험입니다.</p>
-<table>
-<thead>
-<tr>
-<th>기록</th>
-<th>내용</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="../validation/piper-hardware-moveit-2026-11-11.json">실물 MoveIt 초기 검증</a></td>
-<td>실제 CAN 피드백, 현재 자세의 범위 초과 거부</td>
-</tr>
-<tr>
-<td><a href="../validation/piper-moveit-parity-2026-11-11.json">실물·시뮬 설정 통일</a></td>
-<td>파라미터 비교, 격리 환경 controller·RViz·계획 검증</td>
-</tr>
-<tr>
-<td><a href="../validation/model-bridges-2026-11-11.json">모델별 ROS 분리</a></td>
-<td>독립 서버·실제 모델 전체 BT·취소 복원</td>
-</tr>
-<tr>
-<td><a href="../validation/bt-split-2026-11-11.json">BT 역할 분리</a></td>
-<td>데이터 전달, 전체 집기, 취소 복원</td>
-</tr>
-<tr>
-<td><a href="../bt-code-style/">Nav2 스타일</a></td>
-<td>헤더/CPP·플러그인 로딩·검사</td>
-</tr>
-<tr>
-<td><a href="../validation/moveit-grasp-debug-2026-11-11.json">MoveIt 통합 화면</a></td>
-<td>SAM·점군·후보·선택 자세 표시</td>
-</tr>
-<tr>
-<td><a href="../validation/bt-rviz-owner-2026-11-11.json">RViz 소유</a></td>
-<td>RViz 1개, MoveIt 1개, 종료 연동</td>
-</tr>
-<tr>
-<td><a href="../validation/sam3-local-2026-11-10.json">SAM 초기 실험</a></td>
-<td>실제 추론과 시작/유지 실패 기록</td>
-</tr>
-</tbody>
-</table>
-<p>이는 일반 물체나 실물에서의 성공률이 아닙니다. <code>START_STATE_INVALID</code>, 불완전한 Cartesian 경로,
-리프트 후 유지 중 미끄러짐도 관찰됐습니다. 현재 선택기는 하향 접근, 수평 지지면·작은 물체 가정과
-MuJoCo 물리 검증 서비스에 의존합니다. 시뮬레이터의 접촉 검증도 기존 <code>grasp_object</code> fixture 대상입니다.
-텍스트를 바꾸는 것만으로 임의 물체의 집기 전체가 검증되는 것은 아닙니다.</p>
-<p>다음: <a href="../project-containers/">컨테이너 구축과 파일 위치</a></p>
+<p><a href="../grasp-pipeline-guide/">실행 가이드</a> · <a href="../bt-operation/">Action 인터페이스</a></p>
 
 
 
@@ -1853,13 +1188,13 @@ MuJoCo 물리 검증 서비스에 의존합니다. 시뮬레이터의 접촉 검
         
         
           
-          <a href="../project-containers/" class="md-footer__link md-footer__link--next" aria-label="다음: 2. 컨테이너 구축">
+          <a href="../project-containers/" class="md-footer__link md-footer__link--next" aria-label="다음: 환경과 빌드">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                2. 컨테이너 구축
+                환경과 빌드
               </div>
             </div>
             <div class="md-footer__button md-icon">

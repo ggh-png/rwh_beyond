@@ -6,17 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용">
+        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/bt-operation/">
       
       
-        <link rel="prev" href="../bt-code-style/">
+        <link rel="prev" href="../real-bt/">
       
       
-        <link rel="next" href="../graspgenx-integration/">
+        <link rel="next" href="../piper-runtime/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>실행과 Groot2 - RWH · PiPER 집기와 Husky 운용</title>
+        <title>Manipulation Action 인터페이스 - BEYOND Grasp</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#bt-groot2" class="md-skip">
+        <a href="#manipulation-action" class="md-skip">
           콘텐츠로 이동
         </a>
       
@@ -94,7 +94,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="상단/헤더">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-header__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-header__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
@@ -108,13 +108,13 @@
       <div class="md-header__ellipsis">
         <div class="md-header__topic">
           <span class="md-ellipsis">
-            RWH · PiPER 집기와 Husky 운용
+            BEYOND Grasp
           </span>
         </div>
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              실행과 Groot2
+              Manipulation Action 인터페이스
             
           </span>
         </div>
@@ -206,13 +206,13 @@
 
 <nav class="md-nav md-nav--primary" aria-label="네비게이션" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="RWH · PiPER 집기와 Husky 운용" class="md-nav__button md-logo" aria-label="RWH · PiPER 집기와 Husky 운용" data-md-component="logo">
+    <a href=".." title="BEYOND Grasp" class="md-nav__button md-logo" aria-label="BEYOND Grasp" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.41 4 16 6.41v.18L18.41 9H22v2h-4.41L16 9.41V12h-1a2 2 0 0 1-2-2V7.5H9.86c-.09.37-.24.72-.44 1.05L15.18 19H20a2 2 0 0 1 2 2v1H2v-1a2 2 0 0 1 2-2h6.61l-4.69-8.5a4.006 4.006 0 0 1-3.81-3A4 4 0 0 1 5 2.63c2.13-.55 4.31.73 4.86 2.87H13V3a2 2 0 0 1 2-2h1v2.59L17.59 2H22v2zM6 4.5a2 2 0 0 0-2 2 2 2 0 0 0 2 2 2 2 0 0 0 2-2 2 2 0 0 0-2-2"/></svg>
 
     </a>
-    RWH · PiPER 집기와 Husky 운용
+    BEYOND Grasp
   </label>
   
     <div class="md-nav__source">
@@ -260,18 +260,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
           <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
@@ -281,7 +283,7 @@
   <span class="md-ellipsis">
     
   
-    PiPER 집기 이해하기
+    시작하기
   
 
     
@@ -292,12 +294,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
   
-    PiPER 집기 이해하기
+    시작하기
   
 
           </label>
@@ -317,7 +319,7 @@
   <span class="md-ellipsis">
     
   
-    1. 전체 흐름 한눈에
+    시스템 구성
   
 
     
@@ -345,35 +347,7 @@
   <span class="md-ellipsis">
     
   
-    2. 컨테이너 구축
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    3. 모델 데이터와 좌표계
+    환경과 빌드
   
 
     
@@ -401,231 +375,7 @@
   <span class="md-ellipsis">
     
   
-    4. 처음 터미널부터 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-code-map/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    5. 코드를 따라 읽기
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../model-bridges/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    모델별 ROS 노드 분리
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sam3-perception/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SAM 3 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../graspgenx-model/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    GraspGenX 구현
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RViz로 디버깅
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../piper-runtime/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ROS 환경·CAN·모델 네트워크
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../piper-hardware-moveit/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    실물 PiPER MoveIt 시험
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../d405-sensors/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    D405 장착·센서 선택
+    실행 가이드
   
 
     
@@ -653,203 +403,7 @@
   <span class="md-ellipsis">
     
   
-    실물 집기 BT 준비·실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    BT 개발 상세
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    BT 개발 상세
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    아키텍처
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../depth-bt-flow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Depth와 runner 흐름
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-nodes/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    노드 목록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-grasp-stages/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    단계별 포트와 Action
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-code-style/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Nav2 헤더·CPP 구성
+    심·실물 공통 BT와 설정
   
 
     
@@ -886,7 +440,7 @@
   <span class="md-ellipsis">
     
   
-    실행과 Groot2
+    Manipulation Action 인터페이스
   
 
     
@@ -904,7 +458,7 @@
   <span class="md-ellipsis">
     
   
-    실행과 Groot2
+    Manipulation Action 인터페이스
   
 
     
@@ -930,49 +484,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1" class="md-nav__link">
+  <a href="#goal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 빌드하고 실행하기
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. 빌드하고 실행하기">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#octomap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        트리 안에서 Octomap 초기화
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#rviz" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        기본 RViz 화면
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. 서버 등록 확인하기
+        Goal
       
     </span>
   </a>
@@ -980,10 +495,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#bt-error-reporting" class="md-nav__link">
+  <a href="#feedback-result" class="md-nav__link">
     <span class="md-ellipsis">
       
-        BT 실패 진단
+        Feedback와 Result
       
     </span>
   </a>
@@ -991,91 +506,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-groot2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Groot2에서 편집하기
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Groot2에서 편집하기">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#xml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        두 XML은 역할이 다릅니다
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        실시간 모니터 연결
+        취소와 연속 요청
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C++ 노드나 포트를 바꿨을 때
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. 테스트와 검증 범위
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. 테스트와 검증 범위">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        심/실물 공통 기본 트리
+        외부 연구실 연동
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#action" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#groot2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action별 인식 대상 지정
+        Groot2
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1083,6 +542,172 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    센서와 실행 환경
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    센서와 실행 환경
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-runtime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    런타임·CAN·모델 연결
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../piper-hardware-moveit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 PiPER 제어
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../d405-sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D405 센서·장착 TF
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-visualization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RViz 디버깅
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1120,7 +745,7 @@
   <span class="md-ellipsis">
     
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
     
@@ -1136,7 +761,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    구축 상세와 실험 기록
+    구현과 데이터
   
 
           </label>
@@ -1149,14 +774,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../graspgenx-integration/" class="md-nav__link">
+      <a href="../project-data/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    GraspGenX 배포 상세
+    데이터와 좌표계
   
 
     
@@ -1177,14 +802,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../red-box-grasp/" class="md-nav__link">
+      <a href="../model-bridges/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    초기 빨간 상자 통합
+    모델별 ROS 인터페이스
   
 
     
@@ -1205,14 +830,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../sam3-history/" class="md-nav__link">
+      <a href="../sam3-perception/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SAM 통합 이력
+    SAM 3 객체 분할
   
 
     
@@ -1233,14 +858,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-09/" class="md-nav__link">
+      <a href="../graspgenx-model/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 9일 작업 기록
+    GraspGenX 파지 후보
   
 
     
@@ -1261,14 +886,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-10/" class="md-nav__link">
+      <a href="../bt-architecture/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 10일 작업 기록
+    BT와 실행 구조
   
 
     
@@ -1289,96 +914,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../work-log-2026-11-11/" class="md-nav__link">
+      <a href="../bt-grasp-stages/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    11월 11일 작업 기록
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Husky SLAM·Nav2
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Husky SLAM·Nav2
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../husky-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    시작 안내
+    BT 단계·포트·Action
   
 
     
@@ -1399,182 +942,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../connection/" class="md-nav__link">
+      <a href="../project-code-map/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    SSH와 본체 확인
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../setup/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    외부 PC 준비
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../operation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SLAM과 Nav2 실행
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../interfaces/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    TF와 토픽
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../configuration/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    파라미터 설정
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../runner/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    ros_runner 운용
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    문제 해결
+    코드를 따라 읽기
   
 
     
@@ -1636,7 +1011,7 @@
   <span class="md-ellipsis">
     
   
-    구조와 출처
+    구성 요소와 출처
   
 
     
@@ -1676,49 +1051,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1" class="md-nav__link">
+  <a href="#goal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. 빌드하고 실행하기
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. 빌드하고 실행하기">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#octomap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        트리 안에서 Octomap 초기화
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#rviz" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        기본 RViz 화면
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. 서버 등록 확인하기
+        Goal
       
     </span>
   </a>
@@ -1726,10 +1062,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#bt-error-reporting" class="md-nav__link">
+  <a href="#feedback-result" class="md-nav__link">
     <span class="md-ellipsis">
       
-        BT 실패 진단
+        Feedback와 Result
       
     </span>
   </a>
@@ -1737,91 +1073,35 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3-groot2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Groot2에서 편집하기
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Groot2에서 편집하기">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#xml" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        두 XML은 역할이 다릅니다
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        실시간 모니터 연결
+        취소와 연속 요청
       
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#c" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        C++ 노드나 포트를 바꿨을 때
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4. 테스트와 검증 범위
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. 테스트와 검증 범위">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        심/실물 공통 기본 트리
+        외부 연구실 연동
       
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#action" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#groot2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Action별 인식 대상 지정
+        Groot2
       
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1845,449 +1125,102 @@
   
 
 
-<h1 id="bt-groot2">BT 실행과 Groot2<a class="headerlink" href="#bt-groot2" title="Permanent link">&para;</a></h1>
-<blockquote>
-<p>처음 읽는 경우 <a href="../project-overview/">전체 흐름</a> → <a href="../grasp-pipeline-guide/">현재 실행 절차</a> → <a href="../project-code-map/">코드 안내</a> 순서로 보세요. 이 페이지의 상세·과거 예제보다 현재 실행 절차를 우선합니다.</p>
-</blockquote>
-<p><a href="../grasp-pipeline-guide/">최종 SAM 파지 실행 가이드</a> · <a href="../bt-architecture/">전체 구조</a> · <a href="../bt-nodes/">BT 노드 사용법</a></p>
-<h2 id="1">1. 빌드하고 실행하기<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
-<p>컨테이너 workspace에서 실행합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install<span class="w"> </span>--packages-up-to<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>rwh_beyond_bringup<span class="w"> </span>rwh_beyond_grasp_bridge<span class="w"> </span>ros_runner
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ros2<span class="w"> </span>launch<span class="w"> </span>moma_bringup<span class="w"> </span>simulation.launch.py<span class="w"> </span>gui:<span class="o">=</span><span class="nb">false</span><span class="w"> </span>moveit:<span class="o">=</span><span class="nb">true</span><span class="w"> </span>rviz:<span class="o">=</span><span class="nb">false</span>
-</code></pre></div>
-<p>MuJoCo·MoveIt이 준비되면 다른 터미널에서 아래 BT launch를 실행합니다. 이 launch가
-grasp pipeline도 시작하므로 별도로 실행하지 않습니다. 기본 트리는
-<a href="../red-box-grasp/">빨간 상자 파지</a>이며 실제 SAM 3와 GraspGenX 서버가 모두 필요합니다.
-GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=false</code>를 사용합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>bt_demo.launch.py
-</code></pre></div>
-<p>BT launch가 MoveIt/SAM/파지 통합 RViz도 함께 실행합니다. GUI 없이 실행하려면
-<code>bt_demo.launch.py rviz:=false</code>를 사용합니다. runner의 경우 RViz는 bt_demo_sim이 소유하며
-<code>piper_sim</code>은 별도 창을 만들지 않습니다.</p>
-<p>BT navigator·lifecycle manager·모델 bridge·coordinator 설정은
-<code>rwh_beyond_bringup/config/bt_demo.yaml</code>에서 관리합니다. 값을 수정한 뒤
-<code>rwh_beyond_bringup</code>을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
-<code>ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo.yaml</code>로
-지정할 수 있으며, 다섯 노드의 설정을 모두 포함해야 합니다.</p>
-<p><code>ros_runner</code>에서 <strong><code>bt_demo_sim</code>만 활성화</strong>하면 <code>bt_demo_sim → piper_sim</code>에 의해
-MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_sim</code>은 재사용합니다.
-BT launch가 추론 Bridge/coordinator를 직접 시작하며, runner가 시뮬레이션 의존성을 관리합니다.
-<strong>자동으로 demo goal을 보내지는 않습니다.</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/runner_manager_node/activate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># navigator와 사용되지 않는 simulator 의존성 종료</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/runner_manager_node/deactivate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s2">"{}"</span>
-</code></pre></div>
-<p><code>piper_sim</code>을 중지하면 이에 의존하는 <code>bt_demo_sim</code>도 중지됩니다.
-다른 robot backend로 전환할 때도 의존 관계에 따라 navigator가 함께 종료됩니다.
-YAML을 갱신한 뒤 기존 ros_runner 프로세스를 재시작해야 새 설정이 적용됩니다.</p>
-<h3 id="octomap">트리 안에서 Octomap 초기화<a class="headerlink" href="#octomap" title="Permanent link">&para;</a></h3>
-<p>Launch는 navigator와 lifecycle manager, grasp pipeline 및 선택적 RViz를 실행합니다. <strong>지도 초기화는 이동 전 ClearOctomap 노드가 수행</strong>합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">&lt;Sequence&gt;</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&lt;ClearOctomap</span><span class="w"> </span><span class="na">once=</span><span class="s">"true"</span><span class="w"> </span><span class="na">timeout=</span><span class="s">"30.0"</span><span class="w"> </span><span class="na">fresh_clouds=</span><span class="s">"2"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&lt;MoveHome/&gt;</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="cm">&lt;!-- 이후 이동과 그리퍼 작업 --&gt;</span>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="nt">&lt;/Sequence&gt;</span>
-</code></pre></div>
-<pre class="mermaid"><code>flowchart TD
-    G["RunDemo goal / 트리 실행"] --&gt; C["ClearOctomap"]
-    C --&gt; E["clear 서비스 1회 호출"]
-    E --&gt; D["초기화 이후 새 점군 2개 대기"]
-    D --&gt; M["Octomap 재생성 확인"]
-    M --&gt; A["MoveHome 등 다음 노드"]</code></pre>
-<p><code>once=true</code>는 <strong>이 BT 노드 인스턴스에서 초기화가 한 번 성공하면</strong> 다음 실행에서 건너뜁니다.
-같은 XML을 재사용하는 반복 goal에서는 다시 clear하지 않습니다.
-XML 변경·다른 트리 로딩·navigator 재시작으로 노드가 새로 만들어지면 다시 초기화합니다.
-<code>once=false</code>이면 노드가 새로 실행될 때마다 clear하며 매 tick 반복 호출하지는 않습니다.
-실패·취소된 준비는 성공으로 기억하지 않으므로 다음 시도에서 다시 준비합니다.</p>
-<table>
-<thead>
-<tr>
-<th>BT 포트</th>
-<th>기본값</th>
-<th>의미</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>once</code></td>
-<td><code>true</code></td>
-<td>노드 인스턴스의 성공한 초기화 재사용</td>
-</tr>
-<tr>
-<td><code>timeout</code></td>
-<td><code>30.0</code></td>
-<td>서비스 대기부터 맵 확인까지 총 wall time, 초</td>
-</tr>
-<tr>
-<td><code>fresh_clouds</code></td>
-<td><code>2</code></td>
-<td>clear 이후 필요한 서로 다른 비어 있지 않은 점군 수</td>
-</tr>
-<tr>
-<td><code>service_name</code></td>
-<td><code>/clear_octomap</code></td>
-<td>MoveIt clear 서비스</td>
-</tr>
-<tr>
-<td><code>cloud_topic</code></td>
-<td><code>/camera/depth/filtered_points</code></td>
-<td>로봇 제거 후 점군</td>
-</tr>
-<tr>
-<td><code>scene_service</code></td>
-<td><code>/get_planning_scene</code></td>
-<td>지도 확인 서비스</td>
-</tr>
-</tbody>
-</table>
-<p>초기화 전 timestamp의 점군은 인정하지 않습니다. Timeout·빈 지도·서비스 오류는
-<code>FAILURE</code>로 반환해 다음 이동을 막고, <code>/run_demo</code>의 실패 단계는 <code>clear_octomap</code>으로 표시합니다.
-새 관측 수신을 확인하는 것이며 작업 영역 전체의 관측 완료를 보장하지는 않습니다.
-기본 <code>demo.xml</code>과 <code>parameterized_demo.xml</code>의 맨 앞에 이 노드를 배치했습니다.
-Octomap을 사용하지 않는 트리에서는 해당 노드를 넣지 않으면 됩니다.</p>
-<h3 id="rviz">기본 RViz 화면<a class="headerlink" href="#rviz" title="Permanent link">&para;</a></h3>
-<p>시뮬레이션은 <code>scene_source:=depth</code>와 <code>moma_bringup/config/depth_planning.rviz</code>를 사용합니다.</p>
-<table>
-<thead>
-<tr>
-<th>표시</th>
-<th>Topic / 데이터</th>
-<th>기본 상태</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>MotionPlanning</td>
-<td><code>/monitored_planning_scene</code>의 로봇·Octomap</td>
-<td>켜짐</td>
-</tr>
-<tr>
-<td>Planned Path</td>
-<td><code>/display_planned_path</code></td>
-<td>켜짐</td>
-</tr>
-<tr>
-<td>Depth points - robot filtered</td>
-<td><code>/camera/depth/filtered_points</code></td>
-<td>켜짐, cyan</td>
-</tr>
-<tr>
-<td>Depth points - raw</td>
-<td><code>/camera/depth/color/points</code></td>
-<td>비교용, 꺼짐</td>
-</tr>
-<tr>
-<td>RGB camera</td>
-<td><code>/camera/color/image_raw</code></td>
-<td>켜짐</td>
-</tr>
-<tr>
-<td>Depth camera</td>
-<td><code>/camera/depth/image_rect_raw</code></td>
-<td>켜짐</td>
-</tr>
-<tr>
-<td>Camera pose</td>
-<td><code>/camera/pose</code></td>
-<td>비교용, 꺼짐</td>
-</tr>
-</tbody>
-</table>
-<p>Octomap은 별도 <code>/octomap</code> display가 아니라 MotionPlanning의 Scene Geometry에 표시됩니다.
-점군·영상은 센서의 Best Effort QoS에 맞췄습니다. 겹쳐 보이면 Displays에서 점군을 끄고
-Octomap만 확인하세요. 최초 계획 전 카메라 영상과 Octomap 수신을 확인하세요.
-GUI 옵션은 runner 시작 전 <code>RWH_PIPER_SIM_GUI</code>, <code>RWH_BT_RVIZ</code> 환경변수로 바꿀 수 있습니다.</p>
-<table>
-<thead>
-<tr>
-<th>실행 경로</th>
-<th>대상</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>bt_demo_sim</code></td>
-<td><code>piper_sim</code> 자동 시작 + grasp pipeline 및 BT navigator와 RViz</td>
-</tr>
-<tr>
-<td><code>piper_sim</code></td>
-<td>MuJoCo + MoveIt (RViz 별도 실행)</td>
-</tr>
-<tr>
-<td><code>piper_moveit</code></td>
-<td>실물 CAN 드라이버 + MoveIt</td>
-</tr>
-</tbody>
-</table>
-<h2 id="2">2. 서버 등록 확인하기<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
-<p>다른 터미널에서 ROS와 workspace 환경을 source한 뒤 확인합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ros2<span class="w"> </span>lifecycle<span class="w"> </span>get<span class="w"> </span>/bt_navigator
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ros2<span class="w"> </span>action<span class="w"> </span>info<span class="w"> </span>/run_demo
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>ros2<span class="w"> </span>param<span class="w"> </span>get<span class="w"> </span>/bt_navigator<span class="w"> </span>plugin_lib_names
-</code></pre></div>
-<table>
-<thead>
-<tr>
-<th>확인 항목</th>
-<th>기대값</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Lifecycle 상태</td>
-<td><code>active [3]</code></td>
-</tr>
-<tr>
-<td><code>/run_demo</code> 서버 수</td>
-<td>1개</td>
-</tr>
-<tr>
-<td>BT 라이브러리 설정</td>
-<td><code>rwh_beyond_bt_nodes</code></td>
-</tr>
-</tbody>
-</table>
-<p>시작 시에는 <code>bt_lifecycle_manager</code>가 navigator를 configure하고 activate합니다.
-XML의 action 노드가 서버에 연결할 수 있어야 활성화가 완료됩니다.</p>
-<table>
-<thead>
-<tr>
-<th>시간 설정</th>
-<th>기본값</th>
-<th>용도</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>wait_for_service_timeout</code></td>
-<td>30000 ms</td>
-<td>MoveIt 등 action server 발견 대기</td>
-</tr>
-<tr>
-<td><code>bt_loop_duration</code></td>
-<td>10 ms</td>
-<td>트리 tick 주기</td>
-</tr>
-<tr>
-<td><code>default_server_timeout</code></td>
-<td>20 ms</td>
-<td>goal 응답 대기</td>
-</tr>
-</tbody>
-</table>
-<p>서버 발견 대기 시간은 로봇 동작 완료 제한 시간이 아닙니다.</p>
-<h2 id="bt-error-reporting">BT 실패 진단<a class="headerlink" href="#bt-error-reporting" title="Permanent link">&para;</a></h2>
-<p><code>RunDemo</code>는 현재 단계뿐 아니라 MoveIt 내부 상태와 실패 원인을 feedback/result로 전달합니다.
-MoveIt의 <code>error_code.val</code>, <code>message</code>, <code>source</code>를 사용하며,
-<strong>result.error_code는 uint16에서 int32로 변경</strong>해 음수 코드를 보존합니다.
-성공은 0, MoveIt·controller 실패는 원래 코드이며 <code>error_source</code>와 <code>error_name</code>으로 구분합니다.
-BT 자체 오류는 -1000 이하입니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Feedback:
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>  current_stage: move_home
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>  current_node: MoveHome
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>  moveit_state: MONITOR
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>  error_code: -3
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>  error_name: MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>  error_source: move_action
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>  error_msg: Planning scene changed during execution; the remaining trajectory became invalid. ...
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
-<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>Result:
-<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>  error_code: -3
-<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>  error_name: MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE
-<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>  failed_stage: move_home
-<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>  failed_node: MoveHome
-</code></pre></div>
-<p>위 예제는 MoveIt의 원문 메시지·source가 비어 있을 때의 fallback입니다.
-원문이 있으면 <code>error_msg</code>와 <code>error_source</code>에 그대로 전달합니다.
-<code>moveit_state</code>는 action feedback의 마지막 <code>state</code>이며 진행률 퍼센트가 아닙니다.
-실패가 마지막 tick에 발생해도 terminal result 직전에 진단 feedback을 한 번 더 발행합니다.
-새 stage/goal을 시작할 때 이전 오류를 초기화합니다.</p>
-<table>
-<thead>
-<tr>
-<th>오류 예</th>
-<th>의미</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE (-3)</code></td>
-<td>실행 중 scene 갱신으로 남은 경로가 무효화됨</td>
-</tr>
-<tr>
-<td><code>START_STATE_IN_COLLISION (-10)</code></td>
-<td>시작 상태가 충돌 상태</td>
-</tr>
-<tr>
-<td><code>GOAL_IN_COLLISION (-12)</code></td>
-<td>목표 상태가 충돌 상태</td>
-</tr>
-<tr>
-<td><code>NO_IK_SOLUTION (-31)</code></td>
-<td>목표 자세의 IK 해가 없음</td>
-</tr>
-<tr>
-<td><code>GOAL_TOLERANCE_VIOLATED</code></td>
-<td>그리퍼 controller가 목표 tolerance를 만족하지 못함</td>
-</tr>
-<tr>
-<td><code>INVALID_INPUT (-1000)</code></td>
-<td>pose·그리퍼 입력 검증 실패</td>
-</tr>
-<tr>
-<td><code>ACTION_REQUEST_FAILED (-1001)</code></td>
-<td>goal 거부·전송 실패·응답 timeout</td>
-</tr>
-<tr>
-<td><code>BT_FAILED (-1002)</code></td>
-<td>구체적인 action 오류가 남지 않은 트리 실패</td>
-</tr>
-<tr>
-<td><code>OCTOMAP_TIMEOUT (-1100)</code></td>
-<td>ClearOctomap의 서비스·새 관측·맵 확인 시간 초과</td>
-</tr>
-<tr>
-<td><code>OCTOMAP_SERVICE_ERROR (-1101)</code></td>
-<td>Octomap 서비스 처리 오류</td>
-</tr>
-<tr>
-<td><code>BT_EXCEPTION (-1003)</code></td>
-<td>TF 조회 등 BT 실행 중 예외</td>
-</tr>
-<tr>
-<td><code>ACTION_CANCELED / DEMO_CANCELED (-1004)</code></td>
-<td>action/demo 취소</td>
-</tr>
-</tbody>
-</table>
-<p>충돌 링크 쌍은 MoveGroup result의 독립 필드가 아닙니다.
-따라서 <code>&lt;octomap&gt; - gripper_link1</code>이 MoveIt 로그에만 있고 result.message에는 없다면
-navigator가 그 쌍을 정확히 반환할 수는 없습니다. 이 경우 -3의 의미를 설명하고 MoveIt collision 로그를 안내합니다.
-여러 goal이 섞일 수 있는 전역 로그를 원래 action result로 간주해 합치지 않습니다.</p>
-<p><strong>적용 시 runner와 action client를 재시작</strong>하고 새 workspace를 source하세요.
-Action 타입이 바뀌었으므로 이전 타입을 로드한 Python client/navigator를 계속 사용할 수 없습니다.
-BT 오류 전달은 SubTree 안에서도 root blackboard를 사용합니다.
-기본 <code>MoveHome</code>, <code>MoveTcpUp</code>, <code>CloseGripper</code>, <code>OpenGripper</code>도 ROS 상태뿐 아니라
-MoveIt/controller의 application error를 확인합니다.</p>
-<h2 id="3-groot2">3. Groot2에서 편집하기<a class="headerlink" href="#3-groot2" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>groot2
-</code></pre></div>
-<p>다음 순서로 파일을 불러옵니다.</p>
-<ol>
-<li><strong>노드 모델 가져오기:</strong> <code>rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml</code></li>
-<li><strong>트리 열기:</strong> <code>rwh_beyond_bt/behavior_trees/demo.xml</code> 또는 <code>parameterized_demo.xml</code></li>
-</ol>
-<p>위 경로는 <code>/root/ros2_ws/src/rwh_beyond/</code> 기준입니다.</p>
-<h3 id="xml">두 XML은 역할이 다릅니다<a class="headerlink" href="#xml" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>파일</th>
-<th>담고 있는 것</th>
-<th>사용하는 곳</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>rwh_beyond_tree_nodes.xml</code></td>
-<td>노드 ID, 종류, 포트와 기본값</td>
-<td>Groot2 노드 목록</td>
-</tr>
-<tr>
-<td><code>behavior_trees/*.xml</code></td>
-<td>실행 순서와 입력값</td>
-<td>Navigator의 트리 실행</td>
-</tr>
-</tbody>
-</table>
-<pre class="mermaid"><code>flowchart TD
-    C["C++ 노드 / providedPorts"] --&gt; L["BT 라이브러리"]
-    L --&gt; G["모델 XML 생성기"]
-    G --&gt; M["노드 모델 XML"]
-    M --&gt; E["Groot2 편집기"]
-    E --&gt; T["실행 XML 저장"]
-    T --&gt; N["Navigator가 실행"]
-    L --&gt; N</code></pre>
-<p>Groot2는 모델 XML로 포트를 표시합니다. 실행 구현은 navigator가 C++ 라이브러리에서
-로드합니다.</p>
-<h3 id="_1">실시간 모니터 연결<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
-<p>BT navigator가 활성화되면 Groot2의 <strong>Monitor</strong> 모드에서 navigator가 실행되는
-호스트와 포트 <code>5555</code>로 연결합니다. 같은 호스트에서는 <code>127.0.0.1:5555</code>를 사용합니다.
-<code>5555</code>는 요청 포트이고 <code>5556</code>은 상태 전송 포트이므로 원격 연결 시 둘 다 접근 가능해야 합니다.
-연결 후 goal을 보내면 트리 노드의 상태가 실시간으로 표시됩니다.</p>
-<p>설정은 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>의
-<code>run_demo.enable_groot_monitoring</code>과 <code>run_demo.groot_server_port</code>에서 변경합니다.
-포트는 1~65534 사이여야 하며, 변경 시 다음 포트도 사용됩니다. 비활성화하려면
-<code>enable_groot_monitoring: false</code>로 설정합니다. 설정이나 라이브러리 변경 후에는
-navigator를 재시작하세요.</p>
-<p>모니터 포트는 모든 네트워크 인터페이스에서 열리며 인증을 제공하지 않습니다.
-신뢰할 수 있는 호스트만 접속하도록 방화벽 등으로 두 포트를 제한하세요.</p>
-<h3 id="c">C++ 노드나 포트를 바꿨을 때<a class="headerlink" href="#c" title="Permanent link">&para;</a></h3>
-<p>빌드하고 workspace를 source한 뒤 모델 XML을 재생성합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>generate_tree_nodes_xml<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span>/root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
-</code></pre></div>
+<h1 id="manipulation-action">Manipulation Action 인터페이스<a class="headerlink" href="#manipulation-action" title="Permanent link">&para;</a></h1>
+<p>외부 Navigation 시스템은 <code>/run_demo</code>를 호출해 PiPER의 공통 파지 시나리오를 실행할 수 있습니다.
+Navigation 자체는 이 Action이 수행하지 않습니다.</p>
 <ul>
-<li><strong>Navigator:</strong> 프로세스를 재시작해 새 라이브러리를 로드합니다.</li>
-<li><strong>Groot2:</strong> 갱신된 노드 모델 XML을 다시 가져옵니다.</li>
+<li>이름: <code>/run_demo</code></li>
+<li>타입: <code>rwh_beyond_msgs/action/RunDemo</code></li>
+<li>서버: BT Navigator의 <code>rwh_beyond_navigator::DemoNavigator</code></li>
 </ul>
-<p>생성기는 factory에 노드를 등록하지만 action 노드를 생성하거나 goal을 보내지는 않습니다.</p>
-<h2 id="4">4. 테스트와 검증 범위<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>colcon<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--packages-select<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>--return-code-on-test-failure
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>colcon<span class="w"> </span>test-result<span class="w"> </span>--test-result-base<span class="w"> </span>build/rwh_beyond_bt/test_results
-</code></pre></div>
+<h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>검증</th>
-<th>확인한 내용</th>
+<th>필드</th>
+<th>타입</th>
+<th>의미</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Mock 테스트 24개</td>
-<td>mm 변환, 객체 생성·전달·재사용·SubTree 연결, 위치·자세와 quaternion 정규화</td>
+<td><code>target_text</code></td>
+<td>string</td>
+<td>이번 실행에서 찾을 물체 설명. 빈 값은 YAML 기본값</td>
 </tr>
 <tr>
-<td>잘못된 입력 테스트</td>
-<td>quaternion·TF·blackboard 입력 오류, application error 처리</td>
-</tr>
-<tr>
-<td>Navigator mock 통합 테스트</td>
-<td>음수 코드·원문·발생 컴포넌트·최종 feedback 전달, 다음 goal 오류 초기화</td>
-</tr>
-<tr>
-<td>Headless 통합 실행</td>
-<td>lifecycle active, action server 등록, 라이브러리 로딩</td>
+<td><code>behavior_tree</code></td>
+<td>string</td>
+<td>실행할 XML 경로. 빈 값은 공통 <code>demo.xml</code></td>
 </tr>
 </tbody>
 </table>
-<p>Mock 테스트는 ROS domain 87에서 실제 로봇 명령 없이 실행합니다.
-<strong>MuJoCo 전체 demo 완료와 실물 동작은 아직 검증하지 않았습니다.</strong></p>
-<h3 id="_2">심/실물 공통 기본 트리<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
-<p><code>bt_demo.launch.py</code>는 두 mode 모두 <code>behavior_trees/demo.xml</code>을 기본 시나리오로 사용합니다.
-관측 높이와 각도는 해당 XML의 <code>rise_m</code>, <code>tilt_deg</code>로 조정합니다.
-<code>hardware_demo.xml</code>은 같은 파일을 가리키는 호환 링크입니다.
-리프트 뒤에는 attachment를 유지한 채 관측 자세와 home으로 복귀합니다.
-자세한 흐름과 환경별 controller 차이는 <a href="../real-bt/">실물 BT</a>를 참고하세요.</p>
-<h3 id="action">Action별 인식 대상 지정<a class="headerlink" href="#action" title="Permanent link">&para;</a></h3>
-<p><code>/run_demo</code>의 <code>rwh_beyond_msgs/action/RunDemo</code> Goal에서 <code>target_text</code>를 지정합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="s1">'{target_text: "blue cup"}'</span><span class="w"> </span>--feedback
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="s1">'{target_text: "blue cup"}'</span><span class="w"> </span>--feedback
 </code></pre></div>
-<p><code>behavior_tree: ""</code>는 심/실물 공통 기본 트리입니다. <code>target_text</code>를 생략하거나
-빈 값으로 보내면 YAML의 기본 대상이 적용되며, 이전 요청의 대상은 유지되지 않습니다.
-요청한 텍스트는 Navigator → BT SegmentObject → coordinator → SAM 3로 전달됩니다.
-호출 측은 변경된 <code>rwh_beyond_msgs</code>를 빌드하고 실행 환경을 다시 source해야 합니다.</p>
+<p><code>target_text</code>는 해당 실행에만 적용됩니다. 다음 요청에서 생략하면 이전 대상이 아닌 YAML 기본값을 사용합니다.
+Navigator → BT Blackboard → SegmentObject → coordinator → SAM 3로 전달됩니다.
+기본 인스턴스 선택 정책은 <code>unique</code>이므로 같은 설명에 여러 물체가 해당하면 모호성으로 실패할 수 있습니다.</p>
+<h2 id="feedback-result">Feedback와 Result<a class="headerlink" href="#feedback-result" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>필드</th>
+<th>Feedback</th>
+<th>Result</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>current_stage</code>, <code>current_node</code></td>
+<td>사용</td>
+<td>—</td>
+<td>실행 중인 단계·BT 노드</td>
+</tr>
+<tr>
+<td><code>failed_stage</code>, <code>failed_node</code></td>
+<td>—</td>
+<td>사용</td>
+<td>실패한 단계·BT 노드</td>
+</tr>
+<tr>
+<td><code>moveit_state</code></td>
+<td>사용</td>
+<td>사용</td>
+<td>전달받은 MoveIt 상태</td>
+</tr>
+<tr>
+<td><code>error_code</code></td>
+<td>사용</td>
+<td>사용</td>
+<td>0은 성공, 오류는 원본 signed code 또는 BT 코드</td>
+</tr>
+<tr>
+<td><code>error_name</code>, <code>error_source</code>, <code>error_msg</code></td>
+<td>사용</td>
+<td>사용</td>
+<td>오류 이름·발생 위치·설명</td>
+</tr>
+</tbody>
+</table>
+<p>ROS Action의 최종 status와 result를 함께 확인합니다. <code>SUCCEEDED</code>와 <code>error_code=0</code>은
+시퀀스 완료를 뜻하며 물체 잡힘을 확인한 결과는 아닙니다.
+MoveIt·controller 오류 코드는 원본 부호를 유지합니다. BT 내부 오류는 -1000 이하를 사용합니다.</p>
+<h2 id="_1">취소와 연속 요청<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>호출 측 ActionClient의 goal handle에서 <code>cancel_goal_async()</code>를 사용합니다.
+실행 중 요청을 새 목표로 교체하는 preemption은 지원하지 않습니다. 취소 결과를 받은 뒤 새 목표를 보냅니다.
+동작 취소 시 궤적 취소와 임시 장면 정리를 요청하며 이미 부착된 대상은 유지합니다.
+부착 대상이 남아 있으면 새 집기 요청의 준비 검사에서 거부합니다.</p>
+<h2 id="_2">외부 연구실 연동<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>호출 측도 동일한 <code>rwh_beyond_msgs</code>를 빌드하고 ROS 환경을 source합니다.
+ROS Domain, RMW 및 DDS 네트워크를 맞추고 <code>/run_demo</code> 서버가 하나인지 확인합니다.
+물체 설명은 짧은 명사구로 전달합니다. 호출 측에서 결과와 취소 처리를 구현합니다.</p>
+<h2 id="groot2">Groot2<a class="headerlink" href="#groot2" title="Permanent link">&para;</a></h2>
+<p>BT 노드 모델은 <code>rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml</code>, 기본 트리는 <code>demo.xml</code>입니다.
+공통 YAML의 <code>run_demo.enable_groot_monitoring</code>, <code>run_demo.groot_server_port</code>로 모니터링을 설정합니다.
+현재 포트 기본값은 5555입니다. Groot2 연결은 시퀀스의 성공이나 물체 잡힘을 보증하지 않습니다.</p>
+<p><a href="../grasp-pipeline-guide/">실행 가이드</a> · <a href="../bt-grasp-stages/">단계별 Action</a></p>
 
 
 
@@ -2323,7 +1256,7 @@ navigator를 재시작하세요.</p>
       <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
         
           
-          <a href="../bt-code-style/" class="md-footer__link md-footer__link--prev" aria-label="이전: Nav2 헤더·CPP 구성">
+          <a href="../real-bt/" class="md-footer__link md-footer__link--prev" aria-label="이전: 심·실물 공통 BT와 설정">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2333,20 +1266,20 @@ navigator를 재시작하세요.</p>
                 이전
               </span>
               <div class="md-ellipsis">
-                Nav2 헤더·CPP 구성
+                심·실물 공통 BT와 설정
               </div>
             </div>
           </a>
         
         
           
-          <a href="../graspgenx-integration/" class="md-footer__link md-footer__link--next" aria-label="다음: GraspGenX 배포 상세">
+          <a href="../piper-runtime/" class="md-footer__link md-footer__link--next" aria-label="다음: 런타임·CAN·모델 연결">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                GraspGenX 배포 상세
+                런타임·CAN·모델 연결
               </div>
             </div>
             <div class="md-footer__button md-icon">
