@@ -32,7 +32,8 @@ source install/setup.bash
 
 ## 실행
 
-GPU 모델 서버와 endpoint를 준비한 뒤 runner를 시작합니다.
+GPU 모델 서버를 준비하고 `ros_runner/config/runners.yaml`의 `inference_connection`에 SSH 주소·포트를 지정합니다.
+호스트 SSH 터널 서비스를 연결한 뒤 runner를 시작합니다.
 
 ```bash
 ros2 launch ros_runner runner.launch.py

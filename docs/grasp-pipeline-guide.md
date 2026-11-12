@@ -11,8 +11,8 @@ source /root/ros2_ws/install/setup.bash
 ros2 launch ros_runner runner.launch.py
 ```
 
-runner는 모델 endpoint 환경 파일을 읽습니다. 다른 환경 파일·주소를 사용한다면
-runner 시작 전에 [런타임 설정](piper-runtime.md)을 적용합니다.
+외부 서버 SSH 주소와 모델 포트는 `ros_runner/config/runners.yaml`의 `inference_connection`에서 관리합니다.
+호스트 터널 서비스를 먼저 준비합니다. [런타임 설정](piper-runtime.md)을 참고하세요.
 
 ## 2. 실행 모드 선택
 
