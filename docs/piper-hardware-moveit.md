@@ -6,14 +6,13 @@
 
 ## 준비
 
-runner 시작 전에 CAN과 설정을 준비합니다.
+CAN을 준비하고 `ros_runner/config/runners.yaml`의 `piper`·`realsense` 설정을 확인합니다.
+기본 CAN은 `can0`, 자동 활성화는 false, 실물 BT transport는 feedback입니다.
+전체 항목은 [Runner 장치 설정](runner-device-settings.md)을 참고하세요.
 
 ```bash
 source /opt/ros/jazzy/setup.bash
 source /root/ros2_ws/install/setup.bash
-export RWH_PIPER_CAN_PORT=can0
-export RWH_PIPER_AUTO_ENABLE=false
-export RWH_PIPER_EXECUTION_TRANSPORT=feedback
 ros2 launch ros_runner runner.launch.py
 ```
 

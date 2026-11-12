@@ -18,7 +18,7 @@ PiPER 로봇의 접근·그리퍼 닫기·리프트·복귀를 실행하는 ROS 
 
 - [데이터·좌표계](project-data.md) · [코드 안내](project-code-map.md)
 - [모델별 ROS 인터페이스](model-bridges.md) · [SAM 3](sam3-perception.md) · [GraspGenX](graspgenx-model.md)
-- [D405와 TF](d405-sensors.md) · [실물 제어](piper-hardware-moveit.md)
+- [Runner 장치 설정](runner-device-settings.md) · [D405와 TF](d405-sensors.md) · [실물 제어](piper-hardware-moveit.md)
 - [RViz](grasp-visualization.md) · [BT 구조](bt-architecture.md) · [단계별 포트](bt-grasp-stages.md)
 
 현재 시나리오는 Pick·리프트·복귀까지입니다. Place와 Navigation 연동은 구현 범위에 포함하지 않습니다.

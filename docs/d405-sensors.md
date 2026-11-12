@@ -39,6 +39,9 @@ coordinator는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니
 
 ## 센서 실행
 
+`ros_runner/config/runners.yaml`의 `realsense`에서 enabled·serial·profile을 지정합니다.
+PiPER에 포함한 D405와 `d405` 단독 runner가 같은 설정을 읽습니다. [Runner 장치 설정](runner-device-settings.md)을 참고하세요.
+
 실물 `piper_moveit`은 기본적으로 D405를 포함합니다. 별도 카메라 driver와 중복 실행하지 않습니다.
 센서만 실행할 때는 다음을 사용합니다.
 

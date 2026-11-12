@@ -84,20 +84,13 @@ ros2 service call /graspgenx/health std_srvs/srv/Trigger '{}'
 
 `ROS_DOMAIN_ID`는 ROS DDS 통신용이며 모델 ZMQ endpoint와는 별개입니다.
 
-## 주요 runner 설정
+## PiPER·RealSense·심 실행 설정
 
-| 변수 | 용도 |
-|---|---|
-| `RWH_PIPER_CAN_PORT` | 실물 CAN 인터페이스 |
-| `RWH_PIPER_EXECUTION_TRANSPORT` | 실물 BT는 `feedback` 필요 |
-| `RWH_PIPER_AUTO_ENABLE` | 모터 자동 활성화, 기본 false |
-| `RWH_PIPER_SPEED_PERCENT` | 실물 driver 속도 설정 |
-| `RWH_BT_RVIZ` | 심 BT의 RViz 활성화 |
-| `RWH_PIPER_RVIZ` | 실물 MoveIt RViz 활성화 |
-| `RWH_PIPER_START_SENSORS` | 실물 MoveIt의 센서 포함 여부 |
-| `RWH_ENABLE_D405` | D405 사용 여부 |
+CAN·속도·TCP·센서 serial/profile·GUI 설정도 같은 `runners.yaml`에서 관리합니다.
+각각 `piper`, `realsense`, `simulation` 섹션을 사용합니다.
+항목과 재시작 범위는 [Runner 장치 설정](runner-device-settings.md)을 참고하세요.
 
-runner 설정은 `ros_runner/config/runners.yaml`이며 변경 후 runner를 재시작합니다.
+장치 설정값은 활성화할 때 다시 읽습니다. runner 정의 자체를 바꾸거나 새 설정 로더를 처음 적용할 때는 runner를 재시작합니다.
 모델 timeout이면 endpoint·터널·GPU 서버 준비를, ROS 서버가 안 보이면 domain·RMW·노드 실행을 확인합니다.
 
 [환경과 빌드](project-containers.md) · [실물 제어](piper-hardware-moveit.md)
