@@ -506,6 +506,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../runner-device-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runner 장치 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../inference-server-operation/" class="md-nav__link">
         
   
@@ -1136,13 +1164,12 @@
 계획용 점군 필터와 선택한 실행 transport를 시작합니다.
 <code>bt_demo</code> runner는 이를 의존 실행하고 실물 coordinator와 BT를 추가합니다.</p>
 <h2 id="_1">준비<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>runner 시작 전에 CAN과 설정을 준비합니다.</p>
+<p>CAN을 준비하고 <code>ros_runner/config/runners.yaml</code>의 <code>piper</code>·<code>realsense</code> 설정을 확인합니다.
+기본 CAN은 <code>can0</code>, 자동 활성화는 false, 실물 BT transport는 feedback입니다.
+전체 항목은 <a href="../runner-device-settings/">Runner 장치 설정</a>을 참고하세요.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_CAN_PORT</span><span class="o">=</span>can0
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_AUTO_ENABLE</span><span class="o">=</span><span class="nb">false</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_PIPER_EXECUTION_TRANSPORT</span><span class="o">=</span>feedback
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ros2<span class="w"> </span>launch<span class="w"> </span>ros_runner<span class="w"> </span>runner.launch.py
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>ros2<span class="w"> </span>launch<span class="w"> </span>ros_runner<span class="w"> </span>runner.launch.py
 </code></pre></div>
 <p>별도 터미널에서 실행합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>

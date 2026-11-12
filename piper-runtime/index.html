@@ -506,6 +506,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../runner-device-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runner 장치 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../inference-server-operation/" class="md-nav__link">
         
   
@@ -638,10 +666,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#runner" class="md-nav__link">
+  <a href="#piperrealsense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        주요 runner 설정
+        PiPER·RealSense·심 실행 설정
       
     </span>
   </a>
@@ -1123,10 +1151,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#runner" class="md-nav__link">
+  <a href="#piperrealsense" class="md-nav__link">
     <span class="md-ellipsis">
       
-        주요 runner 설정
+        PiPER·RealSense·심 실행 설정
       
     </span>
   </a>
@@ -1229,50 +1257,11 @@ GPU 모델 프로세스 기동은 SSH 터널·ROS runner와 별도입니다.</p>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/graspgenx/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
 </code></pre></div>
 <p><code>ROS_DOMAIN_ID</code>는 ROS DDS 통신용이며 모델 ZMQ endpoint와는 별개입니다.</p>
-<h2 id="runner">주요 runner 설정<a class="headerlink" href="#runner" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>변수</th>
-<th>용도</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>RWH_PIPER_CAN_PORT</code></td>
-<td>실물 CAN 인터페이스</td>
-</tr>
-<tr>
-<td><code>RWH_PIPER_EXECUTION_TRANSPORT</code></td>
-<td>실물 BT는 <code>feedback</code> 필요</td>
-</tr>
-<tr>
-<td><code>RWH_PIPER_AUTO_ENABLE</code></td>
-<td>모터 자동 활성화, 기본 false</td>
-</tr>
-<tr>
-<td><code>RWH_PIPER_SPEED_PERCENT</code></td>
-<td>실물 driver 속도 설정</td>
-</tr>
-<tr>
-<td><code>RWH_BT_RVIZ</code></td>
-<td>심 BT의 RViz 활성화</td>
-</tr>
-<tr>
-<td><code>RWH_PIPER_RVIZ</code></td>
-<td>실물 MoveIt RViz 활성화</td>
-</tr>
-<tr>
-<td><code>RWH_PIPER_START_SENSORS</code></td>
-<td>실물 MoveIt의 센서 포함 여부</td>
-</tr>
-<tr>
-<td><code>RWH_ENABLE_D405</code></td>
-<td>D405 사용 여부</td>
-</tr>
-</tbody>
-</table>
-<p>runner 설정은 <code>ros_runner/config/runners.yaml</code>이며 변경 후 runner를 재시작합니다.
+<h2 id="piperrealsense">PiPER·RealSense·심 실행 설정<a class="headerlink" href="#piperrealsense" title="Permanent link">&para;</a></h2>
+<p>CAN·속도·TCP·센서 serial/profile·GUI 설정도 같은 <code>runners.yaml</code>에서 관리합니다.
+각각 <code>piper</code>, <code>realsense</code>, <code>simulation</code> 섹션을 사용합니다.
+항목과 재시작 범위는 <a href="../runner-device-settings/">Runner 장치 설정</a>을 참고하세요.</p>
+<p>장치 설정값은 활성화할 때 다시 읽습니다. runner 정의 자체를 바꾸거나 새 설정 로더를 처음 적용할 때는 runner를 재시작합니다.
 모델 timeout이면 endpoint·터널·GPU 서버 준비를, ROS 서버가 안 보이면 domain·RMW·노드 실행을 확인합니다.</p>
 <p><a href="../project-containers/">환경과 빌드</a> · <a href="../piper-hardware-moveit/">실물 제어</a></p>
 <p>서버 SSH 접속과 컨테이너·모델 시작/중지·로그·health는 <a href="../inference-server-operation/">외부 GPU 추론 서버 운영</a>을 참고하세요.</p>

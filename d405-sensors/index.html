@@ -506,6 +506,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../runner-device-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runner 장치 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../inference-server-operation/" class="md-nav__link">
         
   
@@ -1227,6 +1255,8 @@
 <p>실물 URDF는 내부 optical TF를 중복 발행하지 않습니다.
 로봇 모델 없이 센서만 실행할 때만 <code>publish_d405_mount_tf:=true</code>로 mount TF를 별도 발행합니다.</p>
 <h2 id="_2">센서 실행<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p><code>ros_runner/config/runners.yaml</code>의 <code>realsense</code>에서 enabled·serial·profile을 지정합니다.
+PiPER에 포함한 D405와 <code>d405</code> 단독 runner가 같은 설정을 읽습니다. <a href="../runner-device-settings/">Runner 장치 설정</a>을 참고하세요.</p>
 <p>실물 <code>piper_moveit</code>은 기본적으로 D405를 포함합니다. 별도 카메라 driver와 중복 실행하지 않습니다.
 센서만 실행할 때는 다음을 사용합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_bringup<span class="w"> </span>sensor.launch.py<span class="w"> </span><span class="se">\</span>
