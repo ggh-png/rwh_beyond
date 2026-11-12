@@ -22,24 +22,26 @@ ip -details link show can0
 
 ## 모델 endpoint
 
-공통 YAML 기본 주소는 SAM `tcp://127.0.0.1:5567`, GraspGenX `tcp://127.0.0.1:5566`입니다.
-loopback 주소는 로봇 PC에서 접근 가능한 모델 또는 SSH 포워딩 endpoint를 뜻합니다.
-외부 서버 주소가 자동으로 검색되는 것은 아닙니다.
+기본 주소는 `rwh_beyond_bringup/config/bt_demo.yaml`에 이미 지정되어 있습니다.
+runner로 실행할 때 별도로 `export`할 필요가 없습니다.
 
-runner는 `RWH_MODEL_ENV_FILE`의 파일을 읽으며 기본 경로는 `$HOME/rwh-inference/remote.env`입니다.
-다음 변수를 통해 endpoint를 지정할 수 있습니다.
+| 모델 | YAML 기본 endpoint |
+|---|---|
+| SAM 3 | `tcp://127.0.0.1:5567` |
+| GraspGenX | `tcp://127.0.0.1:5566` |
 
-```bash
-# runner 시작 전에 실제 구성에 맞게 지정
-export RWH_GRASP_ENDPOINT=tcp://127.0.0.1:5566
-export RWH_SEGMENTATION_ENDPOINT=tcp://127.0.0.1:5567
-# 다른 환경 파일을 쓸 때:
-export RWH_MODEL_ENV_FILE=/path/to/model.env
-```
+고정 주소를 바꾸려면 공통 YAML의 각 bridge `endpoint`를 수정합니다.
+환경별 주소가 필요하면 runner가 자동으로 읽는 `$HOME/rwh-inference/remote.env`에
+`RWH_GRASP_ENDPOINT`, `RWH_SEGMENTATION_ENDPOINT`를 저장할 수 있습니다.
+다른 환경 파일은 `RWH_MODEL_ENV_FILE`로 지정합니다.
 
-환경 파일은 지정한 값을 덮어쓸 수 있으므로 최종 파일 내용과 runner 시작 로그의 endpoint를 확인합니다.
-SSH 터널을 사용한다면 해당 터널을 먼저 연결하고 포워딩 포트에 맞춥니다.
-모델 가중치·GPU 프로세스는 ROS runner와 별도로 준비합니다.
+적용 우선순위는 명시적인 launch 인자 → launch가 읽는 환경변수 → 공통 YAML입니다.
+runner는 활성화 스크립트에서 환경 파일을 source하므로 그 파일이 같은 이름의 환경변수를
+다시 지정하면 파일 값이 적용됩니다. 고정 YAML 주소를 사용하려면 해당 override를 비웁니다.
+환경 파일 변경은 다음 runner 활성화 시 읽고, 실행 중인 bridge에는 재활성화 후 적용합니다.
+
+loopback은 로봇 PC의 모델 또는 SSH 포워딩 endpoint를 뜻하며 외부 서버를 자동 검색하지 않습니다.
+SSH 터널과 GPU 모델 프로세스는 ROS runner와 별도로 준비합니다.
 
 ```bash
 ros2 service call /sam3/health std_srvs/srv/Trigger '{}'
