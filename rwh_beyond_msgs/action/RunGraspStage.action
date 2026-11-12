@@ -1,5 +1,7 @@
 # Fixed-purpose endpoints under grasp/: no command dispatch in the client.
 # observation_id binds the mask/cloud/candidates to one stationary RGB-D capture.
+# Optional segmentation text, used only by segment_object. Empty uses configured target.
+string target_text
 string observation_id
 sensor_msgs/Image object_mask
 sensor_msgs/PointCloud2 object_cloud

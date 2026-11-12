@@ -19,7 +19,7 @@ from moveit_msgs.srv import GetPlanningScene
 from sensor_msgs.msg import PointCloud2
 from std_srvs.srv import Empty
 from rclpy.qos import qos_profile_sensor_data
-from rwh_beyond_msgs.action import RunDemo
+from rwh_beyond_msgs.action import RunDemo, RunGraspStage
 import yaml
 
 
@@ -99,9 +99,9 @@ class NavigatorErrorReporting(unittest.TestCase):
             time.sleep(0.01)
         self.assertTrue(predicate(), 'Timed out: ' + str(self.root))
 
-    def run_goal(self, tree=""):
+    def run_goal(self, tree="", target_text=""):
         feedback = []
-        sent = self.action.send_goal_async(RunDemo.Goal(behavior_tree=tree),
+        sent = self.action.send_goal_async(RunDemo.Goal(behavior_tree=tree, target_text=target_text),
                                             feedback_callback=lambda msg: feedback.append(msg.feedback))
         self.wait(sent.done)
         self.assertTrue(sent.result().accepted)
@@ -174,6 +174,27 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.node.destroy_service(clear_service)
         self.node.destroy_service(scene_service)
         self.node.destroy_publisher(publisher)
+
+    def test_target_text_reaches_segmentation_and_resets_between_goals(self):
+        received = []
+
+        def segment(handle):
+            received.append(handle.request.target_text)
+            result = RunGraspStage.Result(success=True, observation_id='test-capture')
+            handle.succeed()
+            return result
+
+        server = ActionServer(self.node, RunGraspStage, 'grasp/segment_object', segment,
+                              callback_group=self.group)
+        self.addCleanup(server.destroy)
+        tree = self.root / 'target_tree.xml'
+        tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
+                        '<SegmentObject observation_id="{obs}" mask="{mask}"/>'
+                        '</BehaviorTree></root>')
+        for target in ('yellow block', 'blue cup', ''):
+            wrapped, _ = self.run_goal(str(tree), target_text=target)
+            self.assertEqual(wrapped.status, 4)
+        self.assertEqual(received, ['yellow block', 'blue cup', ''])
 
     def cleanup_runtime(self):
         if self.process.poll() is None:

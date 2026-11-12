@@ -159,3 +159,19 @@ attachment는 충돌 계획을 위한 가정으로 사용합니다. backend 준�
 각 환경의 controller를 사용하며, 실물의 4초 닫기 완료 처리는 physical transport가 담당합니다.
 심에서는 시뮬레이터 trajectory action의 완료 결과를 확인합니다. 실물 상태/통신/충돌 검사는 유지됩니다.
 이전 심 전용 고정 관측 자세는 공통 데모에서 사용하지 않습니다.
+
+
+## Action 요청에서 대상 지정
+
+심/실물 모두 `/run_demo` 요청의 `target_text`에 SAM 3가 찾을 물체 설명을 전달합니다.
+
+```bash
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  '{target_text: "yellow block"}' --feedback
+```
+
+요청별 대상은 해당 실행에만 적용되며 YAML의 기본 `target_text`를 변경하지 않습니다.
+필드를 생략하거나 빈 문자열이면 YAML 기본값을 사용합니다.
+타 연구실 연동 시 `behavior_tree`는 빈 문자열로 두면 공통 기본 시나리오를 실행합니다.
+대상 지정은 텍스트 조건 분할(SAM 3)을 사용하며 `color_demo`는 지원하지 않습니다.
+Action 정의가 변경되었으므로 호출 측도 새 `rwh_beyond_msgs`로 다시 빌드해야 합니다.

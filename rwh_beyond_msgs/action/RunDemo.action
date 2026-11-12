@@ -1,4 +1,6 @@
 string behavior_tree
+# Optional SAM target description for this goal only; empty uses configured target_text.
+string target_text
 ---
 # Native signed MoveIt/controller error code; 0 means demo success.
 # BT-local errors use -1000 and below. See error_source/error_name.

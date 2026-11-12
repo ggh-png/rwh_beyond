@@ -297,3 +297,18 @@ Mock 테스트는 ROS domain 87에서 실제 로봇 명령 없이 실행합니�
 `hardware_demo.xml`은 같은 파일을 가리키는 호환 링크입니다.
 리프트 뒤에는 attachment를 유지한 채 관측 자세와 home으로 복귀합니다.
 자세한 흐름과 환경별 controller 차이는 [실물 BT](real-bt.md)를 참고하세요.
+
+
+### Action별 인식 대상 지정
+
+`/run_demo`의 `rwh_beyond_msgs/action/RunDemo` Goal에서 `target_text`를 지정합니다.
+
+```bash
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  '{target_text: "blue cup"}' --feedback
+```
+
+`behavior_tree: ""`는 심/실물 공통 기본 트리입니다. `target_text`를 생략하거나
+빈 값으로 보내면 YAML의 기본 대상이 적용되며, 이전 요청의 대상은 유지되지 않습니다.
+요청한 텍스트는 Navigator → BT SegmentObject → coordinator → SAM 3로 전달됩니다.
+호출 측은 변경된 `rwh_beyond_msgs`를 빌드하고 실행 환경을 다시 source해야 합니다.

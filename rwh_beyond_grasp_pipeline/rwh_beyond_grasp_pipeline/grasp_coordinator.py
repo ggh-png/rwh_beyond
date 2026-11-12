@@ -295,7 +295,7 @@ class GraspCoordinator(ScenarioMotion, MotionStages, SelectionStages, InferenceS
             self.ensure_backend()
             if command=='check_ready':self.check_ready()
             elif command=='segment_object':
-                self.segment_target()
+                self.segment_target(request.target_text)
                 result.object_mask=self.perception['mask']
             elif command=='build_object_cloud':
                 self.require_observation(request,'object_mask')

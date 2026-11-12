@@ -29,8 +29,21 @@ SegmentObjectAction::SegmentObjectAction(
 
 BT::PortsList SegmentObjectAction::providedPorts()
 {
-  return providedBasicPorts({BT::OutputPort<std::string>("observation_id"),
+  return providedBasicPorts({BT::InputPort<std::string>("target_text", "", "Optional target description"),
+             BT::OutputPort<std::string>("observation_id"),
              BT::OutputPort<ObjectMask>("mask")});
+}
+
+void SegmentObjectAction::on_tick()
+{
+  GraspActionNode::on_tick();
+  goal_.target_text = getInput<std::string>("target_text").value();
+  std::string requested_target;
+  if (config().blackboard->rootBlackboard()->get("target_text", requested_target) &&
+    !requested_target.empty())
+  {
+    goal_.target_text = requested_target;
+  }
 }
 
 BT::NodeStatus SegmentObjectAction::on_success()

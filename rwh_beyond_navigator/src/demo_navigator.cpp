@@ -75,6 +75,8 @@ public:
       return false;
     }
     auto board = bt_action_server_->getBlackboard();
+    // Always overwrite, including empty goals, so targets never leak across runs.
+    board->rootBlackboard()->set("target_text", goal->target_text);
     board->set("demo_stage", std::string("starting"));
     ActionT::Feedback feedback;
     feedback.current_stage = "starting";

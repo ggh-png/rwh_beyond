@@ -93,6 +93,7 @@
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="SegmentObject">
+            <input_port name="target_text" type="std::string" default="">Optional target description</input_port>
             <output_port name="observation_id" type="std::string"/>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <output_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>

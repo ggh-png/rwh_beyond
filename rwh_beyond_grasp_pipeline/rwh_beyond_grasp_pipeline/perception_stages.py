@@ -28,7 +28,12 @@ class PerceptionStages:
         keys=[k for k,v in list(self.frames.items()) if set(v)=={'rgb','depth','info'} and k[0]*10**9+k[1]>after]
         return copy.deepcopy(self.frames[max(keys)])
 
-    def segment_target(self):
+    def segment_target(self, target_text=None):
+        requested_text = (target_text or '').strip()
+        backend = self.get_parameter('segmentation_backend').value
+        if requested_text and backend != 'sam3':
+            raise ValueError('Text target selection requires segmentation_backend=sam3')
+        target_text = requested_text or self.get_parameter('target_text').value
         if self.attached:raise RuntimeError('Already holding object')
         self.cleanup()
         self.stage('acquire_object_rgbd')
@@ -43,7 +48,7 @@ class PerceptionStages:
             point=list(self.get_parameter('selection_point').value)
             try:
                 mask,score,count,_=segment_via_action(self.segment,
-                    rgb,depth,self.get_parameter('target_text').value,box if any(box) else [],
+                    rgb,depth,target_text,box if any(box) else [],
                     point if min(point)>=0 else [],self.get_parameter('selection_policy').value,
                     timeout=60.,canceled=lambda:self.active_handle is not None and self.active_handle.is_cancel_requested)
             except RequestCanceled as error:raise Canceled(str(error)) from error
@@ -52,7 +57,7 @@ class PerceptionStages:
             labels=red_mask(rgb)
             mask=Image(header=depth.header,height=depth.height,width=depth.width,encoding='mono8',step=depth.width,data=labels.astype(np.uint8).tobytes())
         else:raise ValueError('segmentation_backend must be sam3 or explicit color_demo')
-        self.perception=dict(frame=frame,mask=mask,base_T_camera=pose_matrix(camera),backend=backend,captured_at=captured_at,capture_joints=capture_joints)
+        self.perception=dict(target_text=target_text,frame=frame,mask=mask,base_T_camera=pose_matrix(camera),backend=backend,captured_at=captured_at,capture_joints=capture_joints)
         self.observation_id=uuid.uuid4().hex;self.plan_id=""
         self.visualization.publish_segmentation(rgb,depth,mask)
 
