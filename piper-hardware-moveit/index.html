@@ -16,7 +16,7 @@
         <link rel="prev" href="../piper-runtime/">
       
       
-        <link rel="next" href="../bt-architecture/">
+        <link rel="next" href="../d405-sensors/">
       
       
         
@@ -750,10 +750,77 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#d405" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D405 자동 시작과 새 장착 모델
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../d405-sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D405 장착·센서 선택
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-bt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 집기 BT 준비·실행
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1667,6 +1734,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#d405" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D405 자동 시작과 새 장착 모델
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1928,6 +2006,10 @@ plan-only 요청을 검증합니다. 이는 실제 로봇의 이동 성공 검�
 판정할 수 없습니다. <code>/move_home</code>과 <code>/exit_teach_mode</code>는 MoveIt 충돌 계획을 거치지 않습니다.</p>
 <p>범위 밖 상태는 캘리브레이션 실패의 확정 증거가 아닙니다. 현재 자세·기구 기준·영점·추종 오차를
 구분해야 하며, 임의 자세에서 영점을 재설정하거나 제한을 넓히는 수정은 하지 않았습니다.</p>
+<h2 id="d405">D405 자동 시작과 새 장착 모델<a class="headerlink" href="#d405" title="Permanent link">&para;</a></h2>
+<p>후속 변경에서 실물 runner가 D405를 함께 시작하고 상단 장착 STL·TF를 사용하도록 구성했습니다. <a href="../d405-sensors/">D405 장착·센서 선택·모드 구분</a>을 참고하세요. mount는 명목값이며 hand-eye 보정은 완료되지 않았습니다.</p>
+<p>실물 전체 집기 BT는 별도 <code>bt_demo</code> runner와 실제 피드백 기반 transport를 사용합니다.
+<a href="../real-bt/">실물 BT 준비·실행</a>을 따르세요. 새 경로는 실물 실험 미검증 상태입니다.</p>
 
 
 
@@ -1980,13 +2062,13 @@ plan-only 요청을 검증합니다. 이는 실제 로봇의 이동 성공 검�
         
         
           
-          <a href="../bt-architecture/" class="md-footer__link md-footer__link--next" aria-label="다음: 아키텍처">
+          <a href="../d405-sensors/" class="md-footer__link md-footer__link--next" aria-label="다음: D405 장착·센서 선택">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                아키텍처
+                D405 장착·센서 선택
               </div>
             </div>
             <div class="md-footer__button md-icon">

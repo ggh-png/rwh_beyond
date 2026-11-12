@@ -1,0 +1,240 @@
+{
+  "note": "Single saved simulated RGB-D; scores are model confidences, not measured accuracy.",
+  "cloud_points": 2903,
+  "runs": [
+    {
+      "count": 100,
+      "repeat": 0,
+      "seconds": 0.2354827099479735,
+      "candidates": 100,
+      "best": 0.8211066126823425,
+      "top20_mean": 0.7477163672447205,
+      "topdown": 22,
+      "best_topdown": 0.7743306159973145
+    },
+    {
+      "count": 300,
+      "repeat": 0,
+      "seconds": 0.4141520499251783,
+      "candidates": 300,
+      "best": 0.8101771473884583,
+      "top20_mean": 0.7680041790008545,
+      "topdown": 53,
+      "best_topdown": 0.7450752258300781
+    },
+    {
+      "count": 500,
+      "repeat": 0,
+      "seconds": 0.27843747893348336,
+      "candidates": 300,
+      "best": 0.8683220744132996,
+      "top20_mean": 0.801191508769989,
+      "topdown": 28,
+      "best_topdown": 0.7551313638687134
+    },
+    {
+      "count": 1000,
+      "repeat": 0,
+      "seconds": 0.36538175004534423,
+      "candidates": 300,
+      "best": 0.8732802867889404,
+      "top20_mean": 0.8134667277336121,
+      "topdown": 30,
+      "best_topdown": 0.8105247616767883
+    },
+    {
+      "count": 100,
+      "repeat": 1,
+      "seconds": 0.10285118210595101,
+      "candidates": 100,
+      "best": 0.8005642294883728,
+      "top20_mean": 0.749711811542511,
+      "topdown": 15,
+      "best_topdown": 0.6717597246170044
+    },
+    {
+      "count": 300,
+      "repeat": 1,
+      "seconds": 0.19136856903787702,
+      "candidates": 300,
+      "best": 0.8571394681930542,
+      "top20_mean": 0.7915753722190857,
+      "topdown": 39,
+      "best_topdown": 0.7389460206031799
+    },
+    {
+      "count": 500,
+      "repeat": 1,
+      "seconds": 0.22693297604564577,
+      "candidates": 300,
+      "best": 0.8865044116973877,
+      "top20_mean": 0.7958704829216003,
+      "topdown": 41,
+      "best_topdown": 0.8147578835487366
+    },
+    {
+      "count": 1000,
+      "repeat": 1,
+      "seconds": 0.23275066097266972,
+      "candidates": 300,
+      "best": 0.8455616235733032,
+      "top20_mean": 0.806172251701355,
+      "topdown": 25,
+      "best_topdown": 0.7943190932273865
+    },
+    {
+      "count": 100,
+      "repeat": 2,
+      "seconds": 0.18701029301155359,
+      "candidates": 100,
+      "best": 0.7755005955696106,
+      "top20_mean": 0.7314737439155579,
+      "topdown": 15,
+      "best_topdown": 0.7045338153839111
+    },
+    {
+      "count": 300,
+      "repeat": 2,
+      "seconds": 0.4328064010478556,
+      "candidates": 300,
+      "best": 0.8225550651550293,
+      "top20_mean": 0.7741479277610779,
+      "topdown": 41,
+      "best_topdown": 0.8172286152839661
+    },
+    {
+      "count": 500,
+      "repeat": 2,
+      "seconds": 0.2046126489294693,
+      "candidates": 300,
+      "best": 0.869686484336853,
+      "top20_mean": 0.8212668299674988,
+      "topdown": 45,
+      "best_topdown": 0.796018123626709
+    },
+    {
+      "count": 1000,
+      "repeat": 2,
+      "seconds": 0.1411936399526894,
+      "candidates": 300,
+      "best": 0.8810132145881653,
+      "top20_mean": 0.817334771156311,
+      "topdown": 24,
+      "best_topdown": 0.7999199032783508
+    },
+    {
+      "count": 100,
+      "repeat": 3,
+      "seconds": 0.09060744207818061,
+      "candidates": 100,
+      "best": 0.853725016117096,
+      "top20_mean": 0.7178922891616821,
+      "topdown": 21,
+      "best_topdown": 0.7480581998825073
+    },
+    {
+      "count": 300,
+      "repeat": 3,
+      "seconds": 0.1250038300640881,
+      "candidates": 300,
+      "best": 0.8074811697006226,
+      "top20_mean": 0.7623249292373657,
+      "topdown": 47,
+      "best_topdown": 0.7645465135574341
+    },
+    {
+      "count": 500,
+      "repeat": 3,
+      "seconds": 0.25714271992910653,
+      "candidates": 300,
+      "best": 0.8519008755683899,
+      "top20_mean": 0.7954326272010803,
+      "topdown": 37,
+      "best_topdown": 0.7732450366020203
+    },
+    {
+      "count": 1000,
+      "repeat": 3,
+      "seconds": 0.20495882502291352,
+      "candidates": 300,
+      "best": 0.8604657053947449,
+      "top20_mean": 0.8258800506591797,
+      "topdown": 25,
+      "best_topdown": 0.8604657053947449
+    },
+    {
+      "count": 100,
+      "repeat": 4,
+      "seconds": 0.2048954350175336,
+      "candidates": 100,
+      "best": 0.7993357181549072,
+      "top20_mean": 0.7368977069854736,
+      "topdown": 17,
+      "best_topdown": 0.7740880250930786
+    },
+    {
+      "count": 300,
+      "repeat": 4,
+      "seconds": 0.19247360492590815,
+      "candidates": 300,
+      "best": 0.8615713715553284,
+      "top20_mean": 0.7830265760421753,
+      "topdown": 46,
+      "best_topdown": 0.751164972782135
+    },
+    {
+      "count": 500,
+      "repeat": 4,
+      "seconds": 0.32068560493644327,
+      "candidates": 300,
+      "best": 0.8609640002250671,
+      "top20_mean": 0.8197442889213562,
+      "topdown": 40,
+      "best_topdown": 0.8285959959030151
+    },
+    {
+      "count": 1000,
+      "repeat": 4,
+      "seconds": 0.3284681460354477,
+      "candidates": 300,
+      "best": 0.8568968772888184,
+      "top20_mean": 0.820639967918396,
+      "topdown": 34,
+      "best_topdown": 0.795984148979187
+    }
+  ],
+  "summary": [
+    {
+      "samples": 100,
+      "repeats": 5,
+      "mean_seconds": 0.16416941243223845,
+      "mean_top20_score": 0.736738383769989,
+      "mean_best_score": 0.8100464344024658,
+      "mean_best_topdown_score": 0.7345540761947632
+    },
+    {
+      "samples": 300,
+      "repeats": 5,
+      "mean_seconds": 0.2711608910001814,
+      "mean_top20_score": 0.7758157968521118,
+      "mean_best_score": 0.8317848443984985,
+      "mean_best_topdown_score": 0.7633922696113586
+    },
+    {
+      "samples": 500,
+      "repeats": 5,
+      "mean_seconds": 0.25756228575482965,
+      "mean_top20_score": 0.806701147556305,
+      "mean_best_score": 0.8674755692481995,
+      "mean_best_topdown_score": 0.7935496807098389
+    },
+    {
+      "samples": 1000,
+      "repeats": 5,
+      "mean_seconds": 0.2545506044058129,
+      "mean_top20_score": 0.8166987538337708,
+      "mean_best_score": 0.8634435415267945,
+      "mean_best_topdown_score": 0.8122427225112915
+    }
+  ]
+}

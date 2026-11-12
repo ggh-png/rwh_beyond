@@ -611,6 +611,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../d405-sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D405 장착·센서 선택
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-bt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 집기 BT 준비·실행
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -992,6 +1048,23 @@
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="4. 테스트와 검증 범위">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        심/실물 공통 기본 트리
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1711,6 +1784,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. 테스트와 검증 범위">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        심/실물 공통 기본 트리
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1758,11 +1848,11 @@ GUI를 표시하려면 시뮬레이션 launch에 <code>gui:=true rviz:=false</co
 <p>BT launch가 MoveIt/SAM/파지 통합 RViz도 함께 실행합니다. GUI 없이 실행하려면
 <code>bt_demo.launch.py rviz:=false</code>를 사용합니다. runner의 경우 RViz는 bt_demo_sim이 소유하며
 <code>piper_sim</code>은 별도 창을 만들지 않습니다.</p>
-<p>BT navigator와 lifecycle manager의 설정은
-<code>rwh_beyond_bringup/params/bt_demo_params.yaml</code>에서 관리합니다. 값을 수정한 뒤
+<p>BT navigator·lifecycle manager·모델 bridge·coordinator 설정은
+<code>rwh_beyond_bringup/config/bt_demo.yaml</code>에서 관리합니다. 값을 수정한 뒤
 <code>rwh_beyond_bringup</code>을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
-<code>ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml</code>로
-지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.</p>
+<code>ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo.yaml</code>로
+지정할 수 있으며, 다섯 노드의 설정을 모두 포함해야 합니다.</p>
 <p><code>ros_runner</code>에서 <strong><code>bt_demo_sim</code>만 활성화</strong>하면 <code>bt_demo_sim → piper_sim</code>에 의해
 MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 <code>piper_sim</code>은 재사용합니다.
 BT launch가 추론 Bridge/coordinator를 직접 시작하며, runner가 시뮬레이션 의존성을 관리합니다.
@@ -2109,7 +2199,7 @@ MoveIt/controller의 application error를 확인합니다.</p>
 호스트와 포트 <code>5555</code>로 연결합니다. 같은 호스트에서는 <code>127.0.0.1:5555</code>를 사용합니다.
 <code>5555</code>는 요청 포트이고 <code>5556</code>은 상태 전송 포트이므로 원격 연결 시 둘 다 접근 가능해야 합니다.
 연결 후 goal을 보내면 트리 노드의 상태가 실시간으로 표시됩니다.</p>
-<p>설정은 <code>rwh_beyond_bringup/params/bt_demo_params.yaml</code>의
+<p>설정은 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>의
 <code>run_demo.enable_groot_monitoring</code>과 <code>run_demo.groot_server_port</code>에서 변경합니다.
 포트는 1~65534 사이여야 하며, 변경 시 다음 포트도 사용됩니다. 비활성화하려면
 <code>enable_groot_monitoring: false</code>로 설정합니다. 설정이나 라이브러리 변경 후에는
@@ -2161,6 +2251,12 @@ navigator를 재시작하세요.</p>
 </table>
 <p>Mock 테스트는 ROS domain 87에서 실제 로봇 명령 없이 실행합니다.
 <strong>MuJoCo 전체 demo 완료와 실물 동작은 아직 검증하지 않았습니다.</strong></p>
+<h3 id="_2">심/실물 공통 기본 트리<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p><code>bt_demo.launch.py</code>는 두 mode 모두 <code>behavior_trees/demo.xml</code>을 기본 시나리오로 사용합니다.
+관측 높이와 각도는 해당 XML의 <code>rise_m</code>, <code>tilt_deg</code>로 조정합니다.
+<code>hardware_demo.xml</code>은 같은 파일을 가리키는 호환 링크입니다.
+리프트 뒤에는 attachment를 유지한 채 관측 자세와 home으로 복귀합니다.
+자세한 흐름과 환경별 controller 차이는 <a href="../real-bt/">실물 BT</a>를 참고하세요.</p>
 
 
 

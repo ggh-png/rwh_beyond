@@ -748,6 +748,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../d405-sensors/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D405 장착·센서 선택
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../real-bt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실물 집기 BT 준비·실행
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1687,12 +1743,12 @@
 <tr>
 <td>2</td>
 <td><code>rwh_beyond_bringup/launch/bt_demo.launch.py</code></td>
-<td>grasp pipeline·RViz include, navigator·lifecycle manager, <code>grasp_params_file</code>의 별도 scope</td>
+<td>grasp pipeline·RViz include, navigator·lifecycle manager, 공통 <code>params_file</code>을 전체 BT 노드에 전달</td>
 </tr>
 <tr>
 <td>3</td>
-<td><code>rwh_beyond_bringup/params/bt_demo_params.yaml</code></td>
-<td>custom navigator 플러그인, BT 라이브러리, Groot2</td>
+<td><code>rwh_beyond_bringup/config/bt_demo.yaml</code></td>
+<td>navigator·bridge·coordinator·실물 관측 이동 공통 설정</td>
 </tr>
 <tr>
 <td>4</td>
