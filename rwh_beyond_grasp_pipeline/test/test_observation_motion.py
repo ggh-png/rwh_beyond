@@ -204,14 +204,16 @@ def test_carried_observation_returns_directly_to_home_relative_pose(xyz):
 def test_sim_and_real_use_shared_scenario_motion_and_xml():
     from rwh_beyond_grasp_pipeline.grasp_coordinator import GraspCoordinator
     for name in ('move_home', 'move_observation', 'prepare_observation_motion',
-                 'open_gripper', 'command_gripper', 'attach', 'lift'):
+                 'move_place', 'release_object', 'open_gripper', 'command_gripper', 'attach', 'lift'):
         assert getattr(GraspCoordinator, name) is getattr(HardwareGraspCoordinator, name)
     trees = ROOT/'rwh_beyond_bt/behavior_trees'
     assert sorted(path.name for path in trees.glob('*.xml')
-                  if ET.parse(path).find('BehaviorTree') is not None) == ['demo.xml']
+                  if ET.parse(path).find('BehaviorTree') is not None) == ['demo.xml', 'place.xml']
     sequence = ET.parse(trees/'demo.xml').find('.//Sequence')
     assert [n.tag for n in sequence.iter() if n.tag != 'Sequence'][-4:] == [
         'AttachObject', 'LiftObject', 'MoveObservation', 'MoveHome']
+    place = ET.parse(trees/'place.xml').find('.//Sequence')
+    assert [n.tag for n in place] == ['MoveHome', 'MovePlace', 'ReleaseObject', 'MoveHome']
 
 
 @pytest.mark.parametrize('closing', [True, False])
@@ -254,7 +256,9 @@ def test_shared_gripper_cancels_accepted_goal_after_result_timeout(simulation):
     assert state.motion_handle is None
 
 
-@pytest.mark.parametrize('command', ['move_home', 'open_gripper', 'move_observation'])
+@pytest.mark.parametrize(
+    'command', ['move_home', 'open_gripper', 'move_observation', 'move_place', 'release_object']
+)
 def test_scenario_endpoint_fixes_command_and_preserves_motion_settings(command):
     from rwh_beyond_grasp_pipeline.grasp_coordinator import GraspCoordinator
     from rwh_beyond_msgs.action import RunGraspStep
@@ -263,7 +267,8 @@ def test_scenario_endpoint_fixes_command_and_preserves_motion_settings(command):
     handle = NS(request=request, is_cancel_requested=False,
                 succeed=Mock(), abort=Mock(), canceled=Mock())
     state = NS(scene_lock=Mock(), lock=Mock(), stage=Mock(), ensure_backend=Mock(),
-               move_home=Mock(), move_observation=Mock(), open_gripper=Mock(),
+               move_home=Mock(), move_observation=Mock(), move_place=Mock(),
+               open_gripper=Mock(), release_object=Mock(),
                cleanup_requested=False, cleanup=Mock(), get_logger=Mock())
     result = GraspCoordinator.execute(state, handle, command)
     assert result.success
@@ -272,6 +277,10 @@ def test_scenario_endpoint_fixes_command_and_preserves_motion_settings(command):
         state.move_observation.assert_called_once_with(None, 40., x=None, y=None, z=.1, home=None, settle_time=None)
     elif command == 'move_home':
         state.move_home.assert_called_once_with(home=None)
+    elif command == 'move_place':
+        state.move_place.assert_called_once_with(.20, .10, home=None)
+    elif command == 'release_object':
+        state.release_object.assert_called_once_with(opening=None, duration=None)
     else:
         state.open_gripper.assert_called_once_with(opening=None, duration=None)
     state.cleanup.assert_not_called()
@@ -299,7 +308,9 @@ def test_scenario_failure_or_cancel_cleans_up_and_releases_locks(failure):
     assert state.active_handle is None
 
 
-@pytest.mark.parametrize('command', ['move_home', 'move_observation', 'open_gripper'])
+@pytest.mark.parametrize(
+    'command', ['move_home', 'move_observation', 'move_place', 'open_gripper', 'release_object']
+)
 def test_scenario_xml_overrides_reach_motion_without_changing_yaml(command):
     from rwh_beyond_msgs.action import RunGraspStep
     from rwh_beyond_grasp_pipeline.grasp_coordinator import GraspCoordinator
@@ -314,15 +325,62 @@ def test_scenario_xml_overrides_reach_motion_without_changing_yaml(command):
     handle = NS(request=request, is_cancel_requested=False,
                 succeed=Mock(), abort=Mock(), canceled=Mock())
     state = NS(scene_lock=Mock(), lock=Mock(), stage=Mock(), ensure_backend=Mock(),
-               move_home=Mock(), move_observation=Mock(), open_gripper=Mock(),
+               move_home=Mock(), move_observation=Mock(), move_place=Mock(),
+               open_gripper=Mock(), release_object=Mock(),
                cleanup_requested=False, cleanup=Mock(), get_logger=Mock())
     assert GraspCoordinator.execute(state, handle, command).success
     if command == 'move_home':
         state.move_home.assert_called_once_with(home=home)
     elif command == 'move_observation':
         state.move_observation.assert_called_once_with(None, 35., x=.03, y=-.02, z=.15, home=home, settle_time=.2)
+    elif command == 'move_place':
+        state.move_place.assert_called_once_with(.03, .15, home=home)
+    elif command == 'release_object':
+        state.release_object.assert_called_once_with(opening=.08, duration=2.)
     else:
         state.open_gripper.assert_called_once_with(opening=.08, duration=2.)
+
+
+def test_place_moves_forward_in_home_tcp_frame_then_releases_attachment():
+    from rwh_beyond_grasp_pipeline.stage_constants import TARGET
+
+    home_pose = Pose()
+    home_pose.position.x, home_pose.position.y, home_pose.position.z = .3, -.1, .2
+    home_pose.orientation.x, home_pose.orientation.y, home_pose.orientation.z, home_pose.orientation.w = (
+        Rotation.from_euler('z', 90, degrees=True).as_quat()
+    )
+    params = dict(home_joint_positions=[0.]*6, home_joint_tolerance=.01, gripper_open_width=.10)
+    state = NS(
+        attached=True, release_ready=False, base='base_link', tcp='tcp_link',
+        prepare_observation_motion=Mock(return_value=True),
+        feedback=lambda: {f'joint{i}': 0. for i in range(1, 7)} | {'gripper': .10},
+        get_parameter=lambda name: NS(value=params[name]),
+        state=lambda: RobotState(joint_state=JointState(
+            name=[f'joint{i}' for i in range(1, 7)], position=[0.]*6)),
+        call=Mock(return_value=NS(error_code=NS(val=1), pose_stamped=[NS(pose=home_pose)])),
+        execute_cartesian=Mock(), stage=Mock(), command_gripper=Mock(), wait=Mock(),
+        apply=Mock(), cleanup=Mock(),
+    )
+    HardwareGraspCoordinator.move_place(state, .20, .15)
+    target = state.execute_cartesian.call_args.args[0]
+    np.testing.assert_allclose(
+        [target.position.x, target.position.y, target.position.z], [.3, .1, .35], atol=1e-10
+    )
+    assert state.release_ready
+    HardwareGraspCoordinator.release_object(state)
+    detached = state.apply.call_args.args[0].robot_state.attached_collision_objects[0]
+    assert detached.object.id == TARGET
+    assert detached.object.operation == CollisionObject.REMOVE
+    assert not state.attached
+    assert not state.release_ready
+    state.cleanup.assert_called_once()
+
+
+def test_release_requires_successful_place_motion():
+    state = NS(attached=True, release_ready=False, command_gripper=Mock())
+    with pytest.raises(RuntimeError, match='successful place motion'):
+        HardwareGraspCoordinator.release_object(state)
+    state.command_gripper.assert_not_called()
 
 
 def test_open_override_sends_width_and_duration_and_keeps_attachment_guard():

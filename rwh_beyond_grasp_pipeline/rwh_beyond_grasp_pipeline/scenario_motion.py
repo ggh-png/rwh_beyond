@@ -3,9 +3,11 @@
 import copy
 import math
 import time
+from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import Pose
 from moveit_msgs.msg import (
-    AttachedCollisionObject, CollisionObject, PlanningScene, PlanningSceneWorld, Constraints, JointConstraint,
+    AttachedCollisionObject, CollisionObject, PlanningScene, PlanningSceneWorld, RobotState,
+    Constraints, JointConstraint,
 )
 from moveit_msgs.msg import PlanningSceneComponents as PC
 from moveit_msgs.srv import GetPlanningScene, GetMotionPlan, GetPositionFK
@@ -154,6 +156,62 @@ class ScenarioMotion:
         self.command_gripper(opening, duration=duration, closing=False)
         self.wait(lambda: abs(self.feedback()['gripper'] - opening) < 0.005, 10)
 
+    def move_place(self, forward, z, home=None):
+        if not all(math.isfinite(value) for value in (forward, z)):
+            raise ValueError('Place forward and Z offsets must be finite')
+        if not 0.0 <= forward <= 0.30 or not 0.0 <= z <= 0.30:
+            raise ValueError('Place forward and Z offsets must be in [0, 0.30] metres')
+        home = self.get_parameter('home_joint_positions').value if home is None else home
+        if len(home) != 6 or not all(math.isfinite(value) for value in home):
+            raise ValueError('home_joint_positions requires six finite radians')
+        if not self.prepare_observation_motion():
+            raise RuntimeError('Place motion requires an attached target')
+        tolerance = self.get_parameter('home_joint_tolerance').value
+        values = self.feedback()
+        if any(
+            abs(values[f'joint{i+1}'] - value) > tolerance for i, value in enumerate(home)
+        ):
+            raise RuntimeError('Move home before requesting the place motion')
+        state = self.state()
+        positions = dict(zip(state.joint_state.name, state.joint_state.position))
+        positions.update({f'joint{i+1}': value for i, value in enumerate(home)})
+        state.joint_state.position = [positions[name] for name in state.joint_state.name]
+        request = GetPositionFK.Request(
+            header=Header(frame_id=self.base), fk_link_names=[self.tcp], robot_state=state
+        )
+        response = self.call('fk', request)
+        if response.error_code.val != 1 or len(response.pose_stamped) != 1:
+            raise RuntimeError('Cannot compute the configured home TCP pose')
+        target = copy.deepcopy(response.pose_stamped[0].pose)
+        q = target.orientation
+        forward_vector = Rotation.from_quat([q.x, q.y, q.z, q.w]).apply([forward, 0.0, 0.0])
+        target.position.x += float(forward_vector[0])
+        target.position.y += float(forward_vector[1])
+        target.position.z += float(forward_vector[2]) + z
+        self.stage(f'place_target home_tcp_forward_m={forward} base_z_offset_m={z}')
+        self.execute_cartesian(target)
+        self.release_ready = True
+        self.stage('place_pose_reached_ready_for_release')
+
+    def release_object(self, opening=None, duration=None):
+        if not self.attached:
+            raise RuntimeError('No attached target to release')
+        if not self.release_ready:
+            raise RuntimeError('Release requires a successful place motion')
+        opening = self.get_parameter('gripper_open_width').value if opening is None else opening
+        if not math.isfinite(opening) or not 0 <= opening <= .10:
+            raise ValueError('gripper opening must be finite in [0, 0.10] metres')
+        self.command_gripper(opening, duration=duration, closing=False)
+        self.wait(lambda: abs(self.feedback()['gripper'] - opening) < 0.005, 10)
+        detached = AttachedCollisionObject(
+            object=CollisionObject(id=TARGET, operation=CollisionObject.REMOVE),
+        )
+        self.apply(PlanningScene(robot_state=RobotState(attached_collision_objects=[detached])))
+        self.attached = False
+        self.release_ready = False
+        self.cleanup()
+        self.stage('placed_target_released_and_planning_attachment_cleared')
+
     def attach(self):
         if not self.prepared:
             raise RuntimeError('No prepared target')
@@ -167,6 +225,7 @@ class ScenarioMotion:
         scene.robot_state.attached_collision_objects = [attached]
         self.apply(scene)
         self.attached = True
+        self.release_ready = False
         self.stage('gripper_close_completed_planning_attachment_unverified')
 
     def lift(self):

@@ -144,6 +144,7 @@ class GraspCoordinator(
         self.cloud_seq = 0
         self.prepared = False
         self.attached = False
+        self.release_ready = False
         self.scene_active = False
         self.original_pairs = {}
         self.cleanup_requested = False
@@ -251,7 +252,8 @@ class GraspCoordinator(
                 goal_callback=self.goal,
                 cancel_callback=self.cancel,
             )
-            for command in ('move_home', 'move_observation', 'open_gripper')
+            for command in ('move_home', 'move_observation', 'move_place', 'open_gripper',
+                            'release_object')
         ]
         self.cleanup_service = self.create_service(
             Trigger, 'grasp/cleanup', self.cleanup_service_cb, callback_group=self.group
@@ -349,9 +351,22 @@ class GraspCoordinator(
                     home=home,
                     settle_time=request.observation_settle_time if request.override_settle_time else None,
                 )
+            elif command == 'move_place':
+                request = handle.request
+                self.move_place(
+                    request.observation_x_offset if request.override_observation_x else 0.20,
+                    request.observation_z_offset if request.override_observation_z else 0.15,
+                    home=home,
+                )
             elif command == 'open_gripper':
                 request = handle.request
                 self.open_gripper(
+                    opening=request.gripper_open_width if request.override_gripper_width else None,
+                    duration=request.gripper_open_duration if request.override_gripper_duration else None,
+                )
+            elif command == 'release_object':
+                request = handle.request
+                self.release_object(
                     opening=request.gripper_open_width if request.override_gripper_width else None,
                     duration=request.gripper_open_duration if request.override_gripper_duration else None,
                 )

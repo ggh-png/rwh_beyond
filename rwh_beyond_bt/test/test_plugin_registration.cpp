@@ -28,8 +28,10 @@ TEST(PluginRegistration, IndividualLibrariesMatchCompatibilityLoader)
   const std::vector<std::pair<std::string, std::string>> plugins = {
     {"clear_octomap", "ClearOctomap"}, {"move_home", "MoveHome"},
     {"move_observation", "MoveObservation"},
+    {"move_place", "MovePlace"},
     {"move_tcp_up", "MoveTcpUp"}, {"close_gripper", "CloseGripper"},
     {"open_gripper", "OpenGripper"}, {"set_gripper", "SetGripper"},
+    {"release_object", "ReleaseObject"},
     {"move_tcp", "MoveTcp"}, {"make_tcp_pose", "MakeTcpPose"},
     {"check_grasp_ready", "CheckGraspReady"}, {"segment_object", "SegmentObject"},
     {"build_object_cloud", "BuildObjectCloud"}, {"infer_grasps", "InferGrasps"},

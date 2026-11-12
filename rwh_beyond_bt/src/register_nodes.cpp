@@ -24,11 +24,14 @@ BT_REGISTER_NODES(factory)
   factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_home_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_move_observation_action_bt_node"));
+  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_place_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_tcp_up_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_close_gripper_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_open_gripper_action_bt_node"));
+  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
+    "rwh_beyond_release_object_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_set_gripper_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_tcp_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(

@@ -1,0 +1,11 @@
+<root BTCPP_format="4" main_tree_to_execute="Place">
+  <BehaviorTree ID="Place">
+    <Sequence name="PlaceSequence">
+      <MoveHome server_timeout="1000"/>
+      <!-- Home TCP local +X 0.20 m, then base +Z 0.15 m. -->
+      <MovePlace x="0.20" z="0.15" server_timeout="1000"/>
+      <ReleaseObject server_timeout="1000"/>
+      <MoveHome server_timeout="1000"/>
+    </Sequence>
+  </BehaviorTree>
+</root>

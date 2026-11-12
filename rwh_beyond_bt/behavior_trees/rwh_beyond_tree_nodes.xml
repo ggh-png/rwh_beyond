@@ -72,6 +72,13 @@
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
+        <Action ID="MovePlace">
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Home reference joint angles; omit for YAML</input_port>
+            <input_port name="x" type="double">Home TCP local +X offset in metres [0, 0.30]</input_port>
+            <input_port name="z" type="double">Base +Z offset in metres [0, 0.30]</input_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
         <Action ID="MoveTcp">
             <input_port name="tcp_link" type="std::string" default="tcp_link">Controlled TCP link</input_port>
             <input_port name="pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Required TcpPose object from the blackboard</input_port>
@@ -88,6 +95,12 @@
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="OpenGripper">
+            <input_port name="opening" type="double">Gripper width in metres [0, 0.10]; omit for YAML</input_port>
+            <input_port name="duration" type="double">Opening duration in seconds (0, 30]; omit for default</input_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="ReleaseObject">
             <input_port name="opening" type="double">Gripper width in metres [0, 0.10]; omit for YAML</input_port>
             <input_port name="duration" type="double">Opening duration in seconds (0, 30]; omit for default</input_port>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
