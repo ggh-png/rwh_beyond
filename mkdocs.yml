@@ -38,6 +38,8 @@ nav:
       - RViz로 디버깅: grasp-visualization.md
       - ROS 환경·CAN·모델 네트워크: piper-runtime.md
       - 실물 PiPER MoveIt 시험: piper-hardware-moveit.md
+      - D405 장착·센서 선택: d405-sensors.md
+      - 실물 집기 BT 준비·실행: real-bt.md
   - BT 개발 상세:
       - 아키텍처: bt-architecture.md
       - Depth와 runner 흐름: depth-bt-flow.md

@@ -11,7 +11,8 @@
 5. [SAM 3 구현](docs/sam3-perception.md) · [GraspGenX 구현](docs/graspgenx-model.md)
 
 기본 경로는 실제 SAM·GraspGenX를 사용하는 MuJoCo 시뮬레이션입니다.
-현재 runner는 `bt_demo_sim`, BT launch는 grasp pipeline과 통합 RViz를 함께 실행합니다.
+시뮬 runner는 `bt_demo_sim`, 실물 runner는 `bt_demo`입니다.
+실물 실행은 [실물 BT 안내](docs/real-bt.md)를 따르며, 현재 실물 실험은 미검증 상태입니다.
 아래 Husky/Nav2 안내는 별도 운용 경로입니다.
 
 **[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** — PiPER 집기 전체 흐름·실행·코드 안내와 Husky SLAM·Nav2 운용.
@@ -202,7 +203,25 @@ vcs import --recursive --skip-existing src < src/rwh_beyond/moma-mj-lab.repos
 `agx_arm_ros` source는 공개 저장소이고, `moma-mj-lab`은 GitHub private 저장소이므로 후자를 가져오려면 Git 인증이 설정되어 있어야 합니다.
 기존 PiPER 프로젝트 안의 vendor snapshot은 보존하지만 colcon은 공식 checkout의 패키지를 사용합니다.
 토픽·TF·MoveIt 통합 및 빌드는 `src/moma-mj-lab/README.md` 안내를 따릅니다.
-manifest는 두 저장소를 같은 ROS workspace에 나란히 checkout합니다.
+manifest는 RealSense ROS 드라이버도 같은 ROS workspace에 checkout합니다.
+
+### D405 드라이버
+
+ROS Jazzy에서는 다음과 같이 RealSense SDK와 wrapper의 의존성을 설치하고 빌드합니다.
+
+```bash
+cd /root/ros2_ws
+source /opt/ros/jazzy/setup.bash
+rosdep install -i --from-paths src/realsense-ros --rosdistro jazzy -y
+colcon build --packages-select realsense2_camera_msgs realsense2_description realsense2_camera --symlink-install
+source install/setup.bash
+ros2 launch realsense2_camera rs_launch.py
+```
+
+실제 영상을 받으려면 D405의 USB 및 video 장치가 ROS 프로세스에서 접근 가능하고
+호스트의 RealSense udev 권한이 설정되어 있어야 합니다. 컨테이너에 USB 장치가
+전달되지 않으면 패키지 설치만으로 카메라를 사용할 수 없습니다. 카메라의 실물
+장착 위치와 TF는 별도로 확인해야 합니다.
 
 ## 모델별 ROS bridge
 

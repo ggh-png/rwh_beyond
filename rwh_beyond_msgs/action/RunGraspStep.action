@@ -1,5 +1,9 @@
-# Simulation-only stages coordinated by BT. No implicit motion in prepare/check_ready.
+# BT-coordinated stages. No implicit motion in prepare/check_ready.
 string command
+# Optional move_observation override from BT XML; otherwise coordinator YAML is used.
+bool override_observation
+float64 observation_z_offset
+float64 observation_tilt_deg
 ---
 bool success
 string message

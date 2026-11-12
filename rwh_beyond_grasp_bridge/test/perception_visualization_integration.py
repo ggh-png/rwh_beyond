@@ -66,7 +66,7 @@ def start(command):
 
 
 try:
-    params = yaml.safe_load((root / 'rwh_beyond_bringup/params/bt_demo_params.yaml').read_text())
+    params = yaml.safe_load((root / 'rwh_beyond_bringup/config/bt_demo.yaml').read_text())
     params['bt_navigator']['ros__parameters']['run_demo']['enable_groot_monitoring'] = False
     params_file = Path('/tmp/grasp-rviz-bt-params.yaml')
     params_file.write_text(yaml.safe_dump(params))

@@ -22,7 +22,7 @@ def feedback(f):
  stage=f.feedback.current_stage+' / '+f.feedback.error_msg
  if stage!=last[0]:print(stage,flush=True);last[0]=stage
 try:
- params=yaml.safe_load(Path('/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/params/bt_demo_params.yaml').read_text())
+ params=yaml.safe_load(Path('/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml').read_text())
  params['bt_navigator']['ros__parameters']['run_demo']['enable_groot_monitoring']=False
  file=Path('/tmp/red-pick-test-params.yaml');file.write_text(yaml.safe_dump(params))
  for cmd in [

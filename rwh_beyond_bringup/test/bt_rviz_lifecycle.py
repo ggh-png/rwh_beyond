@@ -14,7 +14,7 @@ import yaml
 assert os.environ.get('ROS_DOMAIN_ID', '0') != '0'
 os.environ.update(RWH_PIPER_SIM_GUI='false',RWH_PIPER_SIM_RVIZ='true',RWH_BT_RVIZ='true')
 root=Path('/root/ros2_ws/src')
-params=yaml.safe_load((root/'rwh_beyond/rwh_beyond_bringup/params/bt_demo_params.yaml').read_text())
+params=yaml.safe_load((root/'rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml').read_text())
 params['bt_navigator']['ros__parameters']['run_demo']['enable_groot_monitoring']=False
 Path('/tmp/bt-rviz-lifecycle-params.yaml').write_text(yaml.safe_dump(params))
 config=yaml.safe_load((root/'ros_runner/config/runners.yaml').read_text())

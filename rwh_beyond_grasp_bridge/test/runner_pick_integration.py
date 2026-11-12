@@ -14,7 +14,7 @@ from rwh_beyond_msgs.action import RunDemo
 if os.environ.get('ROS_DOMAIN_ID','0')=='0':raise RuntimeError('A private nonzero ROS_DOMAIN_ID is mandatory')
 rclpy.init();node=rclpy.create_node('runner_red_pick_test')
 root=Path('/root/ros2_ws/src/rwh_beyond')
-params=yaml.safe_load((root/'rwh_beyond_bringup/params/bt_demo_params.yaml').read_text())
+params=yaml.safe_load((root/'rwh_beyond_bringup/config/bt_demo.yaml').read_text())
 params['bt_navigator']['ros__parameters']['run_demo']['enable_groot_monitoring']=False
 params_file=Path('/tmp/runner-red-pick-bt.yaml');params_file.write_text(yaml.safe_dump(params))
 config=yaml.safe_load(Path('/root/ros2_ws/src/ros_runner/config/runners.yaml').read_text())

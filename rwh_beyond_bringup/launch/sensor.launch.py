@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SICK sensor driver and static TF, independent of navigation and localization."""
+"""Selectable physical SICK/D405 sensors; simulation keeps its own sensor publishers."""
 import math
 import os
 
@@ -15,12 +15,17 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from rwh_beyond_bringup.scan_tf import transform_arguments
+from rwh_beyond_bringup.d405_sensor import d405_nodes
 
 
 def prepare_sensor_configuration(context):
     """Read YAML after launch arguments resolve; keep node definitions below."""
     def value(name):
         return LaunchConfiguration(name).perform(context)
+
+    if value('mode') != 'real' or value('enable_lidar').lower() != 'true':
+        return [SetLaunchConfiguration('_sensor_start_lidar', 'false'),
+                SetLaunchConfiguration('_sensor_use_tf_publisher', 'false')]
 
     with open(value('params_file'), encoding='utf-8') as stream:
         sensor = yaml.safe_load(stream)['sensor_config']['ros__parameters']
@@ -29,6 +34,7 @@ def prepare_sensor_configuration(context):
         raise ValueError('scan_frame must be a nonempty frame ID without leading slash or whitespace')
 
     settings = {'_sensor_namespace': value('namespace').strip('/'), '_scan_frame': frame,
+                '_sensor_start_lidar': value('start_driver').lower(),
                 '_sensor_driver_file': '',
                 '_sensor_hostname': value('sensor_hostname') or sensor['hostname'],
                 '_sensor_min_ang': value('min_ang') or str(sensor['min_ang']),
@@ -62,6 +68,13 @@ def generate_launch_description():
 
     # Launch arguments
     declare_args = [
+        DeclareLaunchArgument('mode', default_value='real', choices=['sim', 'real']),
+        DeclareLaunchArgument('enable_lidar', default_value='true', choices=boolean_choices),
+        DeclareLaunchArgument('enable_d405', default_value='false', choices=boolean_choices),
+        DeclareLaunchArgument('d405_serial', default_value=''),
+        DeclareLaunchArgument('d405_profile', default_value='640x480x15'),
+        DeclareLaunchArgument('publish_d405_mount_tf', default_value='false', choices=boolean_choices,
+                              description='Standalone only; false when robot_state_publisher owns d405_link'),
         DeclareLaunchArgument('namespace', default_value='a200_0724', description='Sensor and TF namespace'),
         DeclareLaunchArgument('hostname', default_value='', description='Legacy sensor IP argument'),
         DeclareLaunchArgument('sensor_hostname', default_value=LaunchConfiguration('hostname'),
@@ -76,7 +89,7 @@ def generate_launch_description():
         DeclareLaunchArgument('use_tf_publisher', default_value=LaunchConfiguration('publish_scan_tf'),
                               choices=[''] + boolean_choices, description='Empty: use YAML static TF enabled setting'),
         DeclareLaunchArgument('start_driver', default_value='true', choices=boolean_choices,
-                              description='Disable for TF-only operation without sensor access'),
+                              description='SICK driver switch; D405 is selected separately by enable_d405'),
         DeclareLaunchArgument('log_level', default_value='info', description='Console log level'),
     ]
 
@@ -87,7 +100,7 @@ def generate_launch_description():
     max_ang = LaunchConfiguration('_sensor_max_ang')
     use_sim_time = LaunchConfiguration('use_sim_time')
     use_tf_publisher = LaunchConfiguration('_sensor_use_tf_publisher')
-    start_driver = LaunchConfiguration('start_driver')
+    start_driver = LaunchConfiguration('_sensor_start_lidar')
     log_level = LaunchConfiguration('log_level')
 
     # 공통 설정: SICK는 vendor XML을 읽는 일반 실행 파일을 사용한다.
@@ -136,4 +149,5 @@ def generate_launch_description():
     ld.add_action(OpaqueFunction(function=prepare_sensor_configuration))
     ld.add_action(static_tf_node)
     ld.add_action(load_nodes)
+    ld.add_action(OpaqueFunction(function=d405_nodes))
     return ld

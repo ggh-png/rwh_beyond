@@ -23,7 +23,7 @@ if sequence[-1].tag=='MoveHome':sequence.remove(sequence[-1])
 tree_path=Path('/tmp/sam3-runner-baseline.xml');tree.write(tree_path,encoding='unicode')
 rclpy.init();node=rclpy.create_node('runner_sam3_pick_test')
 root=Path('/root/ros2_ws/src/rwh_beyond')
-params=yaml.safe_load((root/'rwh_beyond_bringup/params/bt_demo_params.yaml').read_text())
+params=yaml.safe_load((root/'rwh_beyond_bringup/config/bt_demo.yaml').read_text())
 params['bt_navigator']['ros__parameters']['run_demo']['enable_groot_monitoring']=False
 params_file=Path('/tmp/runner-sam3-pick-bt.yaml');params_file.write_text(yaml.safe_dump(params))
 config=yaml.safe_load(Path('/root/ros2_ws/src/ros_runner/config/runners.yaml').read_text())

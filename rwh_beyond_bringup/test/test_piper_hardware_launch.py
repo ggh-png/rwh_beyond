@@ -42,6 +42,8 @@ def test_hardware_matches_simulation_parameters_except_clock():
     actual = evaluate_parameters(context, normalize_parameters([params]))[0]
     assert actual.pop('use_sim_time') is False
     assert expected.pop('use_sim_time') is True
+    assert actual.pop('trajectory_execution.allowed_start_tolerance') == .05
+    expected.pop('trajectory_execution.allowed_start_tolerance', None)
     assert actual == expected
 
 
@@ -63,7 +65,8 @@ def test_hardware_transport_keeps_closed_gate_and_real_feedback():
                   'launch/piper_moveit.launch.py', 'parity_hardware')
     context = defaults(module)
     assert context.launch_configurations['auto_enable'] == 'false'
-    driver, group = hardware_nodes(context)
+    driver, group, *sensors = hardware_nodes(context)
+    assert len(sensors) == 1
     assert isinstance(driver, IncludeLaunchDescription)
     assert isinstance(group, GroupAction)
     args = dict(driver.launch_arguments)
@@ -90,3 +93,60 @@ def test_hardware_controller_names_and_groups_match_simulator():
     assert params['/arm1/arm_controller']['ros__parameters']['joints'] == [
         f'joint{i}' for i in range(1, 7)]
     assert params['/arm1/gripper_controller']['ros__parameters']['joints'] == ['gripper']
+
+
+def test_feedback_transport_replaces_mock_and_external_gate():
+    module = load(Path(__file__).resolve().parents[1] /
+                  'launch/piper_moveit.launch.py', 'feedback_hardware')
+    context = defaults(module)
+    context.launch_configurations['execution_transport'] = 'feedback'
+    driver, group, *_ = hardware_nodes(context)
+    assert dict(driver.launch_arguments)['control_enabled'] == 'false'
+    nodes = [n for n in group.get_sub_entities() if hasattr(n, 'node_package')]
+    executables = [n.node_executable for n in nodes]
+    assert 'physical_trajectory' in executables
+    assert 'target_cloud_filter' in executables
+    assert 'ros2_control_node' not in executables
+    assert 'agx_arm_control_gate' not in executables
+    move_group = next(n for n in nodes if n.node_executable == 'move_group')
+    params = evaluate_parameters(context, move_group._Node__parameters)[0]
+    assert params['depth_cloud.point_cloud_topic'] == '/camera/depth/planning_points'
+
+
+def test_camera_fixed_mount_exception_does_not_disable_finger_or_environment_checks():
+    params = moveit_parameters(DEFAULT_TCP, camera_model=True)
+    urdf = ET.fromstring(params['robot_description'])
+    srdf = ET.fromstring(params['robot_description_semantic'])
+    # Both bodies belong to the same rigid wrist component, not to moving fingers.
+    parents = {joint.find('child').get('link'):joint for joint in urdf.findall('joint')}
+    for link in ('d405_link','gripper_base'):
+        while link != 'link6':
+            joint = parents[link]
+            assert joint.get('type') == 'fixed'
+            link = joint.find('parent').get('link')
+    camera_pairs = {frozenset((entry.get('link1'), entry.get('link2')))
+                    for entry in srdf.findall('disable_collisions')
+                    if 'd405_link' in (entry.get('link1'),entry.get('link2'))}
+    assert camera_pairs == {frozenset(('d405_link','link6')),
+                            frozenset(('d405_link','gripper_base'))}
+    assert urdf.find("link[@name='d405_link']/collision/geometry/box") is not None
+    # Requested camera translation is unchanged by the contact exception.
+    assert urdf.find("joint[@name='d405_mount_joint']/origin").get('xyz') == '-0.06 0.0 0.065'
+
+
+def test_execution_and_physical_start_tolerance_share_coordinator_setting():
+    import yaml
+    settings=yaml.safe_load((Path(get_package_share_directory('rwh_beyond_bringup')) /
+        'config/bt_demo.yaml').read_text())
+    expected=settings['grasp_coordinator']['ros__parameters']['planning_start_bounds_tolerance']
+    module=load(Path(__file__).resolve().parents[1]/'launch/piper_moveit.launch.py','tolerance_hardware')
+    context=defaults(module);context.launch_configurations['execution_transport']='feedback'
+    _,group,*_=hardware_nodes(context)
+    nodes=[node for node in group.get_sub_entities() if hasattr(node,'node_executable')]
+    transport=next(node for node in nodes if node.node_executable=='physical_trajectory')
+    move_group=next(node for node in nodes if node.node_executable=='move_group')
+    assert evaluate_parameters(context,transport._Node__parameters)[0]['initial_position_tolerance']==expected
+    transport_params=evaluate_parameters(context,transport._Node__parameters)[0]
+    assert transport_params['gripper_close_width']==settings['grasp_coordinator']['ros__parameters']['gripper_close_width']
+    assert transport_params['gripper_close_duration']==settings['grasp_coordinator']['ros__parameters']['gripper_close_duration']
+    assert evaluate_parameters(context,move_group._Node__parameters)[0]['trajectory_execution.allowed_start_tolerance']==expected

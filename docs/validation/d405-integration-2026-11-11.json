@@ -1,0 +1,47 @@
+{
+  "physical_camera_streams_and_tf": {
+    "streams": {
+      "depth/camera_info": {
+        "frames": 15,
+        "width": 640,
+        "height": 480,
+        "frame": "d405_color_optical_frame"
+      },
+      "depth/image_rect_raw": {
+        "frames": 5,
+        "width": 640,
+        "height": 480,
+        "frame": "d405_color_optical_frame",
+        "encoding": "16UC1",
+        "valid_pixels": 89292
+      },
+      "color/image_raw": {
+        "frames": 5,
+        "width": 640,
+        "height": 480,
+        "frame": "d405_color_optical_frame",
+        "encoding": "rgb8"
+      },
+      "depth/color/points": {
+        "frames": 5,
+        "width": 81462,
+        "height": 1,
+        "frame": "d405_depth_optical_frame"
+      }
+    },
+    "tf_base_to_optical": true,
+    "synthetic_arm_state": true,
+    "can_driver_started": false,
+    "real_mode_disables_simulation_bt": true,
+    "health": {
+      "sam3/health": "{\"status\": \"ok\", \"backend\": \"sam3\", \"mock\": false}",
+      "graspgenx/health": "{\"status\": \"ok\"}"
+    }
+  },
+  "sim_bt_result": "Waiting for an action server to become available...\nSending goal:\n     behavior_tree: ''\n\nGoal accepted with ID: 8b70a64c27d14951b703f63128010a06\n\nResult:\n    error_code: 0\nerror_name: SUCCESS\nerror_source: ''\nerror_msg: arm demo completed\nfailed_stage: ''\nfailed_node: ''\nmoveit_state: IDLE\n\nGoal finished with status: SUCCEEDED\n",
+  "unit_tests": 19,
+  "subtests": 2,
+  "runner_tests": 8,
+  "mount_calibrated": false,
+  "physical_can_driver_started": false
+}

@@ -24,7 +24,8 @@ DEFAULT_TCP = '[0.0,0.0,0.1425,0.0,0.0,0.0]'
 
 
 def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=False,
-                      point_cloud_topic='/camera/depth/color/points', octomap=True):
+                      point_cloud_topic='/camera/depth/color/points', octomap=True,
+                      nominal_camera_tf=True):
     """Match simulation planning parameters, using physical time and feedback."""
     offset = ast.literal_eval(tcp_offset)
     if (not isinstance(offset, (list, tuple)) or len(offset) != 6 or
@@ -36,6 +37,7 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
     mapping = dict(arm_type='piper', effector_type=effector_type, revo2_type='left',
                    tcp_offset_xyz=' '.join(str(x) for x in offset[:3]),
                    tcp_offset_rpy=' '.join(str(x) for x in offset[3:]))
+    mapping['camera_nominal_tf'] = str(nominal_camera_tf).lower()
     urdf = (str(sim_share / 'config/agx_arm_with_camera.urdf.xacro') if camera_model
             else 'config/agx_arm.urdf.xacro')
     srdf = (str(sim_share / 'config/agx_arm_with_camera.srdf.xacro') if camera_model
@@ -50,6 +52,11 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
               .trajectory_execution(file_path='config/moveit_controllers_' +
                                     ('gripper' if effector_type == 'agx_gripper' else 'none') + '.yaml')
               .to_moveit_configs())
+    tolerance_path = Path(get_package_share_directory('rwh_beyond_bringup')) / 'config/bt_demo.yaml'
+    start_tolerance = yaml.safe_load(tolerance_path.read_text())['grasp_coordinator']['ros__parameters'][
+        'planning_start_bounds_tolerance']
+    if not math.isfinite(start_tolerance) or not 0 < start_tolerance <= .05:
+        raise ValueError('planning_start_bounds_tolerance must be in (0, 0.05] rad')
     params = config.to_dict()
     params.update({
         'use_sim_time': False, 'moveit_manage_controllers': False,
@@ -59,7 +66,8 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         'publish_transforms_updates': True, 'monitor_dynamics': False,
         'planning_pipelines': ['ompl'], 'default_planning_pipeline': 'ompl',
         'trajectory_execution': {'allowed_execution_duration_scaling': 3.0,
-                                 'allowed_goal_duration_margin': 2.0},
+                                 'allowed_goal_duration_margin': 2.0,
+                                 'allowed_start_tolerance': start_tolerance},
         'octomap_frame': 'world', 'octomap_resolution': 0.01})
     params['depth_cloud']['point_cloud_topic'] = point_cloud_topic
     if not octomap:
@@ -88,11 +96,14 @@ def controller_parameters(namespace, effector_type):
 
 def hardware_nodes(context):
     value = lambda name: LaunchConfiguration(name).perform(context)
+    transport = value('execution_transport')
+    if transport not in ('official', 'feedback'):
+        raise ValueError('execution_transport must be official or feedback')
     namespace = value('namespace')
     effector = value('effector_type')
     params = moveit_parameters(
         value('tcp_offset'), effector, value('camera_model') == 'true',
-        value('point_cloud_topic'), value('octomap') == 'true')
+        value('point_cloud_topic'), value('octomap') == 'true', nominal_camera_tf=False)
     description = ParameterValue(params['robot_description'], value_type=str)
     params['robot_description'] = description
     params['robot_description_semantic'] = ParameterValue(
@@ -106,7 +117,7 @@ def hardware_nodes(context):
         'namespace', 'can_port', 'effector_type', 'auto_enable', 'speed_percent',
         'log_level', 'fw_version', 'tcp_offset')}
     driver_args.update(arm_type='piper', control_enabled=(
-        'false' if value('auto_control_gate') == 'true' else 'true'))
+        'false' if transport == 'feedback' or value('auto_control_gate') == 'true' else 'true'))
     driver = IncludeLaunchDescription(PythonLaunchDescriptionSource(str(Path(
         get_package_share_directory('agx_arm_ctrl')) / 'launch/start_single_agx_arm.launch.py')),
         launch_arguments=driver_args.items())
@@ -120,15 +131,27 @@ def hardware_nodes(context):
         Node(package='moveit_ros_move_group', executable='move_group', parameters=[params],
              remappings=[('joint_states', feedback)], output='screen',
              additional_env={'LD_PRELOAD': preload}),
-        Node(package='controller_manager', executable='ros2_control_node',
-             parameters=[{'robot_description': description, 'use_sim_time': False}, controllers_file],
-             remappings=[('joint_states', 'control/joint_states')], output='screen'),
     ]
-    manager = ('/' + namespace.strip('/') if namespace.strip('/') else '') + '/controller_manager'
-    actions.append(Node(package='controller_manager', executable='spawner',
-                        arguments=['joint_state_broadcaster', *controllers,
-                                   '--controller-manager', manager], output='screen'))
-    if value('auto_control_gate') == 'true':
+    if value('octomap') == 'true':
+        actions.append(Node(package='rwh_beyond_grasp_pipeline', executable='target_cloud_filter',
+                            parameters=[{'use_sim_time': False}], output='screen'))
+    if transport == 'feedback':
+        settings = yaml.safe_load((Path(get_package_share_directory('rwh_beyond_bringup')) /
+            'config/bt_demo.yaml').read_text())['grasp_coordinator']['ros__parameters']
+        actions.append(Node(package='rwh_beyond_grasp_pipeline', executable='physical_trajectory',
+                            parameters=[{'use_sim_time': False, 'initial_position_tolerance':
+                                params['trajectory_execution']['allowed_start_tolerance'],
+                                'gripper_close_width': settings['gripper_close_width'],
+                                'gripper_close_duration': settings['gripper_close_duration']}], output='screen'))
+    else:
+        actions.append(Node(package='controller_manager', executable='ros2_control_node',
+             parameters=[{'robot_description': description, 'use_sim_time': False}, controllers_file],
+             remappings=[('joint_states', 'control/joint_states')], output='screen'))
+        manager = ('/' + namespace.strip('/') if namespace.strip('/') else '') + '/controller_manager'
+        actions.append(Node(package='controller_manager', executable='spawner',
+                            arguments=['joint_state_broadcaster', *controllers,
+                                       '--controller-manager', manager], output='screen'))
+    if transport == 'official' and value('auto_control_gate') == 'true':
         # Preserve the official arm execution gate; do not open it for gripper-only
         # trajectories while the transport's arm state could still be at its defaults.
         actions.append(Node(package='agx_arm_moveit', executable='agx_arm_control_gate',
@@ -142,4 +165,16 @@ def hardware_nodes(context):
         actions.append(Node(package='rviz2', executable='rviz2', parameters=[rviz_params],
                             arguments=['-d', value('rviz_config')],
                             remappings=[('joint_states', feedback)], output='screen'))
-    return [driver, GroupAction(actions=[PushRosNamespace(namespace), *actions])]
+    result = [driver, GroupAction(actions=[PushRosNamespace(namespace), *actions])]
+    if value('start_sensors') == 'true':
+        result.append(GroupAction(scoped=True, actions=[IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(str(Path(get_package_share_directory(
+                'rwh_beyond_bringup')) / 'launch/sensor.launch.py')),
+            launch_arguments={
+                'mode': 'real', 'namespace': namespace,
+                'params_file': value('sensor_params_file'), 'use_sim_time': 'false',
+                'enable_lidar': value('enable_lidar'), 'enable_d405': value('enable_d405'),
+                'd405_serial': value('d405_serial'), 'd405_profile': value('d405_profile'),
+                'publish_d405_mount_tf': str(value('camera_model') != 'true').lower(),
+            }.items())]))
+    return result

@@ -7,6 +7,7 @@
   <license>Apache-2.0</license>
   <buildtool_depend>ament_python</buildtool_depend>
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>rcl_interfaces</exec_depend>
   <exec_depend>rwh_beyond_msgs</exec_depend>
   <exec_depend>rwh_beyond_model_utils</exec_depend>
   <exec_depend>rwh_beyond_sam3_bridge</exec_depend>
@@ -17,6 +18,8 @@
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>std_srvs</exec_depend>
   <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>trajectory_msgs</exec_depend>
   <exec_depend>shape_msgs</exec_depend>
   <exec_depend>tf2_ros_py</exec_depend>
   <exec_depend>visualization_msgs</exec_depend>

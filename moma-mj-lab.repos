@@ -11,3 +11,7 @@ repositories:
     type: git
     url: https://github.com/ggh-png/ros_runner.git
     version: main
+  realsense-ros:
+    type: git
+    url: https://github.com/realsenseai/realsense-ros.git
+    version: 4.58.4

@@ -1,0 +1,29 @@
+{
+  "num_grasps": 1000,
+  "top_k": 300,
+  "max_candidates": 300,
+  "published_candidates_last_trial": 300,
+  "physical_driver_started": false,
+  "trials": [
+    {
+      "trial": 1,
+      "seconds": 37.85421912197489,
+      "success": true,
+      "result": "Waiting for an action server to become available...\nSending goal:\n     behavior_tree: ''\n\nGoal accepted with ID: 4c4b3f2d46cd4ccbb7b55d7303496e2b\n\nResult:\n    error_code: 0\nerror_name: SUCCESS\nerror_source: ''\nerror_msg: arm demo completed\nfailed_stage: ''\nfailed_node: ''\nmoveit_state: IDLE\n\nGoal finished with status: SUCCEEDED\n"
+    },
+    {
+      "trial": 2,
+      "seconds": 12.022315384005196,
+      "success": false,
+      "result": "Waiting for an action server to become available...\nSending goal:\n     behavior_tree: ''\n\nGoal accepted with ID: 4b77acf7b24e42fa885a6508b5194c84\n\nResult:\n    error_code: -26\nerror_name: START_STATE_INVALID\nerror_source: move_action\nerror_msg: MoveIt returned START_STATE_INVALID.\nfailed_stage: move_observation\nfailed_node: MoveObservation\nmoveit_state: IDLE\n\nGoal finished with status: ABORTED\n"
+    },
+    {
+      "trial": 3,
+      "seconds": 43.84388422500342,
+      "success": true,
+      "result": "Waiting for an action server to become available...\nSending goal:\n     behavior_tree: ''\n\nGoal accepted with ID: 9f38b9acfbb84a15b33d078a7e0a29ed\n\nResult:\n    error_code: 0\nerror_name: SUCCESS\nerror_source: ''\nerror_msg: arm demo completed\nfailed_stage: ''\nfailed_node: ''\nmoveit_state: IDLE\n\nGoal finished with status: SUCCEEDED\n"
+    }
+  ],
+  "known_failure": "Trial 2 stopped before inference at MoveObservation: joint3 +3.16761e-05 rad outside upper bound 0. Limits unchanged.",
+  "last_lift_log": "[grasp_coordinator-3] [INFO] [1794398392.189520744] [grasp_coordinator]: physical_lift_verified delta_z=0.0736 forces={'gripper_link1': 9.970908424743229, 'gripper_link2': 9.936150254861118}"
+}

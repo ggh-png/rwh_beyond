@@ -14,5 +14,8 @@ setup(
     install_requires=['setuptools'], extras_require={'test': ['pytest']}, zip_safe=True,
     maintainer='Woosung Yoon', maintainer_email='71277820+ggh-png@users.noreply.github.com',
     description='RGB-D observation, grasp selection and MoveIt orchestration', license='Apache-2.0',
-    entry_points={'console_scripts': ['grasp_coordinator = rwh_beyond_grasp_pipeline.grasp_coordinator:main']},
+    entry_points={'console_scripts': ['grasp_coordinator = rwh_beyond_grasp_pipeline.grasp_coordinator:main',
+        'hardware_grasp_coordinator = rwh_beyond_grasp_pipeline.hardware_coordinator:main',
+        'target_cloud_filter = rwh_beyond_grasp_pipeline.target_cloud_filter:main',
+        'physical_trajectory = rwh_beyond_grasp_pipeline.physical_trajectory:main']},
 )

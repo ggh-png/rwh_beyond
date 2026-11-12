@@ -33,11 +33,11 @@ BT launch가 MoveIt/SAM/파지 통합 RViz도 함께 실행합니다. GUI 없이
 `bt_demo.launch.py rviz:=false`를 사용합니다. runner의 경우 RViz는 bt_demo_sim이 소유하며
 `piper_sim`은 별도 창을 만들지 않습니다.
 
-BT navigator와 lifecycle manager의 설정은
-`rwh_beyond_bringup/params/bt_demo_params.yaml`에서 관리합니다. 값을 수정한 뒤
+BT navigator·lifecycle manager·모델 bridge·coordinator 설정은
+`rwh_beyond_bringup/config/bt_demo.yaml`에서 관리합니다. 값을 수정한 뒤
 `rwh_beyond_bringup`을 다시 빌드하고 navigator를 재시작하세요. 별도 설정 파일은
-`ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo_params.yaml`로
-지정할 수 있으며, 두 노드의 설정을 모두 포함해야 합니다.
+`ros2 launch rwh_beyond_bringup bt_demo.launch.py params_file:=/absolute/path/bt_demo.yaml`로
+지정할 수 있으며, 다섯 노드의 설정을 모두 포함해야 합니다.
 
 `ros_runner`에서 **`bt_demo_sim`만 활성화**하면 `bt_demo_sim → piper_sim`에 의해
 MuJoCo·MoveIt·RViz가 자동으로 시작됩니다. 이미 실행 중인 `piper_sim`은 재사용합니다.
@@ -246,7 +246,7 @@ BT navigator가 활성화되면 Groot2의 **Monitor** 모드에서 navigator가 
 `5555`는 요청 포트이고 `5556`은 상태 전송 포트이므로 원격 연결 시 둘 다 접근 가능해야 합니다.
 연결 후 goal을 보내면 트리 노드의 상태가 실시간으로 표시됩니다.
 
-설정은 `rwh_beyond_bringup/params/bt_demo_params.yaml`의
+설정은 `rwh_beyond_bringup/config/bt_demo.yaml`의
 `run_demo.enable_groot_monitoring`과 `run_demo.groot_server_port`에서 변경합니다.
 포트는 1~65534 사이여야 하며, 변경 시 다음 포트도 사용됩니다. 비활성화하려면
 `enable_groot_monitoring: false`로 설정합니다. 설정이나 라이브러리 변경 후에는
@@ -288,3 +288,12 @@ colcon test-result --test-result-base build/rwh_beyond_bt/test_results
 
 Mock 테스트는 ROS domain 87에서 실제 로봇 명령 없이 실행합니다.
 **MuJoCo 전체 demo 완료와 실물 동작은 아직 검증하지 않았습니다.**
+
+
+### 심/실물 공통 기본 트리
+
+`bt_demo.launch.py`는 두 mode 모두 `behavior_trees/demo.xml`을 기본 시나리오로 사용합니다.
+관측 높이와 각도는 해당 XML의 `rise_m`, `tilt_deg`로 조정합니다.
+`hardware_demo.xml`은 같은 파일을 가리키는 호환 링크입니다.
+리프트 뒤에는 attachment를 유지한 채 관측 자세와 home으로 복귀합니다.
+자세한 흐름과 환경별 controller 차이는 [실물 BT](real-bt.md)를 참고하세요.

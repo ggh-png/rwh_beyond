@@ -28,6 +28,7 @@
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
 #include "rwh_beyond_msgs/action/run_grasp_stage.hpp"
+#include "rwh_beyond_msgs/action/run_grasp_step.hpp"
 #include "rwh_beyond_msgs/msg/tcp_pose.hpp"
 #include "tf2_ros/buffer.h"
 
@@ -622,4 +623,48 @@ TEST_F(CustomActions, SplitGraspStageFailureStopsSequence)
     </Sequence></BehaviorTree></root>)"),
     BT::NodeStatus::FAILURE);
   EXPECT_EQ(moves, 0);
+}
+
+TEST_F(CustomActions, ObservationXmlOverridesAreDeliveredAndOmissionUsesYaml)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  std::vector<Step::Goal> goals;
+  auto server = rclcpp_action::create_server<Step>(server_, "grasp_step",
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+      [&](auto handle) {
+        goals.push_back(*handle->get_goal());
+        auto result = std::make_shared<Step::Result>();
+        result->success = true;
+        handle->succeed(result);
+      });
+  EXPECT_EQ(run(R"(<GraspStep command="move_observation" rise_m="0.20" tilt_deg="50"/>)"),
+    BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(goals.size(), 1u);
+  EXPECT_TRUE(goals[0].override_observation);
+  EXPECT_DOUBLE_EQ(goals[0].observation_z_offset, 0.2);
+  EXPECT_DOUBLE_EQ(goals[0].observation_tilt_deg, 50.0);
+  EXPECT_EQ(run(R"(<GraspStep command="move_observation"/>)"), BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(goals.size(), 2u);
+  EXPECT_FALSE(goals[1].override_observation);
+}
+
+TEST_F(CustomActions, InvalidObservationXmlNeverSendsMotionGoal)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  std::atomic<int> goals{0};
+  auto server = rclcpp_action::create_server<Step>(server_, "grasp_step",
+      [&](auto, auto) {
+        ++goals;
+        return rclcpp_action::GoalResponse::REJECT;
+      },
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
+  for (const auto * xml : {
+      R"(<GraspStep command="move_observation" rise_m="0.2"/>)",
+      R"(<GraspStep command="move_observation" rise_m="-0.2" tilt_deg="50"/>)",
+      R"(<GraspStep command="move_observation" rise_m="0.2" tilt_deg="nan"/>)"})
+  {
+    EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
+  }
+  EXPECT_EQ(goals, 0);
 }

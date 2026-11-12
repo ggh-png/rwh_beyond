@@ -1,4 +1,4 @@
-"""Simulation-only RGBD/GraspGenX/MoveIt coordinator. BT owns stage sequencing."""
+"""RGBD/GraspGenX/MoveIt coordinator with a MuJoCo backend. BT owns stage sequencing."""
 import uuid
 import copy
 import json
@@ -35,9 +35,14 @@ from .inference_stages import InferenceStages
 from .selection_stages import SelectionStages
 
 from .motion_stages import MotionStages
+from .scenario_motion import ScenarioMotion
+from .observation_motion import validate_observation_parameters
+from control_msgs.action import FollowJointTrajectory
+from control_msgs.msg import JointTolerance
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from .visualization import GraspVisualization
 
-class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, PerceptionStages, Node):
+class GraspCoordinator(ScenarioMotion, MotionStages, SelectionStages, InferenceStages, PerceptionStages, Node):
     def __init__(self):
         super().__init__('grasp_coordinator')
         defaults={'segmentation_backend':'sam3',
@@ -47,6 +52,10 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
             # Model gripper +X is closing; PiPER physical closing is +/-Y.
             # Model fingertip is +Z 0.130 m (official piper_hand config).
             'model_to_tcp_xyz':[0.0,0.0,0.13],'model_to_tcp_rpy':[0.0,0.0,-math.pi/2],
+            'home_joint_positions':[0.0]*6, 'home_joint_tolerance':.01,
+            'observation_z_offset':.2, 'observation_tilt_rpy_deg':[0.,30.,0.],
+            'observation_settle_time':.5, 'gripper_open_width':.10,
+            'gripper_close_width':.04, 'gripper_close_duration':4.,
             'debug_max_candidates':10,'num_grasps':100,'top_k':100,'simulation_only':True,'max_candidates':100}
         for k,v in defaults.items():self.declare_parameter(k,v)
         for name in ('object_dimensions','model_to_tcp_xyz','model_to_tcp_rpy'):
@@ -55,6 +64,16 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
             if name=='object_dimensions' and np.any(value<=0):raise ValueError('object dimensions must be positive')
         if not .02<=self.get_parameter('pregrasp_distance').value<=.2 or not .065<=self.get_parameter('lift_distance').value<=.2:
             raise ValueError('Invalid pregrasp/lift distance')
+        validate_observation_parameters(*[self.get_parameter(name).value for name in (
+            'home_joint_positions', 'observation_z_offset', 'observation_tilt_rpy_deg',
+            'observation_settle_time', 'home_joint_tolerance')])
+        for name in ('gripper_open_width', 'gripper_close_width'):
+            value = self.get_parameter(name).value
+            if not math.isfinite(value) or not 0 <= value <= .1:
+                raise ValueError(name+' must be in [0, 0.1] m')
+        duration = self.get_parameter('gripper_close_duration').value
+        if not math.isfinite(duration) or duration <= 0:
+            raise ValueError('gripper_close_duration must be finite and positive')
         self.base=self.get_parameter('base_frame').value
         self.tcp=self.get_parameter('tcp_link').value
         self.group=ReentrantCallbackGroup()
@@ -74,13 +93,18 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
         for key,typ,name in [('scene',GetPlanningScene,'get_planning_scene'),('apply',ApplyPlanningScene,'apply_planning_scene'),
             ('ik',GetPositionIK,'compute_ik'),('cartesian',GetCartesianPath,'compute_cartesian_path'),
             ('fk',GetPositionFK,'compute_fk'),('plan',GetMotionPlan,'plan_kinematic_path'),
-            ('exclude',SetBool,'simulation/exclude_red_target'),('region',SetGraspRegion,'simulation/set_grasp_region'),('physics',Trigger,'simulation/grasp_state'),
+            ('region',SetGraspRegion,('simulation/set_grasp_region' if self.get_parameter('simulation_only').value else 'grasp/set_grasp_region')),
             ('sam_health',Trigger,'sam3/health'),('grasp_health',Trigger,'graspgenx/health'),
             ('clear',Empty,'clear_octomap')]:
             self.stage_clients[key]=self.create_client(typ,name,callback_group=self.group)
+        if self.get_parameter('simulation_only').value:
+            self.stage_clients['exclude']=self.create_client(SetBool,'simulation/exclude_red_target',callback_group=self.group)
+            self.stage_clients['physics']=self.create_client(Trigger,'simulation/grasp_state',callback_group=self.group)
         self.segment=ActionClient(self,SegmentImage,'segment_image',callback_group=self.group)
         self.infer=ActionClient(self,InferGrasps,'infer_grasps',callback_group=self.group)
         self.execute_client=ActionClient(self,ExecuteTrajectory,'execute_trajectory',callback_group=self.group)
+        self.gripper_client=ActionClient(self,FollowJointTrajectory,
+            'gripper_controller/follow_joint_trajectory',callback_group=self.group)
         self.active_action=RunGraspStep
         self.observation_id="";self.plan_id="";self.plan_phase=""
         self.stage_servers=[ActionServer(self,RunGraspStage,"grasp/"+command,
@@ -99,8 +123,11 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
 
     def joint_callback(self,msg):self.joints=msg
     def cloud_callback(self,msg):
-        if msg.width and msg.height:
-            self.cloud_stamp=msg.header.stamp.sec+msg.header.stamp.nanosec*1e-9;self.cloud_seq+=1
+        # MoveIt publishes a processed frame even when every return belongs to
+        # known collision geometry. Empty is not the same as a missing update.
+        stamp=msg.header.stamp.sec+msg.header.stamp.nanosec*1e-9
+        if msg.header.frame_id and msg.height and stamp>0:
+            self.cloud_stamp=stamp;self.cloud_seq+=1
 
     def goal(self,goal):
         return GoalResponse.ACCEPT if self.lock.acquire(False) else GoalResponse.REJECT
@@ -153,10 +180,17 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
             command=handle.request.command
             self.stage(command)
             if command!='cleanup':
-                if not self.get_parameter('simulation_only').value:raise RuntimeError('Hardware execution is not supported')
-                self.physics()
+                self.ensure_backend()
             if command=='check_ready':
                 self.check_ready()
+            elif command=='move_home':self.move_home()
+            elif command=='move_observation':
+                if handle.request.override_observation:
+                    self.move_observation(handle.request.observation_z_offset,
+                                          handle.request.observation_tilt_deg)
+                else:
+                    self.move_observation()
+            elif command=='open_gripper':self.open_gripper()
             elif command=='segment_target':self.segment_target()
             elif command=='build_object_cloud':self.build_object_cloud()
             elif command=='prepare':result.pregrasp=self.prepare()
@@ -183,6 +217,48 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
                 except Exception as error:self.get_logger().error('Scene cleanup failed: '+str(error))
             self.cleanup_requested=False;self.active_handle=None;self.scene_lock.release();self.lock.release()
         return result
+
+    def feedback(self):
+        self.wait(lambda: self.joints is not None, 5)
+        values = dict(zip(self.joints.name, self.joints.position))
+        if not all(name in values and math.isfinite(values[name])
+                   for name in [*[f'joint{i}' for i in range(1, 7)], 'gripper']):
+            raise RuntimeError('Simulation arm/gripper feedback is missing or nonfinite')
+        return values
+
+    def command_gripper(self, opening):
+        self.ensure_backend()
+        self.wait(self.gripper_client.server_is_ready, 10)
+        closing = math.isclose(opening, self.get_parameter('gripper_close_width').value,
+                               rel_tol=0., abs_tol=1e-6)
+        duration = self.get_parameter('gripper_close_duration').value if closing else 3.
+        goal = FollowJointTrajectory.Goal(trajectory=JointTrajectory(
+            joint_names=['gripper'], points=[JointTrajectoryPoint(
+                positions=[opening], time_from_start=Duration(seconds=duration).to_msg())]))
+        if closing:
+            goal.path_tolerance = [JointTolerance(name='gripper', position=-1., velocity=-1.)]
+        sent = self.gripper_client.send_goal_async(goal)
+        self.wait(sent.done, 10)
+        self.motion_handle = sent.result()
+        if not self.motion_handle.accepted:
+            self.motion_handle = None
+            raise RuntimeError('Simulation gripper goal rejected')
+        future = self.motion_handle.get_result_async()
+        try:
+            self.wait(future.done, 45)
+            result = future.result()
+            if result.status != 4 or result.result.error_code != 0:
+                raise RuntimeError('Simulation gripper failed: '+result.result.error_string)
+        except Exception:
+            self.motion_handle.cancel_goal_async()
+            raise
+        finally:
+            self.motion_handle = None
+
+    def ensure_backend(self):
+        if not self.get_parameter('simulation_only').value:
+            raise RuntimeError('Use the physical coordinator for hardware execution')
+        self.physics()
 
     def check_ready(self):
         if not self.get_parameter('simulation_only').value:raise RuntimeError('Hardware execution is not supported')
@@ -216,8 +292,7 @@ class GraspCoordinator(MotionStages, SelectionStages, InferenceStages, Perceptio
         try:
             request=handle.request
             self.stage(command)
-            if not self.get_parameter('simulation_only').value:raise RuntimeError('Hardware execution is not supported')
-            self.physics()
+            self.ensure_backend()
             if command=='check_ready':self.check_ready()
             elif command=='segment_object':
                 self.segment_target()

@@ -17,6 +17,7 @@
 #include <memory>
 
 #include <chrono>
+#include <cmath>
 #include <exception>
 
 #include "rwh_beyond_bt/diagnostics.hpp"
@@ -33,7 +34,9 @@ GraspStepAction::GraspStepAction(
 
 BT::PortsList GraspStepAction::providedPorts()
 {
-  return providedBasicPorts({BT::InputPort<std::string>("command", "Simulation grasp stage"),
+  return providedBasicPorts({BT::InputPort<std::string>("command", "Grasp coordinator stage"),
+             BT::InputPort<double>("rise_m", "Observation rise in base Z (m); set with tilt_deg"),
+             BT::InputPort<double>("tilt_deg", "Observation home-local Y tilt (degrees); set with rise_m"),
              BT::OutputPort<TcpPose>("pregrasp", "Collision-validated pregrasp TCP")});
 }
 
@@ -63,6 +66,26 @@ void GraspStepAction::on_tick()
     return;
   }
   goal_.command = command.value();
+  goal_.override_observation = false;
+  goal_.observation_z_offset = 0.0;
+  goal_.observation_tilt_deg = 0.0;
+  if (goal_.command == "move_observation" &&
+    (config().input_ports.count("rise_m") || config().input_ports.count("tilt_deg")))
+  {
+    const auto rise = getInput<double>("rise_m");
+    const auto tilt = getInput<double>("tilt_deg");
+    if (!rise || !tilt || !std::isfinite(rise.value()) || rise.value() <= 0.0 ||
+      !std::isfinite(tilt.value()))
+    {
+      report_failure(config().blackboard, -1200, "INVALID_OBSERVATION_POSE", "grasp_step",
+          "move_observation requires finite rise_m > 0 and tilt_deg together");
+      should_send_goal_ = false;
+      return;
+    }
+    goal_.override_observation = true;
+    goal_.observation_z_offset = rise.value();
+    goal_.observation_tilt_deg = tilt.value();
+  }
 }
 
 void GraspStepAction::on_wait_for_result(std::shared_ptr<const Action::Feedback> feedback)

@@ -1,0 +1,101 @@
+# Shared BT configuration: navigator, lifecycle, SAM, GraspGenX and coordinator.
+# Real/sim clock and backend are selected by mode in bt_demo.launch.py.
+# Home: joint1..6 [rad]. Observation: base +Z [m], home-local XYZ Euler tilt [deg].
+bt_navigator:
+  ros__parameters:
+    use_sim_time: true
+    global_frame: base_link
+    robot_base_frame: base_link
+    odom_topic: /odom
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    wait_for_service_timeout: 30000
+    action_server_result_timeout: 900.0
+    plugin_lib_names:
+    - rwh_beyond_bt_nodes
+    navigators:
+    - demo
+    demo:
+      plugin: rwh_beyond_navigator::DemoNavigator
+    run_demo:
+      enable_groot_monitoring: true
+      groot_server_port: 5555
+bt_lifecycle_manager:
+  ros__parameters:
+    use_sim_time: true
+    autostart: true
+    node_names:
+    - bt_navigator
+sam3_bridge:
+  ros__parameters:
+    use_sim_time: true
+    endpoint: tcp://127.0.0.1:5567
+    timeout: 60.0
+    allow_mock: false
+graspgenx_bridge:
+  ros__parameters:
+    use_sim_time: true
+    endpoint: tcp://127.0.0.1:5566
+    allow_mock_segmentation: false
+    timeout: 60.0
+    min_points: 100
+    max_points: 200000
+    max_grasps: 1000
+    max_depth_pixels: 2073600
+    sensor_sync_tolerance: 0.1
+grasp_coordinator:
+  ros__parameters:
+    use_sim_time: true
+    simulation_only: true
+    segmentation_backend: sam3
+    target_text: yellow block
+    target_box:
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    selection_point:
+    - -1
+    - -1
+    selection_policy: unique
+    base_frame: base_link
+    tcp_link: tcp_link
+    object_dimensions:
+    - 0.04
+    - 0.04
+    - 0.05
+    pregrasp_distance: 0.08
+    lift_distance: 0.08
+    model_to_tcp_xyz:
+    - 0.0
+    - 0.0
+    - 0.13
+    model_to_tcp_rpy:
+    - 0.0
+    - 0.0
+    - -1.5707963267948966
+    num_grasps: 1000
+    top_k: 300
+    max_candidates: 300
+    debug_max_candidates: 10
+    home_joint_positions:
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    - 0.0
+    observation_z_offset: 0.2
+    observation_tilt_rpy_deg:
+    - 0.0
+    - 30.0
+    - 0.0
+    observation_settle_time: 0.5
+    home_joint_tolerance: 0.01
+    # Planning copy only; rad, maximum 0.05. Actual feedback and URDF limits stay unchanged.
+    planning_start_bounds_tolerance: 0.05
+    hardware_feedback_timeout: 1.0
+    gripper_open_width: 0.10
+    gripper_close_width: 0.04
+    gripper_close_duration: 4.0
+    physical_position_tolerance: 0.03

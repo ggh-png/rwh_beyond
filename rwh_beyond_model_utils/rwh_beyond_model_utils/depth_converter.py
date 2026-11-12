@@ -20,6 +20,29 @@ def stamp_seconds(header):
     return header.stamp.sec + header.stamp.nanosec * 1e-9
 
 
+def pinhole_rays(pixels, matrix, distortion_model, distortion):
+    """Return normalized optical rays for raw or plumb_bob-calibrated pixels."""
+    normalized = (pixels - matrix[:2, 2]) / np.array([matrix[0, 0], matrix[1, 1]])
+    if not np.any(distortion):
+        return normalized
+    if distortion_model != 'plumb_bob' or len(distortion) not in (5, 8):
+        raise ValueError('unsupported distortion: expected plumb_bob with 5 or 8 coefficients')
+    k1, k2, p1, p2, k3 = distortion[:5]
+    k4, k5, k6 = (distortion[5:] if len(distortion) == 8 else (0., 0., 0.))
+    target_x, target_y = normalized.T
+    x, y = target_x.copy(), target_y.copy()
+    for _ in range(8):
+        r2 = x * x + y * y
+        radial = (1 + k1 * r2 + k2 * r2 * r2 + k3 * r2 * r2 * r2) / (1 + k4 * r2 + k5 * r2 * r2 + k6 * r2 * r2 * r2)
+        x_distorted = x * radial + 2 * p1 * x * y + p2 * (r2 + 2 * x * x)
+        y_distorted = y * radial + p1 * (r2 + 2 * y * y) + 2 * p2 * x * y
+        x += target_x - x_distorted
+        y += target_y - y_distorted
+    if not np.isfinite(x).all() or not np.isfinite(y).all():
+        raise ValueError('distortion correction produced nonfinite rays')
+    return np.stack((x, y), axis=1)
+
+
 def depth_xyz(depth, info, mask, min_points=100, max_points=200000,
               max_pixels=2073600, sync_tolerance=0.1):
     if not depth.header.frame_id.strip():
@@ -36,8 +59,9 @@ def depth_xyz(depth, info, mask, min_points=100, max_points=200000,
         raise ValueError('CameraInfo dimensions must match depth')
     if info.binning_x > 1 or info.binning_y > 1 or info.roi.x_offset or info.roi.y_offset:
         raise ValueError('provide full-size calibrated depth without binning/ROI offsets')
-    if not np.isfinite(info.d).all() or np.any(np.abs(info.d) > 1e-8):
-        raise ValueError('nonzero distortion: provide undistorted depth with its matching pinhole calibration')
+    distortion = np.asarray(info.d, dtype=float)
+    if not np.isfinite(distortion).all():
+        raise ValueError('camera distortion coefficients must be finite')
     k = np.asarray(info.k, dtype=float).reshape(3,3)
     if (not np.isfinite(k).all() or k[0,0] <= 0 or k[1,1] <= 0 or
         not np.allclose(k[2], [0,0,1]) or abs(k[1,0]) > 1e-8):
@@ -55,8 +79,9 @@ def depth_xyz(depth, info, mask, min_points=100, max_points=200000,
     if len(rows) > max_points:
         index = np.linspace(0, len(rows)-1, max_points, dtype=int)
         rows, cols = rows[index], cols[index]
-    pixels = np.stack([cols, rows, np.ones_like(rows)], axis=1)
-    rays = pixels @ np.linalg.inv(k).T
+    pixels = np.stack([cols, rows], axis=1).astype(float)
+    normalized = pinhole_rays(pixels, k, info.distortion_model, distortion)
+    rays = np.column_stack((normalized, np.ones(len(normalized))))
     xyz = rays * z[rows, cols, None]
     with np.errstate(over='ignore', invalid='ignore'):
         xyz = np.ascontiguousarray(xyz, dtype=np.float32)

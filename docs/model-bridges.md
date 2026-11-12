@@ -47,20 +47,18 @@ flowchart TB
 `/grasp/infer_grasps`는 BT 관측 ID를 다루는 coordinator 단계이고,
 `/infer_grasps`는 모델 추론 bridge입니다. `/grasp/segment_object`와 `/segment_image`도 같은 관계입니다.
 
-## 설정 파일을 구분하세요
+## BT 공통 설정과 단독 실행 설정
 
-| 설정 | 소유 패키지 | 내용 |
-|---|---|---|
-| `config/bridge.yaml` | SAM bridge | SAM TCP endpoint·timeout·mock 허용(기본 false) |
-| `config/bridge.yaml` | GraspGenX bridge | Grasp TCP endpoint·점군/후보 제한 |
-| `config/grasp_pipeline.yaml` | pipeline | 대상·프레임·거리·TCP 보정·후보 선택 |
-| `params/bt_demo_params.yaml` | bringup | navigator·lifecycle 설정 |
+BT 설정은 `rwh_beyond_bringup/config/bt_demo.yaml` 하나로 관리합니다.
+`bt_demo.launch.py params_file:=...`는 같은 YAML을 navigator, lifecycle manager,
+SAM bridge, GraspGenX bridge, coordinator 모두에 전달합니다.
+명시한 launch 인자와 `RWH_SEGMENTATION_ENDPOINT`, `RWH_GRASP_ENDPOINT`,
+`RWH_GRASP_TARGET_TEXT` 환경변수는 공통 YAML보다 우선합니다.
 
-BT launch의 `params_file`은 navigator용이고 `grasp_params_file`은 pipeline용입니다.
-`grasp_pipeline.launch.py`는 모델별 `sam3_params_file`, `graspgenx_params_file`도 별도로 받습니다.
-TCP endpoint는 각 bridge가 소유합니다. coordinator에서 모델 endpoint 파라미터를 바꾸지 않습니다.
-기본 runner 환경변수 `RWH_SEGMENTATION_ENDPOINT`, `RWH_GRASP_ENDPOINT`,
-`RWH_GRASP_TARGET_TEXT`는 유지합니다.
+모델 bridge의 `config/bridge.yaml`과 pipeline의 `config/grasp_pipeline.yaml`은
+각 패키지를 단독으로 launch할 때의 기본 설정이며 BT에서는 읽지 않습니다.
+단독 `grasp_pipeline.launch.py`는 `params_file`, `sam3_params_file`,
+`graspgenx_params_file`을 별도로 지정할 수 있습니다.
 
 ## 현재 로컬 네트워크
 

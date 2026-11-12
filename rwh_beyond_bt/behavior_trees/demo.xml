@@ -1,21 +1,25 @@
 <root BTCPP_format="4" main_tree_to_execute="Demo">
+  <!-- Shared sim/real scenario; backend and clock are selected by launch mode. -->
   <BehaviorTree ID="Demo">
     <Sequence>
       <CheckGraspReady server_timeout="1000"/>
-      <ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>
-      <MoveHome/>
-      <OpenGripper/>
-      <MoveObservation/>
+      <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
+      <GraspStep command="move_home" server_timeout="1000"/>
+      <GraspStep command="open_gripper" server_timeout="1000"/>
+      <!-- Edit only rise_m (meters) and tilt_deg (home-local Y degrees) to tune observation. -->
+      <GraspStep command="move_observation" rise_m="0.10" tilt_deg="40.0" server_timeout="1000"/>
+      <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
       <SegmentObject server_timeout="1000" observation_id="{observation}" mask="{object_mask}"/>
       <BuildObjectCloud server_timeout="1000" observation_id="{observation}" mask="{object_mask}" cloud="{object_cloud}"/>
       <InferGrasps server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}"/>
       <SelectFeasibleGrasp server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}" plan_id="{grasp_plan}" pregrasp="{pregrasp}"/>
       <MoveToPregrasp server_timeout="1000" plan_id="{grasp_plan}"/>
       <ApproachGrasp server_timeout="1000" plan_id="{grasp_plan}"/>
-      <CloseGripper/>
+      <!-- Close the gripper, then attach the target for planning without judging physical grip. -->
       <AttachObject server_timeout="1000" plan_id="{grasp_plan}"/>
       <LiftObject server_timeout="1000" plan_id="{grasp_plan}"/>
-      <MoveHome/>
+      <GraspStep command="move_observation" rise_m="0.10" tilt_deg="40.0" server_timeout="1000"/>
+      <GraspStep command="move_home" server_timeout="1000"/>
     </Sequence>
   </BehaviorTree>
 </root>

@@ -20,7 +20,7 @@ grasp_coordinator:
     simulation_only: true
     segmentation_backend: sam3
     segmentation_endpoint: tcp://127.0.0.1:5567
-    target_text: red box
+    target_text: yellow block 
     target_box: [0.0, 0.0, 0.0, 0.0]
     selection_point: [-1, -1]
     selection_policy: unique
