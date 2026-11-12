@@ -1938,7 +1938,7 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 <p>현재 기본 트리는 <a href="../bt-grasp-stages/">역할별 플러그인</a>으로 마스크·점군·후보를 Blackboard에 전달한다.
 모델 추론은 <code>InferGrasps</code>, IK·충돌·경로 검사는 <code>SelectFeasibleGrasp</code>가 담당한다.
 기존 <code>GraspStep + command</code>는 호환용으로 남긴다.</p>
-<p>예전 고정 home/up/close/home/open은 <code>legacy_demo.xml</code>에 보존했다.
+<p>예전 고정 home/up/close/home/open 중복 예제는 제거했다.
 <code>parameterized_demo.xml</code>은 <code>MakeTcpPose → MoveTcp</code>와 <code>SetGripper</code>로 같은 원래
 작업을 표현한 별도 예제다.</p>
 <h2 id="_5">소스에서 찾아볼 위치<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>

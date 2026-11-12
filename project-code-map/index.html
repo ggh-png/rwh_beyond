@@ -1835,12 +1835,12 @@
 <tr>
 <td><code>AttachObject</code></td>
 <td><code>/grasp/attach</code></td>
-<td><code>motion_stages.py::attach()</code></td>
+<td><code>scenario_motion.py::attach()</code></td>
 </tr>
 <tr>
 <td><code>LiftObject</code></td>
 <td><code>/grasp/lift</code></td>
-<td><code>motion_stages.py::lift()</code></td>
+<td><code>scenario_motion.py::lift()</code></td>
 </tr>
 </tbody>
 </table>
@@ -1883,7 +1883,11 @@
 <ul>
 <li><code>selection_stages.py</code>: SAM 관측 충돌 형상, 대상 Octomap 제외 영역, 후보별 거절 사유·IK·경로 계획.</li>
 <li><code>observed_geometry.py</code>: 관측 XYZ와 주변 Depth에서 물체 AABB·수평 지지면 추정.</li>
-<li><code>motion_stages.py</code>: ExecuteTrajectory·Cartesian 이동, 양쪽 접촉·물리 상승 확인.</li>
+<li><code>motion_stages.py</code>: IK·Cartesian 경로와 ExecuteTrajectory 실행.</li>
+<li><code>scenario_motion.py</code>: 심/실물 공통 home·관측·계획용 attachment·리프트.</li>
+<li><code>gripper_motion.py</code>: 공통 그리퍼 Action 요청·완료·취소 처리.</li>
+<li><code>hardware_coordinator.py</code>: 실물 준비 확인·피드백·계획 시작 상태 보정.</li>
+<li><code>physical_trajectory.py</code>: 실물 명령 전달과 4초 닫기 완료 처리.</li>
 <li><code>visualization.py</code>: 마스크·overlay·base 점군·후보·선택 marker 발행. 계획 입력을 바꾸지 않음.</li>
 <li><code>grasp_coordinator.py</code>: 공유 상태·락·취소·정리. 실패/취소 시 임시 제외 영역·충돌 허용 복원.</li>
 <li><code>../moma-mj-lab/ros2_ws/src/moma_mujoco_ros/moma_mujoco_ros/bridge.py</code>: 카메라/clock/관절·trajectory·검증 서비스의 ROS 연결.</li>

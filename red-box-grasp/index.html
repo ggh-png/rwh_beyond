@@ -1811,7 +1811,7 @@ runner 시작 전 <code>RWH_GRASP_ENDPOINT</code>로 지정한다. runner는 GPU
 </code></pre></div>
 <p>runner 활성화 자체는 이동 goal을 보내지 않는다. Groot2 모델 XML을 다시
 불러오고 <code>rwh_beyond_bt/behavior_trees/demo.xml</code>을 열면 현재 순서를 볼 수 있다.
-예전 home/up/close/home/open 트리는 <code>legacy_demo.xml</code>에 보존했다.</p>
+예전 고정 home/up/close/home/open 중복 예제는 제거했다.</p>
 <h2 id="graspstep">GraspStep이 여러 번 나오는 이유<a class="headerlink" href="#graspstep" title="Permanent link">&para;</a></h2>
 <p><code>GraspStep</code>은 한 번의 파지를 통째로 반복하는 노드가 아니라,
 <code>command</code>에 해당하는 <strong>한 단계만 실행하는 공통 Action BT 플러그인</strong>이다.
