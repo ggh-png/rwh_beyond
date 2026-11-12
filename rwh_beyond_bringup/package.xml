@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
-  <name>rwh_beyond_bringup</name><version>0.1.0</version>
+  <name>rwh_beyond_bringup</name><version>1.0.0</version>
   <description>RWH launch files, complete Nav2 configuration and sensor transforms.</description>
   <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
   <license>Apache-2.0</license>

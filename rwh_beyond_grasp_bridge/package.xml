@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package format="3">
- <name>rwh_beyond_grasp_bridge</name><version>0.1.0</version>
+ <name>rwh_beyond_grasp_bridge</name><version>1.0.0</version>
  <description>CPU-only ROS 2 Action bridge for the official GraspGenX ZMQ protocol.</description>
  <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer><license>Apache-2.0</license>
  <buildtool_depend>ament_python</buildtool_depend>

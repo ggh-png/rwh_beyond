@@ -3,7 +3,6 @@
 import copy
 import math
 import time
-from scipy.spatial.transform import Rotation
 from geometry_msgs.msg import Pose
 from moveit_msgs.msg import (
     AttachedCollisionObject, CollisionObject, PlanningScene, PlanningSceneWorld, RobotState,
@@ -183,12 +182,10 @@ class ScenarioMotion:
         if response.error_code.val != 1 or len(response.pose_stamped) != 1:
             raise RuntimeError('Cannot compute the configured home TCP pose')
         target = copy.deepcopy(response.pose_stamped[0].pose)
-        q = target.orientation
-        forward_vector = Rotation.from_quat([q.x, q.y, q.z, q.w]).apply([forward, 0.0, 0.0])
-        target.position.x += float(forward_vector[0])
-        target.position.y += float(forward_vector[1])
-        target.position.z += float(forward_vector[2]) + z
-        self.stage(f'place_target home_tcp_forward_m={forward} base_z_offset_m={z}')
+        # Offsets are in the base frame, independent of the home TCP orientation.
+        target.position.x += forward
+        target.position.z += z
+        self.stage(f'place_target base_x_offset_m={forward} base_z_offset_m={z}')
         self.execute_cartesian(target)
         self.release_ready = True
         self.stage('place_pose_reached_ready_for_release')

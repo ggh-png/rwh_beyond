@@ -1,3 +1,9 @@
+# mode=1 runs the pick tree; mode=2 runs the guarded place/release tree.
+# mode=0 remains a legacy alias for mode=1 when behavior_tree is empty.
+uint8 MODE_PICK=1
+uint8 MODE_PLACE=2
+uint8 mode
+# Optional custom tree path. When present, it overrides mode selection.
 string behavior_tree
 # Optional SAM target description for this goal only; empty uses configured target_text.
 string target_text

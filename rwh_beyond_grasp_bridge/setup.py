@@ -1,6 +1,6 @@
 from glob import glob
 from setuptools import setup
-setup(name='rwh_beyond_grasp_bridge', version='0.1.0',
+setup(name='rwh_beyond_grasp_bridge', version='1.0.0',
  packages=['rwh_beyond_grasp_bridge'],
  data_files=[('share/ament_index/resource_index/packages', ['resource/rwh_beyond_grasp_bridge']),
  ('share/rwh_beyond_grasp_bridge', ['package.xml', 'README.md']),

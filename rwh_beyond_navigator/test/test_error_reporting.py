@@ -36,13 +36,21 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory(prefix='rwh-error-reporting-')
         self.root = Path(self.directory.name)
         tree = self.root / 'tree.xml'
-        tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
-                        '<MoveHome name="return_home"/></BehaviorTree></root>')
+        tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test"><Sequence>'
+                        '<MakeTcpPose x="0" y="0" z="0.3" qx="0" qy="0" qz="0" qw="1" '
+                        'pose="{target}"/>'
+                        '<MoveTcp name="return_home" pose="{target}"/>'
+                        '</Sequence></BehaviorTree></root>')
+        place_tree = self.root / 'place_tree.xml'
+        place_tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
+                              '<MakeTcpPose x="0" y="0" z="0.3" pose="{target}"/>'
+                              '</BehaviorTree></root>')
         config = self.root / 'params.yaml'
         config.write_text(yaml.safe_dump({'bt_navigator': {'ros__parameters': {
             'use_sim_time': False, 'global_frame': 'base_link', 'robot_base_frame': 'base_link',
             'navigators': ['demo'], 'demo.plugin': 'rwh_beyond_navigator::DemoNavigator',
             'plugin_lib_names': ['rwh_beyond_bt_nodes'], 'default_demo_bt_xml': str(tree),
+            'default_place_bt_xml': str(place_tree),
             'wait_for_service_timeout': 3000, 'default_server_timeout': 1000,
             'error_code_names': ['nav2_unused_error_code'],
         }}}))
@@ -99,15 +107,25 @@ class NavigatorErrorReporting(unittest.TestCase):
             time.sleep(0.01)
         self.assertTrue(predicate(), 'Timed out: ' + str(self.root))
 
-    def run_goal(self, tree="", target_text=""):
+    def run_goal(self, tree="", target_text="", mode=0):
         feedback = []
-        sent = self.action.send_goal_async(RunDemo.Goal(behavior_tree=tree, target_text=target_text),
-                                            feedback_callback=lambda msg: feedback.append(msg.feedback))
+        sent = self.action.send_goal_async(
+            RunDemo.Goal(behavior_tree=tree, target_text=target_text, mode=mode),
+            feedback_callback=lambda msg: feedback.append(msg.feedback),
+        )
         self.wait(sent.done)
         self.assertTrue(sent.result().accepted)
         completed = sent.result().get_result_async()
         self.wait(completed.done)
         return completed.result(), feedback
+
+    def test_mode_selects_pick_or_place_and_legacy_zero_is_pick(self):
+        legacy, _ = self.run_goal()
+        self.assertEqual(legacy.status, 6)
+        pick, _ = self.run_goal(mode=RunDemo.Goal.MODE_PICK)
+        self.assertEqual(pick.status, 6)
+        place, _ = self.run_goal(mode=RunDemo.Goal.MODE_PLACE)
+        self.assertEqual(place.status, 4)
 
     def test_signed_failure_feedback_result_and_success_reset(self):
         wrapped, feedback = self.run_goal()
@@ -117,7 +135,7 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.assertEqual(result.error_name, 'MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE')
         self.assertEqual(result.error_source, 'plan_execution')
         self.assertEqual(result.error_msg, self.message)
-        self.assertEqual(result.failed_stage, 'move_home')
+        self.assertEqual(result.failed_stage, 'move_tcp')
         self.assertEqual(result.failed_node, 'return_home')
         self.assertEqual(result.moveit_state, 'MONITOR')
         self.assertTrue(any(f.error_code == -3 and f.error_msg == self.message for f in feedback))

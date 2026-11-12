@@ -10,8 +10,13 @@ PiPER 파지 시나리오의 BehaviorTree.CPP 플러그인과 실행 XML을 제�
 
 ```bash
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
-  '{target_text: "yellow block"}' --feedback
+  '{mode: 1, target_text: "yellow block"}' --feedback
 ```
+
+`mode: 1`은 pick(`demo.xml`), `mode: 2`는 place/release(`place.xml`)를 실행합니다.
+`place.xml`은 물체를 든 상태에서 home → home TCP 위치에서 base +X 0.20 m 및 base +Z 0.15 m →
+개방·attachment 해제 → home 순으로 실행합니다. `behavior_tree` 경로를 명시하면 mode 대신
+그 사용자 지정 트리를 실행합니다. mode를 생략한 기존 호출은 pick으로 호환됩니다.
 
 home·열기·관측은 `MoveHome`·`OpenGripper`·`MoveObservation`, 인식·추론·선택·접근·부착·리프트는 역할별 Action 노드입니다.
 home 관절값·관측 높이/각도/안정화 시간·그리퍼 열림 폭/시간은 XML 입력 포트로 조정할 수 있습니다.
@@ -35,7 +40,7 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
 ```
 
 범용 `MakeTcpPose`, `MoveTcp`, `SetGripper`는 사용자 정의 트리에서 사용할 수 있습니다.
-배포하는 실행 트리는 심·실물 공통 `behavior_trees/demo.xml` 하나입니다.
+배포하는 실행 트리는 심·실물 공통 `behavior_trees/demo.xml`과 `behavior_trees/place.xml`입니다.
 `node_models/rwh_beyond_tree_nodes.xml`은 Groot2 편집용 노드 정의이며 실행 트리가 아닙니다.
 
 [실행](../docs/grasp-pipeline-guide.md) · [공통 설정](../docs/real-bt.md) ·

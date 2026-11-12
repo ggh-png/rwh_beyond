@@ -341,7 +341,7 @@ def test_scenario_xml_overrides_reach_motion_without_changing_yaml(command):
         state.open_gripper.assert_called_once_with(opening=.08, duration=2.)
 
 
-def test_place_moves_forward_in_home_tcp_frame_then_releases_attachment():
+def test_place_moves_in_base_frame_then_releases_attachment():
     from rwh_beyond_grasp_pipeline.stage_constants import TARGET
 
     home_pose = Pose()
@@ -364,7 +364,7 @@ def test_place_moves_forward_in_home_tcp_frame_then_releases_attachment():
     HardwareGraspCoordinator.move_place(state, .20, .15)
     target = state.execute_cartesian.call_args.args[0]
     np.testing.assert_allclose(
-        [target.position.x, target.position.y, target.position.z], [.3, .1, .35], atol=1e-10
+        [target.position.x, target.position.y, target.position.z], [.5, -.1, .35], atol=1e-10
     )
     assert state.release_ready
     HardwareGraspCoordinator.release_object(state)

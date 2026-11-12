@@ -145,13 +145,16 @@ class BtDemoLaunchTest(unittest.TestCase):
         params = evaluate_parameters(context, navigator._Node__parameters)[-1]
         self.assertFalse(params['use_sim_time'])
         self.assertTrue(params['default_demo_bt_xml'].endswith('/demo.xml'))
+        self.assertTrue(params['default_place_bt_xml'].endswith('/place.xml'))
         real_tree = params['default_demo_bt_xml']
+        real_place_tree = params['default_place_bt_xml']
         context.launch_configurations['mode'] = 'sim'
         sim_navigator = next(n for n in module.generate_launch_description().entities
                              if isinstance(n, Node) and n.node_executable == 'bt_navigator')
         sim_params = evaluate_parameters(context, sim_navigator._Node__parameters)[-1]
         self.assertTrue(sim_params['use_sim_time'])
         self.assertEqual(sim_params['default_demo_bt_xml'], real_tree)
+        self.assertEqual(sim_params['default_place_bt_xml'], real_place_tree)
 
     def test_default_parameters_preserve_previous_values(self):
         params_path = Path(__file__).resolve().parents[1] / 'config' / 'bt_demo.yaml'

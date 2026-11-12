@@ -107,7 +107,10 @@ def generate_launch_description():
                         {'use_sim_time': ParameterValue(simulation, value_type=bool),
                          'default_demo_bt_xml': PathJoinSubstitution([
                              FindPackageShare('rwh_beyond_bt'), 'behavior_trees',
-                             'demo.xml'])}],
+                             'demo.xml']),
+                         'default_place_bt_xml': PathJoinSubstitution([
+                             FindPackageShare('rwh_beyond_bt'), 'behavior_trees',
+                             'place.xml'])}],
         ),
         Node(
             package='nav2_lifecycle_manager',

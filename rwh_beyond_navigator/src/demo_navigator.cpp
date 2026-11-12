@@ -4,8 +4,8 @@
 #include "ament_index_cpp/get_package_share_directory.hpp"
 #include "nav2_core/behavior_tree_navigator.hpp"
 #include "pluginlib/class_list_macros.hpp"
-#include "std_srvs/srv/trigger.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
+#include "std_srvs/srv/trigger.hpp"
 
 namespace rwh_beyond_navigator
 {
@@ -24,12 +24,18 @@ public:
   std::string getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node) override
   {
     auto node = parent_node.lock();
-    const auto default_path = ament_index_cpp::get_package_share_directory(
-      "rwh_beyond_bt") + "/behavior_trees/demo.xml";
+    const auto package_share = ament_index_cpp::get_package_share_directory("rwh_beyond_bt");
+    const auto default_pick_path = package_share + "/behavior_trees/demo.xml";
+    const auto default_place_path = package_share + "/behavior_trees/place.xml";
     if (!node->has_parameter("default_demo_bt_xml")) {
-      node->declare_parameter("default_demo_bt_xml", default_path);
+      node->declare_parameter("default_demo_bt_xml", default_pick_path);
     }
-    return node->get_parameter("default_demo_bt_xml").as_string();
+    if (!node->has_parameter("default_place_bt_xml")) {
+      node->declare_parameter("default_place_bt_xml", default_place_path);
+    }
+    default_pick_bt_ = node->get_parameter("default_demo_bt_xml").as_string();
+    default_place_bt_ = node->get_parameter("default_place_bt_xml").as_string();
+    return default_pick_bt_;
   }
 
   bool configure(
@@ -70,7 +76,19 @@ public:
 
   bool goalReceived(ActionT::Goal::ConstSharedPtr goal) override
   {
-    if (!bt_action_server_->loadBehaviorTree(goal->behavior_tree)) {
+    std::string tree = goal->behavior_tree;
+    if (tree.empty()) {
+      const auto mode = goal->mode == 0 ? ActionT::Goal::MODE_PICK : goal->mode;
+      if (mode == ActionT::Goal::MODE_PICK) {
+        tree = default_pick_bt_;
+      } else if (mode == ActionT::Goal::MODE_PLACE) {
+        tree = default_place_bt_;
+      } else {
+        RCLCPP_ERROR(logger_, "Unsupported RunDemo mode: %u", goal->mode);
+        return false;
+      }
+    }
+    if (!bt_action_server_->loadBehaviorTree(tree)) {
       RCLCPP_ERROR(logger_, "Unable to load arm demo behavior tree");
       return false;
     }
@@ -144,8 +162,11 @@ public:
     // Failure can arrive on the last BT tick: always publish one final diagnostic feedback.
     bt_action_server_->publishFeedback(std::make_shared<ActionT::Feedback>(diagnostic));
   }
+
 private:
   rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr cleanup_client_;
+  std::string default_pick_bt_;
+  std::string default_place_bt_;
 };
 
 }  // namespace rwh_beyond_navigator

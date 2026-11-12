@@ -1,7 +1,7 @@
 from glob import glob
 from setuptools import find_packages, setup
 
-setup(name='rwh_beyond_bringup', version='0.1.0', packages=find_packages(),
+setup(name='rwh_beyond_bringup', version='1.0.0', packages=find_packages(),
       data_files=[('share/ament_index/resource_index/packages', ['resource/rwh_beyond_bringup']),
                   ('share/rwh_beyond_bringup', ['package.xml']),
                   ('share/rwh_beyond_bringup/launch', glob('launch/*.launch.py')),

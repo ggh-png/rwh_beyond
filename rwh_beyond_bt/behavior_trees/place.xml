@@ -2,7 +2,7 @@
   <BehaviorTree ID="Place">
     <Sequence name="PlaceSequence">
       <MoveHome server_timeout="1000"/>
-      <!-- Home TCP local +X 0.20 m, then base +Z 0.15 m. -->
+      <!-- Home TCP position + base-frame X 0.20 m and Z 0.15 m. -->
       <MovePlace x="0.20" z="0.15" server_timeout="1000"/>
       <ReleaseObject server_timeout="1000"/>
       <MoveHome server_timeout="1000"/>
