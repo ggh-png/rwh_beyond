@@ -2,7 +2,6 @@
 import numpy as np
 from scipy.ndimage import binary_erosion
 from sensor_msgs.msg import Image
-from rwh_beyond_model_utils.depth_converter import stamp_seconds
 from rwh_beyond_model_utils.zmq_client import request, ProtocolError
 
 from rwh_beyond_model_utils.rgb_converter import rgb_array

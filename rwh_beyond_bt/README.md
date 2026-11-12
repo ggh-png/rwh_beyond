@@ -149,8 +149,8 @@ unavailable required TF, controller/MoveIt application errors and cancellations
 return FAILURE. There is no fallback to arbitrary joint targets.
 
 After rebuilding, restart the navigator to load the updated library and
-re-import `rwh_beyond_tree_nodes.xml` in Groot2. The default `demo.xml` is now the red-box pick tree; the original fixed
-sequence is preserved in `legacy_demo.xml`.
+re-import `rwh_beyond_tree_nodes.xml` in Groot2. The default `demo.xml` is shared by simulation and hardware.
+The redundant fixed demo has been removed; `parameterized_demo.xml` remains the configurable motion example.
 
 ## Verification
 

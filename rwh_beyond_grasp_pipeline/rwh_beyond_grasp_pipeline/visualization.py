@@ -33,8 +33,11 @@ def segmentation_images(rgb, depth, mask):
         raise ValueError('Visualization mask must match the captured RGB-D observation')
     selected = labels != 0
     preview = Image(
-        header=copy.deepcopy(mask.header), height=mask.height, width=mask.width,
-        encoding='mono8', step=mask.width,
+        header=copy.deepcopy(mask.header),
+        height=mask.height,
+        width=mask.width,
+        encoding='mono8',
+        step=mask.width,
         data=(selected.astype(np.uint8) * 255).tobytes(),
     )
     overlay = pixels.copy()
@@ -42,8 +45,12 @@ def segmentation_images(rgb, depth, mask):
         pixels[selected].astype(np.float32) * 0.45 + np.array([0, 255, 0]) * 0.55
     ).astype(np.uint8)
     image = Image(
-        header=copy.deepcopy(rgb.header), height=rgb.height, width=rgb.width,
-        encoding='rgb8', step=rgb.width * 3, data=overlay.tobytes(),
+        header=copy.deepcopy(rgb.header),
+        height=rgb.height,
+        width=rgb.width,
+        encoding='rgb8',
+        step=rgb.width * 3,
+        data=overlay.tobytes(),
     )
     return preview, image
 
@@ -69,8 +76,9 @@ def point(values):
 def display_marker(header, base_frame, namespace, marker_id, marker_type):
     base_header = copy.deepcopy(header)
     base_header.frame_id = base_frame
-    marker = Marker(header=base_header, ns=namespace, id=marker_id,
-                    type=marker_type, action=Marker.ADD)
+    marker = Marker(
+        header=base_header, ns=namespace, id=marker_id, type=marker_type, action=Marker.ADD
+    )
     marker.pose.orientation.w = 1.0
     return marker
 
@@ -91,21 +99,20 @@ class GraspVisualization:
         self.max_candidates = max_candidates
         qos = snapshot_qos()
         self.mask_publisher = node.create_publisher(Image, 'grasp/object_mask', qos)
-        self.mask_preview_publisher = node.create_publisher(
-            Image, 'grasp/object_mask_preview', qos)
-        self.overlay_publisher = node.create_publisher(
-            Image, 'grasp/segmentation_overlay', qos)
+        self.mask_preview_publisher = node.create_publisher(Image, 'grasp/object_mask_preview', qos)
+        self.overlay_publisher = node.create_publisher(Image, 'grasp/segmentation_overlay', qos)
         self.cloud_publisher = node.create_publisher(PointCloud2, 'grasp/object_cloud', qos)
         self.base_cloud_publisher = node.create_publisher(
-            PointCloud2, 'grasp/object_cloud_base', qos)
+            PointCloud2, 'grasp/object_cloud_base', qos
+        )
         self.candidates_publisher = node.create_publisher(
-            MarkerArray, 'grasp/grasp_candidates', qos)
+            MarkerArray, 'grasp/grasp_candidates', qos
+        )
         self.selected_markers_publisher = node.create_publisher(
-            MarkerArray, 'grasp/selected_grasp', qos)
-        self.selected_tcp_publisher = node.create_publisher(
-            PoseStamped, 'grasp/selected_tcp', qos)
-        self.pregrasp_publisher = node.create_publisher(
-            PoseStamped, 'grasp/selected_pregrasp', qos)
+            MarkerArray, 'grasp/selected_grasp', qos
+        )
+        self.selected_tcp_publisher = node.create_publisher(PoseStamped, 'grasp/selected_tcp', qos)
+        self.pregrasp_publisher = node.create_publisher(PoseStamped, 'grasp/selected_pregrasp', qos)
 
     def publish_segmentation(self, rgb, depth, mask):
         preview, overlay = segmentation_images(rgb, depth, mask)
@@ -128,17 +135,21 @@ class GraspVisualization:
         """Show bounded raw model-base poses and scores, before IK/collision selection."""
         markers = cleared_markers(header, self.base_frame)
         transform = np.asarray(base_t_camera)
-        for index, candidate in enumerate(candidates[:self.max_candidates]):
+        for index, candidate in enumerate(candidates[: self.max_candidates]):
             if candidate.pose.header != header:
                 raise ValueError('Candidate visualization must use the captured cloud frame/stamp')
             model = transform @ pose_matrix(candidate.pose.pose)
-            marker = display_marker(header, self.base_frame, 'model_candidates', index, Marker.ARROW)
+            marker = display_marker(
+                header, self.base_frame, 'model_candidates', index, Marker.ARROW
+            )
             marker.points = [point(model[:3, 3]), point(model[:3, 3] + model[:3, 2] * 0.06)]
             marker.scale.x, marker.scale.y, marker.scale.z = 0.002, 0.006, 0.009
             marker.color = ColorRGBA(r=0.15, g=0.65, b=1.0, a=0.65)
             markers.markers.append(marker)
             if index < 3:
-                text = display_marker(header, self.base_frame, 'model_scores', index, Marker.TEXT_VIEW_FACING)
+                text = display_marker(
+                    header, self.base_frame, 'model_scores', index, Marker.TEXT_VIEW_FACING
+                )
                 text.pose.position = point(model[:3, 3] + [0, 0, 0.012])
                 text.scale.z = 0.012
                 text.text = f'Model #{index}: {candidate.score:.3f}'
@@ -156,7 +167,9 @@ class GraspVisualization:
         markers = cleared_markers(header, self.base_frame)
         matrix = pose_matrix(tcp)
         for axis, color in enumerate([(1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.3, 1.0)]):
-            marker = display_marker(header, self.base_frame, 'selected_tcp_axes', axis, Marker.ARROW)
+            marker = display_marker(
+                header, self.base_frame, 'selected_tcp_axes', axis, Marker.ARROW
+            )
             marker.points = [point(matrix[:3, 3]), point(matrix[:3, 3] + matrix[:3, axis] * 0.04)]
             marker.scale.x, marker.scale.y, marker.scale.z = 0.003, 0.007, 0.01
             marker.color = ColorRGBA(r=color[0], g=color[1], b=color[2], a=1.0)
@@ -171,7 +184,9 @@ class GraspVisualization:
         line.scale.x = 0.003
         line.color = ColorRGBA(r=1.0, g=0.9, b=0.1, a=1.0)
         markers.markers.append(line)
-        label = display_marker(header, self.base_frame, 'selected_score', 0, Marker.TEXT_VIEW_FACING)
+        label = display_marker(
+            header, self.base_frame, 'selected_score', 0, Marker.TEXT_VIEW_FACING
+        )
         label.pose.position = point(matrix[:3, 3] + [0, 0, 0.025])
         label.scale.z = 0.014
         label.text = f'Selected TCP #{index}: {score:.3f}' + (' (flipped)' if flipped else '')

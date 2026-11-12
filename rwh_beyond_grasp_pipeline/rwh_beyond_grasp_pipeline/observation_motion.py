@@ -1,4 +1,5 @@
 """Home-relative observation geometry; no hardware or ROS side effects."""
+
 import copy
 import math
 import numpy as np
@@ -6,8 +7,10 @@ from scipy.spatial.transform import Rotation
 
 
 def validate_observation_parameters(home, rise, tilt, settle, tolerance):
-    for name, values, size in [('home_joint_positions', home, 6),
-                               ('observation_tilt_rpy_deg', tilt, 3)]:
+    for name, values, size in [
+        ('home_joint_positions', home, 6),
+        ('observation_tilt_rpy_deg', tilt, 3),
+    ]:
         array = np.asarray(values, dtype=float)
         if array.shape != (size,) or not np.isfinite(array).all():
             raise ValueError(f'{name} requires {size} finite values')
@@ -26,5 +29,7 @@ def observation_pose(home_pose, rise, tilt):
     q = home_pose.orientation
     rotation = Rotation.from_quat([q.x, q.y, q.z, q.w])
     q_target = (rotation * Rotation.from_euler('xyz', tilt, degrees=True)).as_quat()
-    target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w = map(float, q_target)
+    target.orientation.x, target.orientation.y, target.orientation.z, target.orientation.w = map(
+        float, q_target
+    )
     return target

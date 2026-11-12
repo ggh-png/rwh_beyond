@@ -44,7 +44,7 @@ ros2 service call /runner_manager_node/activate_bt_demo_sim std_srvs/srv/Empty "
 
 runner 활성화 자체는 이동 goal을 보내지 않는다. Groot2 모델 XML을 다시
 불러오고 `rwh_beyond_bt/behavior_trees/demo.xml`을 열면 현재 순서를 볼 수 있다.
-예전 home/up/close/home/open 트리는 `legacy_demo.xml`에 보존했다.
+예전 고정 home/up/close/home/open 중복 예제는 제거했다.
 
 ## GraspStep이 여러 번 나오는 이유
 

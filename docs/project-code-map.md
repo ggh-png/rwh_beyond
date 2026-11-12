@@ -58,8 +58,8 @@ rwh_beyond_bt/src/bt_grasp_action_node.cpp
 | `SelectFeasibleGrasp` | `/grasp/select_feasible_grasp` | `selection_stages.py::select_feasible_grasp()` |
 | `MoveToPregrasp` | `/grasp/move_pregrasp` | `motion_stages.py::execute_trajectory()` |
 | `ApproachGrasp` | `/grasp/approach` | `motion_stages.py::execute_cartesian()` |
-| `AttachObject` | `/grasp/attach` | `motion_stages.py::attach()` |
-| `LiftObject` | `/grasp/lift` | `motion_stages.py::lift()` |
+| `AttachObject` | `/grasp/attach` | `scenario_motion.py::attach()` |
+| `LiftObject` | `/grasp/lift` | `scenario_motion.py::lift()` |
 
 공통 진입점은 `grasp_coordinator.py::execute_stage()`입니다. endpoint별 ActionServer를 만들고,
 관측/계획 ID·입력 일치·실행 순서 검증 후 해당 모듈 함수를 호출합니다.
@@ -109,7 +109,11 @@ BT InferGrasps
 
 - `selection_stages.py`: SAM 관측 충돌 형상, 대상 Octomap 제외 영역, 후보별 거절 사유·IK·경로 계획.
 - `observed_geometry.py`: 관측 XYZ와 주변 Depth에서 물체 AABB·수평 지지면 추정.
-- `motion_stages.py`: ExecuteTrajectory·Cartesian 이동, 양쪽 접촉·물리 상승 확인.
+- `motion_stages.py`: IK·Cartesian 경로와 ExecuteTrajectory 실행.
+- `scenario_motion.py`: 심/실물 공통 home·관측·계획용 attachment·리프트.
+- `gripper_motion.py`: 공통 그리퍼 Action 요청·완료·취소 처리.
+- `hardware_coordinator.py`: 실물 준비 확인·피드백·계획 시작 상태 보정.
+- `physical_trajectory.py`: 실물 명령 전달과 4초 닫기 완료 처리.
 - `visualization.py`: 마스크·overlay·base 점군·후보·선택 marker 발행. 계획 입력을 바꾸지 않음.
 - `grasp_coordinator.py`: 공유 상태·락·취소·정리. 실패/취소 시 임시 제외 영역·충돌 허용 복원.
 - `../moma-mj-lab/ros2_ws/src/moma_mujoco_ros/moma_mujoco_ros/bridge.py`: 카메라/clock/관절·trajectory·검증 서비스의 ROS 연결.

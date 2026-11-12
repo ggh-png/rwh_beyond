@@ -250,7 +250,7 @@ def test_coordinator_close_goal_carries_four_second_duration():
     result=NS(status=4,result=NS(error_code=0))
     handle=NS(accepted=True,get_result_async=lambda:NS(done=lambda:True,result=lambda:result))
     send=Mock(return_value=NS(done=lambda:True,result=lambda:handle))
-    params={'gripper_close_width':.04,'gripper_close_duration':4.}
+    params={'gripper_close_width':.04,'gripper_close_duration':4.,'simulation_only':False}
     state=NS(ensure_backend=Mock(),wait=lambda predicate,timeout:predicate(),motion_handle=None,
         get_parameter=lambda name:NS(value=params[name]),
         gripper_client=NS(server_is_ready=lambda:True,send_goal_async=send))
@@ -258,3 +258,27 @@ def test_coordinator_close_goal_carries_four_second_duration():
     goal=send.call_args.args[0]
     assert list(goal.trajectory.points[0].positions)==[.04]
     assert goal.trajectory.points[0].time_from_start.sec==4
+    assert not goal.path_tolerance
+
+
+def test_physical_readiness_checks_capture_time_tf_without_motion():
+    from sensor_msgs.msg import Image
+    from rclpy.time import Time
+    frame = Image()
+    frame.header.frame_id = 'camera_optical'
+    frame.header.stamp.sec = 42
+    def call(key, request, *args):
+        if key == 'scene':
+            return NS(scene=NS(robot_state=NS(attached_collision_objects=[])))
+        return NS(success=True)
+    state = NS(ensure_backend=Mock(), attached=False, base='base_link',
+        get_parameter=lambda name: NS(value='sam3'), call=call,
+        stage_clients={key: NS(service_is_ready=lambda: True)
+                       for key in ('ik','cartesian','plan','region','clear')},
+        wait=lambda predicate, timeout: predicate(), snapshot=lambda: {'depth':frame},
+        buffer=NS(lookup_transform=Mock()), execute_trajectory=Mock())
+    HardwareGraspCoordinator.check_ready(state)
+    args = state.buffer.lookup_transform.call_args.args
+    assert args[:2] == ('base_link', 'camera_optical')
+    assert args[2] == Time.from_msg(frame.header.stamp)
+    state.execute_trajectory.assert_not_called()

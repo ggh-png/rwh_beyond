@@ -1,4 +1,5 @@
 """Bounded planning-state correction for small physical encoder zero errors."""
+
 import copy
 import math
 import xml.etree.ElementTree as ET
@@ -22,7 +23,7 @@ def arm_position_limits(robot_description):
 
 
 def bounded_planning_state(state, limits, tolerance):
-    if not math.isfinite(tolerance) or not 0 < tolerance <= .05:
+    if not math.isfinite(tolerance) or not 0 < tolerance <= 0.05:
         raise ValueError('planning_start_bounds_tolerance must be in (0, 0.05] rad')
     result = copy.deepcopy(state)
     names = list(result.joint_state.name)
@@ -39,9 +40,11 @@ def bounded_planning_state(state, limits, tolerance):
             raise ValueError(f'Nonfinite physical position for {name}')
         lower, upper = limits[name]
         bounded = min(max(value, lower), upper)
-        if abs(bounded-value) > tolerance:
-            raise RuntimeError(f'{name} physical position {value:.6f} outside [{lower:.6f}, {upper:.6f}] '
-                               f'by more than planning tolerance {tolerance:.6f} rad')
+        if abs(bounded - value) > tolerance:
+            raise RuntimeError(
+                f'{name} physical position {value:.6f} outside [{lower:.6f}, {upper:.6f}] '
+                f'by more than planning tolerance {tolerance:.6f} rad'
+            )
         if bounded != value:
             positions[index] = bounded
             corrections.append(f'{name}: {value:.6f} -> {bounded:.6f}')

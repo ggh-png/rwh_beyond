@@ -141,7 +141,7 @@ MoveIt의 signed 오류 코드를 보존하고 controller 오류와 BT 내부 �
 모델 추론은 `InferGrasps`, IK·충돌·경로 검사는 `SelectFeasibleGrasp`가 담당한다.
 기존 `GraspStep + command`는 호환용으로 남긴다.
 
-예전 고정 home/up/close/home/open은 `legacy_demo.xml`에 보존했다.
+예전 고정 home/up/close/home/open 중복 예제는 제거했다.
 `parameterized_demo.xml`은 `MakeTcpPose → MoveTcp`와 `SetGripper`로 같은 원래
 작업을 표현한 별도 예제다.
 

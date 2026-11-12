@@ -197,7 +197,7 @@ def test_carried_observation_returns_directly_to_home_relative_pose():
 def test_sim_and_real_use_shared_scenario_motion_and_xml():
     from rwh_beyond_grasp_pipeline.grasp_coordinator import GraspCoordinator
     for name in ('move_home', 'move_observation', 'prepare_observation_motion',
-                 'open_gripper', 'attach', 'lift'):
+                 'open_gripper', 'command_gripper', 'attach', 'lift'):
         assert getattr(GraspCoordinator, name) is getattr(HardwareGraspCoordinator, name)
     trees = ROOT/'rwh_beyond_bt/behavior_trees'
     assert (trees/'hardware_demo.xml').resolve() == (trees/'demo.xml').resolve()
@@ -209,7 +209,7 @@ def test_sim_and_real_use_shared_scenario_motion_and_xml():
 @pytest.mark.parametrize('closing', [True, False])
 def test_sim_gripper_routes_configured_width_and_duration(closing):
     from rwh_beyond_grasp_pipeline.grasp_coordinator import GraspCoordinator
-    params = dict(gripper_close_width=.04, gripper_close_duration=4.)
+    params = dict(gripper_close_width=.04, gripper_close_duration=4., simulation_only=True)
     handle = NS(accepted=True, get_result_async=Mock(return_value=NS(
         done=lambda: True, result=lambda: NS(status=4, result=NS(error_code=0)))),
         cancel_goal_async=Mock())
@@ -225,3 +225,22 @@ def test_sim_gripper_routes_configured_width_and_duration(closing):
     assert bool(goal.path_tolerance) == closing
     assert state.motion_handle is None
     handle.cancel_goal_async.assert_not_called()
+
+
+@pytest.mark.parametrize('simulation', [True, False])
+def test_shared_gripper_cancels_accepted_goal_after_result_timeout(simulation):
+    from rwh_beyond_grasp_pipeline.gripper_motion import GripperMotion
+    params = dict(simulation_only=simulation, gripper_close_width=.04, gripper_close_duration=4.)
+    handle = NS(accepted=True, get_result_async=lambda: NS(done=lambda: False),
+                cancel_goal_async=Mock())
+    def wait(predicate, timeout):
+        if not predicate():
+            raise TimeoutError('result timeout')
+    state = NS(ensure_backend=Mock(), wait=wait, motion_handle=None,
+        get_parameter=lambda name: NS(value=params[name]),
+        gripper_client=NS(server_is_ready=lambda: True, send_goal_async=lambda goal:
+                          NS(done=lambda: True, result=lambda: handle)))
+    with pytest.raises(TimeoutError, match='result timeout'):
+        GripperMotion.command_gripper(state, .04)
+    handle.cancel_goal_async.assert_called_once()
+    assert state.motion_handle is None
