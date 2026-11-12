@@ -32,19 +32,6 @@ ros2 launch rwh_beyond_grasp_pipeline grasp_visualization.launch.py
 직접 display를 추가하면 Fixed Frame은 `base_link`, 이미지에는 preview/overlay,
 PointCloud2에는 `object_cloud_base`를 사용합니다. durability를 Transient Local로 맞춥니다.
 
-## 심 전용 부분 실행
-
-`perception_preview.xml`은 home·열기·관측 이동 후 SAM과 점군까지 실행합니다.
-`grasp_debug.xml`은 후보 생성과 경로 선택까지 실행합니다.
-두 트리 모두 관측 이동을 수행하며 현재 보조 트리의 이동 노드는 심 전용입니다.
-실물 기본 시나리오는 `demo.xml`을 사용합니다.
-
-```bash
-ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
-  '{behavior_tree: "/root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/grasp_debug.xml", target_text: "yellow block"}' \
-  --feedback
-```
-
 결과가 없으면 coordinator 실행, 분할·점군 단계 성공, 동일 ROS domain과 QoS를 확인합니다.
 모델 서버만 시작해서는 RViz 결과 토픽이 생성되지 않습니다.
 

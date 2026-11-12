@@ -36,8 +36,8 @@
         <Action ID="GraspStep">
             <input_port name="command" type="std::string">Grasp coordinator stage</input_port>
             <input_port name="rise_m" type="double">Observation rise in base Z (m); set with tilt_deg</input_port>
-            <input_port name="tilt_deg" type="double">Observation home-local Y tilt (degrees); set with rise_m</input_port>
             <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Collision-validated pregrasp TCP</output_port>
+            <input_port name="tilt_deg" type="double">Observation home-local Y tilt (degrees); set with rise_m</input_port>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>

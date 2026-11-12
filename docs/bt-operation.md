@@ -52,7 +52,7 @@ ROS Domain, RMW 및 DDS 네트워크를 맞추고 `/run_demo` 서버가 하나�
 
 ## Groot2
 
-BT 노드 모델은 `rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml`, 기본 트리는 `demo.xml`입니다.
+BT 노드 모델은 `rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml`, 기본 트리는 `demo.xml`입니다.
 공통 YAML의 `run_demo.enable_groot_monitoring`, `run_demo.groot_server_port`로 모니터링을 설정합니다.
 현재 포트 기본값은 5555입니다. Groot2 연결은 시퀀스의 성공이나 물체 잡힘을 보증하지 않습니다.
 

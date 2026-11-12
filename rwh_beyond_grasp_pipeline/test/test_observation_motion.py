@@ -91,8 +91,8 @@ def test_partial_cartesian_path_is_not_executed():
     state.execute_trajectory.assert_not_called()
 
 
-def test_hardware_tree_orders_home_observation_before_segmentation():
-    sequence=ET.parse(ROOT/'rwh_beyond_bt/behavior_trees/hardware_demo.xml').find('.//Sequence')
+def test_shared_tree_orders_home_observation_before_segmentation():
+    sequence=ET.parse(ROOT/'rwh_beyond_bt/behavior_trees/demo.xml').find('.//Sequence')
     steps=[node.attrib.get('command',node.tag) for node in sequence]
     assert steps[:7]==['CheckGraspReady','ClearOctomap','move_home','open_gripper',
                        'move_observation','ClearOctomap','SegmentObject']
@@ -200,7 +200,7 @@ def test_sim_and_real_use_shared_scenario_motion_and_xml():
                  'open_gripper', 'command_gripper', 'attach', 'lift'):
         assert getattr(GraspCoordinator, name) is getattr(HardwareGraspCoordinator, name)
     trees = ROOT/'rwh_beyond_bt/behavior_trees'
-    assert (trees/'hardware_demo.xml').resolve() == (trees/'demo.xml').resolve()
+    assert sorted(path.name for path in trees.iterdir()) == ['demo.xml']
     sequence = ET.parse(trees/'demo.xml').find('.//Sequence')
     assert [n.attrib.get('command', n.tag) for n in sequence][-4:] == [
         'AttachObject', 'LiftObject', 'move_observation', 'move_home']

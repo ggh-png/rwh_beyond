@@ -29,11 +29,12 @@ Groot2 노드 모델을 재생성하려면 다음을 실행합니다.
 
 ```bash
 ros2 run rwh_beyond_bt generate_tree_nodes_xml \
-  /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
+  /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml
 ```
 
 범용 `MakeTcpPose`, `MoveTcp`, `SetGripper`는 사용자 정의 트리에서 사용할 수 있습니다.
-`perception_preview.xml`과 `grasp_debug.xml`은 심 전용 부분 실행 트리입니다.
+배포하는 실행 트리는 심·실물 공통 `behavior_trees/demo.xml` 하나입니다.
+`node_models/rwh_beyond_tree_nodes.xml`은 Groot2 편집용 노드 정의이며 실행 트리가 아닙니다.
 
 [실행](../docs/grasp-pipeline-guide.md) · [공통 설정](../docs/real-bt.md) ·
 [Action](../docs/bt-operation.md) · [포트](../docs/bt-grasp-stages.md)
