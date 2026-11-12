@@ -1155,8 +1155,8 @@ GPU 모델 서버와 필요한 네트워크 연결을 먼저 준비합니다.</p
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">source</span><span class="w"> </span>/root/ros2_ws/install/setup.bash
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>ros2<span class="w"> </span>launch<span class="w"> </span>ros_runner<span class="w"> </span>runner.launch.py
 </code></pre></div>
-<p>runner는 모델 endpoint 환경 파일을 읽습니다. 다른 환경 파일·주소를 사용한다면
-runner 시작 전에 <a href="../piper-runtime/">런타임 설정</a>을 적용합니다.</p>
+<p>외부 서버 SSH 주소와 모델 포트는 <code>ros_runner/config/runners.yaml</code>의 <code>inference_connection</code>에서 관리합니다.
+호스트 터널 서비스를 먼저 준비합니다. <a href="../piper-runtime/">런타임 설정</a>을 참고하세요.</p>
 <h2 id="2">2. 실행 모드 선택<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
 <p>별도 터미널에서 ROS 환경을 source한 뒤 아래 중 하나를 호출합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># 심: piper_sim 의존 실행 + ROS bridge + coordinator + BT + RViz</span>

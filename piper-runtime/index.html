@@ -580,7 +580,29 @@
   <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
-        모델 endpoint
+        외부 서버와 모델 endpoint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        주소 변경과 반영
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        호스트 SSH 인증과 서비스
       
     </span>
   </a>
@@ -1043,7 +1065,29 @@
   <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
-        모델 endpoint
+        외부 서버와 모델 endpoint
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        주소 변경과 반영
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ssh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        호스트 SSH 인증과 서비스
       
     </span>
   </a>
@@ -1094,41 +1138,69 @@ CAN은 파일 장치가 아닌 네트워크 인터페이스입니다. 호스트�
 </code></pre></div>
 <p>실물 runner는 기본 <code>can0</code>를 사용하며 인터페이스가 UP인지 확인합니다.
 현재 장비의 CAN bitrate는 1 Mbps입니다.</p>
-<h2 id="endpoint">모델 endpoint<a class="headerlink" href="#endpoint" title="Permanent link">&para;</a></h2>
-<p>기본 주소는 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>에 이미 지정되어 있습니다.
-runner로 실행할 때 별도로 <code>export</code>할 필요가 없습니다.</p>
+<h2 id="endpoint">외부 서버와 모델 endpoint<a class="headerlink" href="#endpoint" title="Permanent link">&para;</a></h2>
+<p>runner 사용 시 접속 설정 원본은 <strong><code>ros_runner/config/runners.yaml</code>의 <code>inference_connection</code></strong>입니다.
+서버 주소를 <code>.sh</code>나 <code>remote.env</code>에 따로 지정하지 않습니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">inference_connection</span><span class="p">:</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ssh</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">166.104.138.121</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ircgroup1</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">ssh_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5022</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">grasp_local_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15566</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">sam_local_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15567</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">grasp_remote_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5566</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">sam_remote_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5567</span>
+</code></pre></div>
 <table>
 <thead>
 <tr>
-<th>모델</th>
-<th>YAML 기본 endpoint</th>
+<th>항목</th>
+<th>의미</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>SAM 3</td>
-<td><code>tcp://127.0.0.1:5567</code></td>
+<td><code>host</code>, <code>user</code>, <code>ssh_port</code></td>
+<td>GPU 서버의 SSH 접속 정보</td>
 </tr>
 <tr>
-<td>GraspGenX</td>
-<td><code>tcp://127.0.0.1:5566</code></td>
+<td><code>grasp_local_port</code>, <code>sam_local_port</code></td>
+<td>로봇 PC에서 bridge가 접속하는 터널 포트</td>
+</tr>
+<tr>
+<td><code>grasp_remote_port</code>, <code>sam_remote_port</code></td>
+<td>외부 서버 안에서 모델이 사용하는 포트</td>
 </tr>
 </tbody>
 </table>
-<p>고정 주소를 바꾸려면 공통 YAML의 각 bridge <code>endpoint</code>를 수정합니다.
-환경별 주소가 필요하면 runner가 자동으로 읽는 <code>$HOME/rwh-inference/remote.env</code>에
-<code>RWH_GRASP_ENDPOINT</code>, <code>RWH_SEGMENTATION_ENDPOINT</code>를 저장할 수 있습니다.
-다른 환경 파일은 <code>RWH_MODEL_ENV_FILE</code>로 지정합니다.</p>
-<p>적용 우선순위는 명시적인 launch 인자 → launch가 읽는 환경변수 → 공통 YAML입니다.
-runner는 활성화 스크립트에서 환경 파일을 source하므로 그 파일이 같은 이름의 환경변수를
-다시 지정하면 파일 값이 적용됩니다. 고정 YAML 주소를 사용하려면 해당 override를 비웁니다.
-환경 파일 변경은 다음 runner 활성화 시 읽고, 실행 중인 bridge에는 재활성화 후 적용합니다.</p>
-<p>loopback은 로봇 PC의 모델 또는 SSH 포워딩 endpoint를 뜻하며 외부 서버를 자동 검색하지 않습니다.
-SSH 터널과 GPU 모델 프로세스는 ROS runner와 별도로 준비합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/sam3/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/graspgenx/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+<p>호스트 SSH 서비스는 이 YAML을 읽어 터널을 구성하고, BT runner도 같은 YAML에서
+<code>RWH_GRASP_ENDPOINT</code>, <code>RWH_SEGMENTATION_ENDPOINT</code>를 만듭니다.
+현재 값은 각각 <code>tcp://127.0.0.1:15566</code>, <code>tcp://127.0.0.1:15567</code>입니다.
+SSH가 서버의 5566/5567로 전달하므로 ROS에서는 localhost에 접속합니다.</p>
+<h2 id="_1">주소 변경과 반영<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>YAML을 수정한 뒤 <strong>호스트</strong>에서 터널을 재시작합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>systemctl<span class="w"> </span>--user<span class="w"> </span>restart<span class="w"> </span>rwh-inference-tunnel
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>systemctl<span class="w"> </span>--user<span class="w"> </span>status<span class="w"> </span>rwh-inference-tunnel
 </code></pre></div>
-<p><code>ROS_DOMAIN_ID</code>는 ROS DDS 통신에 사용되며 모델 ZMQ endpoint와는 별개입니다.</p>
+<p>실행 중인 BT와 bridge는 비활성화·재활성화해 새 주소를 읽습니다. 주소 수정만으로는 재빌드가 필요 없습니다.
+이번 runner 실행 구조 업데이트를 처음 적용할 때는 runner 프로세스도 한 번 재시작합니다.
+<code>remote.env</code>와 수동 export로 endpoint를 덮어쓰는 경로는 모델 runner에서 사용하지 않습니다.
+직접 ROS launch를 호출하는 경우에는 launch 인자·환경변수·BT YAML 기본값을 사용할 수 있습니다.</p>
+<h2 id="ssh">호스트 SSH 인증과 서비스<a class="headerlink" href="#ssh" title="Permanent link">&para;</a></h2>
+<p>SSH 서비스는 호스트의 인증 환경을 사용합니다. 인증 키나 비밀번호를 runner YAML에 넣지 않습니다.
+호스트의 <code>inference_tunnel_host.py</code>가 <code>podman exec</code>로 컨테이너 안의 runner 설정을 읽고 SSH를 실행합니다.
+현재 호스트 서비스는 이 helper를 호출하도록 연결되어 있습니다.</p>
+<p>다른 장비에 설치할 때는 <code>ros_runner/scripts/inference_tunnel_host.py</code>를 호스트에 복사하고,
+기존 SSH 인증 환경에서 해당 파일을 실행하는 서비스를 준비합니다.
+<code>RWH_RUNNER_CONTAINER</code>는 ROS 컨테이너 이름, <code>RWH_RUNNER_CONFIG</code>는 컨테이너 안 YAML 경로를 지정합니다.
+기본 컨테이너는 <code>moma_mj_lab_1.1.2_hostcan</code>, 기본 YAML은 설치된 <code>ros_runner/config/runners.yaml</code>입니다.
+커스텀 <code>config_yaml</code>로 runner를 실행한다면 호스트 서비스에도 동일한 경로를 지정합니다.</p>
+<p>모델을 로컬에서 실행할 때는 <code>mode: local</code>, local 포트를 모델의 실제 포트로 바꾸고 호스트 SSH 서비스를 중지합니다.
+GPU 모델 프로세스 기동은 SSH 터널·ROS runner와 별도입니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/sam3/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/graspgenx/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+</code></pre></div>
+<p><code>ROS_DOMAIN_ID</code>는 ROS DDS 통신용이며 모델 ZMQ endpoint와는 별개입니다.</p>
 <h2 id="runner">주요 runner 설정<a class="headerlink" href="#runner" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
