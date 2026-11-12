@@ -877,6 +877,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BT 단계·포트·Action
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -893,6 +911,36 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML에서 동작 조정
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1008,6 +1056,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML에서 동작 조정
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1043,9 +1110,19 @@
 <td>모델·backend·기존 attachment 준비 확인</td>
 </tr>
 <tr>
-<td><code>GraspStep</code></td>
-<td><code>/grasp_step</code></td>
-<td><code>move_home</code>, <code>open_gripper</code>, <code>move_observation</code></td>
+<td><code>MoveHome</code></td>
+<td><code>/grasp/move_home</code></td>
+<td>공통 home 이동</td>
+</tr>
+<tr>
+<td><code>OpenGripper</code></td>
+<td><code>/grasp/open_gripper</code></td>
+<td>YAML에 지정한 폭·시간으로 열기</td>
+</tr>
+<tr>
+<td><code>MoveObservation</code></td>
+<td><code>/grasp/move_observation</code></td>
+<td>선택적 x·y·z·tilt_deg → 관측 이동</td>
 </tr>
 <tr>
 <td><code>ClearOctomap</code></td>
@@ -1094,7 +1171,9 @@
 </tr>
 </tbody>
 </table>
-<p><code>/grasp/*</code> 단계는 <code>RunGraspStage</code>, <code>/grasp_step</code>은 <code>RunGraspStep</code> 타입입니다.
+<p><code>MoveHome</code>, <code>OpenGripper</code>, <code>MoveObservation</code>의 Action 타입은 <code>RunGraspStep</code>,
+나머지 <code>/grasp/*</code> 단계는 <code>RunGraspStage</code>입니다. 시나리오 endpoint는 수행할 동작이 고정되어 있으며
+요청의 <code>command</code> 값으로 다른 동작을 선택하지 않습니다. 이전 <code>GraspStep</code> 플러그인과 <code>/grasp_step</code> endpoint는 제거했습니다.
 <code>SegmentObject</code>는 선택적 <code>target_text</code> 입력 포트도 지원하며 <code>/run_demo</code>의 요청별 텍스트가 우선합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;SegmentObject</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span><span class="w"> </span><span class="na">mask=</span><span class="s">"{object_mask}"</span><span class="nt">/&gt;</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">&lt;BuildObjectCloud</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span><span class="w"> </span><span class="na">mask=</span><span class="s">"{object_mask}"</span><span class="w"> </span><span class="na">cloud=</span><span class="s">"{object_cloud}"</span><span class="nt">/&gt;</span>
@@ -1111,7 +1190,86 @@
 촬영 후 30초가 지났거나 관절이 0.02 rad 넘게 바뀌면 재관측을 요구합니다.</p>
 <p><code>server_timeout="1000"</code>은 Nav2 Action 요청 응답 대기 시간(ms)이며 전체 모델 추론 제한 시간이 아닙니다.
 별도 <code>MoveTcp</code>, <code>MakeTcpPose</code>, <code>SetGripper</code> 등 범용 플러그인의 포트는 노드 모델 XML에서 확인합니다.
-기본 시나리오의 관측 이동은 범용 <code>MoveObservation</code>이 아닌 <code>GraspStep command="move_observation"</code>입니다.</p>
+<code>MoveObservation</code>은 coordinator를 호출하며 고정된 심 전용 관절 자세를 사용하지 않습니다.
+<code>x</code>, <code>y</code>, <code>z</code>, <code>tilt_deg</code>는 각각 독립적으로 지정할 수 있습니다.
+좌표는 절대 위치가 아니라 home TCP 기준 base 축 방향 이동량이며, Z=0이나 음수도 지원합니다.
+같은 값을 다시 호출하면 현재 위치에 누적하지 않고 동일한 home 기준 목표로 이동합니다.</p>
+<h2 id="xml">XML에서 동작 조정<a class="headerlink" href="#xml" title="Permanent link">&para;</a></h2>
+<p>단계 순서·반복·조건 분기는 XML에서 조합합니다. 각 Action 노드의 입력은 리터럴 또는
+<code>{blackboard_key}</code>로 전달할 수 있습니다. <code>server_name</code>으로 endpoint를 교체할 수도 있습니다.
+기본 트리는 심·실물이 공유하며, 실제 처리와 충돌 검사는 coordinator에서 수행합니다.</p>
+<table>
+<thead>
+<tr>
+<th>노드</th>
+<th>선택 입력</th>
+<th>단위·범위</th>
+<th>생략 시</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MoveHome</code></td>
+<td><code>home_joint_positions</code></td>
+<td>joint1~6 순서, 유한한 6개 rad</td>
+<td>YAML home</td>
+</tr>
+<tr>
+<td><code>MoveObservation</code></td>
+<td><code>home_joint_positions</code></td>
+<td>관측 자세의 home 기준, 유한한 6개 rad</td>
+<td>YAML home</td>
+</tr>
+<tr>
+<td><code>MoveObservation</code></td>
+<td><code>x</code>, <code>y</code>, <code>z</code></td>
+<td>home TCP 기준 base 축 방향 이동량(m), 부호 허용</td>
+<td>X·Y=0, Z=YAML 관측값</td>
+</tr>
+<tr>
+<td><code>MoveObservation</code></td>
+<td><code>tilt_deg</code></td>
+<td>home 로컬 Y 회전(°)</td>
+<td>YAML Y 기울임</td>
+</tr>
+<tr>
+<td><code>MoveObservation</code></td>
+<td><code>settle_time</code></td>
+<td>0~30초</td>
+<td>YAML 안정화 시간</td>
+</tr>
+<tr>
+<td><code>OpenGripper</code></td>
+<td><code>opening</code></td>
+<td>0~0.10m</td>
+<td>YAML 열림 폭</td>
+</tr>
+<tr>
+<td><code>OpenGripper</code></td>
+<td><code>duration</code></td>
+<td>0 초과~30초</td>
+<td>기본 3초</td>
+</tr>
+<tr>
+<td>세 노드 공통</td>
+<td><code>server_name</code>, <code>server_timeout</code></td>
+<td>endpoint, 요청 응답 대기(ms)</td>
+<td>등록 endpoint, Nav2 기본값</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">&lt;MoveHome</span><span class="w"> </span><span class="na">home_joint_positions=</span><span class="s">"0;0;0;0;0;0"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">&lt;OpenGripper</span><span class="w"> </span><span class="na">opening=</span><span class="s">"0.10"</span><span class="w"> </span><span class="na">duration=</span><span class="s">"3.0"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="nt">&lt;MoveObservation</span><span class="w"> </span><span class="na">home_joint_positions=</span><span class="s">"0;0;0;0;0;0"</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">                 </span><span class="na">x=</span><span class="s">"0.0"</span><span class="w"> </span><span class="na">y=</span><span class="s">"0.0"</span><span class="w"> </span><span class="na">z=</span><span class="s">"0.10"</span><span class="w"> </span><span class="na">tilt_deg=</span><span class="s">"40.0"</span><span class="w"> </span><span class="na">settle_time=</span><span class="s">"0.5"</span><span class="nt">/&gt;</span>
+</code></pre></div>
+<p>관절 배열의 구분자는 세미콜론입니다. home을 바꿀 때는 <code>MoveHome</code>과 <code>MoveObservation</code>의
+home 기준을 일치시킵니다. XML 값은 해당 실행에만 적용되며 YAML이나 다음 요청의 기본값을 바꾸지 않습니다.
+현재 <code>OpenGripper</code>는 부착된 물체를 자동으로 놓는 용도가 아니며, 부착 상태에서는 요청을 거부합니다.
+XML에서 Nav2의 <code>SubTree</code>, <code>Fallback</code>, 반복·조건 노드를 조합할 수 있지만, 이미 실행한 파지 단계를
+무조건 재시도하면 coordinator의 순서·부착 상태 검사에서 거부될 수 있습니다.</p>
+<p><code>RunGraspStep</code> Goal 형식이 확장되었으므로 호출 측과 ROS 노드는 같은 버전의 <code>rwh_beyond_msgs</code>로
+빌드한 뒤 재시작해야 합니다. 외부 <code>/run_demo</code> Goal 형식은 유지됩니다.</p>
 <p><a href="../project-code-map/">코드 안내</a> · <a href="../bt-operation/">RunDemo</a></p>
 
 

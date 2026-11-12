@@ -620,6 +620,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#bt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        실물 BT 시작 시 티칭 종료
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1161,6 +1172,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#bt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        실물 BT 시작 시 티칭 종료
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1254,7 +1276,7 @@
 </tr>
 <tr>
 <td><code>use_rviz</code></td>
-<td>실물 MoveIt RViz 사용 여부</td>
+<td>실물 <code>bt_demo</code> 활성화 시 통합 RViz 사용 여부</td>
 </tr>
 </tbody>
 </table>
@@ -1359,6 +1381,22 @@ YAML 값만 바꾸면 재빌드는 필요 없습니다.
 <code>tcp_offset</code>과 파지 모델의 <code>model_to_tcp_*</code> 보정은 서로 다른 변환입니다.</p>
 <p><a href="../grasp-pipeline-guide/">실행 가이드</a> · <a href="../d405-sensors/">D405와 TF</a> ·
 <a href="../piper-hardware-moveit/">실물 제어</a> · <a href="../piper-runtime/">외부 모델 연결</a></p>
+<h2 id="bt">실물 BT 시작 시 티칭 종료<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h2>
+<p><code>runners.yaml</code>의 다음 설정은 실물 <code>bt_demo</code>에만 적용됩니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">bt_demo_startup</span><span class="p">:</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">exit_teach_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">delay_seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">service_timeout_seconds</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">15.0</span>
+</code></pre></div>
+<p>BT launch 시작 후 10초가 지나면 <code>/exit_teach_mode</code>를 한 번 호출합니다.
+이 서비스는 팔 home 이동과 모터 활성화를 수행할 수 있으며 <code>piper.auto_enable</code>과 별개입니다.
+<code>exit_teach_mode: false</code>로 자동 호출을 끌 수 있습니다.
+대기 중 BT를 중지하면 예약도 취소됩니다. 이미 전송한 Empty 요청은 취소할 수 없습니다.
+서비스 대기/응답 시간이 제한을 넘으면 호출 클라이언트를 종료하고 자동 재시도 없이 BT를 유지합니다.
+로그와 실제 arm 상태를 확인한 뒤 <code>/run_demo</code>를 호출합니다.
+설정값은 다음 활성화부터 적용됩니다. 새 wrapper의 최초 적용에는 runner 재시작이 필요합니다.</p>
+<p>실물 <code>bt_demo</code>가 RViz를 함께 시작하고 종료합니다. 의존 runner인 <code>piper_moveit</code>은
+RViz를 따로 시작하지 않아 창이 중복되지 않습니다. <code>piper.use_rviz: true</code>가 기본값입니다.</p>
 
 
 

@@ -900,6 +900,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#groot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Groot에서 보는 시나리오 그룹
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1085,6 +1096,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#groot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Groot에서 보는 시나리오 그룹
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1141,6 +1163,35 @@
 <p><code>DemoNavigator</code>가 <code>/run_demo</code>를 제공하고, <code>demo.xml</code>이 작업 순서를 결정합니다.
 각 BT Action 플러그인은 coordinator의 단계별 ROS Action을 호출합니다.
 coordinator는 관측·계획·장면 상태를 보관하고 모델 추론과 MoveIt을 연결합니다.</p>
+<h2 id="groot">Groot에서 보는 시나리오 그룹<a class="headerlink" href="#groot" title="Permanent link">&para;</a></h2>
+<p>최상위 <code>PickSequence</code> 아래의 네 Sequence가 순서대로 실행됩니다.
+같은 Blackboard를 공유하며, 한 단계가 실패하면 이후 그룹은 실행하지 않습니다.</p>
+<table>
+<thead>
+<tr>
+<th>Sequence 이름</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PrepareAndObserve</code></td>
+<td>준비 확인 → 지도 초기화 → home → 그리퍼 열기 → 관측 이동 → 지도 갱신</td>
+</tr>
+<tr>
+<td><code>PerceiveAndPlan</code></td>
+<td>물체 분할 → 점군 생성 → 파지 추론 → 실행 가능한 파지 선택</td>
+</tr>
+<tr>
+<td><code>GraspAndLift</code></td>
+<td>사전 접근 → 접근 → 그리퍼 닫기·부착 → 리프트</td>
+</tr>
+<tr>
+<td><code>ReturnHome</code></td>
+<td>관측 자세 복귀 → home 복귀</td>
+</tr>
+</tbody>
+</table>
 <h2 id="_1">역할 분리<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1176,7 +1227,10 @@ coordinator는 관측·계획·장면 상태를 보관하고 모델 추론과 Mo
 </tr>
 </tbody>
 </table>
-<p>home·열기·관측은 <code>GraspStep</code>으로 <code>/grasp_step</code>을 호출합니다.
+<p>home·열기·관측은 <code>MoveHome</code>, <code>OpenGripper</code>, <code>MoveObservation</code>이 각각
+<code>/grasp/move_home</code>, <code>/grasp/open_gripper</code>, <code>/grasp/move_observation</code> Action을 호출합니다.
+세 플러그인은 Nav2 <code>BtActionNode</code>를 상속하며 입력 변환·결과·취소 처리를 담당합니다.
+실제 동작은 coordinator에서 심·실물 공통 구현을 사용합니다.
 분할부터 리프트까지는 목적별 플러그인과 <code>/grasp/*</code> endpoint를 사용합니다.
 닫기는 <code>AttachObject</code> 내부에서 수행하므로 기본 트리에 별도 <code>CloseGripper</code>를 추가하지 않습니다.</p>
 <h2 id="_2">데이터와 상태<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>

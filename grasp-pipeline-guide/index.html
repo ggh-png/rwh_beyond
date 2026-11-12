@@ -1223,6 +1223,9 @@ GPU 모델 서버와 필요한 네트워크 연결을 먼저 준비합니다.
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/activate_bt_demo<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
 </code></pre></div>
 <p>활성화는 실행 환경을 시작하며 집기 Action 목표를 자동으로 보내지 않습니다.
+실물 <code>bt_demo</code>는 기본적으로 시작 10초 후 <code>/exit_teach_mode</code>를 한 번 호출하며,
+이 전환에는 팔 home 이동·모터 활성화가 포함될 수 있습니다.
+전환 완료와 arm 상태를 확인한 뒤 집기 목표를 보냅니다.
 실물에서는 CAN·모터·제어 모드를 <a href="../piper-hardware-moveit/">실물 제어 안내</a>에 따라 준비합니다.</p>
 <h2 id="3">3. 준비 확인<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/sam3/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
