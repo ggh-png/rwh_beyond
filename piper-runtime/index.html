@@ -1095,22 +1095,38 @@ CAN은 파일 장치가 아닌 네트워크 인터페이스입니다. 호스트�
 <p>실물 runner는 기본 <code>can0</code>를 사용하며 인터페이스가 UP인지 확인합니다.
 현재 장비의 CAN bitrate는 1 Mbps입니다.</p>
 <h2 id="endpoint">모델 endpoint<a class="headerlink" href="#endpoint" title="Permanent link">&para;</a></h2>
-<p>공통 YAML 기본 주소는 SAM <code>tcp://127.0.0.1:5567</code>, GraspGenX <code>tcp://127.0.0.1:5566</code>입니다.
-loopback 주소는 로봇 PC에서 접근 가능한 모델 또는 SSH 포워딩 endpoint를 뜻합니다.
-외부 서버 주소가 자동으로 검색되는 것은 아닙니다.</p>
-<p>runner는 <code>RWH_MODEL_ENV_FILE</code>의 파일을 읽으며 기본 경로는 <code>$HOME/rwh-inference/remote.env</code>입니다.
-다음 변수를 통해 endpoint를 지정할 수 있습니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># runner 시작 전에 실제 구성에 맞게 지정</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_GRASP_ENDPOINT</span><span class="o">=</span>tcp://127.0.0.1:5566
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_SEGMENTATION_ENDPOINT</span><span class="o">=</span>tcp://127.0.0.1:5567
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># 다른 환경 파일을 쓸 때:</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_MODEL_ENV_FILE</span><span class="o">=</span>/path/to/model.env
-</code></pre></div>
-<p>환경 파일은 지정한 값을 덮어쓸 수 있으므로 최종 파일 내용과 runner 시작 로그의 endpoint를 확인합니다.
-SSH 터널을 사용한다면 해당 터널을 먼저 연결하고 포워딩 포트에 맞춥니다.
-모델 가중치·GPU 프로세스는 ROS runner와 별도로 준비합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/sam3/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/graspgenx/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+<p>기본 주소는 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>에 이미 지정되어 있습니다.
+runner로 실행할 때 별도로 <code>export</code>할 필요가 없습니다.</p>
+<table>
+<thead>
+<tr>
+<th>모델</th>
+<th>YAML 기본 endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SAM 3</td>
+<td><code>tcp://127.0.0.1:5567</code></td>
+</tr>
+<tr>
+<td>GraspGenX</td>
+<td><code>tcp://127.0.0.1:5566</code></td>
+</tr>
+</tbody>
+</table>
+<p>고정 주소를 바꾸려면 공통 YAML의 각 bridge <code>endpoint</code>를 수정합니다.
+환경별 주소가 필요하면 runner가 자동으로 읽는 <code>$HOME/rwh-inference/remote.env</code>에
+<code>RWH_GRASP_ENDPOINT</code>, <code>RWH_SEGMENTATION_ENDPOINT</code>를 저장할 수 있습니다.
+다른 환경 파일은 <code>RWH_MODEL_ENV_FILE</code>로 지정합니다.</p>
+<p>적용 우선순위는 명시적인 launch 인자 → launch가 읽는 환경변수 → 공통 YAML입니다.
+runner는 활성화 스크립트에서 환경 파일을 source하므로 그 파일이 같은 이름의 환경변수를
+다시 지정하면 파일 값이 적용됩니다. 고정 YAML 주소를 사용하려면 해당 override를 비웁니다.
+환경 파일 변경은 다음 runner 활성화 시 읽고, 실행 중인 bridge에는 재활성화 후 적용합니다.</p>
+<p>loopback은 로봇 PC의 모델 또는 SSH 포워딩 endpoint를 뜻하며 외부 서버를 자동 검색하지 않습니다.
+SSH 터널과 GPU 모델 프로세스는 ROS runner와 별도로 준비합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/sam3/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/graspgenx/health<span class="w"> </span>std_srvs/srv/Trigger<span class="w"> </span><span class="s1">'{}'</span>
 </code></pre></div>
 <p><code>ROS_DOMAIN_ID</code>는 ROS DDS 통신에 사용되며 모델 ZMQ endpoint와는 별개입니다.</p>
 <h2 id="runner">주요 runner 설정<a class="headerlink" href="#runner" title="Permanent link">&para;</a></h2>
