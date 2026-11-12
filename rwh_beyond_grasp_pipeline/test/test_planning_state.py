@@ -1,5 +1,6 @@
 """Small encoder boundary errors can be planned without changing measured feedback."""
 import copy
+import math
 from types import SimpleNamespace as NS
 from unittest.mock import Mock
 
@@ -46,7 +47,7 @@ def test_upper_boundary_is_also_corrected_and_larger_error_rejected():
     with pytest.raises(RuntimeError):bounded_planning_state(measured(3.16),limits,.01)
 
 
-@pytest.mark.parametrize('tolerance',[0.,-.01,.051,float('nan')])
+@pytest.mark.parametrize('tolerance',[0.,-.01,math.pi+.001,float('nan')])
 def test_tolerance_cannot_disable_bound_checks(tolerance):
     with pytest.raises(ValueError):bounded_planning_state(measured(),arm_position_limits(description()),tolerance)
 
@@ -64,7 +65,7 @@ def test_hardware_state_loads_moveit_limits_once_and_keeps_feedback_original(mon
             self.planning_limits=None
             self.feedback=Mock()
             self.call=Mock(return_value=NS(values=[ParameterValue(string_value=description())]))
-            self.get_parameter=Mock(return_value=NS(value=.01))
+            self.get_parameter=Mock(return_value=NS(value=math.degrees(.01)))
             self.logger=NS(warning=Mock())
         def get_logger(self):return self.logger
     hardware=Fake()
@@ -103,3 +104,31 @@ def test_boundary_recovery_starts_at_actual_joint_and_limits_transition_speed():
     assert times[-1]==times[1]+1.
     current['joint2']=-.0501
     with pytest.raises(ValueError):trajectory_points(trajectory,current,names,.05)
+
+
+@pytest.mark.parametrize('angle_deg', [9.9, 10.0, 10.1])
+def test_ten_degree_start_limit_is_shared_with_physical_transport(angle_deg):
+    from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+    from builtin_interfaces.msg import Duration
+    from rwh_beyond_grasp_pipeline.physical_trajectory import trajectory_points
+    tolerance = math.radians(10.)
+    value = -math.radians(angle_deg)
+    state = measured(value)
+    original = copy.deepcopy(state)
+    names = [f'joint{i}' for i in range(1,7)]
+    current = dict(zip(state.joint_state.name, state.joint_state.position))
+    trajectory = JointTrajectory(joint_names=names, points=[
+        JointTrajectoryPoint(positions=[.1,0.,.1,.1,.1,.1]),
+        JointTrajectoryPoint(positions=[.1]*6, time_from_start=Duration(sec=1))])
+    if angle_deg > 10.:
+        with pytest.raises(RuntimeError):
+            bounded_planning_state(state, arm_position_limits(description()), tolerance)
+        with pytest.raises(ValueError):
+            trajectory_points(trajectory, current, names, tolerance)
+    else:
+        planned, _ = bounded_planning_state(state, arm_position_limits(description()), tolerance)
+        assert planned.joint_state.position[1] == 0.
+        _, times, points = trajectory_points(trajectory, current, names, tolerance)
+        assert points[0,1] == value
+        assert abs(points[1,1]-points[0,1])/times[1] <= .1 + 1e-12
+    assert state == original

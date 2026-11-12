@@ -21,6 +21,7 @@ def coordinator():
     obj.stage=lambda text:None
     obj.get_parameter=lambda name:SimpleNamespace(value=True)
     obj.physics=lambda:None
+    obj.ensure_backend=lambda:None
     obj.get_logger=lambda:SimpleNamespace(error=lambda message:None)
     def cleanup():
         obj.cleanups+=1

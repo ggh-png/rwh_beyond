@@ -29,6 +29,9 @@ ClearOctomapAction::ClearOctomapAction(
 : BT::StatefulActionNode(xml_tag_name, conf),
   node_(conf.blackboard->get<rclcpp::Node::SharedPtr>("node"))
 {
+  if (!node_->has_parameter("octomap_enabled")) {
+    node_->declare_parameter("octomap_enabled", true);
+  }
   group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
   executor_.add_callback_group(group_, node_->get_node_base_interface());
 }
@@ -53,6 +56,10 @@ BT::NodeStatus ClearOctomapAction::onStart()
   begin_stage(config().blackboard, "clear_octomap", name());
   cleanup();
   try {
+    if (!node_->get_parameter("octomap_enabled").as_bool()) {
+      RCLCPP_INFO(node_->get_logger(), "%s: skipped (octomap_enabled=false)", name().c_str());
+      return BT::NodeStatus::SUCCESS;
+    }
     const auto once = getInput<bool>("once");
     const auto timeout = getInput<double>("timeout");
     const auto count = getInput<int>("fresh_clouds");

@@ -184,3 +184,13 @@ TEST_F(ClearOctomapTest, InvalidInputsNeverClear)
   }
   EXPECT_EQ(clears_, 0);
 }
+
+TEST_F(ClearOctomapTest, DisabledSkipsMapServicesAndContinues)
+{
+  client_->declare_parameter("octomap_enabled", false);
+  auto bt = tree("<Sequence><ClearOctomap/><Next/></Sequence>");
+  EXPECT_EQ(bt.tickOnce(), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(clears_, 0);
+  EXPECT_EQ(queries_, 0);
+  EXPECT_EQ(next_, 1);
+}

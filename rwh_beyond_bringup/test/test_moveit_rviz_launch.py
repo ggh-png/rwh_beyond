@@ -36,6 +36,14 @@ class MoveitRvizLaunchTest(unittest.TestCase):
             evaluate_parameters(context, rviz_node._Node__parameters),
             evaluate_parameters(context, sim_node._Node__parameters))
 
+    def test_standalone_real_rviz_uses_wall_clock(self):
+        rviz = load_launch(Path(__file__).resolve().parents[1] / 'launch/moveit_rviz.launch.py')
+        context = LaunchContext()
+        context.launch_configurations.update(use_sim_time='false',
+            tcp_offset='[0.0,0.0,0.1425,0.0,0.0,0.0]')
+        node, = rviz.create_rviz(context)
+        self.assertFalse(evaluate_parameters(context, node._Node__parameters)[0]['use_sim_time'])
+
     def test_invalid_tcp_offset_is_rejected(self):
         rviz = load_launch(Path(__file__).resolve().parents[1] / 'launch/moveit_rviz.launch.py')
         context = LaunchContext()

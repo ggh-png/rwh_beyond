@@ -4,7 +4,7 @@
 |---|---|---|
 | `sam3_bridge` | `/segment_image`, `/sam3/health` | RGB·대상 조건 → 마스크 |
 | `graspgenx_bridge` | `/infer_grasps`, `/graspgenx/health` | 객체 XYZ → 파지 후보 |
-| `grasp_coordinator` | `/grasp/*`, `/grasp_step`, `/grasp/cleanup` | 관측·계획·실행 상태 관리 |
+| `grasp_coordinator` | `/grasp/*`, `/grasp/cleanup` | 관측·계획·실행 상태 관리 |
 
 두 health 서비스는 `std_srvs/srv/Trigger`입니다. 실제 모델 프로세스가 GPU에 준비되어 있어야 합니다.
 ROS bridge가 실행 중이라는 사실만으로 GPU 모델 준비를 확인할 수는 없습니다.

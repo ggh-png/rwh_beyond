@@ -1,4 +1,5 @@
 """Hardware planning parity without starting a driver or sending robot commands."""
+import math
 import importlib.util
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -42,8 +43,11 @@ def test_hardware_matches_simulation_parameters_except_clock():
     actual = evaluate_parameters(context, normalize_parameters([params]))[0]
     assert actual.pop('use_sim_time') is False
     assert expected.pop('use_sim_time') is True
-    assert actual.pop('trajectory_execution.allowed_start_tolerance') == .05
+    assert actual.pop('trajectory_execution.allowed_start_tolerance') == math.radians(10.0)
     expected.pop('trajectory_execution.allowed_start_tolerance', None)
+    # Real Octomap can be disabled independently in the shared BT configuration.
+    if 'sensors' not in actual:
+        expected.pop('sensors', None)
     assert actual == expected
 
 
@@ -138,7 +142,7 @@ def test_execution_and_physical_start_tolerance_share_coordinator_setting():
     import yaml
     settings=yaml.safe_load((Path(get_package_share_directory('rwh_beyond_bringup')) /
         'config/bt_demo.yaml').read_text())
-    expected=settings['grasp_coordinator']['ros__parameters']['planning_start_bounds_tolerance']
+    expected=math.radians(settings['grasp_coordinator']['ros__parameters']['planning_start_bounds_tolerance_deg'])
     module=load(Path(__file__).resolve().parents[1]/'launch/piper_moveit.launch.py','tolerance_hardware')
     context=defaults(module);context.launch_configurations['execution_transport']='feedback'
     _,group,*_=hardware_nodes(context)
@@ -150,3 +154,32 @@ def test_execution_and_physical_start_tolerance_share_coordinator_setting():
     assert transport_params['gripper_close_width']==settings['grasp_coordinator']['ros__parameters']['gripper_close_width']
     assert transport_params['gripper_close_duration']==settings['grasp_coordinator']['ros__parameters']['gripper_close_duration']
     assert evaluate_parameters(context,move_group._Node__parameters)[0]['trajectory_execution.allowed_start_tolerance']==expected
+
+
+@pytest.mark.parametrize('degrees', [5.0, 10.0, 15.0, 0.0, -1.0, float('nan'), 181.0])
+def test_start_tolerance_reads_degrees_from_yaml(monkeypatch, tmp_path, degrees):
+    import yaml
+    import rwh_beyond_bringup.piper_hardware as hardware
+    original = hardware.get_package_share_directory
+    data = yaml.safe_load((Path(original('rwh_beyond_bringup')) / 'config/bt_demo.yaml').read_text())
+    data['grasp_coordinator']['ros__parameters']['planning_start_bounds_tolerance_deg'] = degrees
+    (tmp_path/'config').mkdir()
+    (tmp_path/'config/bt_demo.yaml').write_text(yaml.safe_dump(data))
+    monkeypatch.setattr(hardware, 'get_package_share_directory',
+        lambda name:str(tmp_path) if name == 'rwh_beyond_bringup' else original(name))
+    if not math.isfinite(degrees) or not 0 < degrees <= 180.:
+        with pytest.raises(ValueError, match='degrees'):
+            hardware.moveit_parameters(DEFAULT_TCP)
+    else:
+        params = hardware.moveit_parameters(DEFAULT_TCP)
+        assert params['trajectory_execution']['allowed_start_tolerance'] == math.radians(degrees)
+
+
+def test_shared_octomap_switch_disables_hardware_map_updater():
+    import yaml
+    path = Path(__file__).resolve().parents[1] / 'config/bt_demo.yaml'
+    settings = yaml.safe_load(path.read_text())
+    enabled = settings['/**']['ros__parameters']['octomap_enabled']
+    params = moveit_parameters(DEFAULT_TCP)
+    assert ('sensors' in params) is enabled
+    assert 'sensors' not in moveit_parameters(DEFAULT_TCP, octomap=False)

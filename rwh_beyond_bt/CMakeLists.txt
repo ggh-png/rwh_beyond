@@ -24,6 +24,7 @@ set(dependencies
 
 add_library(${PROJECT_NAME}_common SHARED
   src/bt_diagnostic_action_node.cpp
+  src/bt_scenario_action_node.cpp
   src/bt_grasp_action_node.cpp
   src/bt_gripper_command.cpp
   src/bt_move_group_node.cpp
@@ -51,7 +52,6 @@ endfunction()
 add_bt_action_plugin(clear_octomap)
 add_bt_action_plugin(move_home)
 add_bt_action_plugin(move_observation)
-add_bt_action_plugin(grasp_step)
 add_bt_action_plugin(move_tcp_up)
 add_bt_action_plugin(close_gripper)
 add_bt_action_plugin(open_gripper)

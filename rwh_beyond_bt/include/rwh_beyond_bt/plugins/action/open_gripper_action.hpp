@@ -17,18 +17,19 @@
 
 #include <string>
 
-#include "rwh_beyond_bt/bt_gripper_command.hpp"
+#include "rwh_beyond_bt/bt_scenario_action_node.hpp"
 
 namespace rwh_beyond_bt
 {
 
 /** @brief OpenGripper behavior tree node. */
-class OpenGripperAction : public GripperCommand
+class OpenGripperAction : public ScenarioActionNode
 {
 public:
   OpenGripperAction(
     const std::string & xml_tag_name, const std::string & action_name,
     const BT::NodeConfiguration & conf);
+  static BT::PortsList providedPorts();
 };
 
 }  // namespace rwh_beyond_bt

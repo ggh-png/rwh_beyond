@@ -23,10 +23,23 @@ from rwh_beyond_msgs.msg import TcpPose
 from rwh_beyond_msgs.srv import SetGraspRegion
 from .observed_geometry import observed_bounds
 from .red_perception import pose_matrix, matrix_pose, set_pair
-from .stage_constants import TARGET, TABLE, FINGERS
+from .stage_constants import TARGET, LEGACY_SUPPORT_TABLE, FINGERS
 
 
 class SelectionStages:
+    def grasp_filter_settings(self):
+        settings = {
+            name: self.get_parameter(name).value
+            for name in ('grasp_top_down_max_angle_deg', 'grasp_table_clearance_m',
+                         'grasp_target_margin_m')
+        }
+        for name, value in settings.items():
+            if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+                raise ValueError(name + ' must be finite and nonnegative')
+        if settings['grasp_top_down_max_angle_deg'] > 180.0:
+            raise ValueError('grasp_top_down_max_angle_deg must be in [0, 180] degrees')
+        return settings
+
     def select_feasible_grasp(self, context, candidates):
         if self.attached:
             raise RuntimeError('Already holding object')
@@ -34,6 +47,7 @@ class SelectionStages:
             raise RuntimeError(
                 'Target scene already active; cleanup and reobserve before reselection'
             )
+        filters = self.grasp_filter_settings()
         self.prepared = False
         self.plan_id = ""
         frame = context['frame']
@@ -65,8 +79,13 @@ class SelectionStages:
             operation=CollisionObject.ADD,
         )
         query = GetPlanningScene.Request()
-        query.components.components = PC.ALLOWED_COLLISION_MATRIX
-        matrix = self.call('scene', query).scene.allowed_collision_matrix
+        query.components.components = PC.ALLOWED_COLLISION_MATRIX | PC.WORLD_OBJECT_NAMES
+        scene = self.call('scene', query).scene
+        matrix = scene.allowed_collision_matrix
+        objects = [self.object]
+        if any(obj.id == LEGACY_SUPPORT_TABLE for obj in scene.world.collision_objects):
+            objects.append(CollisionObject(
+                id=LEGACY_SUPPORT_TABLE, operation=CollisionObject.REMOVE))
         self.original_pairs = {}
         for finger in FINGERS:
             old = False
@@ -76,52 +95,42 @@ class SelectionStages:
                 ]
             self.original_pairs[finger] = old
             set_pair(matrix, finger, TARGET, True)
-        # SAM mode uses an observed horizontal support plane; color_demo retains its known-box prior.
-        table_pose = Pose()
-        table_pose.orientation.w = 1.0
-        table_pose.position.z = support_z - 0.012
-        table = CollisionObject(
-            header=Header(frame_id=self.base),
-            id=TABLE,
-            primitives=[SolidPrimitive(type=SolidPrimitive.BOX, dimensions=[1.5, 1.5, 0.02])],
-            primitive_poses=[table_pose],
-            operation=CollisionObject.ADD,
-        )
         self.scene_active = True
         self.apply(
             PlanningScene(
                 allowed_collision_matrix=matrix,
-                world=PlanningSceneWorld(collision_objects=[self.object, table]),
+                world=PlanningSceneWorld(collision_objects=objects),
                 object_colors=[
                     ObjectColor(id=TARGET, color=ColorRGBA(r=1.0, g=0.1, b=0.05, a=1.0))
                 ],
             )
         )
-        if backend == 'sam3':
-            lower = center - dimensions / 2 - 0.003
-            upper = center + dimensions / 2 + 0.003
-            # Preserve the support plane in Octomap; only exclude above-table target volume.
-            lower[2] = support_z + 0.003
-            region = SetGraspRegion.Request(
-                enabled=True,
-                frame_id=self.base,
-                lower=Point(x=float(lower[0]), y=float(lower[1]), z=float(lower[2])),
-                upper=Point(x=float(upper[0]), y=float(upper[1]), z=float(upper[2])),
-            )
-            if not self.call('region', region).success:
-                raise RuntimeError('Selected target region exclusion failed')
-        elif not self.call('exclude', SetBool.Request(data=True)).success:
-            raise RuntimeError('Target depth exclusion failed')
-        self.call('clear', Empty.Request())
-        cleared = self.get_clock().now().nanoseconds * 1e-9
-        sequence = self.cloud_seq
-        self.wait(lambda: self.cloud_seq >= sequence + 2 and self.cloud_stamp > cleared, 20)
-        query.components.components = PC.OCTOMAP
+        if self.get_parameter('octomap_enabled').value:
+            if backend == 'sam3':
+                lower = center - dimensions / 2 - 0.003
+                upper = center + dimensions / 2 + 0.003
+                # Preserve the support plane in Octomap; only exclude above-table target volume.
+                lower[2] = support_z + 0.003
+                region = SetGraspRegion.Request(
+                    enabled=True,
+                    frame_id=self.base,
+                    lower=Point(x=float(lower[0]), y=float(lower[1]), z=float(lower[2])),
+                    upper=Point(x=float(upper[0]), y=float(upper[1]), z=float(upper[2])),
+                )
+                if not self.call('region', region).success:
+                    raise RuntimeError('Selected target region exclusion failed')
+            elif not self.call('exclude', SetBool.Request(data=True)).success:
+                raise RuntimeError('Target depth exclusion failed')
+            self.call('clear', Empty.Request())
+            cleared = self.get_clock().now().nanoseconds * 1e-9
+            sequence = self.cloud_seq
+            self.wait(lambda: self.cloud_seq >= sequence + 2 and self.cloud_stamp > cleared, 20)
+            query.components.components = PC.OCTOMAP
 
-        def map_ready():
-            return bool(self.call('scene', query).scene.world.octomap.octomap.data)
+            def map_ready():
+                return bool(self.call('scene', query).scene.world.octomap.octomap.data)
 
-        self.wait(map_ready, 15)
+            self.wait(map_ready, 15)
         Path('/tmp/rwh-red-grasp-candidates.json').write_text(
             json.dumps(
                 dict(
@@ -147,11 +156,11 @@ class SelectionStages:
         self.selection_diagnostics = []
         for index, candidate in enumerate(candidates[: self.get_parameter('max_candidates').value]):
             grasp = base_T_camera @ pose_matrix(candidate.pose.pose)
-            if grasp[2, 2] > -math.cos(math.radians(35)):
+            if grasp[2, 2] > -math.cos(math.radians(filters['grasp_top_down_max_angle_deg'])):
                 reasons['not_top_down'] += 1
                 continue
             contact = (grasp @ np.array([0, 0, 0.105, 1]))[:3]
-            if np.any(np.abs(contact - center) > dimensions / 2 + 0.03):
+            if np.any(np.abs(contact - center) > dimensions / 2 + filters['grasp_target_margin_m']):
                 reasons['off_target'] += 1
                 continue
             for flipped in (False, True):
@@ -159,7 +168,7 @@ class SelectionStages:
                 if flipped:
                     g[:3, :3] = g[:3, :3] @ Rotation.from_euler('z', math.pi).as_matrix()
                 tcp = g @ model_T_tcp
-                if tcp[2, 3] < support_z + 0.004:
+                if tcp[2, 3] < support_z + filters['grasp_table_clearance_m']:
                     reasons['table_clearance'] += 1
                     continue
                 pre = tcp.copy()

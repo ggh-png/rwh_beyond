@@ -37,14 +37,18 @@ def pipeline_nodes(context):
         return {parameter: value} if value else {}
     return [
         Node(package='rwh_beyond_sam3_bridge', executable='segmentation_action_server',
+             name='sam3_bridge', namespace='',
              output='screen', parameters=[LaunchConfiguration('sam3_params_file'),
                  {**overrides('endpoint', 'segmentation_endpoint'),
                   'use_sim_time': ParameterValue(LaunchConfiguration('use_sim_time'), value_type=bool)}]),
         Node(package='rwh_beyond_graspgenx_bridge', executable='inference_action_server',
+             name='graspgenx_bridge', namespace='',
              output='screen', parameters=[LaunchConfiguration('graspgenx_params_file'),
                  {**overrides('endpoint', 'endpoint'),
                   'use_sim_time': ParameterValue(LaunchConfiguration('use_sim_time'), value_type=bool)}]),
-        Node(package='rwh_beyond_grasp_pipeline', executable=PythonExpression(["'grasp_coordinator' if '", LaunchConfiguration('mode'),
+        # Scope launch overrides to this node so common YAML wildcard settings cannot
+        # cause a later wildcard override to lose against node-specific defaults.
+        Node(package='rwh_beyond_grasp_pipeline', name='grasp_coordinator', namespace='', executable=PythonExpression(["'grasp_coordinator' if '", LaunchConfiguration('mode'),
                  "' == 'sim' else 'hardware_grasp_coordinator'"]),
              condition=IfCondition(LaunchConfiguration('start_coordinator')),
              output='screen', parameters=[LaunchConfiguration('params_file'),

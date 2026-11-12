@@ -1,9 +1,23 @@
-# BT-coordinated stages. No implicit motion in prepare/check_ready.
+# Fixed-purpose coordinator motion endpoints; command is informational.
+# XML overrides apply only to this goal; omitted values use coordinator YAML.
 string command
-# Optional move_observation override from BT XML; otherwise coordinator YAML is used.
-bool override_observation
+# Home-relative translation in base axes (m); rotation about home-local Y (deg).
+bool override_observation_x
+float64 observation_x_offset
+bool override_observation_y
+float64 observation_y_offset
+bool override_observation_z
 float64 observation_z_offset
+bool override_observation_tilt
 float64 observation_tilt_deg
+# Optional home reference for MoveHome and MoveObservation; empty uses YAML.
+float64[] home_joint_positions
+bool override_settle_time
+float64 observation_settle_time
+bool override_gripper_width
+float64 gripper_open_width
+bool override_gripper_duration
+float64 gripper_open_duration
 ---
 bool success
 string message

@@ -36,14 +36,14 @@ class HardwareGraspCoordinator(GraspCoordinator):
         for name, value in {
             'hardware_feedback_timeout': 1.0,
             'physical_position_tolerance': 0.03,
-            'planning_start_bounds_tolerance': 0.05,
+            'planning_start_bounds_tolerance_deg': 10.0,
         }.items():
             self.declare_parameter(name, value)
             number = self.get_parameter(name).value
             if not math.isfinite(number) or number <= 0:
                 raise ValueError(name + ' must be finite and positive')
-        if self.get_parameter('planning_start_bounds_tolerance').value > 0.05:
-            raise ValueError('planning_start_bounds_tolerance must not exceed 0.05 rad')
+        if self.get_parameter('planning_start_bounds_tolerance_deg').value > 180.0:
+            raise ValueError('planning_start_bounds_tolerance_deg must be in (0, 180] degrees')
         self.planning_limits = None
         self.stage_clients['robot_description'] = self.create_client(
             GetParameters, 'move_group/get_parameters', callback_group=self.group
@@ -129,7 +129,7 @@ class HardwareGraspCoordinator(GraspCoordinator):
         state, corrections = bounded_planning_state(
             super().state(),
             self.planning_limits,
-            self.get_parameter('planning_start_bounds_tolerance').value,
+            math.radians(self.get_parameter('planning_start_bounds_tolerance_deg').value),
         )
         if corrections:
             self.get_logger().warning(

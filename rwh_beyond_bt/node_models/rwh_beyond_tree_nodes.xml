@@ -33,14 +33,6 @@
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
-        <Action ID="GraspStep">
-            <input_port name="command" type="std::string">Grasp coordinator stage</input_port>
-            <input_port name="rise_m" type="double">Observation rise in base Z (m); set with tilt_deg</input_port>
-            <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Collision-validated pregrasp TCP</output_port>
-            <input_port name="tilt_deg" type="double">Observation home-local Y tilt (degrees); set with rise_m</input_port>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
-        </Action>
         <Action ID="InferGrasps">
             <input_port name="observation_id" type="std::string"/>
             <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
@@ -66,10 +58,17 @@
             <input_port name="x" type="double">Required x in metres</input_port>
         </Action>
         <Action ID="MoveHome">
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles in radians; omit for YAML</input_port>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="MoveObservation">
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Home reference joint angles; omit for YAML</input_port>
+            <input_port name="settle_time" type="double">Settling time in seconds [0, 30]; omit for YAML</input_port>
+            <input_port name="x" type="double">Home-relative base X offset (m); omit for zero</input_port>
+            <input_port name="y" type="double">Home-relative base Y offset (m); omit for zero</input_port>
+            <input_port name="z" type="double">Home-relative base Z offset (m); omit for YAML</input_port>
+            <input_port name="tilt_deg" type="double">Home-local Y tilt (degrees); omit for YAML</input_port>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
@@ -89,6 +88,8 @@
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="OpenGripper">
+            <input_port name="opening" type="double">Gripper width in metres [0, 0.10]; omit for YAML</input_port>
+            <input_port name="duration" type="double">Opening duration in seconds (0, 30]; omit for default</input_port>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>

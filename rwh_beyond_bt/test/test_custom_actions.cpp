@@ -79,8 +79,12 @@ protected:
         if (arm_feedback_delay_ms_ > 0) {
           auto feedback = std::make_shared<MoveGroup::Feedback>();
           feedback->state = "MONITOR";
-          handle->publish_feedback(feedback);
-          std::this_thread::sleep_for(std::chrono::milliseconds(arm_feedback_delay_ms_.load()));
+          // Finish only after the BT has consumed feedback, rather than relying on a short sleep.
+          const auto deadline = std::chrono::steady_clock::now() + 1s;
+          while (!arm_feedback_seen_ && std::chrono::steady_clock::now() < deadline) {
+            handle->publish_feedback(feedback);
+            std::this_thread::sleep_for(2ms);
+          }
         }
         if (arm_abort_) {handle->abort(result);} else {handle->succeed(result);}
       });
@@ -143,6 +147,10 @@ protected:
     while (status == BT::NodeStatus::RUNNING && std::chrono::steady_clock::now() < end) {
       std::this_thread::sleep_for(1ms);
       status = tree.tickOnce();
+      if (arm_feedback_delay_ms_ > 0) {
+        arm_feedback_seen_ = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>(
+          "demo_feedback").moveit_state == "MONITOR";
+      }
     }
     return status;
   }
@@ -163,6 +171,7 @@ protected:
   std::string arm_source_, arm_message_;
   std::atomic<bool> arm_abort_{false}, arm_reject_{false};
   std::atomic<int> arm_feedback_delay_ms_{0};
+  std::atomic<bool> arm_feedback_seen_{false};
   std::atomic<int> arm_error_{moveit_msgs::msg::MoveItErrorCodes::SUCCESS};
 };
 
@@ -435,10 +444,10 @@ TEST_F(CustomActions, MoveItAbortPreservesSignedCodeMessageSourceAndStage)
   arm_source_ = "plan_execution";
   arm_message_ = "Trajectory invalid after scene update";
   arm_feedback_delay_ms_ = 30;
-  EXPECT_EQ(run("<MoveHome name=\"return_home\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(run("<MoveTcpUp name=\"return_home\"/>"), BT::NodeStatus::FAILURE);
   const auto diagnostic =
     blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
-  EXPECT_EQ(diagnostic.current_stage, "move_home");
+  EXPECT_EQ(diagnostic.current_stage, "move_tcp_up");
   EXPECT_EQ(diagnostic.current_node, "return_home");
   EXPECT_EQ(diagnostic.moveit_state, "MONITOR");
   EXPECT_EQ(diagnostic.error_code, -3);
@@ -451,13 +460,13 @@ TEST_F(CustomActions, EmptyMoveItMessageHasUsefulFallbackAndNextStageClearsError
 {
   arm_error_ = moveit_msgs::msg::MoveItErrorCodes::MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE;
   arm_abort_ = true;
-  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(run("<MoveTcpUp/>"), BT::NodeStatus::FAILURE);
   auto diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
   EXPECT_NE(diagnostic.error_msg.find("remaining trajectory became invalid"), std::string::npos);
   EXPECT_NE(diagnostic.error_msg.find("exact contact pairs are not"), std::string::npos);
   arm_error_ = moveit_msgs::msg::MoveItErrorCodes::SUCCESS;
   arm_abort_ = false;
-  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(run("<MoveTcpUp/>"), BT::NodeStatus::SUCCESS);
   diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
   EXPECT_EQ(diagnostic.error_code, 0);
   EXPECT_TRUE(diagnostic.error_msg.empty());
@@ -467,13 +476,13 @@ TEST_F(CustomActions, EmptyMoveItMessageHasUsefulFallbackAndNextStageClearsError
 TEST_F(CustomActions, FixedArmAndGripperActionsCheckApplicationErrors)
 {
   arm_error_ = moveit_msgs::msg::MoveItErrorCodes::NO_IK_SOLUTION;
-  for (const auto * xml : {"<MoveHome/>", "<MoveTcpUp/>"}) {
+  for (const auto * xml : {"<MoveTcpUp/>"}) {
     EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
     EXPECT_EQ(blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>(
       "demo_feedback").error_code, -31);
   }
   gripper_error_ = FJT::Result::GOAL_TOLERANCE_VIOLATED;
-  for (const auto * xml : {"<CloseGripper/>", "<OpenGripper/>", "<SetGripper opening=\"50\"/>"}) {
+  for (const auto * xml : {"<CloseGripper/>", "<SetGripper opening=\"50\"/>"}) {
     EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
     const auto diagnostic =
       blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
@@ -490,7 +499,7 @@ TEST_F(CustomActions, LocalInputAndRejectedActionHaveNonzeroDiagnostics)
   EXPECT_EQ(diagnostic.error_name, "INVALID_INPUT");
   EXPECT_NE(diagnostic.error_code, 0);
   arm_reject_ = true;
-  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(run("<MoveTcpUp/>"), BT::NodeStatus::FAILURE);
   diagnostic = blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
   EXPECT_EQ(diagnostic.error_name, "ACTION_REQUEST_FAILED");
   EXPECT_NE(diagnostic.error_code, 0);
@@ -504,7 +513,7 @@ TEST_F(CustomActions, FailureInsideSubtreeReachesRootDiagnostics)
     R"(
     <root BTCPP_format="4" main_tree_to_execute="Main">
       <BehaviorTree ID="Main"><SubTree ID="Motion" _autoremap="true"/></BehaviorTree>
-      <BehaviorTree ID="Motion"><MoveHome name="subtree_home"/></BehaviorTree>
+      <BehaviorTree ID="Motion"><MoveTcpUp name="subtree_home"/></BehaviorTree>
     </root>)"),
     BT::NodeStatus::FAILURE);
   const auto diagnostic =
@@ -519,19 +528,8 @@ TEST_F(CustomActions, CloseAllowsExpectedBlockedFingerPathButOpenKeepsTracking)
   ASSERT_EQ(gripper_goal_.path_tolerance.size(), 1u);
   EXPECT_EQ(gripper_goal_.path_tolerance[0].name, "gripper");
   EXPECT_EQ(gripper_goal_.path_tolerance[0].position, -1.0);
-  ASSERT_EQ(run("<OpenGripper/>"), BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(run("<SetGripper opening=\"100\"/>"), BT::NodeStatus::SUCCESS);
   EXPECT_TRUE(gripper_goal_.path_tolerance.empty());
-}
-
-TEST_F(CustomActions, ObservationUsesSimulationJointPoseAndMoveItCollisionPlanning)
-{
-  ASSERT_EQ(run("<MoveObservation/>"), BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(arm_goal_.request.group_name, "arm");
-  ASSERT_EQ(arm_goal_.request.goal_constraints.size(), 1u);
-  const auto & joints = arm_goal_.request.goal_constraints[0].joint_constraints;
-  ASSERT_EQ(joints.size(), 6u);
-  EXPECT_NEAR(joints[1].position, 1.0279353924406198, 1e-12);
-  EXPECT_FALSE(arm_goal_.planning_options.plan_only);
 }
 
 // Exercise real ROS action transport and Blackboard payloads across the split nodes.
@@ -629,7 +627,7 @@ TEST_F(CustomActions, ObservationXmlOverridesAreDeliveredAndOmissionUsesYaml)
 {
   using Step = rwh_beyond_msgs::action::RunGraspStep;
   std::vector<Step::Goal> goals;
-  auto server = rclcpp_action::create_server<Step>(server_, "grasp_step",
+  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_observation",
       [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
       [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
       [&](auto handle) {
@@ -638,33 +636,195 @@ TEST_F(CustomActions, ObservationXmlOverridesAreDeliveredAndOmissionUsesYaml)
         result->success = true;
         handle->succeed(result);
       });
-  EXPECT_EQ(run(R"(<GraspStep command="move_observation" rise_m="0.20" tilt_deg="50"/>)"),
+  EXPECT_EQ(run(R"(<MoveObservation x="0.03" y="-0.02" z="0.20" tilt_deg="50"/>)"),
     BT::NodeStatus::SUCCESS);
   ASSERT_EQ(goals.size(), 1u);
-  EXPECT_TRUE(goals[0].override_observation);
+  EXPECT_TRUE(goals[0].override_observation_z);
+  EXPECT_TRUE(goals[0].override_observation_tilt);
+  EXPECT_DOUBLE_EQ(goals[0].observation_x_offset, 0.03);
+  EXPECT_DOUBLE_EQ(goals[0].observation_y_offset, -0.02);
   EXPECT_DOUBLE_EQ(goals[0].observation_z_offset, 0.2);
   EXPECT_DOUBLE_EQ(goals[0].observation_tilt_deg, 50.0);
-  EXPECT_EQ(run(R"(<GraspStep command="move_observation"/>)"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(run(R"(<MoveObservation/>)"), BT::NodeStatus::SUCCESS);
   ASSERT_EQ(goals.size(), 2u);
-  EXPECT_FALSE(goals[1].override_observation);
+  EXPECT_FALSE(goals[1].override_observation_z);
+  EXPECT_FALSE(goals[1].override_observation_tilt);
 }
 
 TEST_F(CustomActions, InvalidObservationXmlNeverSendsMotionGoal)
 {
   using Step = rwh_beyond_msgs::action::RunGraspStep;
   std::atomic<int> goals{0};
-  auto server = rclcpp_action::create_server<Step>(server_, "grasp_step",
+  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_observation",
       [&](auto, auto) {
         ++goals;
         return rclcpp_action::GoalResponse::REJECT;
       },
       [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
   for (const auto * xml : {
-      R"(<GraspStep command="move_observation" rise_m="0.2"/>)",
-      R"(<GraspStep command="move_observation" rise_m="-0.2" tilt_deg="50"/>)",
-      R"(<GraspStep command="move_observation" rise_m="0.2" tilt_deg="nan"/>)"})
+    R"(<MoveObservation x="nan"/>)",
+    R"(<MoveObservation y="inf" tilt_deg="50"/>)",
+    R"(<MoveObservation z="0.2" tilt_deg="nan"/>)"})
   {
     EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
   }
   EXPECT_EQ(goals, 0);
+}
+
+TEST_F(CustomActions, ScenarioNodesUseCoordinatorWithoutDirectControllerGoals)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  std::vector<rclcpp_action::Server<Step>::SharedPtr> servers;
+  std::vector<std::string> calls;
+  for (const auto & command : {"move_home", "open_gripper", "move_observation"}) {
+    servers.push_back(rclcpp_action::create_server<Step>(server_, std::string("grasp/") + command,
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+      [&, command](auto handle) {
+        EXPECT_EQ(handle->get_goal()->command, command);
+        calls.push_back(command);
+        auto result = std::make_shared<Step::Result>();
+        result->success = true;
+        handle->succeed(result);
+      }));
+  }
+  EXPECT_EQ(run("<Sequence><MoveHome/><OpenGripper/><MoveObservation/></Sequence>"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(calls, std::vector<std::string>({"move_home", "open_gripper", "move_observation"}));
+  EXPECT_EQ(arm_goals_, 0);
+  EXPECT_EQ(gripper_goals_, 0);
+  EXPECT_EQ(factory_.manifests().count("GraspStep"), 0u);
+  EXPECT_EQ(factory_.manifests().at("MoveHome").ports.count("command"), 0u);
+}
+
+TEST_F(CustomActions, ScenarioFailureStopsSequenceAndReportsNode)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_home",
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+      [](auto handle) {
+        auto result = std::make_shared<Step::Result>();
+        result->success = false;
+        result->message = "Home trajectory rejected";
+        handle->succeed(result);
+    });
+  EXPECT_EQ(run("<Sequence><MoveHome name=\"home\"/><SetGripper opening=\"100\"/></Sequence>"),
+    BT::NodeStatus::FAILURE);
+  const auto diagnostic =
+    blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
+  EXPECT_EQ(diagnostic.current_stage, "move_home");
+  EXPECT_EQ(diagnostic.current_node, "home");
+  EXPECT_EQ(diagnostic.error_source, "grasp/move_home");
+  EXPECT_EQ(diagnostic.error_msg, "Home trajectory rejected");
+  EXPECT_EQ(gripper_goals_, 0);
+}
+
+TEST_F(CustomActions, ScenarioServerNameOverrideAndHaltCancelGoal)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  std::shared_ptr<rclcpp_action::ServerGoalHandle<Step>> active;
+  std::atomic<bool> accepted{false}, canceled{false};
+  auto server = rclcpp_action::create_server<Step>(server_, "custom_home",
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [&](auto) {canceled = true; return rclcpp_action::CancelResponse::ACCEPT;},
+      [&](auto handle) {active = handle; accepted = true;});
+  auto timer = server_->create_wall_timer(5ms, [&]() {
+        if (active && active->is_canceling()) {
+          active->canceled(std::make_shared<Step::Result>());
+          active.reset();
+        }
+  });
+  auto tree = factory_.createTreeFromText(
+    R"(<root BTCPP_format="4"><BehaviorTree ID="Test"><MoveHome server_name="custom_home"/></BehaviorTree></root>)",
+    blackboard_);
+  auto deadline = std::chrono::steady_clock::now() + 3s;
+  while (!accepted && std::chrono::steady_clock::now() < deadline) {
+    ASSERT_EQ(tree.tickOnce(), BT::NodeStatus::RUNNING);
+    std::this_thread::sleep_for(1ms);
+  }
+  ASSERT_TRUE(accepted);
+  tree.haltTree();
+  EXPECT_TRUE(canceled);
+  EXPECT_EQ(arm_goals_, 0);
+}
+
+TEST_F(CustomActions, ScenarioXmlValuesReachServerAndDoNotLeakToNextGoal)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  std::vector<rclcpp_action::Server<Step>::SharedPtr> servers;
+  std::vector<Step::Goal> goals;
+  for (const auto & endpoint : {"move_home", "open_gripper", "move_observation"}) {
+    servers.push_back(rclcpp_action::create_server<Step>(server_, std::string("grasp/") + endpoint,
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+      [&](auto handle) {
+        goals.push_back(*handle->get_goal());
+        auto result = std::make_shared<Step::Result>();
+        result->success = true;
+        handle->succeed(result);
+      }));
+  }
+  EXPECT_EQ(run(R"(<MoveHome home_joint_positions="0.1;0;0;0;0;0"/>)"), BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(goals.size(), 1u);
+  EXPECT_DOUBLE_EQ(goals.back().home_joint_positions.at(0), 0.1);
+  EXPECT_EQ(run(R"(<OpenGripper opening="0.08" duration="1.5"/>)"), BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(goals.back().override_gripper_width);
+  EXPECT_DOUBLE_EQ(goals.back().gripper_open_width, 0.08);
+  EXPECT_DOUBLE_EQ(goals.back().gripper_open_duration, 1.5);
+  EXPECT_EQ(run(R"(<MoveObservation home_joint_positions="0.1;0;0;0;0;0" settle_time="0"/>)"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(goals.back().override_settle_time);
+  EXPECT_DOUBLE_EQ(goals.back().observation_settle_time, 0.0);
+  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(goals.back().home_joint_positions.empty());
+  EXPECT_EQ(run("<OpenGripper/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_FALSE(goals.back().override_gripper_width);
+  EXPECT_FALSE(goals.back().override_gripper_duration);
+}
+
+TEST_F(CustomActions, InvalidScenarioXmlValuesNeverSendGoal)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  std::atomic<int> goals{0};
+  auto server = rclcpp_action::create_server<Step>(server_, "invalid_test",
+      [&](auto, auto) {++goals; return rclcpp_action::GoalResponse::REJECT;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
+  for (const auto & xml : {
+    R"(<MoveHome server_name="invalid_test" home_joint_positions="0;0;0"/>)",
+    R"(<MoveHome server_name="invalid_test" home_joint_positions="nan;0;0;0;0;0"/>)",
+    R"(<OpenGripper server_name="invalid_test" opening="0.11"/>)",
+    R"(<OpenGripper server_name="invalid_test" duration="0"/>)",
+    R"(<MoveObservation server_name="invalid_test" settle_time="-1"/>)"})
+  {
+    EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
+  }
+  EXPECT_EQ(goals, 0);
+}
+
+TEST_F(CustomActions, ObservationAllowsIndependentSignedAxesAndTilt)
+{
+  using Step = rwh_beyond_msgs::action::RunGraspStep;
+  std::vector<Step::Goal> goals;
+  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_observation",
+      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
+      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
+      [&](auto handle) {
+        goals.push_back(*handle->get_goal());
+        auto result = std::make_shared<Step::Result>();
+        result->success = true;
+        handle->succeed(result);
+    });
+  EXPECT_EQ(run(R"(<MoveObservation x="-0.03"/>)"), BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(goals.size(), 1u);
+  EXPECT_TRUE(goals.back().override_observation_x);
+  EXPECT_FALSE(goals.back().override_observation_z);
+  EXPECT_FALSE(goals.back().override_observation_tilt);
+  EXPECT_EQ(run(R"(<MoveObservation z="-0.02"/>)"), BT::NodeStatus::SUCCESS);
+  EXPECT_DOUBLE_EQ(goals.back().observation_z_offset, -0.02);
+  EXPECT_EQ(run(R"(<MoveObservation z="0" tilt_deg="0"/>)"), BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(goals.back().override_observation_z);
+  EXPECT_TRUE(goals.back().override_observation_tilt);
+  EXPECT_DOUBLE_EQ(goals.back().observation_z_offset, 0.0);
+  EXPECT_DOUBLE_EQ(goals.back().observation_tilt_deg, 0.0);
 }

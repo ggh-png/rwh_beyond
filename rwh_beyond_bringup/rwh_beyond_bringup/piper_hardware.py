@@ -53,10 +53,16 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
                                     ('gripper' if effector_type == 'agx_gripper' else 'none') + '.yaml')
               .to_moveit_configs())
     tolerance_path = Path(get_package_share_directory('rwh_beyond_bringup')) / 'config/bt_demo.yaml'
-    start_tolerance = yaml.safe_load(tolerance_path.read_text())['grasp_coordinator']['ros__parameters'][
-        'planning_start_bounds_tolerance']
-    if not math.isfinite(start_tolerance) or not 0 < start_tolerance <= .05:
-        raise ValueError('planning_start_bounds_tolerance must be in (0, 0.05] rad')
+    shared_settings = yaml.safe_load(tolerance_path.read_text())
+    bt_settings = shared_settings['grasp_coordinator']['ros__parameters']
+    octomap_enabled = shared_settings.get('/**', {}).get('ros__parameters', {}).get(
+        'octomap_enabled', True)
+    if type(octomap_enabled) is not bool:
+        raise ValueError('octomap_enabled must be a YAML boolean')
+    start_tolerance = bt_settings['planning_start_bounds_tolerance_deg']
+    if not math.isfinite(start_tolerance) or not 0 < start_tolerance <= 180.0:
+        raise ValueError('planning_start_bounds_tolerance_deg must be in (0, 180] degrees')
+    start_tolerance = math.radians(start_tolerance)
     params = config.to_dict()
     params.update({
         'use_sim_time': False, 'moveit_manage_controllers': False,
@@ -70,7 +76,7 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
                                  'allowed_start_tolerance': start_tolerance},
         'octomap_frame': 'world', 'octomap_resolution': 0.01})
     params['depth_cloud']['point_cloud_topic'] = point_cloud_topic
-    if not octomap:
+    if not octomap or not octomap_enabled:
         params.pop('sensors', None)
     return params
 

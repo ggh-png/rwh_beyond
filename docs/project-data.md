@@ -40,7 +40,10 @@ base_T_tcp = base_T_camera × camera_T_model_grasp × model_T_tcp
 ## 관측 기반 충돌 장면
 
 SAM 경로는 객체 점군과 주변 Depth에서 물체 AABB와 수평 지지면을 추정합니다.
-명목 박스와 테이블을 Planning Scene에 추가하고 대상 영역을 계획용 점군에서 제외합니다.
+대상 물체의 박스만 Planning Scene에 추가하고 대상 영역을 계획용 점군에서 제외합니다.
+넓은 가상 테이블 충돌 판은 생성하지 않으며, 주변 작업대·장애물은 Depth 기반 Octomap으로 표현합니다.
+이전 버전의 `observed_support_table` 객체는 home·관측 이동 또는 후보 선택 시 제거합니다.
+추정 지지면 높이는 대상 영역 제외와 `grasp_table_clearance_m` 필터 계산에 계속 사용합니다.
 현재는 수평 지지면을 가진 tabletop 장면을 전제로 합니다.
 
 닫기 후에는 같은 물체를 TCP에 부착된 충돌 객체로 취급합니다.

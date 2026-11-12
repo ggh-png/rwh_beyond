@@ -1,4 +1,4 @@
-"""Launch the MoveIt and grasp RViz for an existing PiPER simulation."""
+"""Launch only MoveIt/grasp RViz for an existing PiPER backend."""
 
 import ast
 import math
@@ -27,6 +27,7 @@ def create_rviz(context):
         'arm_type': 'piper',
         'effector_type': 'agx_gripper',
         'revo2_type': 'left',
+        'camera_nominal_tf': LaunchConfiguration('use_sim_time', default='true').perform(context).lower(),
         'tcp_offset_xyz': ' '.join(str(value) for value in offset[:3]),
         'tcp_offset_rpy': ' '.join(str(value) for value in offset[3:]),
     }
@@ -45,7 +46,8 @@ def create_rviz(context):
     parameters = {key: all_parameters[key] for key in (
         'robot_description', 'robot_description_semantic',
         'robot_description_kinematics', 'robot_description_planning')}
-    parameters['use_sim_time'] = True
+    parameters['use_sim_time'] = ParameterValue(
+        LaunchConfiguration('use_sim_time', default='true'), value_type=bool)
     for key in ('robot_description', 'robot_description_semantic'):
         parameters[key] = ParameterValue(parameters[key], value_type=str)
     return [Node(
@@ -55,6 +57,9 @@ def create_rviz(context):
 
 def generate_launch_description():
     return LaunchDescription([
+        DeclareLaunchArgument(
+            'use_sim_time', default_value='true', choices=['true', 'false'],
+            description='Use false for a physical robot'),
         DeclareLaunchArgument(
             'rviz_config', default_value=PathJoinSubstitution([
                 FindPackageShare('moma_bringup'), 'config', 'depth_planning.rviz']),

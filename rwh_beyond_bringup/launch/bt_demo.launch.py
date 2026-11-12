@@ -91,17 +91,17 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(PathJoinSubstitution([
                 FindPackageShare('rwh_beyond_bringup'), 'launch', 'moveit_rviz.launch.py'])),
-            condition=IfCondition(PythonExpression([
-                "'", LaunchConfiguration('mode'), "' == 'sim' and '",
-                LaunchConfiguration('rviz'), "'.lower() == 'true'"])),
+            condition=IfCondition(LaunchConfiguration('rviz')),
             launch_arguments={
                 'rviz_config': LaunchConfiguration('rviz_config'),
                 'tcp_offset': LaunchConfiguration('tcp_offset'),
+                'use_sim_time': PythonExpression([
+                    "'true' if '", LaunchConfiguration('mode'), "' == 'sim' else 'false'"]),
             }.items()),
         Node(
             package='nav2_bt_navigator',
             executable='bt_navigator',
-            name='bt_navigator',
+            name='bt_navigator', namespace='',
             output='screen',
             parameters=[LaunchConfiguration('params_file'),
                         {'use_sim_time': ParameterValue(simulation, value_type=bool),
@@ -112,7 +112,7 @@ def generate_launch_description():
         Node(
             package='nav2_lifecycle_manager',
             executable='lifecycle_manager',
-            name='bt_lifecycle_manager',
+            name='bt_lifecycle_manager', namespace='',
             output='screen',
             parameters=[LaunchConfiguration('params_file'),
                         {'use_sim_time': ParameterValue(simulation, value_type=bool)}],

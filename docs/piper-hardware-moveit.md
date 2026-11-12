@@ -40,7 +40,9 @@ ros2 service call /exit_teach_mode std_srvs/srv/Empty '{}'
 ```
 
 이 서비스는 현재 driver에서 home 이동과 모터 활성화도 수행할 수 있으므로 실제 이동 공간을 확보한 뒤 호출합니다.
-BT는 이 서비스를 자동 호출하지 않습니다. 전환 후 arm status와 관절 피드백을 다시 확인합니다.
+실물 `bt_demo` runner는 기본적으로 활성화 10초 후 이 서비스를 한 번 호출합니다.
+사용 여부·지연·시간 제한은 `ros_runner/config/runners.yaml`의 `bt_demo_startup`에서 설정합니다.
+전환 후 arm status와 관절 피드백을 다시 확인하고 `/run_demo`를 호출합니다.
 실물 trajectory transport는 실행 중 `/control_enable` gate를 관리합니다.
 
 ## 실행 transport
@@ -53,9 +55,20 @@ FollowJointTrajectory를 받아 실제 joint feedback을 확인하며 명령을 
 열기와 팔 이동은 실제 endpoint 확인을 사용합니다. 닫기는 설정한 폭을 4초간 명령한 뒤
 완료하며 물체 잡힘은 판정하지 않습니다. 취소와 피드백 통신 오류는 별도로 처리합니다.
 
-## 시작 상태의 작은 경계 초과
+## 시작 상태 허용 각도
 
-`planning_start_bounds_tolerance`는 최대 0.05 rad입니다.
+시작 허용 각도는 공통 `rwh_beyond_bringup/config/bt_demo.yaml`에서 관리합니다.
+
+```yaml
+grasp_coordinator:
+  ros__parameters:
+    planning_start_bounds_tolerance_deg: 10.0
+```
+
+단위는 도이며 기본값은 10°입니다. 유효 범위는 0 초과~180°이며 내부에서 rad로 변환합니다.
+장치 runner와 BT를 중지·재활성화하면 변경값이 적용됩니다.
+`home_joint_tolerance`(home 도착 판정, rad)와 `physical_position_tolerance`(동작 도착 판정, rad)는
+같은 YAML의 별도 항목입니다. 시작 허용 각도를 변경해도 도착 판정값은 바뀌지 않습니다.
 URDF 한계를 이 범위 안에서 벗어난 관절만 계획용 복사본에서 경계값으로 보정합니다.
 실제 피드백과 URDF 한계는 변경하지 않으며 큰 초과는 거부합니다.
 MoveIt 시작점 검사와 physical transport도 같은 허용량을 사용합니다.

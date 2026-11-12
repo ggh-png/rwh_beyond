@@ -92,10 +92,15 @@ class GraspCoordinator(
             'num_grasps': 100,
             'top_k': 100,
             'simulation_only': True,
+            'octomap_enabled': True,
             'max_candidates': 100,
+            'grasp_top_down_max_angle_deg': 35.0,
+            'grasp_table_clearance_m': 0.004,
+            'grasp_target_margin_m': 0.03,
         }
         for k, v in defaults.items():
             self.declare_parameter(k, v)
+        self.grasp_filter_settings()
         for name in ('object_dimensions', 'model_to_tcp_xyz', 'model_to_tcp_rpy'):
             value = np.asarray(self.get_parameter(name).value, dtype=float)
             if value.shape != (3,) or not np.isfinite(value).all():
@@ -236,15 +241,18 @@ class GraspCoordinator(
                 "lift",
             )
         ]
-        self.server = ActionServer(
-            self,
-            RunGraspStep,
-            'grasp_step',
-            self.execute,
-            callback_group=self.group,
-            goal_callback=self.goal,
-            cancel_callback=self.cancel,
-        )
+        self.scenario_servers = [
+            ActionServer(
+                self,
+                RunGraspStep,
+                'grasp/' + command,
+                lambda handle, c=command: self.execute(handle, c),
+                callback_group=self.group,
+                goal_callback=self.goal,
+                cancel_callback=self.cancel,
+            )
+            for command in ('move_home', 'move_observation', 'open_gripper')
+        ]
         self.cleanup_service = self.create_service(
             Trigger, 'grasp/cleanup', self.cleanup_service_cb, callback_group=self.group
         )
@@ -319,49 +327,34 @@ class GraspCoordinator(
             raise RuntimeError('Simulation-only coordinator requires MuJoCo verification service')
         return response, data
 
-    def execute(self, handle):
+    def execute(self, handle, command):
         self.scene_lock.acquire()
         self.active_handle = handle
         self.active_action = RunGraspStep
         result = RunGraspStep.Result()
         try:
-            command = handle.request.command
             self.stage(command)
-            if command != 'cleanup':
-                self.ensure_backend()
-            if command == 'check_ready':
-                self.check_ready()
-            elif command == 'move_home':
-                self.move_home()
+            self.ensure_backend()
+            home = list(handle.request.home_joint_positions) or None
+            if command == 'move_home':
+                self.move_home(home=home)
             elif command == 'move_observation':
-                if handle.request.override_observation:
-                    self.move_observation(
-                        handle.request.observation_z_offset, handle.request.observation_tilt_deg
-                    )
-                else:
-                    self.move_observation()
+                request = handle.request
+                self.move_observation(
+                    None,
+                    request.observation_tilt_deg if request.override_observation_tilt else None,
+                    x=request.observation_x_offset if request.override_observation_x else None,
+                    y=request.observation_y_offset if request.override_observation_y else None,
+                    z=request.observation_z_offset if request.override_observation_z else None,
+                    home=home,
+                    settle_time=request.observation_settle_time if request.override_settle_time else None,
+                )
             elif command == 'open_gripper':
-                self.open_gripper()
-            elif command == 'segment_target':
-                self.segment_target()
-            elif command == 'build_object_cloud':
-                self.build_object_cloud()
-            elif command == 'prepare':
-                result.pregrasp = self.prepare()
-            elif command == 'move_pregrasp':
-                if not self.prepared:
-                    raise RuntimeError('No prepared grasp')
-                self.execute_trajectory(self.pre_trajectory)
-            elif command == 'approach':
-                if not self.prepared:
-                    raise RuntimeError('No prepared grasp')
-                self.execute_cartesian(self.grasp_pose)
-            elif command == 'attach':
-                self.attach()
-            elif command == 'lift':
-                self.lift()
-            elif command == 'cleanup':
-                self.cleanup()
+                request = handle.request
+                self.open_gripper(
+                    opening=request.gripper_open_width if request.override_gripper_width else None,
+                    duration=request.gripper_open_duration if request.override_gripper_duration else None,
+                )
             else:
                 raise ValueError('Unknown grasp command: ' + command)
             if handle.is_cancel_requested:
@@ -377,9 +370,7 @@ class GraspCoordinator(
             self.get_logger().error(result.message)
             handle.abort()
         finally:
-            if self.cleanup_requested or (
-                not result.success and handle.request.command != 'check_ready'
-            ):
+            if self.cleanup_requested or not result.success:
                 try:
                     self.cleanup()
                 except Exception as error:

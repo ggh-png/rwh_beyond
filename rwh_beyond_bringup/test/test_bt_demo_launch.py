@@ -119,6 +119,27 @@ class BtDemoLaunchTest(unittest.TestCase):
         self.assertEqual(args['use_sim_time'], 'False')
         self.assertEqual(args['start_coordinator'], 'true')
         self.assertEqual(args['mode'], 'real')
+        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription))
+        context.launch_configurations['rviz'] = 'true'
+        self.assertTrue(rviz.condition.evaluate(context))
+        rviz_args = {name: value.perform(context) if hasattr(value, 'perform') else value
+                     for name, value in rviz.launch_arguments}
+        self.assertEqual(rviz_args['use_sim_time'], 'false')
+        # Evaluate the actual child argument declaration, including its choices.
+        rviz_path = Path(__file__).resolve().parents[1] / 'launch/moveit_rviz.launch.py'
+        rviz_spec = importlib.util.spec_from_file_location('real_rviz_args', rviz_path)
+        rviz_module = importlib.util.module_from_spec(rviz_spec)
+        rviz_spec.loader.exec_module(rviz_module)
+        child_context = LaunchContext()
+        child_context.launch_configurations.update(rviz_args)
+        for declaration in rviz_module.generate_launch_description().entities:
+            if isinstance(declaration, DeclareLaunchArgument):
+                declaration.execute(child_context)
+        context.launch_configurations['mode'] = 'sim'
+        self.assertEqual(dict(rviz.launch_arguments)['use_sim_time'].perform(context), 'true')
+        context.launch_configurations['mode'] = 'real'
+        context.launch_configurations['rviz'] = 'false'
+        self.assertFalse(rviz.condition.evaluate(context))
         from launch_ros.utilities import evaluate_parameters
         navigator = next(n for n in entities if isinstance(n, Node) and n.node_executable == 'bt_navigator')
         params = evaluate_parameters(context, navigator._Node__parameters)[-1]

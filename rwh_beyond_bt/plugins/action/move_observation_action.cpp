@@ -15,39 +15,28 @@
 #include "rwh_beyond_bt/plugins/action/move_observation_action.hpp"
 
 #include <memory>
-
-#include <array>
-
-#include "moveit_msgs/msg/joint_constraint.hpp"
-
+#include <vector>
 
 namespace rwh_beyond_bt
 {
 
 MoveObservationAction::MoveObservationAction(
-  const std::string & xml_tag_name,
-  const std::string & action_name, const BT::NodeConfiguration & conf)
-: MoveGroupNode(xml_tag_name, action_name, conf)
+  const std::string & xml_tag_name, const std::string & action_name,
+  const BT::NodeConfiguration & conf)
+: ScenarioActionNode(xml_tag_name, action_name, conf, "move_observation")
 {}
 
-void MoveObservationAction::on_tick()
+BT::PortsList MoveObservationAction::providedPorts()
 {
-  set_stage("move_observation");
-  set_common_request();
-  // Collision-free simulation observation pose from moma config/robots/piper.yaml.
-  constexpr std::array<double, 6> positions{0.22229381216392086, 1.0279353924406198,
-    -0.22003795712607355, -1.0347526435042003, 0.041778217520923366, -1.0109176820764199};
-  moveit_msgs::msg::Constraints constraints;
-  for (size_t i = 0; i < positions.size(); ++i) {
-    moveit_msgs::msg::JointConstraint joint;
-    joint.joint_name = "joint" + std::to_string(i + 1);
-    joint.position = positions[i];
-    joint.tolerance_above = 0.001;
-    joint.tolerance_below = 0.001;
-    joint.weight = 1.0;
-    constraints.joint_constraints.push_back(joint);
-  }
-  goal_.request.goal_constraints = {constraints};
+  return providedBasicPorts({
+      BT::InputPort<std::vector<double>>("home_joint_positions",
+        "Home reference joint angles; omit for YAML"),
+      BT::InputPort<double>("settle_time", "Settling time in seconds [0, 30]; omit for YAML"),
+      BT::InputPort<double>("x", "Home-relative base X offset (m); omit for zero"),
+      BT::InputPort<double>("y", "Home-relative base Y offset (m); omit for zero"),
+      BT::InputPort<double>("z", "Home-relative base Z offset (m); omit for YAML"),
+      BT::InputPort<double>("tilt_deg",
+        "Home-local Y tilt (degrees); omit for YAML")});
 }
 
 }  // namespace rwh_beyond_bt
@@ -59,7 +48,8 @@ BT_REGISTER_NODES(factory)
   BT::NodeBuilder builder =
     [](const std::string & name, const BT::NodeConfiguration & config)
     {
-      return std::make_unique<rwh_beyond_bt::MoveObservationAction>(name, "move_action", config);
+      return std::make_unique<rwh_beyond_bt::MoveObservationAction>(name, "grasp/move_observation",
+      config);
     };
   factory.registerBuilder<rwh_beyond_bt::MoveObservationAction>("MoveObservation", builder);
 }

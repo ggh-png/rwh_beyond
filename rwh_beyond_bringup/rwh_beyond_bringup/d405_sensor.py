@@ -39,6 +39,7 @@ def d405_nodes(context):
     }
     nodes = [Node(package='realsense2_camera', executable='realsense2_camera_node',
                   name='d405', output='screen', parameters=[params],
+                  respawn=True, respawn_delay=3.0,
                   remappings=[('~/' + source, '/camera/' + target)
                               for source, target in topics.items()])]
     if value('publish_d405_mount_tf').lower() == 'true':

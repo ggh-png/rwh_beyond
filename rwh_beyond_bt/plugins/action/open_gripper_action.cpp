@@ -20,10 +20,18 @@ namespace rwh_beyond_bt
 {
 
 OpenGripperAction::OpenGripperAction(
-  const std::string & xml_tag_name,
-  const std::string & action_name, const BT::NodeConfiguration & conf)
-: GripperCommand(xml_tag_name, action_name, conf, 0.1, "open_gripper")
+  const std::string & xml_tag_name, const std::string & action_name,
+  const BT::NodeConfiguration & conf)
+: ScenarioActionNode(xml_tag_name, action_name, conf, "open_gripper")
 {}
+
+BT::PortsList OpenGripperAction::providedPorts()
+{
+  return providedBasicPorts({BT::InputPort<double>("opening",
+        "Gripper width in metres [0, 0.10]; omit for YAML"),
+             BT::InputPort<double>("duration",
+        "Opening duration in seconds (0, 30]; omit for default")});
+}
 
 }  // namespace rwh_beyond_bt
 
@@ -34,8 +42,7 @@ BT_REGISTER_NODES(factory)
   BT::NodeBuilder builder =
     [](const std::string & name, const BT::NodeConfiguration & config)
     {
-      return std::make_unique<rwh_beyond_bt::OpenGripperAction>(name,
-      "gripper_controller/follow_joint_trajectory", config);
+      return std::make_unique<rwh_beyond_bt::OpenGripperAction>(name, "grasp/open_gripper", config);
     };
   factory.registerBuilder<rwh_beyond_bt::OpenGripperAction>("OpenGripper", builder);
 }

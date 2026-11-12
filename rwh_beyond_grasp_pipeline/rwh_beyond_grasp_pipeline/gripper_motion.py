@@ -9,15 +9,19 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
 class GripperMotion:
-    def command_gripper(self, opening):
+    def command_gripper(self, opening, duration=None, closing=None):
+        if closing is None:
+            closing = math.isclose(
+                opening, self.get_parameter('gripper_close_width').value, rel_tol=0.0, abs_tol=1e-6
+            )
+        if duration is None:
+            duration = self.get_parameter('gripper_close_duration').value if closing else 3.0
+        if not math.isfinite(duration) or not 0 < duration <= 30.0:
+            raise ValueError('gripper duration must be finite in (0, 30] seconds')
         self.ensure_backend()
         self.wait(self.gripper_client.server_is_ready, 10)
         simulation = self.get_parameter('simulation_only').value
         backend = 'Simulation' if simulation else 'Physical'
-        closing = math.isclose(
-            opening, self.get_parameter('gripper_close_width').value, rel_tol=0.0, abs_tol=1e-6
-        )
-        duration = self.get_parameter('gripper_close_duration').value if closing else 3.0
         goal = FollowJointTrajectory.Goal(
             trajectory=JointTrajectory(
                 joint_names=['gripper'],

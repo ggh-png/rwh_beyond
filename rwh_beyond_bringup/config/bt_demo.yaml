@@ -1,6 +1,10 @@
 # Shared BT configuration: navigator, lifecycle, SAM, GraspGenX and coordinator.
 # Real/sim clock and backend are selected by mode in bt_demo.launch.py.
 # Home: joint1..6 [rad]. Observation: base +Z [m], home-local XYZ Euler tilt [deg].
+# Real MoveIt Octomap and BT map waits; restore true to enable obstacle mapping.
+/**:
+  ros__parameters:
+    octomap_enabled: false
 bt_navigator:
   ros__parameters:
     use_sim_time: true
@@ -57,7 +61,7 @@ grasp_coordinator:
     selection_point:
     - -1
     - -1
-    selection_policy: unique
+    selection_policy: highest_score
     base_frame: base_link
     tcp_link: tcp_link
     object_dimensions:
@@ -77,6 +81,10 @@ grasp_coordinator:
     num_grasps: 1000
     top_k: 300
     max_candidates: 300
+    # Candidate filters: angle from vertical down (degrees), distances in metres.
+    grasp_top_down_max_angle_deg: 60.0
+    grasp_table_clearance_m: 0.0
+    grasp_target_margin_m: 0.05
     debug_max_candidates: 10
     home_joint_positions:
     - 0.0
@@ -92,8 +100,9 @@ grasp_coordinator:
     - 0.0
     observation_settle_time: 0.5
     home_joint_tolerance: 0.01
-    # Planning copy only; rad, maximum 0.05. Actual feedback and URDF limits stay unchanged.
-    planning_start_bounds_tolerance: 0.05
+    # Degrees; shared by planning bounds correction, MoveIt start checks and physical transport.
+    # Actual feedback and URDF limits stay unchanged.
+    planning_start_bounds_tolerance_deg: 10.0
     hardware_feedback_timeout: 1.0
     gripper_open_width: 0.10
     gripper_close_width: 0.04

@@ -13,7 +13,9 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{target_text: "yellow block"}' --feedback
 ```
 
-home·열기·관측은 `GraspStep`, 인식·추론·선택·접근·부착·리프트는 역할별 Action 노드입니다.
+home·열기·관측은 `MoveHome`·`OpenGripper`·`MoveObservation`, 인식·추론·선택·접근·부착·리프트는 역할별 Action 노드입니다.
+home 관절값·관측 높이/각도/안정화 시간·그리퍼 열림 폭/시간은 XML 입력 포트로 조정할 수 있습니다.
+입력을 생략하면 공통 설정의 기본값을 사용합니다.
 기본 트리는 닫기를 `AttachObject` 안에서 수행하고 관측 자세와 home으로 복귀합니다.
 실제 잡힘 여부를 판정하거나 자동으로 물체를 놓지 않습니다.
 

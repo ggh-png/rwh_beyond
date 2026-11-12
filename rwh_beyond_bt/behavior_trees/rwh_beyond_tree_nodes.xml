@@ -1,0 +1,121 @@
+<root BTCPP_format="4">
+    <TreeNodesModel>
+        <Action ID="ApproachGrasp">
+            <input_port name="plan_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="AttachObject">
+            <input_port name="plan_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="BuildObjectCloud">
+            <input_port name="observation_id" type="std::string"/>
+            <output_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="CheckGraspReady">
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="ClearOctomap">
+            <input_port name="scene_service" type="std::string" default="/get_planning_scene">MoveIt planning scene service</input_port>
+            <input_port name="cloud_topic" type="std::string" default="/camera/depth/filtered_points">Robot-filtered depth XYZ</input_port>
+            <input_port name="service_name" type="std::string" default="/clear_octomap">MoveIt clear service</input_port>
+            <input_port name="fresh_clouds" type="int" default="2">Distinct nonempty depth clouds required after clear</input_port>
+            <input_port name="timeout" type="double" default="30.000000">Total wall-time limit in seconds</input_port>
+            <input_port name="once" type="bool" default="true">Skip after successful initialization for this node instance</input_port>
+        </Action>
+        <Action ID="CloseGripper">
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="InferGrasps">
+            <input_port name="observation_id" type="std::string"/>
+            <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <output_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="LiftObject">
+            <input_port name="plan_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="MakeTcpPose">
+            <output_port name="pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Constructed and validated TcpPose object</output_port>
+            <input_port name="relative" type="bool" default="false">Interpret only position as an offset along frame axes</input_port>
+            <input_port name="qy" type="double">Optional quaternion y; supply all four components</input_port>
+            <input_port name="frame_id" type="std::string" default="base_link">Reference frame for position and orientation</input_port>
+            <input_port name="z" type="double">Required z in metres</input_port>
+            <input_port name="qx" type="double">Optional quaternion x; supply all four components</input_port>
+            <input_port name="y" type="double">Required y in metres</input_port>
+            <input_port name="qw" type="double">Optional quaternion w; supply all four components</input_port>
+            <input_port name="qz" type="double">Optional quaternion z; supply all four components</input_port>
+            <input_port name="x" type="double">Required x in metres</input_port>
+        </Action>
+        <Action ID="MoveHome">
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles in radians; omit for YAML</input_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="MoveObservation">
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Home reference joint angles; omit for YAML</input_port>
+            <input_port name="settle_time" type="double">Settling time in seconds [0, 30]; omit for YAML</input_port>
+            <input_port name="x" type="double">Home-relative base X offset (m); omit for zero</input_port>
+            <input_port name="y" type="double">Home-relative base Y offset (m); omit for zero</input_port>
+            <input_port name="z" type="double">Home-relative base Z offset (m); omit for YAML</input_port>
+            <input_port name="tilt_deg" type="double">Home-local Y tilt (degrees); omit for YAML</input_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="MoveTcp">
+            <input_port name="tcp_link" type="std::string" default="tcp_link">Controlled TCP link</input_port>
+            <input_port name="pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;">Required TcpPose object from the blackboard</input_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="MoveTcpUp">
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="MoveToPregrasp">
+            <input_port name="plan_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="OpenGripper">
+            <input_port name="opening" type="double">Gripper width in metres [0, 0.10]; omit for YAML</input_port>
+            <input_port name="duration" type="double">Opening duration in seconds (0, 30]; omit for default</input_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="SegmentObject">
+            <input_port name="target_text" type="std::string" default="">Optional target description</input_port>
+            <output_port name="observation_id" type="std::string"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <output_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="SelectFeasibleGrasp">
+            <input_port name="observation_id" type="std::string"/>
+            <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+            <output_port name="plan_id" type="std::string"/>
+            <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+        <Action ID="SetGripper">
+            <input_port name="opening" type="int">Required total opening width in mm (0..100); percent optional via unit</input_port>
+            <input_port name="unit" type="std::string" default="mm">Opening unit: mm (default) or percent</input_port>
+            <input_port name="duration" type="double" default="3.000000">Trajectory duration in seconds (0, 3600]</input_port>
+            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
+            <input_port name="server_name" type="std::string">Action server name</input_port>
+        </Action>
+    </TreeNodesModel>
+</root>
+

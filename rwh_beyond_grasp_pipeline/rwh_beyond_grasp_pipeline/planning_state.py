@@ -23,8 +23,8 @@ def arm_position_limits(robot_description):
 
 
 def bounded_planning_state(state, limits, tolerance):
-    if not math.isfinite(tolerance) or not 0 < tolerance <= 0.05:
-        raise ValueError('planning_start_bounds_tolerance must be in (0, 0.05] rad')
+    if not math.isfinite(tolerance) or not 0 < tolerance <= math.pi:
+        raise ValueError('planning start tolerance must be in (0, pi] rad')
     result = copy.deepcopy(state)
     names = list(result.joint_state.name)
     positions = list(result.joint_state.position)

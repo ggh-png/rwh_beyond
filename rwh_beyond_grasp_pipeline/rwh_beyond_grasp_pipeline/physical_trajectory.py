@@ -15,9 +15,9 @@ from control_msgs.action import FollowJointTrajectory
 from .hardware_coordinator import feedback_values
 
 
-def trajectory_points(trajectory, current, expected, initial_tolerance=0.03):
-    if not math.isfinite(initial_tolerance) or not 0 < initial_tolerance <= 0.05:
-        raise ValueError('initial_position_tolerance must be in (0, 0.05] rad')
+def trajectory_points(trajectory, current, expected, initial_tolerance=math.radians(10.0)):
+    if not math.isfinite(initial_tolerance) or not 0 < initial_tolerance <= math.pi:
+        raise ValueError('initial_position_tolerance must be in (0, pi] rad')
     names = list(trajectory.joint_names)
     if len(names) != len(expected) or set(names) != set(expected):
         raise ValueError('Trajectory joint names do not match controller')
@@ -61,10 +61,10 @@ def trajectory_points(trajectory, current, expected, initial_tolerance=0.03):
 class PhysicalTrajectory(Node):
     def __init__(self):
         super().__init__('piper_physical_trajectory')
-        self.declare_parameter('initial_position_tolerance', 0.05)
+        self.declare_parameter('initial_position_tolerance', math.radians(10.0))
         value = self.get_parameter('initial_position_tolerance').value
-        if not math.isfinite(value) or not 0 < value <= 0.05:
-            raise ValueError('initial_position_tolerance must be in (0, 0.05] rad')
+        if not math.isfinite(value) or not 0 < value <= math.pi:
+            raise ValueError('initial_position_tolerance must be in (0, pi] rad')
         self.declare_parameter('gripper_close_width', 0.04)
         self.declare_parameter('gripper_close_duration', 4.0)
         width = self.get_parameter('gripper_close_width').value

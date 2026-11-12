@@ -1,26 +1,34 @@
 """Shared sim/real home, observation, gripper and pick scenario motions."""
 
 import copy
+import math
 import time
 from geometry_msgs.msg import Pose
-from moveit_msgs.msg import AttachedCollisionObject, PlanningScene, Constraints, JointConstraint
+from moveit_msgs.msg import (
+    AttachedCollisionObject, CollisionObject, PlanningScene, PlanningSceneWorld, Constraints, JointConstraint,
+)
 from moveit_msgs.msg import PlanningSceneComponents as PC
 from moveit_msgs.srv import GetPlanningScene, GetMotionPlan, GetPositionFK
 from rclpy.time import Time
 from std_msgs.msg import Header
 from .observation_motion import observation_pose, validate_observation_parameters
-from .stage_constants import TARGET, FINGERS
+from .stage_constants import TARGET, LEGACY_SUPPORT_TABLE, FINGERS
 
 
 class ScenarioMotion:
     def prepare_observation_motion(self):
         self.ensure_backend()
         query = GetPlanningScene.Request()
-        query.components.components = PC.ROBOT_STATE_ATTACHED_OBJECTS
+        query.components.components = PC.ROBOT_STATE_ATTACHED_OBJECTS | PC.WORLD_OBJECT_NAMES
+        scene = self.call('scene', query).scene
         attached_ids = {
-            item.object.id
-            for item in self.call('scene', query).scene.robot_state.attached_collision_objects
+            item.object.id for item in scene.robot_state.attached_collision_objects
         }
+        # MoveIt rejects REMOVE for an absent object. Clean up only a retained table.
+        if any(obj.id == LEGACY_SUPPORT_TABLE for obj in scene.world.collision_objects):
+            self.apply(PlanningScene(world=PlanningSceneWorld(collision_objects=[
+                CollisionObject(id=LEGACY_SUPPORT_TABLE, operation=CollisionObject.REMOVE),
+            ])))
         if attached_ids - {TARGET}:
             raise RuntimeError('Unknown attached objects prevent home/observation motion')
         if self.attached and TARGET not in attached_ids:
@@ -33,9 +41,11 @@ class ScenarioMotion:
         self.cleanup()
         return False
 
-    def move_home(self):
+    def move_home(self, home=None):
+        home = self.get_parameter('home_joint_positions').value if home is None else home
+        if len(home) != 6 or not all(math.isfinite(v) for v in home):
+            raise ValueError('home_joint_positions requires six finite radians')
         self.prepare_observation_motion()
-        home = self.get_parameter('home_joint_positions').value
         tolerance = self.get_parameter('home_joint_tolerance').value
 
         def at_home():
@@ -86,20 +96,26 @@ class ScenarioMotion:
         self.execute_trajectory(response.trajectory)
         self.wait(at_home, 20)
 
-    def move_observation(self, rise_m=None, tilt_deg=None):
+    def move_observation(self, rise_m=None, tilt_deg=None, home=None, settle_time=None,
+                         x=None, y=None, z=None):
         rise = self.get_parameter('observation_z_offset').value if rise_m is None else rise_m
+        x_offset = 0.0 if x is None else x
+        y_offset = 0.0 if y is None else y
+        rise = rise if z is None else z
         tilt = list(self.get_parameter('observation_tilt_rpy_deg').value)
         if tilt_deg is not None:
             tilt[1] = tilt_deg
+        home = self.get_parameter('home_joint_positions').value if home is None else home
+        settle = self.get_parameter('observation_settle_time').value if settle_time is None else settle_time
         validate_observation_parameters(
-            self.get_parameter('home_joint_positions').value,
+            home,
             rise,
             tilt,
-            self.get_parameter('observation_settle_time').value,
+            settle,
             self.get_parameter('home_joint_tolerance').value,
+            offset_xyz=[x_offset, y_offset, rise] if any(v is not None for v in (x, y, z)) else None,
         )
         carrying = self.prepare_observation_motion()
-        home = self.get_parameter('home_joint_positions').value
         tolerance = self.get_parameter('home_joint_tolerance').value
         values = self.feedback()
         if not carrying and any(
@@ -117,23 +133,25 @@ class ScenarioMotion:
         response = self.call('fk', request)
         if response.error_code.val != 1 or len(response.pose_stamped) != 1:
             raise RuntimeError('Cannot compute the configured home TCP pose')
-        target = observation_pose(response.pose_stamped[0].pose, rise, tilt)
-        self.stage(f'observation_target rise_m={rise} tilt_rpy_deg={tilt}')
+        target = observation_pose(response.pose_stamped[0].pose, rise, tilt, x_offset, y_offset)
+        self.stage(f'observation_target xyz_m={[x_offset, y_offset, rise]} tilt_rpy_deg={tilt}')
         # One Cartesian request interpolates translation and orientation together.
         # execute_cartesian rejects incomplete or colliding paths before execution.
         self.execute_cartesian(target)
-        until = time.monotonic() + self.get_parameter('observation_settle_time').value
+        until = time.monotonic() + settle
         self.wait(
             lambda: time.monotonic() >= until,
-            self.get_parameter('observation_settle_time').value + 1.0,
+            settle + 1.0,
         )
         self.stage('observation_pose_reached_ready_for_fresh_rgbd')
 
-    def open_gripper(self):
+    def open_gripper(self, opening=None, duration=None):
         if self.attached:
             raise RuntimeError('Refusing automatic release of attached target')
-        opening = self.get_parameter('gripper_open_width').value
-        self.command_gripper(opening)
+        opening = self.get_parameter('gripper_open_width').value if opening is None else opening
+        if not math.isfinite(opening) or not 0 <= opening <= .10:
+            raise ValueError('gripper opening must be finite in [0, 0.10] metres')
+        self.command_gripper(opening, duration=duration, closing=False)
         self.wait(lambda: abs(self.feedback()['gripper'] - opening) < 0.005, 10)
 
     def attach(self):

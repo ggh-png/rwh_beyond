@@ -15,9 +15,7 @@
 #include "rwh_beyond_bt/plugins/action/move_home_action.hpp"
 
 #include <memory>
-
-#include "moveit_msgs/msg/joint_constraint.hpp"
-
+#include <vector>
 
 namespace rwh_beyond_bt
 {
@@ -25,24 +23,13 @@ namespace rwh_beyond_bt
 MoveHomeAction::MoveHomeAction(
   const std::string & xml_tag_name, const std::string & action_name,
   const BT::NodeConfiguration & conf)
-: MoveGroupNode(xml_tag_name, action_name, conf)
+: ScenarioActionNode(xml_tag_name, action_name, conf, "move_home")
 {}
 
-void MoveHomeAction::on_tick()
+BT::PortsList MoveHomeAction::providedPorts()
 {
-  set_stage("move_home");
-  set_common_request();
-  moveit_msgs::msg::Constraints constraints;
-  for (const auto * joint : {"joint1", "joint2", "joint3", "joint4", "joint5", "joint6"}) {
-    moveit_msgs::msg::JointConstraint constraint;
-    constraint.joint_name = joint;
-    constraint.position = 0.0;
-    constraint.tolerance_above = 0.001;
-    constraint.tolerance_below = 0.001;
-    constraint.weight = 1.0;
-    constraints.joint_constraints.push_back(constraint);
-  }
-  goal_.request.goal_constraints = {constraints};
+  return providedBasicPorts({BT::InputPort<std::vector<double>>("home_joint_positions",
+        "Six joint angles in radians; omit for YAML")});
 }
 
 }  // namespace rwh_beyond_bt
@@ -54,7 +41,7 @@ BT_REGISTER_NODES(factory)
   BT::NodeBuilder builder =
     [](const std::string & name, const BT::NodeConfiguration & config)
     {
-      return std::make_unique<rwh_beyond_bt::MoveHomeAction>(name, "move_action", config);
+      return std::make_unique<rwh_beyond_bt::MoveHomeAction>(name, "grasp/move_home", config);
     };
   factory.registerBuilder<rwh_beyond_bt::MoveHomeAction>("MoveHome", builder);
 }

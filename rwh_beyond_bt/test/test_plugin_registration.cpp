@@ -27,7 +27,7 @@ TEST(PluginRegistration, IndividualLibrariesMatchCompatibilityLoader)
 {
   const std::vector<std::pair<std::string, std::string>> plugins = {
     {"clear_octomap", "ClearOctomap"}, {"move_home", "MoveHome"},
-    {"move_observation", "MoveObservation"}, {"grasp_step", "GraspStep"},
+    {"move_observation", "MoveObservation"},
     {"move_tcp_up", "MoveTcpUp"}, {"close_gripper", "CloseGripper"},
     {"open_gripper", "OpenGripper"}, {"set_gripper", "SetGripper"},
     {"move_tcp", "MoveTcp"}, {"make_tcp_pose", "MakeTcpPose"},

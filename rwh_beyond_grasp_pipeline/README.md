@@ -5,7 +5,7 @@ GPU 모델은 별도 bridge의 ROS Action으로 호출합니다.
 
 - 심 backend: `grasp_coordinator`.
 - 실물 backend: `hardware_grasp_coordinator`.
-- API: `/grasp/*`, `/grasp_step`, `/grasp/cleanup`.
+- API: `/grasp/*`, `/grasp/cleanup`.
 - 공통 시나리오: `rwh_beyond_bt/behavior_trees/demo.xml`.
 - BT 통합 설정: `rwh_beyond_bringup/config/bt_demo.yaml`.
 

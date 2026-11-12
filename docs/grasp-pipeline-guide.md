@@ -30,6 +30,9 @@ ros2 service call /ros_runner/activate_bt_demo std_srvs/srv/Empty '{}'
 ```
 
 활성화는 실행 환경을 시작하며 집기 Action 목표를 자동으로 보내지 않습니다.
+실물 `bt_demo`는 기본적으로 시작 10초 후 `/exit_teach_mode`를 한 번 호출하며,
+이 전환에는 팔 home 이동·모터 활성화가 포함될 수 있습니다.
+전환 완료와 arm 상태를 확인한 뒤 집기 목표를 보냅니다.
 실물에서는 CAN·모터·제어 모드를 [실물 제어 안내](piper-hardware-moveit.md)에 따라 준비합니다.
 
 ## 3. 준비 확인

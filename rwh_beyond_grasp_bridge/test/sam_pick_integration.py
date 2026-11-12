@@ -32,11 +32,9 @@ try:
  # Keep the user's demo.xml unchanged. This baseline explicitly observes and stops after lift.
  tree=ET.parse('/root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/demo.xml')
  sequence=tree.find('.//Sequence')
- if sequence.find('MoveObservation') is None:
-  index=next(i for i,n in enumerate(sequence) if n.tag=='SegmentObject' or (n.tag=='GraspStep' and n.get('command') in ('segment_target','prepare')))
-  sequence.insert(index,ET.Element('MoveObservation'))
  full_tree=os.environ.get('SAM_PICK_FULL_TREE')=='1'
- if not full_tree and sequence[-1].tag=='MoveHome':sequence.remove(sequence[-1])
+ if not full_tree:
+  sequence.remove(sequence.find("Sequence[@name='ReturnHome']"))
  tree_path=Path('/tmp/sam3-baseline-pick.xml');tree.write(tree_path,encoding='unicode')
  params=yaml.safe_load(Path('/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml').read_text())
  params['bt_navigator']['ros__parameters']['run_demo']['enable_groot_monitoring']=False

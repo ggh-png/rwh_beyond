@@ -35,7 +35,7 @@ piper:
 | `camera_model` | MoveIt의 카메라 장착 모델 포함 여부 |
 | `start_sensors` | PiPER MoveIt이 센서를 함께 시작할지 여부 |
 | `octomap` | 깊이 점군 기반 Octomap 사용 여부 |
-| `use_rviz` | 실물 MoveIt RViz 사용 여부 |
+| `use_rviz` | 실물 `bt_demo` 활성화 시 통합 RViz 사용 여부 |
 
 `piper_moveit`과 동일 backend 별칭은 같은 설정을 사용합니다.
 `tcp_offset`은 `piper_sim`·`bt_demo_sim`·`bt_demo`에도 전달해 로봇 모델과 BT 화면의 TCP를 맞춥니다.
@@ -111,3 +111,25 @@ YAML 값만 바꾸면 재빌드는 필요 없습니다.
 
 [실행 가이드](grasp-pipeline-guide.md) · [D405와 TF](d405-sensors.md) ·
 [실물 제어](piper-hardware-moveit.md) · [외부 모델 연결](piper-runtime.md)
+
+## 실물 BT 시작 시 티칭 종료
+
+`runners.yaml`의 다음 설정은 실물 `bt_demo`에만 적용됩니다.
+
+```yaml
+bt_demo_startup:
+  exit_teach_mode: true
+  delay_seconds: 10.0
+  service_timeout_seconds: 15.0
+```
+
+BT launch 시작 후 10초가 지나면 `/exit_teach_mode`를 한 번 호출합니다.
+이 서비스는 팔 home 이동과 모터 활성화를 수행할 수 있으며 `piper.auto_enable`과 별개입니다.
+`exit_teach_mode: false`로 자동 호출을 끌 수 있습니다.
+대기 중 BT를 중지하면 예약도 취소됩니다. 이미 전송한 Empty 요청은 취소할 수 없습니다.
+서비스 대기/응답 시간이 제한을 넘으면 호출 클라이언트를 종료하고 자동 재시도 없이 BT를 유지합니다.
+로그와 실제 arm 상태를 확인한 뒤 `/run_demo`를 호출합니다.
+설정값은 다음 활성화부터 적용됩니다. 새 wrapper의 최초 적용에는 runner 재시작이 필요합니다.
+
+실물 `bt_demo`가 RViz를 함께 시작하고 종료합니다. 의존 runner인 `piper_moveit`은
+RViz를 따로 시작하지 않아 창이 중복되지 않습니다. `piper.use_rviz: true`가 기본값입니다.

@@ -29,7 +29,8 @@ SegmentObjectAction::SegmentObjectAction(
 
 BT::PortsList SegmentObjectAction::providedPorts()
 {
-  return providedBasicPorts({BT::InputPort<std::string>("target_text", "", "Optional target description"),
+  return providedBasicPorts({BT::InputPort<std::string>("target_text", "",
+        "Optional target description"),
              BT::OutputPort<std::string>("observation_id"),
              BT::OutputPort<ObjectMask>("mask")});
 }

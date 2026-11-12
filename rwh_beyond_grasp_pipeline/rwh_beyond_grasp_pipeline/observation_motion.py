@@ -6,7 +6,7 @@ import numpy as np
 from scipy.spatial.transform import Rotation
 
 
-def validate_observation_parameters(home, rise, tilt, settle, tolerance):
+def validate_observation_parameters(home, rise, tilt, settle, tolerance, offset_xyz=None):
     for name, values, size in [
         ('home_joint_positions', home, 6),
         ('observation_tilt_rpy_deg', tilt, 3),
@@ -14,17 +14,22 @@ def validate_observation_parameters(home, rise, tilt, settle, tolerance):
         array = np.asarray(values, dtype=float)
         if array.shape != (size,) or not np.isfinite(array).all():
             raise ValueError(f'{name} requires {size} finite values')
-    if not math.isfinite(rise) or rise <= 0:
-        raise ValueError('observation_z_offset must be finite and positive')
+    if offset_xyz is None:
+        if not math.isfinite(rise) or rise <= 0:
+            raise ValueError('observation_z_offset must be finite and positive')
+    elif np.asarray(offset_xyz).shape != (3,) or not np.isfinite(offset_xyz).all():
+        raise ValueError('observation XYZ offsets require three finite values')
     if not math.isfinite(settle) or settle < 0:
         raise ValueError('observation_settle_time must be finite and nonnegative')
     if not math.isfinite(tolerance) or tolerance <= 0:
         raise ValueError('home_joint_tolerance must be finite and positive')
 
 
-def observation_pose(home_pose, rise, tilt):
-    """Translate in base Z, rotate about home-local XYZ axes (degrees)."""
+def observation_pose(home_pose, rise, tilt, x=0.0, y=0.0):
+    """Translate in base XYZ, rotate about home-local XYZ axes (degrees)."""
     target = copy.deepcopy(home_pose)
+    target.position.x += x
+    target.position.y += y
     target.position.z += rise
     q = home_pose.orientation
     rotation = Rotation.from_quat([q.x, q.y, q.z, q.w])

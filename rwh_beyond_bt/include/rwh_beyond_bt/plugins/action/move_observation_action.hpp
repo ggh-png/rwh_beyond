@@ -17,20 +17,20 @@
 
 #include <string>
 
-#include "rwh_beyond_bt/bt_move_group_node.hpp"
+#include "rwh_beyond_bt/bt_scenario_action_node.hpp"
 
 namespace rwh_beyond_bt
 {
 
 /** @brief MoveObservation behavior tree node. */
-class MoveObservationAction : public MoveGroupNode
+class MoveObservationAction : public ScenarioActionNode
 {
 public:
   MoveObservationAction(
     const std::string & xml_tag_name, const std::string & action_name,
     const BT::NodeConfiguration & conf);
 
-  void on_tick() override;
+  static BT::PortsList providedPorts();
 };
 
 }  // namespace rwh_beyond_bt
