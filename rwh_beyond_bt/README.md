@@ -1,197 +1,39 @@
-# Behavior trees
+# rwh_beyond_bt
 
-- `rwh_beyond_bt`: BT action/condition plugins, execution XML and Groot2 node models.
-- `rwh_beyond_navigator`: Nav2 navigator exposing `/run_demo` (`rwh_beyond_msgs/action/RunDemo`).
-- `rwh_beyond_bringup`: `bt_demo.launch.py`, loading the grasp pipeline, navigator and lifecycle manager.
+PiPER 파지 시나리오의 BehaviorTree.CPP 플러그인과 실행 XML을 제공합니다.
+`rwh_beyond_navigator`의 `/run_demo` Action이 트리를 실행합니다.
 
-Package names are robot-neutral. The current demo still targets the PiPER model:
-its `arm` group, joint1–joint6 zero home, `base_link`, `tcp_link`, and gripper.
+## 기본 실행
 
-Start the simulation stack, then start the navigator in a separate terminal
-after MuJoCo and MoveIt are ready:
+심·실물 모두 `behavior_trees/demo.xml`을 사용합니다.
+`bt_demo_sim`은 `piper_sim`, `bt_demo`는 `piper_moveit`을 의존 실행합니다.
 
 ```bash
-ros2 launch moma_bringup simulation.launch.py gui:=false moveit:=true rviz:=false
-ros2 launch rwh_beyond_bringup bt_demo.launch.py
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  '{target_text: "yellow block"}' --feedback
 ```
 
-With `ros_runner`, activate only `bt_demo_sim`: it requires `piper_moveit_sim` and
-starts the grasp pipeline itself. Stopping the simulator also stops its dependents.
-Launching does not send a demo goal.
+home·열기·관측은 `GraspStep`, 인식·추론·선택·접근·부착·리프트는 역할별 Action 노드입니다.
+기본 트리는 닫기를 `AttachObject` 안에서 수행하고 관측 자세와 home으로 복귀합니다.
+실제 잡힘 여부를 판정하거나 자동으로 물체를 놓지 않습니다.
 
-## Plugin layout
+## 플러그인 구조
 
-Each node has a public declaration in `include/rwh_beyond_bt/plugins/action/*_action.hpp`
-and a matching implementation in `plugins/action/*_action.cpp`, following Nav2 Jazzy.
-ROS action nodes use `(xml_tag_name, action_name, conf)` constructors and a
-`BT::NodeBuilder` inside their own `BT_REGISTER_NODES` entry point.
+각 노드는 `include/rwh_beyond_bt/plugins/action/*_action.hpp`와
+`plugins/action/*_action.cpp`에 선언·구현하며 개별 shared library로 빌드합니다.
+`rwh_beyond_bt_nodes` 로더가 전체 노드를 등록합니다. 같은 factory에 전체 로더와
+개별 라이브러리를 중복 등록하지 않습니다.
 
-The 19 nodes build as individual `rwh_beyond_<name>_action_bt_node` shared libraries.
-Common implementations live in `src/bt_*.cpp`, `diagnostics.cpp` and `tcp_pose.cpp`.
-`src/register_nodes.cpp` keeps `rwh_beyond_bt_nodes` as a compatibility loader for
-existing navigator configurations. Load either that aggregate or individual
-libraries in one factory, not both. Headers and CMake targets are installed/exported.
-
-See [Nav2 code layout and style](../docs/bt-code-style.md) for extension and lint rules.
-
-## Groot2 node model XML
-
-After building and sourcing the workspace, regenerate the palette from the actual
-plugin registrations (no ROS nodes are constructed and no motion is requested):
+공통 Action·진단은 `src/bt_*.cpp`, `diagnostics.cpp`, pose 자료형은 `tcp_pose.cpp`에 있습니다.
+Groot2 노드 모델을 재생성하려면 다음을 실행합니다.
 
 ```bash
-ros2 run rwh_beyond_bt generate_tree_nodes_xml /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
+ros2 run rwh_beyond_bt generate_tree_nodes_xml \
+  /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/behavior_trees/rwh_beyond_tree_nodes.xml
 ```
 
-Compare and commit the resulting XML when node IDs or ports change. The XML is
-installed into `share/rwh_beyond_bt`; import it into Groot2 before opening
-`rwh_beyond_bt/behavior_trees/demo.xml`.
+범용 `MakeTcpPose`, `MoveTcp`, `SetGripper`는 사용자 정의 트리에서 사용할 수 있습니다.
+`perception_preview.xml`과 `grasp_debug.xml`은 심 전용 부분 실행 트리입니다.
 
-The model XML describes node IDs, types and ports. The execution XML defines the
-sequence. The shared library supplies executable implementations. The navigator's
-`navigator_plugins.xml` separately registers a Nav2 plugin via pluginlib.
-
-## Parameterized action nodes
-
-### SetGripper
-
-```xml
-<SetGripper opening="50"/>
-<SetGripper opening="60" unit="mm" duration="2.5"/>
-<SetGripper opening="{gripper_opening}"/>
-```
-
-`opening` is a required **integer total opening width in millimetres**, from 0
-to 100. `unit` defaults to `mm`: `opening="50"` requests a total aperture of 50 mm
-(0.05 m), `0` closes the fingers and `100` opens to this model's maximum of 100 mm.
-`unit="percent"` remains an explicit optional mode for 0..100% opening. These
-commands specify width, not force or finger joint angles. The two unit scales
-happen to coincide for this 100 mm model.
-`duration` defaults to 3 seconds and must be finite in (0, 3600].
-The node calls `gripper_controller/follow_joint_trajectory` using joint `gripper`.
-Changing this model's gripper geometry requires updating the aperture limit.
-
-### TcpPose: one object per target
-
-`rwh_beyond_msgs/msg/TcpPose` groups position, quaternion and target semantics:
-
-```text
-string frame_id "base_link"
-geometry_msgs/Pose pose
-bool relative false
-bool keep_current_orientation false
-```
-
-Position is in metres; orientation is a quaternion in x/y/z/w order in
-`frame_id`. `relative` affects only position. `keep_current_orientation=true`
-ignores the stored orientation and uses the measured TCP orientation instead.
-The ROS Quaternion default is identity `(0, 0, 0, 1)`. A directly constructed
-message therefore requests identity orientation unless `keep_current_orientation`
-is set to true. `MakeTcpPose` chooses retained orientation when quaternion inputs
-are omitted.
-
-### MakeTcpPose → MoveTcp
-
-Create a target once and share one typed blackboard entry:
-
-```xml
-<Sequence>
-  <MakeTcpPose x="0.25" y="0" z="0.35"
-               qx="0" qy="0" qz="0" qw="1" pose="{target_pose}"/>
-  <MoveTcp pose="{target_pose}"/>
-</Sequence>
-```
-
-`MakeTcpPose` is a synchronous, local builder: it creates a message and never
-sends a motion goal. It requires `x`, `y`, `z` and an output `pose` mapping.
-`frame_id` defaults to `base_link`; `relative` defaults to `false`. Supply all
-four quaternion inputs to set orientation, or omit all four to set
-`keep_current_orientation=true`. Partial/invalid quaternions fail. The builder
-writes the output only after validation succeeds.
-
-For a relative lift preserving current orientation:
-
-```xml
-<Sequence>
-  <MakeTcpPose x="0" y="0" z="0.30" relative="true" pose="{lift_pose}"/>
-  <MoveTcp pose="{lift_pose}"/>
-</Sequence>
-```
-
-An upstream C++ BT node can also directly supply the ROS message:
-
-```cpp
-rwh_beyond_msgs::msg::TcpPose target;
-target.pose.position.x = 0.25;
-target.pose.position.z = 0.35;
-target.pose.orientation.w = 1.0;
-blackboard->set("target_pose", target);
-```
-
-`MoveTcp` now accepts **only** `pose` and optional `tcp_link` (default
-`tcp_link`), plus the inherited Nav2 `server_name` and `server_timeout` ports.
-The former scalar position/quaternion/frame/relative ports are removed; migrate
-old XML by creating a `TcpPose` with `MakeTcpPose` or another typed producer.
-A string is not a `TcpPose` object. No custom literal parsing or ROS topic
-subscription is implied by the message definition. The `RunDemo` action fields
-are unchanged; remote producers would need an explicit bridge into the blackboard.
-
-Positions must be finite and `frame_id`/`tcp_link` nonempty. Explicit quaternion
-components must be finite with norm at least 1e-12; normalization works on a
-copy and never mutates the blackboard object. TF is required for relative
-position or retained orientation; an absolute full pose needs no current-TCP
-TF lookup. MoveIt still validates the target frame and pose.
-
-The pose goal uses `arm`, OMPL/RRTConnect, 10 seconds of planning, 0.1 speed and
-acceleration scaling, 5 mm position tolerance and 0.01 rad orientation tolerances.
-It does not guarantee a straight-line Cartesian path. Invalid runtime inputs,
-unavailable required TF, controller/MoveIt application errors and cancellations
-return FAILURE. There is no fallback to arbitrary joint targets.
-
-After rebuilding, restart the navigator to load the updated library and
-re-import `rwh_beyond_tree_nodes.xml` in Groot2. The default `demo.xml` is shared by simulation and hardware.
-The redundant fixed demo has been removed; `parameterized_demo.xml` remains the configurable motion example.
-
-## Verification
-
-`colcon test --packages-select rwh_beyond_bt --event-handlers console_direct+`
-includes ROS 2 lint and plugin-loading tests, plus mock action servers in ROS domains 87/90, without moving a robot. It checks goal
-conversion, typed message construction/reuse/SubTree remapping, absolute/relative
-frames, explicit/retained orientation, quaternion normalization without source
-mutation, invalid inputs, missing TF and application failure results.
-
-`rwh_beyond_bt/behavior_trees/parameterized_demo.xml` demonstrates the original
-home, +0.30 m along base_link Z, close, home, open sequence using the two new
-parameterized nodes. It is an optional tree; the navigator defaults to the red-box pick tree.
-
-## 오류 전달
-
-MoveIt/controller 결과의 signed 오류 코드·이름·원문 메시지·발생 컴포넌트와
-BT 단계/노드를 root blackboard의 `demo_feedback` 객체로 navigator에 전달합니다.
-MoveIt의 action feedback `state`도 `/run_demo` feedback에 포함됩니다.
-`RunDemo` 인터페이스가 변경됐으므로 적용 후 navigator와 client를 재시작해야 합니다.
-자세한 출력 예제는 [BT 실패 진단](../docs/bt-operation.md#bt-error-reporting)을 참고하세요.
-
-## Octomap 초기화 노드
-
-`<ClearOctomap once="true" timeout="30.0" fresh_clouds="2"/>`를 트리 맨 앞에 배치합니다.
-clear 후 새 점군과 Octomap을 확인할 때까지 RUNNING을 반환합니다.
-첫 성공 이후 같은 노드 인스턴스에서는 건너뛰며, `once=false`이면 새 실행마다 초기화합니다.
-Launch에서는 지도를 초기화하지 않습니다.
-
-## Simulation grasp stages
-
-`MoveObservation` plans to the calibrated MuJoCo observation joint pose.
-The default tree uses `CheckGraspReady`, `SegmentObject`, `BuildObjectCloud`,
-`InferGrasps`, `SelectFeasibleGrasp`, `MoveToPregrasp`, `ApproachGrasp`,
-`AttachObject` and `LiftObject` as separate BT node classes and action plugins.
-Masks, clouds and candidates pass through typed Blackboard ports; observation and
-plan IDs bind the inputs to a stationary capture and a validated trajectory.
-`GraspStep` and `/grasp_step` remain for legacy XML clients.
-The default tree observes, picks, verifies the physical lift and returns home.
-
-CloseGripper disables only its own gripper path-position/velocity tracking check
-for the expected blocked-close case. Arm tracking and collision checks remain;
-the attach stage requires independent physical object contact on both fingers.
-
-See [red-box grasp operation](../docs/red-box-grasp.md). Hardware is unsupported.
+[실행](../docs/grasp-pipeline-guide.md) · [공통 설정](../docs/real-bt.md) ·
+[Action](../docs/bt-operation.md) · [포트](../docs/bt-grasp-stages.md)

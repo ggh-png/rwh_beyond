@@ -1,38 +1,28 @@
-# Upstream와 구조 매핑
+# 구성 요소와 출처
 
-## 구조 참고
+| 구성 요소 | 역할·출처 |
+|---|---|
+| ROS 2 Jazzy | ROS 노드·Topic·Service·Action |
+| Nav2 Behavior Tree Navigator | `DemoNavigator`의 BT 실행 기반 |
+| BehaviorTree.CPP | BT XML·플러그인·Blackboard |
+| MoveIt 2 | IK·충돌 검사·경로 계획·궤적 실행 |
+| MuJoCo / moma-mj-lab | PiPER 시뮬레이션과 공통 로봇·카메라 모델 |
+| AgileX agx_arm_ros | PiPER driver·description·MoveIt 패키지 |
+| RealSense realsense-ros | D405 driver와 장치 내부 TF |
+| SAM 3 | 텍스트 조건 이미지 분할 |
+| GraspGenX | 물체 점군 기반 파지 후보 생성 |
 
-- URL: https://github.com/open-navigation/opennav_coverage/tree/jazzy
-- 확인한 commit: `194250501889ce8896c5ee8b80a4d1317750be0e`
-- 작업 저장소는 coverage 구현을 복사/대량 rename하는 대신 필요한 구조를 새로 작성했다.
+의존 ROS 저장소는 `moma-mj-lab.repos`, GPU 모델 빌드 소스와 버전은 `deploy/`의 Dockerfile과
+설정에서 관리합니다. 각 구성 요소의 라이선스와 모델 가중치 사용 조건을 따릅니다.
 
-| 참고 프로젝트 역할 | RWH 역할 |
-| --- | --- |
-| `opennav_coverage`: include/src, core shared library, executable, lifecycle component | `rwh_beyond` |
-| `opennav_coverage_msgs`: 별도 rosidl interface package | `rwh_beyond_msgs` |
-| `opennav_coverage_demo`: launch/params 실행 통합 | `rwh_beyond_bringup` |
-| BT plugin / navigator plugin / row coverage | 현재 기능이 필요하지 않아 만들지 않음 |
+프로젝트에서 작성한 코드는 ROS 모델 bridge, coordinator, BT 플러그인, navigator,
+센서·실물 실행 통합입니다. pretrained 모델은 별도로 학습하지 않습니다.
+D405 mesh 출처와 라이선스는 `moma_description/meshes/D405-SOURCE.md`, `LICENSE.realsense`에 있습니다.
 
-Fields2Cover, coverage action/msg, row planner, coverage BT XML/plugin 의존성은 없다.
-이전 `husky_navigation` 기능은 RWH로 통합했으며, RWH 패키지 이름을 사용한다.
+- [SAM 3](https://github.com/facebookresearch/sam3)
+- [GraspGenX](https://github.com/NVlabs/GraspGenX)
+- [AgileX ROS](https://github.com/agilexrobotics/agx_arm_ros)
+- [RealSense ROS](https://github.com/realsenseai/realsense-ros)
+- [MoveIt 2](https://github.com/moveit/moveit2)
 
-## 전체 Nav2 파라미터 출처
-
-- 원본: `/opt/ros/jazzy/share/nav2_bringup/params/nav2_params.yaml`
-- ROS package version: `1.3.13`
-- Debian package: `1.3.13-1noble.20261006.042503`
-- 별도 upstream YAML은 단일 파라미터 구성 요청에 따라 제거했다. 원본은 Nav2 `1.3.13` 소스와 이전 Git 이력에서 확인할 수 있다.
-- SHA-256: `299f9002d6dcfbf661e532c99f32dda1766eab3afa3ab71a52378d80e7ef956f`
-- 실제 사용하는 전체 파일: `rwh_beyond_bringup/params/nav2_params.yaml`
-
-원본 YAML의 15개 파라미터 섹션을 통합 파일에 유지했다. 추가로 sensor_config, slam_toolbox, beyond_server 설정도 같은 파일에 둔다. 실제 파일은 전체 설정을 유지한 채
-Husky 토픽, base_link, Twist, footprint 및 초기 속도 제한을 한 번 반영한 구성이다.
-원본의 robot_radius 대신 footprint를 사용한다. 지도 경로는 map launch 인자로 전달한다.
-
-이는 Nav2가 제공한 기본 YAML 전체이며, 모든 플러그인의 모든 선택적 파라미터를
-열거한 API 명세는 아니다. 추가 플러그인의 옵션도 실제 YAML에 직접 추가할 수 있다.
-
-실행 중에는 설치된 Nav2 기본 YAML을 다시 읽거나 튜닝값을 다시 생성하지 않는다.
-namespace placeholder, use_sim_time 및 명시적으로 선택한 cmd_vel_type만 처리한다.
-따라서 repository YAML의 MPPI/DWB/새 플러그인/속도/footprint 튜닝이 보존된다.
-Nav2 배포 버전을 바꿀 때 해당 버전의 원본과 통합 파일을 비교해 변경점을 검토한다.
+[코드 안내](project-code-map.md) · [환경과 빌드](project-containers.md)

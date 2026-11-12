@@ -1,6 +1,6 @@
 # rwh_beyond_sam3_bridge
 
-독립 SAM ROS 인터페이스입니다. GPU 모델은 기존 `rwh-sam3-local` 컨테이너에 유지합니다.
+독립 SAM ROS 인터페이스입니다. 별도 GPU 모델 서버의 주소를 endpoint로 지정합니다.
 
 ```bash
 ros2 launch rwh_beyond_sam3_bridge bridge.launch.py endpoint:=tcp://127.0.0.1:5567

@@ -1,5 +1,5 @@
-site_name: RWH · PiPER 집기와 Husky 운용
-site_description: SAM 3·GraspGenX·MuJoCo·MoveIt·BT의 구성, 실행, 코드 안내와 Husky 운용
+site_name: BEYOND Grasp
+site_description: PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스
 site_url: https://ggh-png.github.io/rwh_beyond/
 repo_url: https://github.com/ggh-png/rwh_beyond
 repo_name: ggh-png/rwh_beyond
@@ -26,45 +26,27 @@ theme:
     - content.code.copy
 nav:
   - 문서 시작: index.md
-  - PiPER 집기 이해하기:
-      - 1. 전체 흐름 한눈에: project-overview.md
-      - 2. 컨테이너 구축: project-containers.md
-      - 3. 모델 데이터와 좌표계: project-data.md
-      - 4. 처음 터미널부터 실행: grasp-pipeline-guide.md
-      - 5. 코드를 따라 읽기: project-code-map.md
-      - 모델별 ROS 노드 분리: model-bridges.md
-      - SAM 3 구현: sam3-perception.md
-      - GraspGenX 구현: graspgenx-model.md
-      - RViz로 디버깅: grasp-visualization.md
-      - ROS 환경·CAN·모델 네트워크: piper-runtime.md
-      - 실물 PiPER MoveIt 시험: piper-hardware-moveit.md
-      - D405 장착·센서 선택: d405-sensors.md
-      - 실물 집기 BT 준비·실행: real-bt.md
-  - BT 개발 상세:
-      - 아키텍처: bt-architecture.md
-      - Depth와 runner 흐름: depth-bt-flow.md
-      - 노드 목록: bt-nodes.md
-      - 단계별 포트와 Action: bt-grasp-stages.md
-      - Nav2 헤더·CPP 구성: bt-code-style.md
-      - 실행과 Groot2: bt-operation.md
-  - 구축 상세와 실험 기록:
-      - GraspGenX 배포 상세: graspgenx-integration.md
-      - 초기 빨간 상자 통합: red-box-grasp.md
-      - SAM 통합 이력: sam3-history.md
-      - 11월 9일 작업 기록: work-log-2026-11-09.md
-      - 11월 10일 작업 기록: work-log-2026-11-10.md
-      - 11월 11일 작업 기록: work-log-2026-11-11.md
-  - Husky SLAM·Nav2:
-      - 시작 안내: husky-guide.md
-      - SSH와 본체 확인: connection.md
-      - 외부 PC 준비: setup.md
-      - SLAM과 Nav2 실행: operation.md
-      - TF와 토픽: interfaces.md
-      - 파라미터 설정: configuration.md
-      - ros_runner 운용: runner.md
-      - 문제 해결: troubleshooting.md
+  - 시작하기:
+      - 시스템 구성: project-overview.md
+      - 환경과 빌드: project-containers.md
+      - 실행 가이드: grasp-pipeline-guide.md
+      - 심·실물 공통 BT와 설정: real-bt.md
+      - Manipulation Action 인터페이스: bt-operation.md
+  - 센서와 실행 환경:
+      - 런타임·CAN·모델 연결: piper-runtime.md
+      - 실물 PiPER 제어: piper-hardware-moveit.md
+      - D405 센서·장착 TF: d405-sensors.md
+      - RViz 디버깅: grasp-visualization.md
+  - 구현과 데이터:
+      - 데이터와 좌표계: project-data.md
+      - 모델별 ROS 인터페이스: model-bridges.md
+      - SAM 3 객체 분할: sam3-perception.md
+      - GraspGenX 파지 후보: graspgenx-model.md
+      - BT와 실행 구조: bt-architecture.md
+      - BT 단계·포트·Action: bt-grasp-stages.md
+      - 코드를 따라 읽기: project-code-map.md
   - 문서 관리: documentation.md
-  - 구조와 출처: upstream.md
+  - 구성 요소와 출처: upstream.md
 markdown_extensions:
   - attr_list
   - md_in_html

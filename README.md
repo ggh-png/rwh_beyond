@@ -1,266 +1,75 @@
-# rwh_beyond
+# BEYOND Grasp
 
-## PiPER · SAM 3 · GraspGenX를 처음 보는 경우
+D405 RGB-D, SAM 3, GraspGenX, ROS 2 Behavior Tree와 MoveIt 2를 연결한
+PiPER 물체 인식·파지·리프트 프로젝트입니다.
 
-현재 집기 통합의 시작 문서는 **[전체 흐름 한눈에](docs/project-overview.md)**입니다.
+- 로봇 PC: 센서·TF·점군·ROS bridge·BT·경로 계획·실물 제어.
+- GPU 서버: SAM 3 분할과 GraspGenX 파지 후보 생성.
+- 심·실물 공통 시나리오: `rwh_beyond_bt/behavior_trees/demo.xml`.
+- 요청별 대상 지정: `/run_demo` Action의 `target_text`.
 
-1. [컨테이너 구축과 파일 위치](docs/project-containers.md)
-2. [모델 요청·응답과 좌표계](docs/project-data.md)
-3. [처음 터미널부터 실행](docs/grasp-pipeline-guide.md)
-4. [코드를 따라 읽기](docs/project-code-map.md)
-5. [SAM 3 구현](docs/sam3-perception.md) · [GraspGenX 구현](docs/graspgenx-model.md)
+**[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** · [문서 소스](docs/index.md)
 
-기본 경로는 실제 SAM·GraspGenX를 사용하는 MuJoCo 시뮬레이션입니다.
-시뮬 runner는 `bt_demo_sim`, 실물 runner는 `bt_demo`입니다.
-실물 실행은 [실물 BT 안내](docs/real-bt.md)를 따르며, 현재 실물 실험은 미검증 상태입니다.
-아래 Husky/Nav2 안내는 별도 운용 경로입니다.
+## 시작하기
 
-**[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** — PiPER 집기 전체 흐름·실행·코드 안내와 Husky SLAM·Nav2 운용.
+1. [환경과 빌드](docs/project-containers.md)
+2. [실행 가이드](docs/grasp-pipeline-guide.md)
+3. [공통 BT와 설정](docs/real-bt.md)
+4. [Action 인터페이스](docs/bt-operation.md)
+5. [코드 안내](docs/project-code-map.md)
 
-문서 소스는 [`docs/index.md`](docs/index.md), 로컬 빌드는 `pip install -r requirements-docs.txt && mkdocs serve`를 사용합니다.
-
-ROS 2 Jazzy 기반 Husky 외부 PC navigation과 커스텀 서비스 확장을 위한 workspace입니다.
-`opennav_coverage`의 서버 / 인터페이스 / bringup 분리를 참고했으며 coverage는 포함하지 않습니다.
-
-```text
-rwh_beyond/                         # C++ lifecycle/component 서버
-rwh_beyond_msgs/                    # 공용 msg/action/srv: RunDemo, InferGrasps 등
-rwh_beyond_sam3_bridge/             # /segment_image ↔ SAM ZMQ
-rwh_beyond_graspgenx_bridge/        # /infer_grasps ↔ GraspGenX ZMQ
-rwh_beyond_grasp_pipeline/          # 관측·점군·후보 선택·MoveIt·시각화
-rwh_beyond_model_utils/             # 공통 변환·wire helper
-rwh_beyond_grasp_bridge/            # 이전 실행 명령/import 호환
-rwh_beyond_bringup/
-  launch/
-    bringup.launch.py              # navigation + localization/SLAM + sensor + RViz
-    navigation.launch.py
-    localization.launch.py
-    slam.launch.py
-    sensor.launch.py
-    rviz.launch.py
-  rviz/navigation.rviz             # RViz 화면 설정
-  params/nav2_params.yaml           # 파라미터는 이 파일 하나만 사용
-  maps/real_map_0505.yaml            # 지도 메타데이터
-  maps/real_map_0505.pgm             # 지도 이미지
-```
-
-## 빌드와 실행
+ROS workspace는 `/root/ros2_ws`, 의존 저장소는 `moma-mj-lab.repos`에서 관리합니다.
+기반 ROS·GPU·장치 환경을 준비한 뒤 빌드합니다.
 
 ```bash
 source /opt/ros/jazzy/setup.bash
-cd ~/rwh_beyond
-rosdep install --from-paths . --ignore-src -r -y
-colcon build --symlink-install
-source install/setup.bash
-ros2 launch rwh_beyond_bringup bringup.launch.py
-```
-
-기본값은 namespace `a200_0724`, 실제 시간, AMCL, SICK 센서 및 RViz 활성화입니다.
-SLAM은 `slam:=true`, RViz 비활성화는 `use_rviz:=false`로 선택합니다.
-`use_sim_time:=true`이면 실제 센서 launch는 시작하지 않습니다. 시뮬레이터의 scan/TF가 필요합니다.
-
-```bash
-ros2 launch rwh_beyond_bringup bringup.launch.py \
-  map_yaml_file:=/path/to/map.yaml \
-  params_file:=/path/to/nav2_params.yaml \
-  sensor_hostname:=172.16.0.161 \
-  use_rviz:=false
-```
-
-`map:=...`도 지원하며 `map_yaml_file`을 함께 지정하면 후자가 우선합니다.
-기본 지도는 기존 `ros/real_map_0505.*`를 패키지에 복사한 것입니다.
-지도 YAML은 지도 메타데이터이므로 `params/`가 아닌 `maps/`에 둡니다.
-
-센서를 다른 runner에서 이미 실행 중이면 `start_sensor:=false`를 지정합니다.
-하드웨어 접속 없이 TF만 실행하려면 `start_driver:=false`를 사용합니다.
-기본 실행 방식은 일반 프로세스(`use_composition:=False`)입니다. 컴포넌트 모드는
-앞선 테스트에서 활성화됐으나 SIGINT 종료 중 crash가 관찰돼 기본으로 사용하지 않습니다.
-
-## 단일 파라미터 파일
-
-모든 튜닝은 `rwh_beyond_bringup/params/nav2_params.yaml`에서 합니다.
-Nav2 Jazzy 1.3.13 기본 YAML의 15개 섹션을 유지했고 다음 설정을 통합했습니다.
-
-- `sensor_config.ros__parameters`: SICK hostname, min/max angle, scan frame, 정적 TF
-- `slam_toolbox.ros__parameters`: SLAM 프레임, scan 토픽, 해상도 등
-- `beyond_server.ros__parameters`: 커스텀 서버 설정
-
-별도의 센서/서버 YAML과 upstream 파라미터 사본은 제거했습니다.
-외부 파일을 지정할 때도 위 섹션을 포함한 전체 파일을 전달합니다.
-Bringup은 `<robot_namespace>`와 시간 설정을 처리하며 costmap/controller 튜닝은 보존합니다.
-센서 TF 활성화 기본값은 `sensor_config.ros__parameters.scan_static_tf.enabled`를 따릅니다.
-`use_namespace:=false`이면 센서/TF/Nav2 및 토픽 치환을 전역 namespace로 맞춥니다.
-
-단독 센서 실행도 같은 파일을 사용합니다.
-
-```bash
-ros2 launch rwh_beyond_bringup sensor.launch.py
-ros2 launch rwh_beyond_bringup sensor.launch.py params_file:=/path/to/nav2_params.yaml
-```
-
-`hostname`/`sensor_hostname`, `min_ang`, `max_ang`을 명시하면 YAML 값을 덮어씁니다.
-`use_tf_publisher:=false` 또는 기존 `publish_scan_tf:=false`로 센서 TF를 끌 수 있습니다.
-SICK는 `sick_scan_xd/sick_generic_caller`와 vendor XML을 사용하는 일반 노드입니다.
-Ouster/GPS/DLIO 및 해당 프로젝트의 전용 서버는 포함하지 않습니다.
-
-## 본체 인터페이스
-
-| 항목 | 기본값 |
-| --- | --- |
-| scan | `/a200_0724/scan`, frame `cloud` |
-| odometry | `/a200_0724/platform/odom/filtered` |
-| base frame | `base_link` |
-| cmd_vel | `/a200_0724/cmd_vel`, `geometry_msgs/msg/Twist` |
-| TF | `/a200_0724/tf`, `/a200_0724/tf_static` |
-
-센서 TF는 `base_link -> cloud`, 위치 `[0.402, 0, 0.156]` m,
-roll/pitch/yaw `[3.141592, 0, 0]` rad입니다. SICK 내부 TF는 `tf_publish_rate:=0`으로 끕니다.
-본체는 `odom -> base_link` TF와 odometry를 제공해야 합니다. 외부 EKF는 실행하지 않습니다.
-`map -> odom`은 AMCL 또는 SLAM 한쪽에서만 발행해야 합니다.
-
-footprint와 속도 제한은 초기 예제값이며 실제 로봇에 맞는 튜닝이 필요합니다.
-Humble 본체와 Jazzy PC의 실제 DDS/QoS/TF 통신 및 주행은 아직 검증하지 않았습니다.
-기존 이미지의 localhost discovery 설정을 해제하고 본체의 domain/RMW에 맞춥니다.
-
-```bash
-unset ROS_LOCALHOST_ONLY
-export ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET
-ros2 run rwh_beyond_bringup inspect_robot
-```
-
-## 검증
-
-하드웨어와 연결하지 않는 격리 환경에서 실행합니다.
-
-```bash
-python3 tests/test_parameters.py
-python3 tests/verify_sensor_config.py
-python3 tests/verify_scan_tf.py
-python3 tests/verify_slam.py --log-dir /tmp/rwh-slam
-python3 tests/verify_bringup_entrypoint.py --log-dir /tmp/rwh-check --composition false
-```
-
-[구조와 파라미터 출처](docs/upstream.md)를 참고하세요.
-
-## RViz 설정
-
-`rwh_beyond_bringup/rviz/navigation.rviz`가 기본 화면 설정입니다. 첨부 설정을 기반으로
-지도, LaserScan, TF, global/local costmap, 경로와 Nav2 패널을 포함합니다.
-TF 표시 목록에 `map`, `cloud`를 추가했습니다. 화면의 fixed frame은 `map`입니다.
-설정의 `<robot_namespace>`는 launch에서 치환하며 TF frame ID에는 namespace를 붙이지 않습니다.
-
-```bash
-ros2 launch rwh_beyond_bringup rviz.launch.py
-ros2 launch rwh_beyond_bringup rviz.launch.py use_namespace:=false
-ros2 launch rwh_beyond_bringup rviz.launch.py rviz_config:=/path/to/custom.rviz
-```
-
-Bringup에서도 `use_rviz:=true`일 때 같은 파일을 사용합니다.
-
-## ros_runner 연결
-
-navigation과 SLAM은 통합 bringup으로 센서와 RViz까지 함께 실행합니다.
-`lidar`는 센서 단독 점검용입니다. 세 runner는 서로를 종료한 뒤 실행하여 센서/TF
-중복을 방지합니다. 모드 전환 시 센서와 RViz도 재시작합니다.
-
-`map_save`는 timestamp 디렉터리에 저장한 지도를 `RWH_MAP_FILE` 경로로 복사합니다.
-복사한 YAML의 image 필드도 대상 PGM 이름에 맞춥니다.
-기본 지도는 `/root/wsyoon_data/map/map.yaml`, 별도 workspace는
-`RWH_WORKSPACE`(기본 `/root/rwh_beyond`)입니다. runner 시작 전에 환경변수를 지정합니다.
-외부 EKF는 사용하지 않으며 본체 odometry와 TF가 필요합니다.
-
-```bash
-ros2 service call /ros_runner/activate_lidar std_srvs/srv/Empty '{}'
-ros2 service call /ros_runner/activate_navigation std_srvs/srv/Empty '{}'
-ros2 service call /ros_runner/activate_slam std_srvs/srv/Empty '{}'
-ros2 service call /ros_runner/activate_map_save std_srvs/srv/Empty '{}'
-ros2 service call /ros_runner/deactivate_all std_srvs/srv/Empty '{}'
-```
-
-단독 navigation/localization launch도 namespace와 토픽 placeholder를 처리합니다.
-컴포넌트 모드에서 직접 실행한다면 같은 namespace의 외부 container가 필요합니다.
-
-격리 검증에서는 실제 runner 서비스를 호출하되 테스트 사본에서만 SICK 드라이버와
-RViz를 끄고 합성 scan/TF를 발행합니다. 실제 센서·GUI·로봇 동작은 시작하지 않습니다.
-
-```bash
-python3 tests/verify_server.py
-python3 tests/verify_runner_modes.py --runner-config /path/to/ros_runner/config/runners.yaml \
-  --workspace /path/to/combined_workspace --log-dir /tmp/rwh-runner-check
-```
-
-## PiPER MoveIt 연구 저장소
-
-PiPER/MuJoCo 프로젝트와 AgileX 공식 MoveIt/driver 소스는 이 Husky/Nav2 코드와 별도 저장소로 유지하고
-vcstool manifest로 함께 가져옵니다. `agx_arm_ros`는 공식 `ros2` 브랜치와 submodule을 재귀적으로 가져옵니다.
-기존 `rwh_beyond` 패키지는 이동하거나 덮어쓰지 않습니다.
-
-```bash
 cd /root/ros2_ws
 vcs import --recursive --skip-existing src < src/rwh_beyond/moma-mj-lab.repos
-```
-
-`agx_arm_ros` source는 공개 저장소이고, `moma-mj-lab`은 GitHub private 저장소이므로 후자를 가져오려면 Git 인증이 설정되어 있어야 합니다.
-기존 PiPER 프로젝트 안의 vendor snapshot은 보존하지만 colcon은 공식 checkout의 패키지를 사용합니다.
-토픽·TF·MoveIt 통합 및 빌드는 `src/moma-mj-lab/README.md` 안내를 따릅니다.
-manifest는 RealSense ROS 드라이버도 같은 ROS workspace에 checkout합니다.
-
-### D405 드라이버
-
-ROS Jazzy에서는 다음과 같이 RealSense SDK와 wrapper의 의존성을 설치하고 빌드합니다.
-
-```bash
-cd /root/ros2_ws
-source /opt/ros/jazzy/setup.bash
-rosdep install -i --from-paths src/realsense-ros --rosdistro jazzy -y
-colcon build --packages-select realsense2_camera_msgs realsense2_description realsense2_camera --symlink-install
+rosdep install --from-paths src --ignore-src -r -y
+colcon build --symlink-install
 source install/setup.bash
-ros2 launch realsense2_camera rs_launch.py
 ```
 
-실제 영상을 받으려면 D405의 USB 및 video 장치가 ROS 프로세스에서 접근 가능하고
-호스트의 RealSense udev 권한이 설정되어 있어야 합니다. 컨테이너에 USB 장치가
-전달되지 않으면 패키지 설치만으로 카메라를 사용할 수 없습니다. 카메라의 실물
-장착 위치와 TF는 별도로 확인해야 합니다.
+## 실행
 
-## 모델별 ROS bridge
-
-[패키지·Action·설정 파일 안내](docs/model-bridges.md)를 참고하세요. 모델 컨테이너는 그대로 유지하고
-SAM·GraspGenX의 ROS 인터페이스를 각각 독립 노드로 실행합니다.
-
-## GraspGenX 추론 Bridge (호환 진입점)
-
-`rwh_beyond_grasp_bridge`는 `/infer_grasps` Action을 제공하고 인터페이스는
-기존 `rwh_beyond_msgs`에서 관리한다. 객체 점군 또는 Depth/CameraInfo/마스크를
-입력받아 ZMQ 모델 서버에 요청하고 PoseStamped 후보와 점수를 반환한다.
-독립 inference launch는 이동 명령을 보내지 않는다. MuJoCo 전용 coordinator와
-BT를 함께 사용하면 시뮬레이션 파지/상승을 실행한다.
+GPU 모델 서버와 endpoint를 준비한 뒤 runner를 시작합니다.
 
 ```bash
-ros2 launch rwh_beyond_grasp_bridge inference.launch.py
-# GPU 모델 없이 합성 데이터로 연결 시험
-ros2 launch rwh_beyond_grasp_bridge inference.launch.py mock:=true
+ros2 launch ros_runner runner.launch.py
 ```
 
-[Bridge 사용법](rwh_beyond_grasp_bridge/README.md),
-[원격/로컬 환경 진단](docs/graspgenx-integration.md)을 참고한다.
+별도 터미널에서 심 또는 실물 중 하나를 활성화합니다.
 
-로컬 RTX 3060 전용 추론 컨테이너에서 실제 모델 → ZMQ → ROS Action 후보
-수신을 검증했다. 로컬 서비스는 `tcp://127.0.0.1:5566`(robot 컨테이너 내부)를
-사용한다. [로컬 컨테이너 운영](deploy/graspgenx-docker/LOCAL_PODMAN.md)을 참고한다.
+```bash
+# 심
+ros2 service call /ros_runner/activate_bt_demo_sim std_srvs/srv/Empty '{}'
+# 실물: CAN·모터·제어 모드 준비 후 사용
+ros2 service call /ros_runner/activate_bt_demo std_srvs/srv/Empty '{}'
+```
 
-[빨간 상자 파지 BT 사용법](docs/red-box-grasp.md): `bt_demo_sim → piper_moveit_sim`, BT launch에서 grasp pipeline을 시작하고 `/run_demo`로 실행.
+대상을 지정해 실행합니다.
 
-SAM 3 기반 RGB-D 객체 분할 확장은 [운영·검증 기록](docs/sam3-perception.md)을 참고한다.
+```bash
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  '{target_text: "yellow block"}' --feedback
+```
 
-현재 SAM → 로컬 PointCloud → GraspGenX → BT 구성은 [최종 실행 가이드](docs/grasp-pipeline-guide.md)를 참고한다.
+기본 순서는 home → 열기 → 관측 → 분할·점군·파지 추론·경로 선택 → 접근 →
+닫기·계획용 부착 → 리프트 → 관측 복귀 → home입니다.
+BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 관측 자세는 `demo.xml`에서 조정합니다.
 
-## 현재 실물·시뮬레이션 안내
+## 현재 동작 범위
 
-- [문서 시작](docs/index.md)
-- [새 ROS 컨테이너·CAN·모델 네트워크](docs/piper-runtime.md)
-- [실물 MoveIt·티칭 전환·시뮬 설정 비교](docs/piper-hardware-moveit.md)
-- [MuJoCo 집기 실행](docs/grasp-pipeline-guide.md)
-- [2026-11-11 변경·검증·남은 제약](docs/work-log-2026-11-11.md)
+실제 잡힘 여부는 판정하지 않으며 실물 닫기는 4초 명령 완료를 기준으로 합니다.
+자동 놓기·Place·Navigation은 포함하지 않습니다. 외부 Navigation 연동에는 RunDemo Action을 제공합니다.
+카메라 장착 TF는 명목값이며 hand-eye 실측 보정이 필요합니다.
+Action 성공은 시퀀스 완료를 뜻하며 일반 물체의 파지 성공률을 보장하지 않습니다.
 
-실물 MoveIt과 MuJoCo 전체 집기는 지원 범위가 다릅니다. 실물 grasp BT는 아직 지원하지 않습니다.
+## 문서 빌드
+
+```bash
+pip install -r requirements-docs.txt
+mkdocs build --strict
+```
+
+문서 변경은 GitHub Actions에서 빌드해 GitHub Pages에 배포합니다.
