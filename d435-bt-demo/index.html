@@ -6,13 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
+        <meta name="description" content="PiPER·D405/D435·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/d435-bt-demo/">
       
       
+        <link rel="prev" href="../d435-standalone/">
+      
+      
+        <link rel="next" href="../grasp-visualization/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>bt_demo에서 D435 사용 - BEYOND Grasp</title>
+        <title>D435 BT 연결·장착 설정 - BEYOND Grasp</title>
       
     
     
@@ -110,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              bt_demo에서 D435 사용
+              D435 BT 연결·장착 설정
             
           </span>
         </div>
@@ -450,18 +454,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -482,7 +488,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -640,6 +646,192 @@
   
   
     <li class="md-nav__item">
+      <a href="../d405-runner-mount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D405 runner 장착 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../d435-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D435 단독 점검
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D435 BT 연결·장착 설정
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D435 BT 연결·장착 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        실행
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        입력과 좌표계
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        컨테이너 장치
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        검증
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runner-tf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        runner에서 장착 TF 수정
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../grasp-visualization/" class="md-nav__link">
         
   
@@ -693,7 +885,7 @@
   <span class="md-ellipsis">
     
   
-    구현과 데이터
+    파지와 모션 튜닝
   
 
     
@@ -706,6 +898,200 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    파지와 모션 튜닝
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-motion-tuning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    손목 회전·MoveIt 계획
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../width-aware-bt/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    추정 폭으로 닫기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-height-filter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    높이 필터
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../moveit-speed-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    속도·실행 시간 제한
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    후보 탈락·오류 진단
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    구현과 데이터
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1112,10 +1498,11 @@
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="c1"># 기존 시리얼·영상 프로파일 설정 아래에 위치합니다.</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">mount</span><span class="p">:</span>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="nt">parent_frame</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">link6</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">translation_m</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-0.06</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.065</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">rotation_rpy_deg</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">180.0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-90.0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.0</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nt">translation_m</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">-0.09</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.05</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.075</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="nt">rotation_rpy_deg</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0.0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">-90.0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.0</span><span class="p p-Indicator">]</span>
 </code></pre></div>
-<p>위치는 부모 링크 기준 X/Y/Z(m), 회전은 roll/pitch/yaw(도)입니다. runner가 도를 라디안으로 변환해 <code>piper_moveit</code>과 <code>bt_demo</code>에 같은 launch 인자를 전달합니다. robot_state_publisher의 장착 TF, MoveIt 충돌 형상, BT RViz의 카메라 모델이 같은 변환을 사용합니다. 센서 내부 광학 TF는 드라이버의 실제 보정값을 계속 사용합니다.</p>
+<p>위 예시는 현재 runner에 저장된 조정값이며 실측 보정 완료를 뜻하지 않습니다.
+위치는 부모 링크 기준 X/Y/Z(m), 회전은 roll/pitch/yaw(도)입니다. runner가 도를 라디안으로 변환해 <code>piper_moveit</code>과 <code>bt_demo</code>에 같은 launch 인자를 전달합니다. robot_state_publisher의 장착 TF, MoveIt 충돌 형상, BT RViz의 카메라 모델이 같은 변환을 사용합니다. 센서 내부 광학 TF는 드라이버의 실제 보정값을 계속 사용합니다.</p>
 <p>부모는 로봇 URDF에 실제 존재하는 링크여야 합니다. 존재하지 않는 링크, 자기 자신인 d435_link, 잘못된 배열 길이, NaN/무한대 등은 실행 전 거부합니다. link6 이외 부모를 지정하면 SRDF의 기존 손목·그리퍼 고정 부품 충돌 예외를 그대로 재사용하지 않고 해당 부모와 카메라 사이에만 예외를 적용합니다.</p>
 <p>수정 후 진행 중인 작업을 마치고 <code>bt_demo</code>, <code>piper_moveit</code>을 중지한 다음 <code>piper_moveit</code> → <code>bt_demo</code> 순으로 다시 활성화합니다. runner는 매 활성화 때 YAML을 읽으므로 값만 수정했을 때 runner 프로그램 전체를 재시작할 필요는 없습니다. 실행 중 TF를 즉시 변경하지 않습니다. 현재 초기 위치·방향은 변경하지 않았고 실물 팔도 움직이지 않았습니다.</p>
 <p>282개 관련 Python 테스트가 통과했습니다. 기존과 다른 좌표를 넣었을 때 runner의 실제 셸 인자, MoveIt/robot_state_publisher/RViz의 생성 URDF와 SRDF가 일치하는지 검증했습니다.</p>
@@ -1149,6 +1536,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
+        
+          
+          <a href="../d435-standalone/" class="md-footer__link md-footer__link--prev" aria-label="이전: D435 단독 점검">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                이전
+              </span>
+              <div class="md-ellipsis">
+                D435 단독 점검
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../grasp-visualization/" class="md-footer__link md-footer__link--next" aria-label="다음: RViz 디버깅">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                다음
+              </span>
+              <div class="md-ellipsis">
+                RViz 디버깅
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">

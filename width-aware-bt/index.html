@@ -6,13 +6,17 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
+        <meta name="description" content="PiPER·D405/D435·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스">
       
       
       
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/width-aware-bt/">
       
       
+        <link rel="prev" href="../grasp-motion-tuning/">
+      
+      
+        <link rel="next" href="../grasp-height-filter/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>Experimental width-aware pick BT - BEYOND Grasp</title>
+        <title>추정 폭으로 닫기 - BEYOND Grasp</title>
       
     
     
@@ -110,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Experimental width-aware pick BT
+              추정 폭으로 닫기
             
           </span>
         </div>
@@ -640,6 +644,90 @@
   
   
     <li class="md-nav__item">
+      <a href="../d405-runner-mount/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D405 runner 장착 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../d435-standalone/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D435 단독 점검
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../d435-bt-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    D435 BT 연결·장착 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../grasp-visualization/" class="md-nav__link">
         
   
@@ -648,6 +736,271 @@
     
   
     RViz 디버깅
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    파지와 모션 튜닝
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    파지와 모션 튜닝
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-motion-tuning/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    손목 회전·MoveIt 계획
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    추정 폭으로 닫기
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    추정 폭으로 닫기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#repeated-picks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeated picks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        닫기 보정값 조정
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-height-filter/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    높이 필터
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../moveit-speed-settings/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    속도·실행 시간 제한
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    후보 탈락·오류 진단
   
 
     
@@ -683,10 +1036,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
             
   
   
@@ -704,8 +1057,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1009,6 +1362,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        닫기 보정값 조정
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1030,7 +1394,7 @@
 
 
 <h1 id="experimental-width-aware-pick-bt">Experimental width-aware pick BT<a class="headerlink" href="#experimental-width-aware-pick-bt" title="Permanent link">&para;</a></h1>
-<p><code>demo_width.xml</code> is a separate opt-in pick tree. <code>demo.xml</code> retains fixed-width behavior. Place/release remains mode 2.</p>
+<p><code>demo_width.xml</code> is the current default pick tree selected by <code>bt_demo.yaml</code>. <code>demo.xml</code> retains fixed-width behavior. Place/release remains mode 2.</p>
 <p>The installed GraspGenX server returns poses and confidence scores, not jaw widths. This tree estimates aperture from the segmented object point cloud along the selected model pose's local X (finger-closing direction). The source is explicitly <code>point_cloud_estimate</code>; this is not a neural width prediction or force control. Partial depth can underestimate hidden geometry; physical success is unverified.</p>
 <p>For each candidate the estimator requires at least 100 finite points and uses the 2nd/98th percentile extents, symmetrically about the grasp axis. Degenerate/off-centre estimates are rejected before a pregrasp is selected. Oversized finite estimates are retained in the reported grasp_width but the commanded gap is capped at gripper_open_width (at most the PiPER model limit of 0.10 m). The closing inset is subtracted before capping. The uncapped gap is estimated aperture minus <code>grasp_width_closing_inset</code> (default 0.002 m, accepted 0–0.005 m). There is no fixed-width fallback in this tree. Saturation does not establish that an oversized object can actually be grasped. Candidate selection logs <code>grasp_width_m</code>, <code>close_width_m</code> and <code>source=point_cloud_estimate</code>; the action result and BT blackboard expose both widths in metres. The closing target is bound to the selected plan ID and cannot be overridden by a later AttachObject call.</p>
 <p>The gripper command uses an explicit closing marker (<code>path_tolerance</code> for gripper position -1) so physical timed closing works for widths other than the fixed legacy 0.04 m. Timed completion is not grip detection. Release remains guarded; failed motions retain attachments.</p>
@@ -1041,9 +1405,17 @@
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="s2">"{mode: 1, behavior_tree: '</span><span class="nv">$TREE</span><span class="s2">', target_text: 'yellow block'}"</span><span class="w"> </span>--feedback
 </code></pre></div>
-<p>The explicit behavior_tree overrides mode selection. To use the original fixed-width tree, omit behavior_tree and send mode 1 as before.</p>
+<p>The explicit behavior_tree overrides mode selection. To use the original fixed-width tree, explicitly set behavior_tree to the installed <code>demo.xml</code> path. Omitting behavior_tree uses <code>default_demo_bt_xml</code>, currently <code>demo_width.xml</code>.</p>
 <h2 id="repeated-picks">Repeated picks<a class="headerlink" href="#repeated-picks" title="Permanent link">&para;</a></h2>
 <p>This width tree opts in to <code>CheckGraspReady release_previous="true"</code>. At the beginning of the next goal, any previous target is released <strong>at the current pose</strong>: the gripper opens, opening feedback is confirmed, and only then is its planning attachment cleared. This does not move to a placement location. It can drop a held object where the arm currently is. It works after successful picks and after failed transfers. Opening failure retains holding state and aborts the new goal. Unknown attached objects are rejected. The fixed-width <code>demo.xml</code> retains its original attachment guard. No physical release was executed while implementing this behavior.</p>
+<h2 id="_1">닫기 보정값 조정<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p><code>bt_demo.yaml</code>의 <code>grasp_coordinator.ros__parameters.grasp_width_closing_inset</code>을 조절합니다.
+단위는 m이며 전체 손가락 간격에서 빼는 양입니다. 한쪽 손가락당 보정량이 아닙니다.
+추정 폭이 40mm일 때 0.002는 38mm, 0.004는 36mm의 목표 간격을 만듭니다.
+허용 범위는 0~0.005m이며, 범위를 넘으면 후보별 <code>invalid_observed_width</code>가 발생합니다.
+코드 기본값 0.002m와 YAML에 명시한 실행값은 구분해야 합니다.
+현재 YAML의 0.05m는 허용 범위 밖입니다. <a href="../grasp-troubleshooting/">오류 진단</a>을 참고하세요.
+변경 후 <code>bt_demo</code>를 재시작합니다. 이 값은 힘·접촉 제어가 아닙니다.</p>
 
 
 
@@ -1074,6 +1446,44 @@
       
         <footer class="md-footer">
   
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
+        
+          
+          <a href="../grasp-motion-tuning/" class="md-footer__link md-footer__link--prev" aria-label="이전: 손목 회전·MoveIt 계획">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                이전
+              </span>
+              <div class="md-ellipsis">
+                손목 회전·MoveIt 계획
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../grasp-height-filter/" class="md-footer__link md-footer__link--next" aria-label="다음: 높이 필터">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                다음
+              </span>
+              <div class="md-ellipsis">
+                높이 필터
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
     
   
   <div class="md-footer-meta md-typeset">
