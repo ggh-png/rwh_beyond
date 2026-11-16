@@ -322,5 +322,5 @@ class ScenarioMotion:
         pose.position.x, pose.position.y = transform.translation.x, transform.translation.y
         pose.position.z = transform.translation.z + self.get_parameter('lift_distance').value
         pose.orientation = transform.rotation
-        self.execute_cartesian(pose)
+        self.execute_cartesian(pose, wrist_limits=getattr(self, 'selected_wrist_limits', None))
         self.stage('lift_motion_completed_grasp_not_checked')

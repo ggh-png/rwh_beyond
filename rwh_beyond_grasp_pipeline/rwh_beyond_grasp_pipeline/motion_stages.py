@@ -1,6 +1,7 @@
 """Shared MoveIt IK, Cartesian planning and trajectory execution."""
 
 from .motion_parameters import motion_value
+from .grasp_motion_policy import trajectory_within_wrist_limits
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Header
 from rclpy.duration import Duration
@@ -36,12 +37,14 @@ class MotionStages:
         )
         return self.call('cartesian', request, 15)
 
-    def execute_cartesian(self, pose):
+    def execute_cartesian(self, pose, wrist_limits=None):
         path = self.cartesian(pose, self.state())
         if path.error_code.val != 1 or path.fraction < 0.999:
             raise RuntimeError(
                 f'Cartesian path rejected: fraction={path.fraction}, code={path.error_code.val}'
             )
+        if wrist_limits is not None and not trajectory_within_wrist_limits(path.solution, wrist_limits):
+            raise RuntimeError('Cartesian path exceeds selected wrist rotation limits')
         self.execute_trajectory(path.solution)
 
     def execute_trajectory(self, trajectory):

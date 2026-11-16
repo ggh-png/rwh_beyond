@@ -93,6 +93,19 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         raise ValueError('planning_start_bounds_tolerance_deg must be in (0, 180] degrees')
     start_tolerance = math.radians(start_tolerance)
     params = config.to_dict()
+    arm_ompl = shared_settings.get('move_group', {}).get('ros__parameters', {}).get(
+        'ompl', {}).get('arm', {})
+    if arm_ompl:
+        planners = arm_ompl.get('planner_configs', [])
+        if not isinstance(planners, list) or not planners or any(
+                name not in params['ompl']['planner_configs'] for name in planners):
+            raise ValueError('move_group.ompl.arm.planner_configs must list registered planners')
+        if type(arm_ompl.get('enforce_joint_model_state_space')) is not bool:
+            raise ValueError('enforce_joint_model_state_space must be a YAML boolean')
+        fraction = arm_ompl.get('longest_valid_segment_fraction')
+        if type(fraction) not in (int, float) or not math.isfinite(fraction) or not 0 < fraction <= 1:
+            raise ValueError('longest_valid_segment_fraction must be in (0, 1]')
+        params['ompl'].setdefault('arm', {}).update(arm_ompl)
     params.update({
         'use_sim_time': False, 'moveit_manage_controllers': False,
         'allow_trajectory_execution': True, 'publish_robot_description': True,

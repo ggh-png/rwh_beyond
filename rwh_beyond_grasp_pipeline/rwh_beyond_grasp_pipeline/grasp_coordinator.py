@@ -38,6 +38,7 @@ from .red_perception import pose_matrix, set_pair
 
 from .grasp_height import DEFAULTS as HEIGHT_DEFAULTS, validate_height_parameters
 from .motion_parameters import DEFAULTS as MOTION_DEFAULTS, validate_motion_parameters
+from .grasp_motion_policy import DEFAULTS as POLICY_DEFAULTS, validate_policy
 from .stage_constants import TARGET
 
 from .stage_errors import Canceled
@@ -103,10 +104,13 @@ class GraspCoordinator(
         }
         defaults.update(HEIGHT_DEFAULTS)
         defaults.update(MOTION_DEFAULTS)
+        defaults.update(POLICY_DEFAULTS)
         for k, v in defaults.items():
             self.declare_parameter(k, v)
         self.motion_parameters = validate_motion_parameters({
             name: self.get_parameter(name).value for name in MOTION_DEFAULTS})
+        self.grasp_motion_policy = validate_policy({
+            name: self.get_parameter(name).value for name in POLICY_DEFAULTS})
         self.grasp_height_filter = validate_height_parameters({
             name: self.get_parameter(name).value for name in HEIGHT_DEFAULTS})
         self.grasp_filter_settings()
@@ -518,7 +522,7 @@ class GraspCoordinator(
                     self.perception_context()
                     self.execute_trajectory(self.pre_trajectory)
                 elif command == 'approach':
-                    self.execute_cartesian(self.grasp_pose)
+                    self.execute_cartesian(self.grasp_pose, wrist_limits=getattr(self, 'selected_wrist_limits', None))
                 elif command == 'attach':
                     self.attach()
                 elif command == 'lift':

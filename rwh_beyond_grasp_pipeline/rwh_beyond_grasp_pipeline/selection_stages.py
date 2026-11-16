@@ -17,10 +17,12 @@ from moveit_msgs.msg import (
     Constraints,
     JointConstraint,
 )
-from moveit_msgs.srv import GetPlanningScene, GetMotionPlan
+from moveit_msgs.srv import GetPlanningScene, GetMotionPlan, GetPositionFK
 from shape_msgs.msg import SolidPrimitive
 from rwh_beyond_msgs.msg import TcpPose
 from rwh_beyond_msgs.srv import SetGraspRegion
+from .grasp_motion_policy import (ordered_variants, wrist_constraints,
+    within_wrist_limits, trajectory_within_wrist_limits, trajectory_reaches_state)
 from .grasp_height import observed_top_z, in_height_band
 from .grasp_width import estimate_aperture
 from .observed_geometry import observed_bounds
@@ -50,6 +52,7 @@ class SelectionStages:
             raise RuntimeError(
                 'Target scene already active; cleanup and reobserve before reselection'
             )
+        self.selected_wrist_limits = None
         self.selected_gripper_width = None
         self.selected_observed_width = None
         filters = self.grasp_filter_settings()
@@ -163,7 +166,24 @@ class SelectionStages:
         model_T_tcp[:3, 3] = self.get_parameter('model_to_tcp_xyz').value
         reasons = Counter()
         self.selection_diagnostics = []
-        for index, candidate in enumerate(candidates[: self.get_parameter('max_candidates').value]):
+        policy = getattr(self, 'grasp_motion_policy', {})
+        start_state = self.state() if policy else None
+        current_rotation = None
+        if policy.get('moveit_prefer_current_grasp_orientation', False):
+            fk = self.call('fk', GetPositionFK.Request(
+                header=Header(frame_id=self.base), fk_link_names=[self.tcp],
+                robot_state=start_state))
+            if fk.error_code.val != 1 or not fk.pose_stamped:
+                raise RuntimeError('Current TCP FK unavailable for grasp orientation preference')
+            current_rotation = pose_matrix(fk.pose_stamped[0].pose)[:3, :3]
+        constraints = None
+        if policy.get('moveit_pregrasp_wrist_constraint_enabled', False):
+            constraints = wrist_constraints(start_state,
+                policy['moveit_pregrasp_wrist_max_deviation_deg'])
+        variants = ordered_variants(
+            candidates[:self.get_parameter('max_candidates').value],
+            base_T_camera, model_T_tcp, current_rotation)
+        for rotation_angle, index, candidate, flipped, g in variants:
             width = close_width = None
             if use_estimated_width:
                 try:
@@ -187,83 +207,98 @@ class SelectionStages:
             if np.any(delta[axes] > extent[axes]):
                 reasons['off_target'] += 1
                 continue
-            for flipped in (False, True):
-                g = grasp.copy()
-                if flipped:
-                    g[:3, :3] = g[:3, :3] @ Rotation.from_euler('z', math.pi).as_matrix()
-                tcp = g @ model_T_tcp
-                if height_band is not None and not in_height_band(tcp[2, 3], object_top_z, height_band):
-                    reasons['grasp_height_above_object'] += 1
-                    continue
-                if tcp[2, 3] < support_z + filters['grasp_table_clearance_m']:
-                    reasons['table_clearance'] += 1
-                    continue
-                pre = tcp.copy()
-                pre[:3, 3] -= g[:3, 2] * self.get_parameter('pregrasp_distance').value
-                pre_pose, grasp_pose = matrix_pose(pre), matrix_pose(tcp)
-                state = self.ik(pre_pose, self.state())
-                if state is None:
-                    reasons['pre_ik'] += 1
-                    continue
-                cart = self.cartesian(grasp_pose, state)
-                if cart.fraction < 0.999 or cart.error_code.val != 1:
-                    reasons[f'approach_fraction_{cart.fraction:.2f}'] += 1
-                    continue
-                grasp_state = copy.deepcopy(state)
-                end = cart.solution.joint_trajectory.points[-1]
-                solved = dict(zip(cart.solution.joint_trajectory.joint_names, end.positions))
-                grasp_state.joint_state.position = [
-                    solved.get(n, q)
-                    for n, q in zip(grasp_state.joint_state.name, grasp_state.joint_state.position)
-                ]
-                lift_pose = copy.deepcopy(grasp_pose)
-                lift_pose.position.z += self.get_parameter('lift_distance').value
-                lift_path = self.cartesian(lift_pose, grasp_state)
-                if lift_path.fraction < 0.999 or lift_path.error_code.val != 1:
-                    reasons['lift_path'] += 1
-                    continue
-                plan = GetMotionPlan.Request()
-                m = plan.motion_plan_request
-                m.group_name = 'arm'
-                m.pipeline_id = 'ompl'
-                m.planner_id = 'RRTConnectkConfigDefault'
-                m.allowed_planning_time = motion_value(self, 'moveit_candidate_planning_time')
-                m.max_velocity_scaling_factor = motion_value(self, 'moveit_velocity_scaling_factor')
-                m.max_acceleration_scaling_factor = motion_value(self, 'moveit_acceleration_scaling_factor')
-                m.start_state = self.state()
-                positions = dict(zip(state.joint_state.name, state.joint_state.position))
-                m.goal_constraints = [
-                    Constraints(
-                        joint_constraints=[
-                            JointConstraint(
-                                joint_name=f'joint{i}',
-                                position=positions[f'joint{i}'],
-                                tolerance_above=0.001,
-                                tolerance_below=0.001,
-                                weight=1.0,
-                            )
-                            for i in range(1, 7)
-                        ]
-                    )
-                ]
-                planned = self.call('plan', plan, max(10, m.allowed_planning_time + 5)).motion_plan_response
-                if planned.error_code.val != 1:
-                    reasons['pre_plan'] += 1
-                    continue
-                self.selected_gripper_width = close_width
-                self.selected_observed_width = width
-                if use_estimated_width:
-                    self.stage(f'grasp_width_m={width:.4f} close_width_m={close_width:.4f} source=point_cloud_estimate')
-                if height_band is not None:
-                    self.stage(f'selected_grasp_height_above_object_m={tcp[2,3] - object_top_z:.4f}')
-                self.grasp_pose = grasp_pose
-                self.pre_trajectory = planned.trajectory
-                self.prepared = True
-                self.visualization.publish_selection(
-                    pre_pose, grasp_pose, depth.header, candidate.score, index, flipped
+            tcp = g @ model_T_tcp
+            if height_band is not None and not in_height_band(tcp[2, 3], object_top_z, height_band):
+                reasons['grasp_height_above_object'] += 1
+                continue
+            if tcp[2, 3] < support_z + filters['grasp_table_clearance_m']:
+                reasons['table_clearance'] += 1
+                continue
+            pre = tcp.copy()
+            pre[:3, 3] -= g[:3, 2] * self.get_parameter('pregrasp_distance').value
+            pre_pose, grasp_pose = matrix_pose(pre), matrix_pose(tcp)
+            state = self.ik(pre_pose, copy.deepcopy(start_state) if start_state is not None else self.state())
+            if state is None:
+                reasons['pre_ik'] += 1
+                continue
+            if constraints is not None and not within_wrist_limits(state, constraints):
+                reasons['wrist_goal_rotation'] += 1
+                continue
+            cart = self.cartesian(grasp_pose, state)
+            if cart.fraction < 0.999 or cart.error_code.val != 1:
+                reasons[f'approach_fraction_{cart.fraction:.2f}'] += 1
+                continue
+            if constraints is not None and not trajectory_within_wrist_limits(cart.solution, constraints):
+                reasons['wrist_approach_rotation'] += 1
+                continue
+            grasp_state = copy.deepcopy(state)
+            end = cart.solution.joint_trajectory.points[-1]
+            solved = dict(zip(cart.solution.joint_trajectory.joint_names, end.positions))
+            grasp_state.joint_state.position = [
+                solved.get(n, q)
+                for n, q in zip(grasp_state.joint_state.name, grasp_state.joint_state.position)
+            ]
+            lift_pose = copy.deepcopy(grasp_pose)
+            lift_pose.position.z += self.get_parameter('lift_distance').value
+            lift_path = self.cartesian(lift_pose, grasp_state)
+            if lift_path.fraction < 0.999 or lift_path.error_code.val != 1:
+                reasons['lift_path'] += 1
+                continue
+            if constraints is not None and not trajectory_within_wrist_limits(lift_path.solution, constraints):
+                reasons['wrist_lift_rotation'] += 1
+                continue
+            plan = GetMotionPlan.Request()
+            m = plan.motion_plan_request
+            m.group_name = 'arm'
+            m.pipeline_id = 'ompl'
+            m.planner_id = policy.get('moveit_pregrasp_planner_id', 'RRTConnect')
+            m.num_planning_attempts = policy.get('moveit_pregrasp_num_planning_attempts', 1)
+            m.allowed_planning_time = motion_value(self, 'moveit_candidate_planning_time')
+            m.max_velocity_scaling_factor = motion_value(self, 'moveit_velocity_scaling_factor')
+            m.max_acceleration_scaling_factor = motion_value(self, 'moveit_acceleration_scaling_factor')
+            m.start_state = copy.deepcopy(start_state) if start_state is not None else self.state()
+            if constraints is not None:
+                m.path_constraints = constraints
+            positions = dict(zip(state.joint_state.name, state.joint_state.position))
+            m.goal_constraints = [
+                Constraints(
+                    joint_constraints=[
+                        JointConstraint(
+                            joint_name=f'joint{i}',
+                            position=positions[f'joint{i}'],
+                            tolerance_above=0.001,
+                            tolerance_below=0.001,
+                            weight=1.0,
+                        )
+                        for i in range(1, 7)
+                    ]
                 )
-                self.stage(
-                    f'selected candidate={index} score={candidate.score:.3f} tcp={tcp[:3,3].tolist()} rejected={dict(reasons)}'
-                )
-                return TcpPose(frame_id=self.base, pose=pre_pose)
+            ]
+            planned = self.call('plan', plan, max(10, m.allowed_planning_time + 5)).motion_plan_response
+            if planned.error_code.val != 1:
+                reasons['pre_plan'] += 1
+                continue
+            if constraints is not None and not trajectory_within_wrist_limits(planned.trajectory, constraints):
+                reasons['wrist_path_rotation'] += 1
+                continue
+            if not trajectory_reaches_state(planned.trajectory, state):
+                reasons['pre_plan_goal_mismatch'] += 1
+                continue
+            self.selected_gripper_width = close_width
+            self.selected_observed_width = width
+            if use_estimated_width:
+                self.stage(f'grasp_width_m={width:.4f} close_width_m={close_width:.4f} source=point_cloud_estimate')
+            if height_band is not None:
+                self.stage(f'selected_grasp_height_above_object_m={tcp[2,3] - object_top_z:.4f}')
+            self.selected_wrist_limits = constraints
+            self.grasp_pose = grasp_pose
+            self.pre_trajectory = planned.trajectory
+            self.prepared = True
+            self.visualization.publish_selection(
+                pre_pose, grasp_pose, depth.header, candidate.score, index, flipped
+            )
+            self.stage(
+                f'selected candidate={index} flipped={flipped} rotation_deg={math.degrees(rotation_angle):.1f} score={candidate.score:.3f} tcp={tcp[:3,3].tolist()} rejected={dict(reasons)}'
+            )
+            return TcpPose(frame_id=self.base, pose=pre_pose)
         raise RuntimeError('No feasible model grasp; rejection counts: ' + str(dict(reasons)))

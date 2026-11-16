@@ -53,6 +53,10 @@ def test_hardware_matches_simulation_parameters_except_clock():
     # Real Octomap can be disabled independently in the shared BT configuration.
     if 'sensors' not in actual:
         expected.pop('sensors', None)
+    # Hardware OMPL tuning is explicitly owned by the shared YAML.
+    assert actual.pop('ompl.arm.enforce_joint_model_state_space') is True
+    assert actual.pop('ompl.arm.longest_valid_segment_fraction') == .005
+    assert actual.pop('ompl.arm.planner_configs') == ('RRTConnect', 'RRTstar')
     assert actual == expected
 
 

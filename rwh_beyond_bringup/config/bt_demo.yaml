@@ -140,6 +140,8 @@ graspgenx_bridge:
 grasp_coordinator:
   # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
+    # 추정 폭에서 빼는 전체 그리퍼 간격입니다(m). 허용 범위: 0~0.005.
+    grasp_width_closing_inset: 0.05
     # true이면 /clock의 시뮬레이션 시간을 사용합니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     use_sim_time: true
     # 시뮬레이션 전용 실행 여부입니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
@@ -170,7 +172,7 @@ grasp_coordinator:
     - 0.04
     - 0.05
     # 최종 파지 자세에서 접근축 반대 방향으로 떨어진 사전 접근 거리입니다(m).
-    pregrasp_distance: 0.08
+    pregrasp_distance: 0.1
     # 파지 후 베이스 +Z 방향으로 들어 올리는 거리입니다(m).
     lift_distance: 0.08
     # 모델 파지 좌표계에서 TCP 좌표계로 변환하는 평행 이동 [X, Y, Z]입니다(m).
@@ -186,11 +188,11 @@ grasp_coordinator:
     # 모델에 요청하는 파지 후보 생성 개수입니다.
     num_grasps: 1000
     # 모델 결과에서 점수 기준으로 유지하도록 요청하는 상위 후보 개수입니다.
-    top_k: 300
+    top_k: 500
     # 실제 도달 가능성·경로 검사에 사용할 최대 후보 개수입니다.
     max_candidates: 1000
     # 수직 아래로 향하는 접근 방향에서 허용할 최대 기울기입니다(도, 0~180).
-    grasp_top_down_max_angle_deg: 55.0
+    grasp_top_down_max_angle_deg:  55.0
     # 최종 파지 TCP가 추정 지지면 높이보다 확보해야 하는 최소 높이입니다(m).
     grasp_table_clearance_m: 0.01
     # 대상 물체 경계 검사에 더하는 허용 여유입니다(m). 높이 필터가 켜지면 수평 X·Y 경계에 적용합니다.
@@ -237,9 +239,19 @@ grasp_coordinator:
     # 일반 MoveIt 경로 계획에 허용하는 최대 시간입니다(초). 고정 대기 시간이 아닙니다.
     moveit_planning_time: 10.0
     # 파지 후보 하나의 이동 계획에 허용하는 최대 시간입니다(초).
-    moveit_candidate_planning_time: 2.0
+    moveit_candidate_planning_time: 4.0
     # 역기구학(IK) 요청의 제한 시간입니다(초).
-    moveit_ik_timeout: 0.1
+    moveit_ik_timeout: 0.2
+    # 사전 접근 OMPL 플래너 ID입니다. MoveIt에 등록된 ID를 사용합니다.
+    moveit_pregrasp_planner_id: RRTConnect
+    # 후보별 계획 시간 안에서 수행할 MoveIt 계획 시도 횟수입니다(1~10).
+    moveit_pregrasp_num_planning_attempts: 3
+    # 현재 TCP 방향과 회전 차이가 작은 파지 후보·180도 대칭 자세부터 검사합니다. 모델 점수보다 회전량을 우선합니다.
+    moveit_prefer_current_grasp_orientation: true
+    # 사전 접근 MoveIt 경로에 joint4·joint6 제약을 적용하고 접근·리프트 궤적도 같은 범위인지 검사합니다.
+    moveit_pregrasp_wrist_constraint_enabled: true
+    # 후보 선택 시작 관절값 대비 joint4·joint6의 최대 편차입니다(도, 0 초과~180 미만). 만족 후보가 없으면 중단합니다.
+    moveit_pregrasp_wrist_max_deviation_deg: 100.0
     # 그리퍼 열기 목표인 손가락 사이 간격입니다(m). 가변 폭 명령도 이 값과 PiPER 상한 0.10m로 제한합니다.
     gripper_open_width: 0.10
     # 고정 폭 BT의 그리퍼 닫기 목표 간격입니다(m). 폭 추정 BT는 선택한 후보의 가변 폭을 사용합니다.
@@ -249,10 +261,20 @@ grasp_coordinator:
     # 실물 팔의 관절 목표 도달 판정에 사용하는 위치 허용 오차입니다(rad).
     physical_position_tolerance: 0.03
 
-# 실물 MoveIt 경로 실행 감시 설정입니다. piper_moveit을 재시작해야 적용됩니다.
+# 실물 MoveIt 경로 계획·실행 감시 설정입니다. piper_moveit을 재시작해야 적용됩니다.
 move_group:
   # 이 설정은 실물 MoveIt launch가 읽어 move_group에 직접 전달합니다.
   ros__parameters:
+    # OMPL 팔 계획 그룹 설정입니다. move_group에 직접 전달하며 piper_moveit 재시작 후 적용합니다.
+    ompl:
+      # 팔 관절 계획 그룹입니다.
+      arm:
+        # arm에 등록할 플래너 ID입니다. RRTConnect를 기본 사용하며 RRTstar도 비교할 수 있습니다.
+        planner_configs: [RRTConnect, RRTstar]
+        # 관절 공간에서 샘플링·보간하도록 강제합니다. 자세 공간의 IK 분기 전환을 피합니다.
+        enforce_joint_model_state_space: true
+        # 충돌 검사 구간의 최대 길이입니다(상태 공간 크기의 비율). 작을수록 촘촘하게 검사하며 계산량이 증가합니다.
+        longest_valid_segment_fraction: 0.005
     # 실행 완료를 기다릴 상한: 계획 궤적 시간 × 배율 + 추가 여유 시간입니다.
     trajectory_execution:
       # 계획 시간 대비 허용 배율입니다(1 이상). 실행 시간 감시는 계속 켜 둡니다.
