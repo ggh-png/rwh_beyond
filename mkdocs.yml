@@ -1,5 +1,5 @@
 site_name: BEYOND Grasp
-site_description: PiPER·D405·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스
+site_description: PiPER·D405/D435·SAM 3·GraspGenX의 심·실물 공통 파지 시나리오와 Action 인터페이스
 site_url: https://ggh-png.github.io/rwh_beyond/
 repo_url: https://github.com/ggh-png/rwh_beyond
 repo_name: ggh-png/rwh_beyond
@@ -38,7 +38,16 @@ nav:
       - 런타임·CAN·모델 연결: piper-runtime.md
       - 실물 PiPER 제어: piper-hardware-moveit.md
       - D405 센서·장착 TF: d405-sensors.md
+      - D405 runner 장착 설정: d405-runner-mount.md
+      - D435 단독 점검: d435-standalone.md
+      - D435 BT 연결·장착 설정: d435-bt-demo.md
       - RViz 디버깅: grasp-visualization.md
+  - 파지와 모션 튜닝:
+      - 손목 회전·MoveIt 계획: grasp-motion-tuning.md
+      - 추정 폭으로 닫기: width-aware-bt.md
+      - 높이 필터: grasp-height-filter.md
+      - 속도·실행 시간 제한: moveit-speed-settings.md
+      - 후보 탈락·오류 진단: grasp-troubleshooting.md
   - 구현과 데이터:
       - 데이터와 좌표계: project-data.md
       - 모델별 ROS 인터페이스: model-bridges.md

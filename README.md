@@ -1,11 +1,11 @@
 # BEYOND Grasp
 
-D405 RGB-D, SAM 3, GraspGenX, ROS 2 Behavior Tree와 MoveIt 2를 연결한
+D405/D435 RGB-D, SAM 3, GraspGenX, ROS 2 Behavior Tree와 MoveIt 2를 연결한
 PiPER 물체 인식·파지·리프트 프로젝트입니다.
 
 - 로봇 PC: 센서·TF·점군·ROS bridge·BT·경로 계획·실물 제어.
 - GPU 서버: SAM 3 분할과 GraspGenX 파지 후보 생성.
-- 심·실물 공통 시나리오: `rwh_beyond_bt/behavior_trees/demo.xml`.
+- 심·실물 기본 집기 시나리오: `rwh_beyond_bt/behavior_trees/demo_width.xml`.
 - 요청별 대상 지정: `/run_demo` Action의 `target_text`.
 
 **[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** · [문서 소스](docs/index.md)
@@ -62,7 +62,7 @@ BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 관측 자세는 `de
 ## 현재 동작 범위
 
 실제 잡힘 여부는 판정하지 않으며 실물 닫기는 4초 명령 완료를 기준으로 합니다.
-자동 놓기·Place·Navigation은 포함하지 않습니다. 외부 Navigation 연동에는 RunDemo Action을 제공합니다.
+mode 2는 계획용 부착 물체의 배치·해제를 제공합니다. Navigation은 포함하지 않습니다. 외부 Navigation 연동에는 RunDemo Action을 제공합니다.
 카메라 장착 TF는 명목값이며 hand-eye 실측 보정이 필요합니다.
 Action 성공은 시퀀스 완료를 뜻하며 일반 물체의 파지 성공률을 보장하지 않습니다.
 
@@ -74,3 +74,10 @@ mkdocs build --strict
 ```
 
 문서 변경은 GitHub Actions에서 빌드해 GitHub Pages에 배포합니다.
+
+## 파지 튜닝과 오류 진단
+
+- [손목 회전·MoveIt 계획](docs/grasp-motion-tuning.md)
+- [추정 폭으로 닫기](docs/width-aware-bt.md)
+- [후보 탈락·오류 진단](docs/grasp-troubleshooting.md)
+- [D435 BT 연결·장착 설정](docs/d435-bt-demo.md)

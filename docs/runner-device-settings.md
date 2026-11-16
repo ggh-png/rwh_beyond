@@ -11,7 +11,7 @@ piper:
   can_port: can0
   effector_type: agx_gripper
   auto_enable: false
-  speed_percent: 10
+  speed_percent: 30
   auto_control_gate: true
   fw_version: ""
   tcp_offset: [0.0, 0.0, 0.1425, 0.0, 0.0, 0.0]
@@ -41,10 +41,11 @@ piper:
 `tcp_offset`은 `piper_sim`·`bt_demo_sim`·`bt_demo`에도 전달해 로봇 모델과 BT 화면의 TCP를 맞춥니다.
 모터 자동 활성화와 움직임은 설정값에 영향을 받습니다. 현재 기본값은 자동 활성화 false를 유지합니다.
 
-## RealSense D405
+## RealSense 모델 선택과 D405
 
 ```yaml
 realsense:
+  model: d435  # d405로 변경하면 D405 사용
   enabled: true
   serial: ""
   profile: 640x480x15
@@ -53,7 +54,8 @@ realsense:
 
 | 항목 | 의미 |
 |---|---|
-| `enabled` | 실제 D405 driver 사용 여부 |
+| `model` | 실물 파지 카메라 선택: `d405` 또는 `d435` |
+| `enabled` | 선택한 실물 카메라 driver 사용 여부 |
 | `serial` | 사용할 카메라 serial. 빈 문자열은 driver의 장치 선택 사용 |
 | `profile` | RGB·Depth 공통 `너비x높이xFPS`. 실제 장치가 지원하는 조합 사용 |
 | `publish_mount_tf_standalone` | `d405` 단독 runner에서만 명목 장착 TF 발행 여부 |
@@ -133,3 +135,36 @@ BT launch 시작 후 10초가 지나면 `/exit_teach_mode`를 한 번 호출합�
 
 실물 `bt_demo`가 RViz를 함께 시작하고 종료합니다. 의존 runner인 `piper_moveit`은
 RViz를 따로 시작하지 않아 창이 중복되지 않습니다. `piper.use_rviz: true`가 기본값입니다.
+
+## D435와 장착 TF
+
+D435의 `serial`, `depth_profile`, `color_profile`, 단독 `use_rviz`는 `d435` 아래에 설정합니다.
+현재 깊이 480x270x6, 컬러 424x240x6은 USB 2.1에서 수신한 시험 프로파일입니다.
+BT 통합 RViz는 `piper.use_rviz`를 사용합니다.
+
+```yaml
+d435:
+  serial: "143322072540"  # 사용할 실제 장치 번호로 변경
+  depth_profile: 480x270x6
+  color_profile: 424x240x6
+  use_rviz: true
+  mount:
+    parent_frame: link6
+    translation_m: [-0.09, 0.05, 0.075]
+    rotation_rpy_deg: [0.0, -90.0, 0.0]
+
+d405:
+  mount:
+    parent_frame: link6
+    translation_m: [-0.06, 0.0, 0.065]
+    rotation_rpy_deg: [180.0, -90.0, 0.0]
+```
+
+장착 위치는 부모 링크 → SDK 깊이 원점의 XYZ(m), 회전은 roll/pitch/yaw(도)입니다.
+현재 D435 값은 사용자 조정값이며 실측 보정 완료를 뜻하지 않습니다.
+선택한 카메라의 mount가 MoveIt·robot_state_publisher·BT RViz에 함께 적용됩니다.
+`d405.mount`는 D405 단독 정적 TF에도 전달됩니다.
+
+BT에는 `realsense.model`로 선택한 센서를 포함하는 `piper_moveit`을 사용합니다.
+단독 `d435` runner를 먼저 켤 필요는 없습니다.
+[ D435 BT 연결](d435-bt-demo.md) · [D435 단독 점검](d435-standalone.md) · [D405 mount](d405-runner-mount.md)

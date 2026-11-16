@@ -59,10 +59,11 @@ d435:
   # 기존 시리얼·영상 프로파일 설정 아래에 위치합니다.
   mount:
     parent_frame: link6
-    translation_m: [-0.06, 0.0, 0.065]
-    rotation_rpy_deg: [180.0, -90.0, 0.0]
+    translation_m: [-0.09, 0.05, 0.075]
+    rotation_rpy_deg: [0.0, -90.0, 0.0]
 ```
 
+위 예시는 현재 runner에 저장된 조정값이며 실측 보정 완료를 뜻하지 않습니다.
 위치는 부모 링크 기준 X/Y/Z(m), 회전은 roll/pitch/yaw(도)입니다. runner가 도를 라디안으로 변환해 `piper_moveit`과 `bt_demo`에 같은 launch 인자를 전달합니다. robot_state_publisher의 장착 TF, MoveIt 충돌 형상, BT RViz의 카메라 모델이 같은 변환을 사용합니다. 센서 내부 광학 TF는 드라이버의 실제 보정값을 계속 사용합니다.
 
 부모는 로봇 URDF에 실제 존재하는 링크여야 합니다. 존재하지 않는 링크, 자기 자신인 d435_link, 잘못된 배열 길이, NaN/무한대 등은 실행 전 거부합니다. link6 이외 부모를 지정하면 SRDF의 기존 손목·그리퍼 고정 부품 충돌 예외를 그대로 재사용하지 않고 해당 부모와 카메라 사이에만 예외를 적용합니다.

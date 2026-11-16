@@ -1,14 +1,15 @@
 # 심·실물 공통 BT와 설정
 
 심 runner는 `bt_demo_sim`, 실물 runner는 `bt_demo`입니다.
-두 모드는 `rwh_beyond_bt/behavior_trees/demo.xml` 하나를 기본 트리로 사용합니다.
+두 모드는 공통 YAML의 `default_demo_bt_xml`을 사용하며 현재 기본 집기 트리는 `demo_width.xml`입니다.
+고정 폭 `demo.xml`은 요청에서 명시해 선택할 수 있습니다. 배치·해제는 mode 2의 `place.xml`입니다.
 
 | 항목 | sim | real |
 |---|---|---|
 | coordinator | `grasp_coordinator` | `hardware_grasp_coordinator` |
 | 시간 | `use_sim_time=true` | `use_sim_time=false` |
 | 피드백·controller | MuJoCo | PiPER CAN + physical transport |
-| 기본 XML | `demo.xml` | `demo.xml` |
+| 기본 집기 XML | `demo_width.xml` | `demo_width.xml` |
 
 ## 시나리오
 
@@ -20,7 +21,7 @@ GraspGenX → 후보 선택 → pregrasp → 접근 → 닫기·계획용 부착
 
 ## XML에서 관측 자세 조정
 
-`demo.xml`의 두 `MoveObservation` 호출을 수정합니다. 최초 관측과 복귀 값을 같게 유지하려면
+실제로 선택한 XML(`demo_width.xml` 또는 `demo.xml`)의 두 `MoveObservation` 호출을 수정합니다. 최초 관측과 복귀 값을 같게 유지하려면
 두 위치에 동일한 값을 지정합니다.
 
 ```xml
@@ -46,11 +47,12 @@ GraspGenX bridge·coordinator가 함께 읽습니다.
 |---|---|---|
 | `target_text` | `yellow block` | Action에 대상이 없을 때의 기본값 |
 | `gripper_open_width` | 0.10 m | 열기 목표 |
-| `gripper_close_width` | 0.04 m | 닫기 목표 |
+| `gripper_close_width` | 0.04 m | 고정 폭 트리의 닫기 목표 |
+| `grasp_width_closing_inset` | 0.05 m(유효하지 않음) | 추정 폭 보정, 허용 범위 0~0.005 m |
 | `gripper_close_duration` | 4.0 s | 실물 닫기 완료 기준 시간 |
-| `grasp_top_down_max_angle_deg` | 35° | 수직 하향에서 허용하는 최대 파지 각도 |
-| `grasp_table_clearance_m` | 0.004 m | TCP의 지지면 위 최소 여유 높이 |
-| `grasp_target_margin_m` | 0.03 m | 물체 경계 바깥 접촉점 허용 여유 |
+| `grasp_top_down_max_angle_deg` | 55° | 수직 하향에서 허용하는 최대 파지 각도 |
+| `grasp_table_clearance_m` | 0.01 m | TCP의 지지면 위 최소 여유 높이 |
+| `grasp_target_margin_m` | 0.05 m | 물체 경계 바깥 접촉점 허용 여유 |
 | `lift_distance` | 0.08 m | TCP 리프트 거리 |
 | `home_joint_positions` | 6축 모두 0 rad | home 목표 |
 | `home_joint_tolerance` | 0.01 rad | home 도착 판정 |
@@ -68,9 +70,9 @@ GraspGenX bridge·coordinator가 함께 읽습니다.
 ```yaml
 grasp_coordinator:
   ros__parameters:
-    grasp_top_down_max_angle_deg: 35.0
-    grasp_table_clearance_m: 0.004
-    grasp_target_margin_m: 0.03
+    grasp_top_down_max_angle_deg: 55.0
+    grasp_table_clearance_m: 0.01
+    grasp_target_margin_m: 0.05
 ```
 
 - `not_top_down`: 허용각을 키우면 더 기울어진 파지 후보도 검사합니다. 범위는 0~180°입니다.
@@ -93,3 +95,12 @@ ROS 공통 파라미터가 navigator와 coordinator에 같은 값을 전달합�
 변경 후 실물 장치 runner(MoveIt)와 BT를 모두 중지·재활성화해야 기존 지도까지 제거됩니다.
 `true`로 복구할 때 runner의 `piper.octomap`도 `true`여야 합니다.
 이 스위치는 시뮬레이터의 MoveIt 지도 updater를 제어하지 않습니다.
+
+## 새 튜닝 항목
+
+- [손목 회전·MoveIt 계획](grasp-motion-tuning.md): 방향 우선 선택, joint4·joint6 경로 제약, OMPL 설정
+- [추정 폭으로 닫기](width-aware-bt.md): 닫기 보정량과 가변 폭 동작
+- [후보 탈락 진단](grasp-troubleshooting.md): 폭 추정·높이·회전·계획 오류 구분
+
+`demo_width.xml`은 반복 집기 시작 시 이전 물체를 현재 위치에서 열어 해제하는 옵션이 있습니다.
+자세한 동작은 폭 추정 문서의 반복 집기 설명을 확인합니다.
