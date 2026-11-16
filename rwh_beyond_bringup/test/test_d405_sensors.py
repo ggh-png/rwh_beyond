@@ -61,3 +61,18 @@ def test_camera_mount_is_shared_but_sdk_internal_tf_is_not_duplicated():
         assert mesh.get('scale') == '0.001 0.001 0.001'
     assert sim.find("link[@name='d405_color_optical_frame']") is not None
     assert real.find("link[@name='d405_color_optical_frame']") is None
+
+
+
+def test_standalone_d405_static_tf_uses_same_mount_override_as_robot_model():
+    context=sensor_context(mode='real',enable_d405='true',publish_d405_mount_tf='true',
+                           d405_mount_parent='base_link',d405_mount_xyz='[0.1,-0.2,0.3]',
+                           d405_mount_rpy='[0.2,0.1,-0.4]')
+    tf=next(n for n in d405_nodes(context) if isinstance(n,Node) and n.node_package=='tf2_ros')
+    command=tf._Node__arguments
+    expected={'--frame-id':'base_link','--child-frame-id':'d405_link',
+              '--x':'0.1','--y':'-0.2','--z':'0.3','--roll':'0.2','--pitch':'0.1','--yaw':'-0.4'}
+    for flag,value in expected.items():assert command[command.index(flag)+1]==value
+    # When robot_state_publisher owns the mount, the sensor must not duplicate it.
+    context.launch_configurations['publish_d405_mount_tf']='false'
+    assert not any(isinstance(n,Node) and n.node_package=='tf2_ros' for n in d405_nodes(context))

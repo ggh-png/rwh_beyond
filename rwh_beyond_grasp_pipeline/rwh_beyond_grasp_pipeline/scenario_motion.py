@@ -13,6 +13,7 @@ from moveit_msgs.srv import GetPlanningScene, GetMotionPlan, GetPositionFK
 from rclpy.time import Time
 from std_msgs.msg import Header
 from .observation_motion import observation_pose, validate_observation_parameters
+from .motion_parameters import motion_value
 from .stage_constants import TARGET, LEGACY_SUPPORT_TABLE, FINGERS
 
 
@@ -65,9 +66,9 @@ class ScenarioMotion:
         plan.group_name = 'arm'
         plan.pipeline_id = 'ompl'
         plan.planner_id = 'RRTConnectkConfigDefault'
-        plan.allowed_planning_time = 10.0
-        plan.max_velocity_scaling_factor = 0.1
-        plan.max_acceleration_scaling_factor = 0.1
+        plan.allowed_planning_time = motion_value(self, 'moveit_planning_time')
+        plan.max_velocity_scaling_factor = motion_value(self, 'moveit_velocity_scaling_factor')
+        plan.max_acceleration_scaling_factor = motion_value(self, 'moveit_acceleration_scaling_factor')
         plan.start_state = self.state()
         plan.goal_constraints = [
             Constraints(
@@ -83,7 +84,7 @@ class ScenarioMotion:
                 ]
             )
         ]
-        response = self.call('plan', request, 15).motion_plan_response
+        response = self.call('plan', request, max(15, plan.allowed_planning_time + 5)).motion_plan_response
         if response.error_code.val != 1:
             raise RuntimeError(f'Home planning failed: {response.error_code.val}')
         points = response.trajectory.joint_trajectory.points
@@ -185,15 +186,15 @@ class ScenarioMotion:
         plan.group_name = 'arm'
         plan.pipeline_id = 'ompl'
         plan.planner_id = 'RRTConnectkConfigDefault'
-        plan.allowed_planning_time = 10.0
-        plan.max_velocity_scaling_factor = 0.1
-        plan.max_acceleration_scaling_factor = 0.1
+        plan.allowed_planning_time = motion_value(self, 'moveit_planning_time')
+        plan.max_velocity_scaling_factor = motion_value(self, 'moveit_velocity_scaling_factor')
+        plan.max_acceleration_scaling_factor = motion_value(self, 'moveit_acceleration_scaling_factor')
         plan.start_state = state
         plan.goal_constraints = [Constraints(joint_constraints=[
             JointConstraint(joint_name=name, position=float(positions[name]),
                             tolerance_above=0.001, tolerance_below=0.001, weight=1.0)
             for name in names])]
-        response = self.call('plan', request, 15).motion_plan_response
+        response = self.call('plan', request, max(15, plan.allowed_planning_time + 5)).motion_plan_response
         if response.error_code.val != 1:
             raise RuntimeError(f'Place transfer planning failed: {response.error_code.val}')
         points = response.trajectory.joint_trajectory.points
@@ -240,6 +241,36 @@ class ScenarioMotion:
         self.release_ready = True
         self.stage('place_pose_reached_ready_for_release')
 
+    def release_previous_target(self):
+        """Explicit repeat-pick mode: open in place before forgetting prior payload."""
+        query = GetPlanningScene.Request()
+        query.components.components = PC.ROBOT_STATE_ATTACHED_OBJECTS
+        objects = self.call('scene', query).scene.robot_state.attached_collision_objects
+        ids = {item.object.id for item in objects}
+        if ids - {TARGET}:
+            raise RuntimeError('Unknown attached objects prevent repeat-pick release')
+        if not self.attached and TARGET not in ids:
+            return
+        self.attached = True
+        self.stage('repeat_pick_releasing_previous_target_at_current_pose')
+        opening = self.get_parameter('gripper_open_width').value
+        if not math.isfinite(opening) or not 0 < opening <= .10:
+            raise ValueError('Invalid repeat-pick opening')
+        # Retain collision geometry and holding state until opening is confirmed.
+        self.command_gripper(opening, closing=False)
+        self.wait(lambda: abs(self.feedback()['gripper'] - opening) < .005, 10)
+        if TARGET in ids:
+            detached = AttachedCollisionObject(
+                object=CollisionObject(id=TARGET, operation=CollisionObject.REMOVE))
+            self.apply(PlanningScene(robot_state=RobotState(attached_collision_objects=[detached])))
+        self.attached = False
+        self.release_ready = False
+        self.selected_gripper_width = None
+        self.selected_observed_width = None
+        self.scene_active = True
+        self.cleanup()
+        self.stage('repeat_pick_previous_target_released_and_cleared')
+
     def release_object(self, opening=None, duration=None):
         if not self.attached:
             raise RuntimeError('No attached target to release')
@@ -262,7 +293,15 @@ class ScenarioMotion:
     def attach(self):
         if not self.prepared:
             raise RuntimeError('No prepared target')
-        self.command_gripper(self.get_parameter('gripper_close_width').value)
+        opening = getattr(self, 'selected_gripper_width', None)
+        if opening is None:
+            self.command_gripper(self.get_parameter('gripper_close_width').value)
+        else:
+            if not math.isfinite(opening) or opening <= 0:
+                raise ValueError('Invalid selected close width')
+            opening = min(opening, self.get_parameter('gripper_open_width').value, .10)
+            self.stage(f'closing_to_selected_width_m={opening:.4f}')
+            self.command_gripper(opening, closing=True)
         attached = AttachedCollisionObject(
             link_name=self.tcp,
             object=copy.deepcopy(self.object),

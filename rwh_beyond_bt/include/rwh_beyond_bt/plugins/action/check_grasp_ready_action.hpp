@@ -32,6 +32,8 @@ public:
     const BT::NodeConfiguration & conf);
 
   static BT::PortsList providedPorts();
+
+  void on_tick() override;
 };
 
 }  // namespace rwh_beyond_bt

@@ -103,3 +103,31 @@ def test_cancel_restores_scene_and_releases_lock(coordinator):
     result=execute(coordinator,handle,'move_pregrasp')
     assert not result.success and handle.outcome=='canceled'
     assert coordinator.cleanups==1 and not coordinator.lock.locked()
+
+
+def test_width_selection_result_binds_apertures_to_the_new_plan(coordinator):
+    from rwh_beyond_msgs.msg import GraspCandidate, TcpPose
+    context=coordinator.perception_context()
+    candidate=GraspCandidate(score=.9)
+    candidate.pose.header=copy.deepcopy(context['cloud'].header)
+    candidate.pose.pose.orientation.w=1.
+    def select(context_arg,candidates,use_estimated_width=False):
+        assert context_arg is context and use_estimated_width
+        coordinator.selected_observed_width=.034
+        coordinator.selected_gripper_width=.032
+        return TcpPose(frame_id='base_link')
+    coordinator.select_feasible_grasp=select
+    handle=Handle(observation_id='capture-a',object_cloud=copy.deepcopy(context['cloud']),
+                  candidates=[candidate],use_estimated_width=True)
+    result=execute(coordinator,handle,'select_feasible_grasp')
+    assert result.success
+    assert result.grasp_width==.034 and result.close_width==.032
+    assert result.width_source=='point_cloud_estimate'
+    assert result.plan_id==coordinator.plan_id and result.plan_id!='plan-a'
+
+
+def test_repeat_pick_flag_is_forwarded_only_when_requested(coordinator):
+    from unittest.mock import Mock
+    coordinator.check_ready=Mock()
+    assert execute(coordinator,Handle(release_previous=True),'check_ready').success
+    coordinator.check_ready.assert_called_once_with(release_previous=True)

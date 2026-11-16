@@ -15,6 +15,11 @@ def generate_launch_description():
         ('log_level', 'info'), ('fw_version', ''), ('tcp_offset', DEFAULT_TCP),
         ('use_rviz', 'true'), ('camera_model', 'true'), ('octomap', 'true'),
         ('start_sensors', 'true'), ('enable_d405', 'true'), ('enable_lidar', 'false'),
+        ('d405_mount_parent', ''), ('d405_mount_xyz', ''), ('d405_mount_rpy', ''),
+        ('d435_mount_parent', ''), ('d435_mount_xyz', ''), ('d435_mount_rpy', ''),
+        ('camera_type', 'd405'), ('enable_d435', 'false'),
+        ('d435_serial', ''), ('d435_depth_profile', '480x270x6'),
+        ('d435_color_profile', '424x240x6'),
         ('d405_serial', ''), ('d405_profile', '640x480x15'),
         ('sensor_params_file', str(Path(get_package_share_directory('rwh_beyond_bringup')) /
                                  'params/nav2_params.yaml')),

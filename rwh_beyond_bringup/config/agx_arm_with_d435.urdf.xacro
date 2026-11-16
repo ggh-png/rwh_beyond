@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="agx_arm">
+  <xacro:include filename="$(find agx_arm_moveit)/config/agx_arm.urdf.xacro"/>
+  <xacro:arg name="camera_nominal_tf" default="false"/>
+  <xacro:property name="mount" value="${xacro.load_yaml('$(find rwh_beyond_bringup)/config/d435_mount.yaml')}"/>
+  <xacro:arg name="d435_mount_parent" default="${mount['parent_frame']}"/>
+  <xacro:arg name="d435_mount_xyz" default="${mount['translation_m'][0]} ${mount['translation_m'][1]} ${mount['translation_m'][2]}"/>
+  <xacro:arg name="d435_mount_rpy" default="${mount['body_rpy_rad'][0]} ${mount['body_rpy_rad'][1]} ${mount['body_rpy_rad'][2]}"/>
+  <!-- Body geometry and SDK origin follow realsense2_description/_d435.urdf.xacro.
+       Internal calibrated camera TF is published exclusively by the device driver. -->
+  <link name="d435_link">
+    <visual>
+      <origin xyz="0.0043 -0.0175 0" rpy="${pi/2} 0 ${pi/2}"/>
+      <geometry><mesh filename="package://realsense2_description/meshes/d435.dae"/></geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 -0.0175 0"/>
+      <geometry><box size="0.02505 0.090 0.025"/></geometry>
+    </collision>
+    <inertial><mass value="0.072"/><inertia ixx="0.003881243" ixy="0" ixz="0" iyy="0.000498940" iyz="0" izz="0.003879257"/></inertial>
+  </link>
+  <joint name="d435_mount_joint" type="fixed">
+    <parent link="$(arg d435_mount_parent)"/><child link="d435_link"/>
+    <origin xyz="$(arg d435_mount_xyz)" rpy="$(arg d435_mount_rpy)"/>
+  </joint>
+</robot>

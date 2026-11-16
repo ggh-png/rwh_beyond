@@ -1,91 +1,209 @@
-# Shared BT configuration: navigator, lifecycle, SAM, GraspGenX and coordinator.
-# Real/sim clock and backend are selected by mode in bt_demo.launch.py.
-# Home: joint1..6 [rad]. Observation: base +Z [m], home-local XYZ Euler tilt [deg].
-# Real MoveIt Octomap and BT map waits; restore true to enable obstacle mapping.
+# BT·인식·파지 동작의 공통 설정입니다. 값을 바꾼 뒤에는 bt_demo를 재시작하세요.
+# 실물/시뮬레이션 시간과 백엔드 일부는 bt_demo.launch.py의 실행 모드로 결정됩니다.
+# 모든 노드에 공통 적용하는 설정입니다.
 /**:
+  # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
+    # Octomap 장애물 지도와 관련 갱신·대기를 사용할지 지정합니다. false이면 지도 기반 장애물 처리를 끕니다.
     octomap_enabled: false
+# 집기·배치 행동 트리(BT)를 실행하는 노드입니다.
 bt_navigator:
+  # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
-    use_sim_time: true
-    global_frame: base_link
-    robot_base_frame: base_link
-    odom_topic: /odom
-    bt_loop_duration: 10
-    default_server_timeout: 20
-    wait_for_service_timeout: 30000
+    # 노드 간 생존 확인(bond)의 하트비트 시간 초과 판정을 비활성화합니다.
+    bond_disable_heartbeat_timeout: true
+    # 액션 서버가 완료된 결과를 보관하는 시간입니다(초).
     action_server_result_timeout: 900.0
-    plugin_lib_names:
-    - rwh_beyond_bt_nodes
+    # 액션 실행마다 BT XML을 다시 읽을지 지정합니다.
+    always_reload_bt_xml: false
+    # navigator 자체의 자동 시작 여부입니다. 라이프사이클 매니저의 autostart와는 별도입니다.
+    autostart_node: false
+    # 노드 생존 확인 하트비트 전송 주기입니다(초).
+    bond_heartbeat_period: 0.1
+    # BT를 반복 평가하는 주기입니다(밀리초).
+    bt_loop_duration: 10
+    # BT 액션 취소 응답의 기본 대기 시간입니다(밀리초).
+    default_cancel_timeout: 20
+    # 기본 집기 BT XML 경로입니다. 요청에서 별도 트리를 지정하면 해당 요청값을 사용합니다.
+    default_demo_bt_xml: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/demo_width.xml
+    # 기본 배치 BT XML 경로입니다(mode: 2).
+    default_place_bt_xml: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/place.xml
+    # BT 액션·서비스 응답의 기본 대기 시간입니다(밀리초).
+    default_server_timeout: 20
+    # 사용자 정의 데모 navigator 플러그인 설정입니다.
+    demo:
+      # 로드할 navigator 플러그인의 클래스 이름입니다.
+      plugin: rwh_beyond_navigator::DemoNavigator
+    # BT 블랙보드에서 오류 코드를 수집할 키 목록입니다.
+    error_code_names:
+    - follow_path_error_code
+    - compute_path_error_code
+    # BT에서 기준으로 사용하는 전역 좌표계입니다.
+    global_frame: base_link
+    # 활성화할 navigator 목록입니다.
     navigators:
     - demo
-    demo:
-      plugin: rwh_beyond_navigator::DemoNavigator
+    # Octomap 장애물 지도와 관련 갱신·대기를 사용할지 지정합니다. false이면 지도 기반 장애물 처리를 끕니다.
+    octomap_enabled: false
+    # 주행 거리·속도 정보(Odometry)를 구독할 토픽입니다.
+    odom_topic: /odom
+    # BT 사용자 정의 노드가 들어 있는 플러그인 라이브러리 목록입니다.
+    plugin_lib_names:
+    - rwh_beyond_bt_nodes
+    # 토픽별 통신 품질(QoS)을 덮어쓰는 설정입니다.
+    qos_overrides:
+      # 실시간 좌표 변환 토픽의 QoS 설정입니다.
+      /tf:
+        # 이 토픽을 수신하는 구독자의 QoS 설정입니다.
+        subscription:
+          # keep_last 정책에서 보관할 메시지 개수입니다.
+          depth: 100
+          # 메시지 보존 정책입니다. volatile은 구독 이후 발행되는 메시지를 수신합니다.
+          durability: volatile
+          # 수신 기록 보관 정책입니다. keep_last는 최근 depth개를 보관합니다.
+          history: keep_last
+          # 전송 신뢰성 정책입니다. reliable은 전달 확인·재전송을 사용합니다.
+          reliability: reliable
+      # 정적 좌표 변환 토픽의 QoS 설정입니다.
+      /tf_static:
+        # 이 토픽을 수신하는 구독자의 QoS 설정입니다.
+        subscription:
+          # keep_last 정책에서 보관할 메시지 개수입니다.
+          depth: 100
+          # 수신 기록 보관 정책입니다. keep_last는 최근 depth개를 보관합니다.
+          history: keep_last
+          # 전송 신뢰성 정책입니다. reliable은 전달 확인·재전송을 사용합니다.
+          reliability: reliable
+    # 로봇 베이스 좌표계 이름입니다.
+    robot_base_frame: base_link
+    # run_demo 액션의 BT 실행·모니터링 설정입니다.
     run_demo:
+      # Groot에서 BT 실행 상태를 모니터링할 수 있게 합니다.
       enable_groot_monitoring: true
+      # Groot 모니터링 서버의 통신 포트입니다.
       groot_server_port: 5555
+    # ROS 인터페이스 타입 설명 서비스를 제공할지 지정합니다.
+    start_type_description_service: true
+    # 좌표 변환(TF)에 사용하는 시간 허용값입니다(초).
+    transform_tolerance: 0.1
+    # true이면 /clock의 시뮬레이션 시간을 사용합니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
+    use_sim_time: false
+    # BT가 액션·서비스 서버의 준비를 기다리는 기본 시간입니다(밀리초).
+    wait_for_service_timeout: 30000
+
+# BT 노드의 설정·활성화 등 라이프사이클을 관리합니다.
 bt_lifecycle_manager:
+  # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
+    # true이면 /clock의 시뮬레이션 시간을 사용합니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     use_sim_time: true
+    # 매니저 시작 시 관리 대상 노드를 자동으로 설정·활성화합니다.
     autostart: true
+    # 라이프사이클 매니저가 관리할 노드 이름 목록입니다.
     node_names:
     - bt_navigator
+# SAM3 물체 분할 서버와 ROS 사이의 연결 설정입니다.
 sam3_bridge:
+  # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
+    # true이면 /clock의 시뮬레이션 시간을 사용합니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     use_sim_time: true
+    # 외부 추론 서버의 통신 주소입니다.
     endpoint: tcp://127.0.0.1:5567
+    # 외부 추론 서버 응답의 제한 시간입니다(초).
     timeout: 60.0
+    # 실제 SAM3 대신 모의 응답 사용을 허용할지 지정합니다.
     allow_mock: false
+# GraspGenX 파지 후보 생성 서버와 ROS 사이의 연결 설정입니다.
 graspgenx_bridge:
+  # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
+    # true이면 /clock의 시뮬레이션 시간을 사용합니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     use_sim_time: true
+    # 외부 추론 서버의 통신 주소입니다.
     endpoint: tcp://127.0.0.1:5566
+    # 모의 분할 결과를 입력으로 사용하는 것을 허용할지 지정합니다.
     allow_mock_segmentation: false
+    # 외부 추론 서버 응답의 제한 시간입니다(초).
     timeout: 60.0
+    # 파지 추론에 필요한 입력 점군의 최소 점 개수입니다.
     min_points: 100
+    # 파지 추론 입력 점군의 최대 점 개수입니다.
     max_points: 200000
-    max_grasps: 1000
+    # 브리지가 허용하는 파지 후보 개수의 상한입니다.
+    max_grasps: 3000
+    # 입력 깊이 영상의 최대 픽셀 개수입니다(가로 × 세로).
     max_depth_pixels: 2073600
+    # 센서 입력 타임스탬프 사이에 허용하는 시간 차이입니다(초).
     sensor_sync_tolerance: 0.1
+# 인식·파지 후보 선택·MoveIt 요청·그리퍼 동작을 연결하는 노드입니다.
 grasp_coordinator:
+  # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
+    # true이면 /clock의 시뮬레이션 시간을 사용합니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     use_sim_time: true
+    # 시뮬레이션 전용 실행 여부입니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     simulation_only: true
+    # 물체 분할 방식입니다. sam3는 서버 분할, color_demo는 명시적인 색상 데모입니다.
     segmentation_backend: sam3
+    # 분할할 대상 물체를 설명하는 기본 텍스트입니다.
     target_text: yellow block
+    # 분할에 사용할 영상 바운딩 박스입니다. 모두 0이면 박스 입력을 생략합니다.
     target_box:
     - 0.0
     - 0.0
     - 0.0
     - 0.0
+    # 분할 대상 선택에 사용할 영상 좌표 [u, v]입니다(픽셀). 음수가 있으면 생략합니다.
     selection_point:
     - -1
     - -1
+    # 여러 분할 결과 중 대상을 고르는 정책입니다. highest_score는 점수가 가장 높은 결과를 선택합니다.
     selection_policy: highest_score
+    # 파지 위치·높이를 계산할 기준 좌표계입니다.
     base_frame: base_link
+    # MoveIt에서 목표 자세와 Cartesian 경로를 계산할 공구 중심(TCP) 링크입니다.
     tcp_link: tcp_link
+    # 고정 크기를 사용하는 분할 방식에서의 물체 크기 [X, Y, Z]입니다(m). SAM3는 관측 점군으로 크기를 계산합니다.
     object_dimensions:
     - 0.04
     - 0.04
     - 0.05
+    # 최종 파지 자세에서 접근축 반대 방향으로 떨어진 사전 접근 거리입니다(m).
     pregrasp_distance: 0.08
+    # 파지 후 베이스 +Z 방향으로 들어 올리는 거리입니다(m).
     lift_distance: 0.08
+    # 모델 파지 좌표계에서 TCP 좌표계로 변환하는 평행 이동 [X, Y, Z]입니다(m).
     model_to_tcp_xyz:
     - 0.0
     - 0.0
     - 0.13
+    # 모델 파지 좌표계에서 TCP 좌표계로 변환하는 회전 [roll, pitch, yaw]입니다(rad).
     model_to_tcp_rpy:
     - 0.0
     - 0.0
     - -1.5707963267948966
+    # 모델에 요청하는 파지 후보 생성 개수입니다.
     num_grasps: 1000
+    # 모델 결과에서 점수 기준으로 유지하도록 요청하는 상위 후보 개수입니다.
     top_k: 300
-    max_candidates: 300
-    # Candidate filters: angle from vertical down (degrees), distances in metres.
-    grasp_top_down_max_angle_deg: 60.0
-    grasp_table_clearance_m: 0.0
+    # 실제 도달 가능성·경로 검사에 사용할 최대 후보 개수입니다.
+    max_candidates: 1000
+    # 수직 아래로 향하는 접근 방향에서 허용할 최대 기울기입니다(도, 0~180).
+    grasp_top_down_max_angle_deg: 55.0
+    # 최종 파지 TCP가 추정 지지면 높이보다 확보해야 하는 최소 높이입니다(m).
+    grasp_table_clearance_m: 0.01
+    # 대상 물체 경계 검사에 더하는 허용 여유입니다(m). 높이 필터가 켜지면 수평 X·Y 경계에 적용합니다.
     grasp_target_margin_m: 0.05
+    # 최종 파지 TCP의 물체 상단 대비 높이 필터를 켭니다. 후보를 위로 옮기지는 않습니다.
+    grasp_height_filter_enabled: false
+    # 허용할 물체 상단 대비 TCP의 최소 높이입니다(베이스 Z 방향, m). 물체 상단은 점군 높이의 99백분위수입니다.
+    grasp_height_above_object_min_m: 0.0
+    # 허용할 물체 상단 대비 TCP의 최대 높이입니다(m). 최소값과 같으면 해당 높이만 허용하며, 0도 필터 해제를 뜻하지 않습니다.
+    grasp_height_above_object_max_m: 0.0
+    # 디버그 시각화에 표시할 최대 파지 후보 개수입니다.
     debug_max_candidates: 10
+    # 홈 자세의 관절 1~6 목표 각도입니다(rad).
     home_joint_positions:
     - 0.0
     - 0.0
@@ -93,18 +211,51 @@ grasp_coordinator:
     - 0.0
     - 0.0
     - 0.0
+    # 기본 관측 위치를 홈 TCP보다 베이스 +Z로 올리는 거리입니다(m). BT의 명시적 위치 입력이 우선할 수 있습니다.
     observation_z_offset: 0.2
+    # 홈 방향 기준 관측 회전 [roll, pitch, yaw]입니다(도). BT의 명시적 기울기 입력이 우선할 수 있습니다.
     observation_tilt_rpy_deg:
     - 0.0
     - 30.0
     - 0.0
+    # 관측 자세 도착 후 센서·기구가 안정되도록 기다리는 시간입니다(초).
     observation_settle_time: 0.5
+    # 홈 관절 목표 판정에 사용하는 각도 허용 오차입니다(rad).
     home_joint_tolerance: 0.01
-    # Degrees; shared by planning bounds correction, MoveIt start checks and physical transport.
-    # Actual feedback and URDF limits stay unchanged.
+    # 계획 시작 관절값의 경계 보정·검사와 실물 전송에 공유하는 허용 오차입니다(도). 실제 피드백과 URDF 한계는 바꾸지 않습니다.
     planning_start_bounds_tolerance_deg: 10.0
+    # 실물 관절 피드백의 최신 상태 판정에 사용하는 제한 시간입니다(초).
     hardware_feedback_timeout: 1.0
+    # 홈·사전 접근·배치 우회 등 일반 계획의 최대 속도 배율입니다(0 초과~1 이하).
+    moveit_velocity_scaling_factor: 0.5
+    # 일반 계획의 최대 가속도 배율입니다(0 초과~1 이하).
+    moveit_acceleration_scaling_factor: 0.5
+    # 관측·파지 접근·리프트·직선 배치의 Cartesian 경로 속도 배율입니다(0 초과~1 이하).
+    moveit_cartesian_velocity_scaling_factor: 0.5
+    # Cartesian 경로의 가속도 배율입니다(0 초과~1 이하).
+    moveit_cartesian_acceleration_scaling_factor: 0.5
+    # 일반 MoveIt 경로 계획에 허용하는 최대 시간입니다(초). 고정 대기 시간이 아닙니다.
+    moveit_planning_time: 10.0
+    # 파지 후보 하나의 이동 계획에 허용하는 최대 시간입니다(초).
+    moveit_candidate_planning_time: 2.0
+    # 역기구학(IK) 요청의 제한 시간입니다(초).
+    moveit_ik_timeout: 0.1
+    # 그리퍼 열기 목표인 손가락 사이 간격입니다(m). 가변 폭 명령도 이 값과 PiPER 상한 0.10m로 제한합니다.
     gripper_open_width: 0.10
+    # 고정 폭 BT의 그리퍼 닫기 목표 간격입니다(m). 폭 추정 BT는 선택한 후보의 가변 폭을 사용합니다.
     gripper_close_width: 0.04
+    # 그리퍼 닫기 명령의 목표 동작 시간입니다(초).
     gripper_close_duration: 4.0
+    # 실물 팔의 관절 목표 도달 판정에 사용하는 위치 허용 오차입니다(rad).
     physical_position_tolerance: 0.03
+
+# 실물 MoveIt 경로 실행 감시 설정입니다. piper_moveit을 재시작해야 적용됩니다.
+move_group:
+  # 이 설정은 실물 MoveIt launch가 읽어 move_group에 직접 전달합니다.
+  ros__parameters:
+    # 실행 완료를 기다릴 상한: 계획 궤적 시간 × 배율 + 추가 여유 시간입니다.
+    trajectory_execution:
+      # 계획 시간 대비 허용 배율입니다(1 이상). 실행 시간 감시는 계속 켜 둡니다.
+      allowed_execution_duration_scaling: 3.0
+      # 시작 관절 보정·실물 추종 지연·정지 확인을 위한 추가 시간입니다(초, 0 이상).
+      allowed_goal_duration_margin: 20.0

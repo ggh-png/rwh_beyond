@@ -18,6 +18,7 @@
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="CheckGraspReady">
+            <input_port name="release_previous" type="bool" default="false">Open gripper and clear prior target before a new pick</input_port>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
@@ -119,6 +120,9 @@
             <input_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
             <output_port name="plan_id" type="std::string"/>
             <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="use_estimated_width" type="bool" default="false">Estimate aperture from object cloud</input_port>
+            <output_port name="grasp_width" type="double"/>
+            <output_port name="close_width" type="double"/>
             <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>

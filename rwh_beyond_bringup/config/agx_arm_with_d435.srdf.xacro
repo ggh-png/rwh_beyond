@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="agx_arm">
+  <xacro:include filename="$(find agx_arm_moveit)/config/agx_arm.srdf.xacro"/>
+  <xacro:arg name="d435_mount_parent" default="link6"/>
+  <disable_collisions link1="$(arg d435_mount_parent)" link2="d435_link" reason="Adjacent"/>
+  <xacro:if value="${'$(arg d435_mount_parent)' == 'link6'}">
+    <disable_collisions link1="gripper_base" link2="d435_link" reason="FixedMount"/>
+  </xacro:if>
+  <!-- Camera/finger and camera/environment collision checks remain enabled. -->
+</robot>

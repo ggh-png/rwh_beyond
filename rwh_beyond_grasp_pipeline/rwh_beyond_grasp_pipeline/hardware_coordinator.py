@@ -80,10 +80,12 @@ class HardwareGraspCoordinator(GraspCoordinator):
     def physics(self, check_cancel=True):
         raise RuntimeError('MuJoCo physics must not be used by the physical backend')
 
-    def check_ready(self):
+    def check_ready(self, release_previous=False):
         self.ensure_backend()
         if self.get_parameter('segmentation_backend').value != 'sam3':
             raise RuntimeError('Physical BT requires SAM segmentation')
+        if release_previous:
+            self.release_previous_target()
         query = GetPlanningScene.Request()
         query.components.components = PC.ROBOT_STATE_ATTACHED_OBJECTS
         if self.attached or TARGET in {

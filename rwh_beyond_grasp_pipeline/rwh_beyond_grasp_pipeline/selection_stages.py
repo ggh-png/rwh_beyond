@@ -21,8 +21,11 @@ from moveit_msgs.srv import GetPlanningScene, GetMotionPlan
 from shape_msgs.msg import SolidPrimitive
 from rwh_beyond_msgs.msg import TcpPose
 from rwh_beyond_msgs.srv import SetGraspRegion
+from .grasp_height import observed_top_z, in_height_band
+from .grasp_width import estimate_aperture
 from .observed_geometry import observed_bounds
 from .red_perception import pose_matrix, matrix_pose, set_pair
+from .motion_parameters import motion_value
 from .stage_constants import TARGET, LEGACY_SUPPORT_TABLE, FINGERS
 
 
@@ -40,13 +43,15 @@ class SelectionStages:
             raise ValueError('grasp_top_down_max_angle_deg must be in [0, 180] degrees')
         return settings
 
-    def select_feasible_grasp(self, context, candidates):
+    def select_feasible_grasp(self, context, candidates, use_estimated_width=False):
         if self.attached:
             raise RuntimeError('Already holding object')
         if self.scene_active:
             raise RuntimeError(
                 'Target scene already active; cleanup and reobserve before reselection'
             )
+        self.selected_gripper_width = None
+        self.selected_observed_width = None
         filters = self.grasp_filter_settings()
         self.prepared = False
         self.plan_id = ""
@@ -58,6 +63,10 @@ class SelectionStages:
             context['base_T_camera'],
             context['backend'],
         )
+        height_band = getattr(self, 'grasp_height_filter', None)
+        object_top_z = observed_top_z(xyz, base_T_camera) if height_band is not None else None
+        if height_band is not None:
+            self.stage(f'grasp_height_filter object_top_z_m={object_top_z:.4f} min_m={height_band[0]} max_m={height_band[1]} reference=final_tcp_base_z')
         if backend == 'sam3':
             center, dimensions, support_z = observed_bounds(xyz, depth, info, mask, base_T_camera)
         else:
@@ -155,12 +164,27 @@ class SelectionStages:
         reasons = Counter()
         self.selection_diagnostics = []
         for index, candidate in enumerate(candidates[: self.get_parameter('max_candidates').value]):
+            width = close_width = None
+            if use_estimated_width:
+                try:
+                    width, close_width = estimate_aperture(
+                        xyz, pose_matrix(candidate.pose.pose),
+                        self.get_parameter('gripper_open_width').value,
+                        self.get_parameter('grasp_width_closing_inset').value)
+                except ValueError:
+                    reasons['invalid_observed_width'] += 1
+                    continue
             grasp = base_T_camera @ pose_matrix(candidate.pose.pose)
             if grasp[2, 2] > -math.cos(math.radians(filters['grasp_top_down_max_angle_deg'])):
                 reasons['not_top_down'] += 1
                 continue
             contact = (grasp @ np.array([0, 0, 0.105, 1]))[:3]
-            if np.any(np.abs(contact - center) > dimensions / 2 + filters['grasp_target_margin_m']):
+            delta = np.abs(contact - center)
+            extent = dimensions / 2 + filters['grasp_target_margin_m']
+            # An explicit above-object TCP band replaces the legacy vertical
+            # contact-in-box heuristic; keep the horizontal target constraint.
+            axes = slice(0, 2) if height_band is not None else slice(0, 3)
+            if np.any(delta[axes] > extent[axes]):
                 reasons['off_target'] += 1
                 continue
             for flipped in (False, True):
@@ -168,6 +192,9 @@ class SelectionStages:
                 if flipped:
                     g[:3, :3] = g[:3, :3] @ Rotation.from_euler('z', math.pi).as_matrix()
                 tcp = g @ model_T_tcp
+                if height_band is not None and not in_height_band(tcp[2, 3], object_top_z, height_band):
+                    reasons['grasp_height_above_object'] += 1
+                    continue
                 if tcp[2, 3] < support_z + filters['grasp_table_clearance_m']:
                     reasons['table_clearance'] += 1
                     continue
@@ -200,9 +227,9 @@ class SelectionStages:
                 m.group_name = 'arm'
                 m.pipeline_id = 'ompl'
                 m.planner_id = 'RRTConnectkConfigDefault'
-                m.allowed_planning_time = 2.0
-                m.max_velocity_scaling_factor = 0.1
-                m.max_acceleration_scaling_factor = 0.1
+                m.allowed_planning_time = motion_value(self, 'moveit_candidate_planning_time')
+                m.max_velocity_scaling_factor = motion_value(self, 'moveit_velocity_scaling_factor')
+                m.max_acceleration_scaling_factor = motion_value(self, 'moveit_acceleration_scaling_factor')
                 m.start_state = self.state()
                 positions = dict(zip(state.joint_state.name, state.joint_state.position))
                 m.goal_constraints = [
@@ -219,10 +246,16 @@ class SelectionStages:
                         ]
                     )
                 ]
-                planned = self.call('plan', plan, 10).motion_plan_response
+                planned = self.call('plan', plan, max(10, m.allowed_planning_time + 5)).motion_plan_response
                 if planned.error_code.val != 1:
                     reasons['pre_plan'] += 1
                     continue
+                self.selected_gripper_width = close_width
+                self.selected_observed_width = width
+                if use_estimated_width:
+                    self.stage(f'grasp_width_m={width:.4f} close_width_m={close_width:.4f} source=point_cloud_estimate')
+                if height_band is not None:
+                    self.stage(f'selected_grasp_height_above_object_m={tcp[2,3] - object_top_z:.4f}')
                 self.grasp_pose = grasp_pose
                 self.pre_trajectory = planned.trajectory
                 self.prepared = True

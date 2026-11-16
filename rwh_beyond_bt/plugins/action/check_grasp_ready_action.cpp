@@ -29,7 +29,14 @@ CheckGraspReadyAction::CheckGraspReadyAction(
 
 BT::PortsList CheckGraspReadyAction::providedPorts()
 {
-  return providedBasicPorts({});
+  return providedBasicPorts({BT::InputPort<bool>("release_previous", false,
+             "Open gripper and clear prior target before a new pick")});
+}
+
+void CheckGraspReadyAction::on_tick()
+{
+  GraspActionNode::on_tick();
+  goal_.release_previous = getInput<bool>("release_previous").value();
 }
 
 }  // namespace rwh_beyond_bt

@@ -108,7 +108,7 @@ def test_shared_yaml_is_loaded_and_only_explicit_overrides_replace_it():
     module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
     config=ROOT/'rwh_beyond_bringup/config/bt_demo.yaml'
     data=yaml.safe_load(config.read_text())
-    assert set(data)=={'/**','bt_navigator','bt_lifecycle_manager','sam3_bridge','graspgenx_bridge','grasp_coordinator'}
+    assert set(data)=={'/**','bt_navigator','bt_lifecycle_manager','sam3_bridge','graspgenx_bridge','grasp_coordinator','move_group'}
     context=LaunchContext()
     context.launch_configurations.update(dict(mode='real',use_sim_time='false',start_coordinator='true',
         params_file=str(config),sam3_params_file=str(config),graspgenx_params_file=str(config),
@@ -208,7 +208,7 @@ def test_sim_and_real_use_shared_scenario_motion_and_xml():
         assert getattr(GraspCoordinator, name) is getattr(HardwareGraspCoordinator, name)
     trees = ROOT/'rwh_beyond_bt/behavior_trees'
     assert sorted(path.name for path in trees.glob('*.xml')
-                  if ET.parse(path).find('BehaviorTree') is not None) == ['demo.xml', 'place.xml']
+                  if ET.parse(path).find('BehaviorTree') is not None) == ['demo.xml', 'demo_width.xml', 'place.xml']
     sequence = ET.parse(trees/'demo.xml').find('.//Sequence')
     assert [n.tag for n in sequence.iter() if n.tag != 'Sequence'][-4:] == [
         'AttachObject', 'LiftObject', 'MoveObservation', 'MoveHome']

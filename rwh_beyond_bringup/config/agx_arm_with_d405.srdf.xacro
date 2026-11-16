@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="agx_arm">
+  <xacro:include filename="$(find agx_arm_moveit)/config/agx_arm.srdf.xacro"/>
+  <!-- Rigid wrist assembly: nominal CAD housing overlap is fixed in every arm state. -->
+  <xacro:arg name="d405_mount_parent" default="link6"/>
+  <disable_collisions link1="$(arg d405_mount_parent)" link2="d405_link" reason="Adjacent"/>
+  <xacro:if value="${'$(arg d405_mount_parent)' == 'link6'}">
+    <disable_collisions link1="gripper_base" link2="d405_link" reason="FixedMount"/>
+  </xacro:if>
+  <!-- Fingers and external obstacles are still checked against the camera housing. -->
+</robot>

@@ -68,6 +68,9 @@ def generate_launch_description():
 
     # Launch arguments
     declare_args = [
+        DeclareLaunchArgument('d405_mount_parent', default_value=''),
+        DeclareLaunchArgument('d405_mount_xyz', default_value='', description='D405 mount XYZ [m]'),
+        DeclareLaunchArgument('d405_mount_rpy', default_value='', description='D405 mount RPY [rad]'),
         DeclareLaunchArgument('mode', default_value='real', choices=['sim', 'real']),
         DeclareLaunchArgument('enable_lidar', default_value='true', choices=boolean_choices),
         DeclareLaunchArgument('enable_d405', default_value='false', choices=boolean_choices),

@@ -7,6 +7,10 @@ sensor_msgs/Image object_mask
 sensor_msgs/PointCloud2 object_cloud
 rwh_beyond_msgs/GraspCandidate[] candidates
 string plan_id
+# Opt-in point-cloud aperture estimation for the selected model pose.
+bool use_estimated_width
+# Explicitly release the previous target at the current pose before a new pick.
+bool release_previous
 ---
 bool success
 string message
@@ -16,5 +20,8 @@ sensor_msgs/PointCloud2 object_cloud
 rwh_beyond_msgs/GraspCandidate[] candidates
 string plan_id
 rwh_beyond_msgs/TcpPose pregrasp
+float64 grasp_width
+float64 close_width
+string width_source
 ---
 string stage

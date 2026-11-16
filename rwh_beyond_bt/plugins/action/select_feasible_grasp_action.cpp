@@ -14,6 +14,7 @@
 
 #include "rwh_beyond_bt/plugins/action/select_feasible_grasp_action.hpp"
 
+#include <cmath>
 #include <memory>
 
 namespace rwh_beyond_bt
@@ -33,12 +34,16 @@ BT::PortsList SelectFeasibleGraspAction::providedPorts()
              BT::InputPort<ObjectCloud>("cloud"),
              BT::InputPort<GraspCandidates>("candidates"),
              BT::OutputPort<std::string>("plan_id"),
-             BT::OutputPort<TcpPose>("pregrasp")});
+             BT::OutputPort<TcpPose>("pregrasp"),
+             BT::InputPort<bool>("use_estimated_width", false, "Estimate aperture from object cloud"),
+             BT::OutputPort<double>("grasp_width"),
+             BT::OutputPort<double>("close_width")});
 }
 
 void SelectFeasibleGraspAction::on_tick()
 {
   GraspActionNode::on_tick();
+  goal_.use_estimated_width = getInput<bool>("use_estimated_width").value();
   goal_.observation_id = required_input<std::string>("observation_id");
   goal_.object_cloud = required_input<ObjectCloud>("cloud");
   goal_.candidates = required_input<GraspCandidates>("candidates");
@@ -50,6 +55,18 @@ BT::NodeStatus SelectFeasibleGraspAction::on_success()
   if (status != BT::NodeStatus::SUCCESS) {
     return status;
   }
+  if (goal_.use_estimated_width &&
+    (result_.result->width_source != "point_cloud_estimate" ||
+    !std::isfinite(result_.result->grasp_width) ||
+    !std::isfinite(result_.result->close_width) ||
+    result_.result->close_width <= 0.0 ||
+    result_.result->close_width > result_.result->grasp_width ||
+    result_.result->close_width > 0.1))
+  {
+    throw BT::RuntimeError("Invalid estimated grasp width in stage result");
+  }
+  setOutput("grasp_width", result_.result->grasp_width);
+  setOutput("close_width", result_.result->close_width);
   setOutput("plan_id", result_.result->plan_id);
   setOutput("pregrasp", result_.result->pregrasp);
   return BT::NodeStatus::SUCCESS;

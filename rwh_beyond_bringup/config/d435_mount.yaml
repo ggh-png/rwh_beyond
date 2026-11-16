@@ -1,0 +1,10 @@
+# 직접 launch 실행의 기본값입니다. runner의 d435.mount가 지정되면 해당 값이 우선합니다.
+# 기존 D405 손목 장착 위치를 기준으로 한 초기값입니다. D435 실측 보정값은 아닙니다.
+# 부모 링크입니다. translation_m과 body_rpy_rad는 이 좌표계를 기준으로 합니다.
+parent_frame: link6
+# 부모에서 D435 SDK 기준 d435_link(깊이 원점)까지의 위치 [X,Y,Z]입니다(m).
+translation_m: [-0.06, 0.0, 0.065]
+# 부모에서 d435_link까지의 회전 [roll,pitch,yaw]입니다(rad).
+body_rpy_rad: [3.141592653589793, -1.5707963267948966, 0.0]
+# 실제 장착 위치·방향을 측정해서 보정했는지 나타내는 기록용 값입니다.
+calibrated: false

@@ -202,7 +202,7 @@ def test_fully_closed_gripper_completion_uses_position_without_force(monkeypatch
     assert gate==[True,False]
 
 
-@pytest.mark.parametrize('mode', ['stalled_close', 'cancel', 'stale_feedback', 'stalled_open'])
+@pytest.mark.parametrize('mode', ['stalled_close', 'variable_close', 'cancel', 'stale_feedback', 'stalled_open'])
 def test_timed_close_uses_four_seconds_and_keeps_cancel_and_feedback_checks(monkeypatch, mode):
     import threading
     import rwh_beyond_grasp_pipeline.physical_trajectory as module
@@ -210,7 +210,7 @@ def test_timed_close_uses_four_seconds_and_keeps_cancel_and_feedback_checks(monk
     monkeypatch.setattr(module,'time',NS(monotonic=lambda:clock.now,
         sleep=lambda delta:setattr(clock,'now',clock.now+delta)))
     monkeypatch.setattr(module.rclpy,'ok',lambda:True)
-    target=.1 if mode=='stalled_open' else .04
+    target=.1 if mode=='stalled_open' else (.032 if mode=='variable_close' else .04)
     goal=JointTrajectory(joint_names=['gripper'],points=[
         JointTrajectoryPoint(positions=[target],time_from_start=Duration(sec=4))])
     class Handle:
@@ -219,6 +219,9 @@ def test_timed_close_uses_four_seconds_and_keeps_cancel_and_feedback_checks(monk
         @property
         def is_cancel_requested(self):return mode=='cancel' and clock.now>=1.
     handle=Handle()
+    if mode=='variable_close':
+        from control_msgs.msg import JointTolerance
+        handle.request.path_tolerance=[JointTolerance(name='gripper',position=-1.)]
     def feedback():
         if mode=='stale_feedback' and clock.now>=1.:raise RuntimeError('stale physical feedback')
         return {'gripper':.08}  # Stays far from target, and no force reading exists.
@@ -231,11 +234,11 @@ def test_timed_close_uses_four_seconds_and_keeps_cancel_and_feedback_checks(monk
     result=module.PhysicalTrajectory.execute(state,handle,['gripper'])
     assert gate==[True,False]
     assert not state.lock.locked()
-    if mode=='stalled_close':
+    if mode in ('stalled_close','variable_close'):
         assert result.error_code==0
         handle.succeed.assert_called_once()
         assert 4. <= clock.now < 4.03
-        assert all(value==.04 for _,value in published[1:])
+        assert all(value==target for _,value in published[1:])
     elif mode=='cancel':
         handle.canceled.assert_called_once()
         handle.succeed.assert_not_called()

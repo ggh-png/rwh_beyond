@@ -36,6 +36,8 @@ from rwh_beyond_msgs.action import InferGrasps, RunGraspStep, RunGraspStage, Seg
 from rwh_beyond_msgs.srv import SetGraspRegion
 from .red_perception import pose_matrix, set_pair
 
+from .grasp_height import DEFAULTS as HEIGHT_DEFAULTS, validate_height_parameters
+from .motion_parameters import DEFAULTS as MOTION_DEFAULTS, validate_motion_parameters
 from .stage_constants import TARGET
 
 from .stage_errors import Canceled
@@ -87,6 +89,7 @@ class GraspCoordinator(
             'observation_settle_time': 0.5,
             'gripper_open_width': 0.10,
             'gripper_close_width': 0.04,
+            'grasp_width_closing_inset': 0.002,
             'gripper_close_duration': 4.0,
             'debug_max_candidates': 10,
             'num_grasps': 100,
@@ -98,8 +101,14 @@ class GraspCoordinator(
             'grasp_table_clearance_m': 0.004,
             'grasp_target_margin_m': 0.03,
         }
+        defaults.update(HEIGHT_DEFAULTS)
+        defaults.update(MOTION_DEFAULTS)
         for k, v in defaults.items():
             self.declare_parameter(k, v)
+        self.motion_parameters = validate_motion_parameters({
+            name: self.get_parameter(name).value for name in MOTION_DEFAULTS})
+        self.grasp_height_filter = validate_height_parameters({
+            name: self.get_parameter(name).value for name in HEIGHT_DEFAULTS})
         self.grasp_filter_settings()
         for name in ('object_dimensions', 'model_to_tcp_xyz', 'model_to_tcp_rpy'):
             value = np.asarray(self.get_parameter(name).value, dtype=float)
@@ -144,6 +153,8 @@ class GraspCoordinator(
         self.cloud_seq = 0
         self.prepared = False
         self.attached = False
+        self.selected_gripper_width = None
+        self.selected_observed_width = None
         self.release_ready = False
         self.scene_active = False
         self.original_pairs = {}
@@ -411,9 +422,11 @@ class GraspCoordinator(
             raise RuntimeError('Use the physical coordinator for hardware execution')
         self.physics()
 
-    def check_ready(self):
+    def check_ready(self, release_previous=False):
         if not self.get_parameter('simulation_only').value:
             raise RuntimeError('Hardware execution is not supported')
+        if release_previous:
+            self.release_previous_target()
         _, physics_state = self.physics()
         attached_query = GetPlanningScene.Request()
         attached_query.components.components = PC.ROBOT_STATE_ATTACHED_OBJECTS
@@ -455,7 +468,10 @@ class GraspCoordinator(
             self.stage(command)
             self.ensure_backend()
             if command == 'check_ready':
-                self.check_ready()
+                if getattr(request, 'release_previous', False):
+                    self.check_ready(release_previous=True)
+                else:
+                    self.check_ready()
             elif command == 'segment_object':
                 self.segment_target(request.target_text)
                 result.object_mask = self.perception['mask']
@@ -476,7 +492,14 @@ class GraspCoordinator(
                     values = [candidate.score, *pose_matrix(candidate.pose.pose).ravel()]
                     if not np.isfinite(values).all():
                         raise ValueError('Nonfinite grasp candidate')
-                result.pregrasp = self.select_feasible_grasp(context, request.candidates)
+                if getattr(request, 'use_estimated_width', False):
+                    result.pregrasp = self.select_feasible_grasp(
+                        context, request.candidates, use_estimated_width=True)
+                    result.grasp_width = self.selected_observed_width
+                    result.close_width = self.selected_gripper_width
+                    result.width_source = 'point_cloud_estimate'
+                else:
+                    result.pregrasp = self.select_feasible_grasp(context, request.candidates)
                 self.plan_id = uuid.uuid4().hex
                 self.plan_phase = "selected"
                 result.plan_id = self.plan_id

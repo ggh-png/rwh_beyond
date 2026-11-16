@@ -6,6 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch.actions import LogInfo
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from .camera_mount import mount_mappings
 
 
 def camera_mount():
@@ -44,6 +45,13 @@ def d405_nodes(context):
                               for source, target in topics.items()])]
     if value('publish_d405_mount_tf').lower() == 'true':
         mount = camera_mount()
+        overrides = [LaunchConfiguration(name, default='').perform(context)
+                     for name in ('d405_mount_parent', 'd405_mount_xyz', 'd405_mount_rpy')]
+        if any(overrides):
+            mapped = mount_mappings(*overrides, camera_type='d405')
+            mount = dict(parent_frame=mapped['d405_mount_parent'],
+                         translation_m=mapped['d405_mount_xyz'].split(),
+                         body_rpy_rad=mapped['d405_mount_rpy'].split())
         nodes.append(Node(package='tf2_ros', executable='static_transform_publisher',
             name='d405_mount_tf', output='screen', arguments=[
                 '--frame-id', mount['parent_frame'], '--child-frame-id', 'd405_link',

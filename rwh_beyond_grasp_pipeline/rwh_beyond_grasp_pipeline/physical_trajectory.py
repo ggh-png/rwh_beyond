@@ -142,12 +142,15 @@ class PhysicalTrajectory(Node):
             names, times, points = trajectory_points(
                 trajectory, values, expected, self.get_parameter('initial_position_tolerance').value
             )
-            timed_close = names == ['gripper'] and math.isclose(
+            explicit_close = any(
+                t.name == 'gripper' and t.position == -1.0
+                for t in getattr(handle.request, 'path_tolerance', []))
+            timed_close = names == ['gripper'] and (explicit_close or math.isclose(
                 float(points[-1, 0]),
                 self.get_parameter('gripper_close_width').value,
                 rel_tol=0.0,
                 abs_tol=1e-6,
-            )
+            ))
             close_duration = (
                 self.get_parameter('gripper_close_duration').value if timed_close else 0.0
             )

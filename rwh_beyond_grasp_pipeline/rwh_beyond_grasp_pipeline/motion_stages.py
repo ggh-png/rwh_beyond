@@ -1,5 +1,6 @@
 """Shared MoveIt IK, Cartesian planning and trajectory execution."""
 
+from .motion_parameters import motion_value
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Header
 from rclpy.duration import Duration
@@ -16,8 +17,8 @@ class MotionStages:
         r.robot_state = state
         r.avoid_collisions = True
         r.pose_stamped = PoseStamped(header=Header(frame_id=self.base), pose=pose)
-        r.timeout = Duration(seconds=0.1).to_msg()
-        result = self.call('ik', request, 5)
+        r.timeout = Duration(seconds=motion_value(self, 'moveit_ik_timeout')).to_msg()
+        result = self.call('ik', request, max(5, motion_value(self, 'moveit_ik_timeout') + 2))
         return result.solution if result.error_code.val == 1 else None
 
     def cartesian(self, pose, state):
@@ -30,8 +31,8 @@ class MotionStages:
             max_step=0.004,
             avoid_collisions=True,
             revolute_jump_threshold=0.35,
-            max_velocity_scaling_factor=0.1,
-            max_acceleration_scaling_factor=0.1,
+            max_velocity_scaling_factor=motion_value(self, 'moveit_cartesian_velocity_scaling_factor'),
+            max_acceleration_scaling_factor=motion_value(self, 'moveit_cartesian_acceleration_scaling_factor'),
         )
         return self.call('cartesian', request, 15)
 

@@ -10,6 +10,10 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 class GripperMotion:
     def command_gripper(self, opening, duration=None, closing=None):
+        if not math.isfinite(opening) or opening < 0:
+            raise ValueError('Gripper opening must be finite and nonnegative')
+        # PiPER model total aperture limit (finger joints each travel half).
+        opening = min(opening, 0.10)
         if closing is None:
             closing = math.isclose(
                 opening, self.get_parameter('gripper_close_width').value, rel_tol=0.0, abs_tol=1e-6
@@ -32,9 +36,11 @@ class GripperMotion:
                 ],
             )
         )
-        if simulation and closing:
-            # MuJoCo may contact the object before reaching the requested width.
-            # Physical transport implements its own timed-close completion policy.
+        if closing and (simulation or not math.isclose(
+                opening, self.get_parameter('gripper_close_width').value,
+                rel_tol=0.0, abs_tol=1e-6)):
+            # Explicit close marker: contact may prevent reaching the target width.
+            # The physical transport uses this marker for variable-width timed closing.
             goal.path_tolerance = [JointTolerance(name='gripper', position=-1.0, velocity=-1.0)]
         sent = self.gripper_client.send_goal_async(goal)
         self.wait(sent.done, 10)

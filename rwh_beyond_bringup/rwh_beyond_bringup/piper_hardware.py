@@ -18,6 +18,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
 from launch_ros.parameter_descriptions import ParameterValue
 from moveit_configs_utils import MoveItConfigsBuilder
+from .camera_mount import mount_mappings, validate_mount_parent
 
 
 DEFAULT_TCP = '[0.0,0.0,0.1425,0.0,0.0,0.0]'
@@ -25,7 +26,9 @@ DEFAULT_TCP = '[0.0,0.0,0.1425,0.0,0.0,0.0]'
 
 def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=False,
                       point_cloud_topic='/camera/depth/color/points', octomap=True,
-                      nominal_camera_tf=True):
+                      nominal_camera_tf=True, camera_type='d405',
+                      d435_mount_parent='', d435_mount_xyz='', d435_mount_rpy='',
+                      d405_mount_parent='', d405_mount_xyz='', d405_mount_rpy=''):
     """Match simulation planning parameters, using physical time and feedback."""
     offset = ast.literal_eval(tcp_offset)
     if (not isinstance(offset, (list, tuple)) or len(offset) != 6 or
@@ -33,6 +36,8 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         raise ValueError('tcp_offset must contain six finite XYZ/RPY values')
     if effector_type not in ('agx_gripper', 'none'):
         raise ValueError('The PiPER baseline supports agx_gripper or none')
+    if camera_type not in ('d405', 'd435'):
+        raise ValueError('camera_type must be d405 or d435')
     sim_share = Path(get_package_share_directory('moma_bringup'))
     mapping = dict(arm_type='piper', effector_type=effector_type, revo2_type='left',
                    tcp_offset_xyz=' '.join(str(x) for x in offset[:3]),
@@ -42,16 +47,31 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
             else 'config/agx_arm.urdf.xacro')
     srdf = (str(sim_share / 'config/agx_arm_with_camera.srdf.xacro') if camera_model
             else 'config/agx_arm.srdf.xacro')
+    mount = {}
+    if camera_model and camera_type == 'd435':
+        mount = mount_mappings(d435_mount_parent, d435_mount_xyz, d435_mount_rpy)
+        mapping.update(mount)
+        camera_share = Path(get_package_share_directory('rwh_beyond_bringup'))
+        urdf = str(camera_share / 'config/agx_arm_with_d435.urdf.xacro')
+        srdf = str(camera_share / 'config/agx_arm_with_d435.srdf.xacro')
+    if camera_model and camera_type == 'd405' and any((d405_mount_parent, d405_mount_xyz, d405_mount_rpy)):
+        mount = mount_mappings(d405_mount_parent, d405_mount_xyz, d405_mount_rpy, camera_type='d405')
+        mapping.update(mount)
+        camera_share = Path(get_package_share_directory('rwh_beyond_bringup'))
+        urdf = str(camera_share / 'config/agx_arm_with_d405.urdf.xacro')
+        srdf = str(camera_share / 'config/agx_arm_with_d405.srdf.xacro')
     config = (MoveItConfigsBuilder('agx_arm', package_name='agx_arm_moveit')
               .robot_description(file_path=urdf, mappings=mapping)
               .robot_description_semantic(file_path=srdf, mappings={
-                  'arm_type': 'piper', 'effector_type': effector_type, 'revo2_type': 'left'})
+                  'arm_type': 'piper', 'effector_type': effector_type, 'revo2_type': 'left', **mount})
               .robot_description_kinematics(file_path='config/kinematics.yaml')
               .joint_limits(file_path='config/joint_limits.yaml')
               .sensors_3d(file_path=str(sim_share / 'config/sensors_3d.yaml'))
               .trajectory_execution(file_path='config/moveit_controllers_' +
                                     ('gripper' if effector_type == 'agx_gripper' else 'none') + '.yaml')
               .to_moveit_configs())
+    if mount:
+        validate_mount_parent(config.to_dict()['robot_description'], mount, camera_type)
     tolerance_path = Path(get_package_share_directory('rwh_beyond_bringup')) / 'config/bt_demo.yaml'
     shared_settings = yaml.safe_load(tolerance_path.read_text())
     bt_settings = shared_settings['grasp_coordinator']['ros__parameters']
@@ -59,6 +79,15 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         'octomap_enabled', True)
     if type(octomap_enabled) is not bool:
         raise ValueError('octomap_enabled must be a YAML boolean')
+    execution = shared_settings.get('move_group', {}).get('ros__parameters', {}).get(
+        'trajectory_execution', {})
+    execution_scaling = execution.get('allowed_execution_duration_scaling', 3.0)
+    execution_margin = execution.get('allowed_goal_duration_margin', 2.0)
+    for name, setting, minimum in (
+            ('allowed_execution_duration_scaling', execution_scaling, 1.0),
+            ('allowed_goal_duration_margin', execution_margin, 0.0)):
+        if type(setting) not in (int, float) or not math.isfinite(setting) or setting < minimum:
+            raise ValueError(name + ' must be finite and >= ' + str(minimum))
     start_tolerance = bt_settings['planning_start_bounds_tolerance_deg']
     if not math.isfinite(start_tolerance) or not 0 < start_tolerance <= 180.0:
         raise ValueError('planning_start_bounds_tolerance_deg must be in (0, 180] degrees')
@@ -71,8 +100,8 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         'publish_geometry_updates': True, 'publish_state_updates': True,
         'publish_transforms_updates': True, 'monitor_dynamics': False,
         'planning_pipelines': ['ompl'], 'default_planning_pipeline': 'ompl',
-        'trajectory_execution': {'allowed_execution_duration_scaling': 3.0,
-                                 'allowed_goal_duration_margin': 2.0,
+        'trajectory_execution': {'allowed_execution_duration_scaling': float(execution_scaling),
+                                 'allowed_goal_duration_margin': float(execution_margin),
                                  'allowed_start_tolerance': start_tolerance},
         'octomap_frame': 'world', 'octomap_resolution': 0.01})
     params['depth_cloud']['point_cloud_topic'] = point_cloud_topic
@@ -109,7 +138,12 @@ def hardware_nodes(context):
     effector = value('effector_type')
     params = moveit_parameters(
         value('tcp_offset'), effector, value('camera_model') == 'true',
-        value('point_cloud_topic'), value('octomap') == 'true', nominal_camera_tf=False)
+        value('point_cloud_topic'), value('octomap') == 'true', nominal_camera_tf=False,
+        camera_type=value('camera_type'),
+        d405_mount_parent=value('d405_mount_parent'),
+        d405_mount_xyz=value('d405_mount_xyz'), d405_mount_rpy=value('d405_mount_rpy'),
+        d435_mount_parent=value('d435_mount_parent'),
+        d435_mount_xyz=value('d435_mount_xyz'), d435_mount_rpy=value('d435_mount_rpy'))
     description = ParameterValue(params['robot_description'], value_type=str)
     params['robot_description'] = description
     params['robot_description_semantic'] = ParameterValue(
@@ -179,8 +213,20 @@ def hardware_nodes(context):
             launch_arguments={
                 'mode': 'real', 'namespace': namespace,
                 'params_file': value('sensor_params_file'), 'use_sim_time': 'false',
-                'enable_lidar': value('enable_lidar'), 'enable_d405': value('enable_d405'),
+                'enable_lidar': value('enable_lidar'),
+                'enable_d405': value('enable_d405') if value('camera_type') == 'd405' else 'false',
+                'd405_mount_parent': value('d405_mount_parent'),
+                'd405_mount_xyz': value('d405_mount_xyz'), 'd405_mount_rpy': value('d405_mount_rpy'),
                 'd405_serial': value('d405_serial'), 'd405_profile': value('d405_profile'),
                 'publish_d405_mount_tf': str(value('camera_model') != 'true').lower(),
+            }.items())]))
+    if (value('start_sensors') == 'true' and value('camera_type') == 'd435'
+            and value('enable_d435') == 'true'):
+        result.append(GroupAction(scoped=True, actions=[IncludeLaunchDescription(PythonLaunchDescriptionSource(str(Path(
+            get_package_share_directory('rwh_beyond_bringup')) / 'launch/d435.launch.py')),
+            launch_arguments={
+                'serial_no': value('d435_serial'), 'depth_profile': value('d435_depth_profile'),
+                'color_profile': value('d435_color_profile'), 'pipeline_topics': 'true',
+                'rviz': 'false',
             }.items())]))
     return result

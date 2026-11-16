@@ -17,16 +17,16 @@ DEFAULTS = dict(grasp_top_down_max_angle_deg=35., grasp_table_clearance_m=.004,
                 grasp_target_margin_m=.03)
 
 
-def select(monkeypatch, overrides, angle=0., x=0., z=.2, legacy_table=False, octomap_enabled=True):
+def select(monkeypatch, overrides, angle=0., x=0., z=.2, legacy_table=False, octomap_enabled=True, height_band=None, dimensions=(1.,1.,1.)):
     module = importlib.import_module(SelectionStages.__module__)
-    monkeypatch.setattr(module, 'observed_bounds', lambda *args:(np.zeros(3), np.ones(3), 0.))
+    monkeypatch.setattr(module, 'observed_bounds', lambda *args:(np.zeros(3), np.asarray(dimensions), 0.))
     monkeypatch.setattr(module, 'Path', lambda *args:NS(write_text=lambda data:None))
     params = dict(DEFAULTS, model_to_tcp_rpy=[0.,0.,0.], model_to_tcp_xyz=[0.,0.,0.],
                   max_candidates=1, pregrasp_distance=.08, octomap_enabled=octomap_enabled, **{})
     params.update(overrides)
     matrix = AllowedCollisionMatrix()
     scene = NS(allowed_collision_matrix=matrix, world=NS(collision_objects=([NS(id='observed_support_table')] if legacy_table else []), octomap=NS(octomap=NS(data=[1]))))
-    state = NS(attached=False, scene_active=False, base='base_link',
+    state = NS(attached=False, scene_active=False, base='base_link', grasp_height_filter=height_band,
         get_parameter=lambda key:NS(value=params[key]), stage=Mock(), apply=Mock(),
         call=Mock(return_value=NS(scene=scene,success=True)),
         get_clock=lambda:NS(now=lambda:NS(nanoseconds=0)), cloud_seq=0, cloud_stamp=0.,
@@ -37,7 +37,7 @@ def select(monkeypatch, overrides, angle=0., x=0., z=.2, legacy_table=False, oct
     (candidate_pose.pose.orientation.x, candidate_pose.pose.orientation.y,
      candidate_pose.pose.orientation.z, candidate_pose.pose.orientation.w) = q
     candidate_pose.pose.position.x, candidate_pose.pose.position.z = x, z
-    context = dict(frame=dict(depth=NS(header=Header()),info=None), xyz=np.zeros((1,3)),
+    context = dict(frame=dict(depth=NS(header=Header()),info=None), xyz=np.zeros((100,3)),
                    mask=None, base_T_camera=np.eye(4), backend='sam3')
     with pytest.raises(RuntimeError, match='No feasible model grasp') as error:
         SelectionStages.select_feasible_grasp(state, context, [NS(pose=candidate_pose,score=1.)])
@@ -102,3 +102,20 @@ def test_selection_removes_only_existing_legacy_table(monkeypatch, legacy_table)
 def test_octomap_disabled_skips_map_updates_and_waits_but_still_checks_ik(monkeypatch):
     _, calls = select(monkeypatch, {}, octomap_enabled=False)
     assert calls == 2
+
+
+@pytest.mark.parametrize('height,accepted', [(.049,False),(.05,True),(.075,True),(.10,True),(.101,False)])
+def test_final_grasp_height_band_filters_candidates_before_ik(monkeypatch,height,accepted):
+    error,calls=select(monkeypatch,{},z=height,height_band=(.05,.10),octomap_enabled=False)
+    assert ('grasp_height_above_object' in error) != accepted
+    assert calls == (2 if accepted else 0)
+
+
+def test_explicit_height_band_replaces_vertical_box_heuristic_but_keeps_xy(monkeypatch):
+    settings=dict(grasp_target_margin_m=.005)
+    error,calls=select(monkeypatch,settings,z=.075,height_band=(.05,.10),
+                      dimensions=(.04,.04,.04),octomap_enabled=False)
+    assert 'off_target' not in error and calls==2
+    error,calls=select(monkeypatch,settings,z=.075,x=.1,height_band=(.05,.10),
+                      dimensions=(.04,.04,.04),octomap_enabled=False)
+    assert 'off_target' in error and calls==0

@@ -45,6 +45,11 @@ def test_hardware_matches_simulation_parameters_except_clock():
     assert expected.pop('use_sim_time') is True
     assert actual.pop('trajectory_execution.allowed_start_tolerance') == math.radians(10.0)
     expected.pop('trajectory_execution.allowed_start_tolerance', None)
+    # Hardware execution timing is configured separately from simulation.
+    actual.pop('trajectory_execution.allowed_execution_duration_scaling')
+    actual.pop('trajectory_execution.allowed_goal_duration_margin')
+    expected.pop('trajectory_execution.allowed_execution_duration_scaling', None)
+    expected.pop('trajectory_execution.allowed_goal_duration_margin', None)
     # Real Octomap can be disabled independently in the shared BT configuration.
     if 'sensors' not in actual:
         expected.pop('sensors', None)
@@ -183,3 +188,148 @@ def test_shared_octomap_switch_disables_hardware_map_updater():
     params = moveit_parameters(DEFAULT_TCP)
     assert ('sensors' in params) is enabled
     assert 'sensors' not in moveit_parameters(DEFAULT_TCP, octomap=False)
+
+
+@pytest.mark.parametrize('scaling,margin,valid', [
+    (3.0, 20.0, True), (4.0, 7.0, True), (1.0, 0.0, True),
+    (0.0, 20.0, False), (True, 20.0, False),
+    (float('nan'), 20.0, False), (3.0, -1.0, False),
+    (3.0, float('inf'), False), (3.0, '20', False),
+])
+def test_execution_timing_reads_shared_yaml(monkeypatch, tmp_path, scaling, margin, valid):
+    import yaml
+    import rwh_beyond_bringup.piper_hardware as hardware
+    original = hardware.get_package_share_directory
+    data = yaml.safe_load((Path(original('rwh_beyond_bringup')) / 'config/bt_demo.yaml').read_text())
+    data['move_group']['ros__parameters']['trajectory_execution'] = {
+        'allowed_execution_duration_scaling': scaling,
+        'allowed_goal_duration_margin': margin,
+    }
+    (tmp_path / 'config').mkdir()
+    (tmp_path / 'config/bt_demo.yaml').write_text(yaml.safe_dump(data))
+    monkeypatch.setattr(hardware, 'get_package_share_directory',
+        lambda name: str(tmp_path) if name == 'rwh_beyond_bringup' else original(name))
+    if not valid:
+        with pytest.raises(ValueError, match='allowed_'):
+            hardware.moveit_parameters(DEFAULT_TCP)
+    else:
+        execution = hardware.moveit_parameters(DEFAULT_TCP)['trajectory_execution']
+        assert execution['allowed_execution_duration_scaling'] == scaling
+        assert execution['allowed_goal_duration_margin'] == margin
+
+
+def test_execution_timeout_budget_covers_feedback_start_blend():
+    # A short planned motion can need a 10-degree initial correction at 0.1 rad/s.
+    execution = moveit_parameters(DEFAULT_TCP)['trajectory_execution']
+    planned = (8.275310 - 2.0) / 3.0
+    bound = planned * execution['allowed_execution_duration_scaling'] + execution['allowed_goal_duration_margin']
+    assert bound > math.radians(10.0) / 0.1 + planned + 0.5
+
+
+
+def test_d435_wrist_geometry_and_rviz_use_same_model_without_d405_or_internal_tf():
+    params = moveit_parameters(DEFAULT_TCP, camera_model=True,
+                              camera_type='d435', nominal_camera_tf=False)
+    robot = ET.fromstring(params['robot_description'])
+    semantic = ET.fromstring(params['robot_description_semantic'])
+    assert robot.find("link[@name='d405_link']") is None
+    assert robot.find("link[@name='d435_link']/collision/geometry/box").get('size') == '0.02505 0.090 0.025'
+    assert robot.find("joint[@name='d435_mount_joint']/parent").get('link') == 'link6'
+    assert robot.find("joint[@name='d435_mount_joint']/origin").get('xyz') == '-0.06 0.0 0.065'
+    assert robot.find("link[@name='d435_color_optical_frame']") is None
+    pairs = {frozenset((p.get('link1'), p.get('link2'))) for p in semantic.findall('disable_collisions')
+             if 'd435_link' in (p.get('link1'),p.get('link2'))}
+    assert pairs == {frozenset(('link6','d435_link')),frozenset(('gripper_base','d435_link'))}
+    module=load(Path(__file__).resolve().parents[1]/'launch/moveit_rviz.launch.py','d435_rviz')
+    context=defaults(module)
+    context.launch_configurations.update(camera_type='d435',use_sim_time='false',tcp_offset=DEFAULT_TCP)
+    node,=module.create_rviz(context)
+    rviz=evaluate_parameters(context,node._Node__parameters)[0]
+    assert rviz['robot_description']==params['robot_description']
+    assert rviz['robot_description_semantic']==params['robot_description_semantic']
+
+
+def test_d435_hardware_starts_pipeline_camera_once_and_disables_d405():
+    module=load(Path(__file__).resolve().parents[1]/'launch/piper_moveit.launch.py','d435_hardware')
+    context=defaults(module)
+    context.launch_configurations.update(camera_type='d435',enable_d435='true',d435_serial='001234')
+    _,_,sensor_group,camera=hardware_nodes(context)
+    legacy=next(a for a in sensor_group.get_sub_entities() if isinstance(a,IncludeLaunchDescription))
+    assert dict(legacy.launch_arguments)['enable_d405']=='false'
+    camera=next(a for a in camera.get_sub_entities() if isinstance(a,IncludeLaunchDescription))
+    args=dict(camera.launch_arguments)
+    assert args['serial_no']=='001234' and args['pipeline_topics']=='true'
+    assert args['rviz']=='false'
+    context.launch_configurations['start_sensors']='false'
+    assert len(hardware_nodes(context))==2
+
+
+
+def test_custom_d435_mount_matches_moveit_rviz_and_robot_state_publisher():
+    mount=dict(d435_mount_parent='base_link', d435_mount_xyz='[0.12,-0.03,0.8]',
+               d435_mount_rpy='[0.1,0.2,-0.3]')
+    params=moveit_parameters(DEFAULT_TCP,camera_model=True,camera_type='d435',
+                             nominal_camera_tf=False,**mount)
+    robot=ET.fromstring(params['robot_description'])
+    joint=robot.find("joint[@name='d435_mount_joint']")
+    assert joint.find('parent').get('link')=='base_link'
+    assert joint.find('origin').get('xyz')=='0.12 -0.03 0.8'
+    assert joint.find('origin').get('rpy')=='0.1 0.2 -0.3'
+    semantic=ET.fromstring(params['robot_description_semantic'])
+    pairs={frozenset((p.get('link1'),p.get('link2'))) for p in semantic.findall('disable_collisions')
+           if 'd435_link' in (p.get('link1'),p.get('link2'))}
+    assert pairs=={frozenset(('base_link','d435_link'))}
+    module=load(Path(__file__).resolve().parents[1]/'launch/piper_moveit.launch.py','custom_mount_hw')
+    ctx=defaults(module);ctx.launch_configurations.update(camera_type='d435',**mount)
+    _,group,*_=hardware_nodes(ctx)
+    nodes=[n for n in group.get_sub_entities() if hasattr(n,'node_package')]
+    for executable in ('robot_state_publisher','move_group'):
+        node=next(n for n in nodes if n.node_executable==executable)
+        actual=evaluate_parameters(ctx,node._Node__parameters)[0]
+        assert actual['robot_description']==params['robot_description']
+    module=load(Path(__file__).resolve().parents[1]/'launch/moveit_rviz.launch.py','custom_mount_rviz')
+    ctx=defaults(module);ctx.launch_configurations.update(camera_type='d435',use_sim_time='false',**mount)
+    node,=module.create_rviz(ctx)
+    actual=evaluate_parameters(ctx,node._Node__parameters)[0]
+    assert actual['robot_description']==params['robot_description']
+    assert actual['robot_description_semantic']==params['robot_description_semantic']
+
+
+@pytest.mark.parametrize('override', [
+    {'d435_mount_xyz':'[0,0]'}, {'d435_mount_xyz':'[true,0,0]'},
+    {'d435_mount_rpy':'[0,0,1e999]'}, {'d435_mount_parent':'unknown_link'},
+    {'d435_mount_parent':'d435_link'}, {'d435_mount_parent':'bad frame'},
+])
+def test_invalid_mount_is_rejected_before_any_hardware_launch(override):
+    with pytest.raises(ValueError,match='d435_mount'):
+        moveit_parameters(DEFAULT_TCP,camera_model=True,camera_type='d435',**override)
+
+
+def test_custom_d405_mount_matches_moveit_rviz_and_robot_state_publisher():
+    mount=dict(d405_mount_parent='base_link', d405_mount_xyz='[0.12,-0.03,0.8]',
+               d405_mount_rpy='[0.1,0.2,-0.3]')
+    params=moveit_parameters(DEFAULT_TCP,camera_model=True,camera_type='d405',
+                             nominal_camera_tf=False,**mount)
+    robot=ET.fromstring(params['robot_description'])
+    joint=robot.find("joint[@name='d405_mount_joint']")
+    assert joint.find('parent').get('link')=='base_link'
+    assert joint.find('origin').get('xyz')=='0.12 -0.03 0.8'
+    assert joint.find('origin').get('rpy')=='0.1 0.2 -0.3'
+    semantic=ET.fromstring(params['robot_description_semantic'])
+    pairs={frozenset((p.get('link1'),p.get('link2'))) for p in semantic.findall('disable_collisions')
+           if 'd405_link' in (p.get('link1'),p.get('link2'))}
+    assert pairs=={frozenset(('base_link','d405_link'))}
+    module=load(Path(__file__).resolve().parents[1]/'launch/piper_moveit.launch.py','custom_mount_hw')
+    ctx=defaults(module);ctx.launch_configurations.update(camera_type='d405',**mount)
+    _,group,*_=hardware_nodes(ctx)
+    nodes=[n for n in group.get_sub_entities() if hasattr(n,'node_package')]
+    for executable in ('robot_state_publisher','move_group'):
+        node=next(n for n in nodes if n.node_executable==executable)
+        actual=evaluate_parameters(ctx,node._Node__parameters)[0]
+        assert actual['robot_description']==params['robot_description']
+    module=load(Path(__file__).resolve().parents[1]/'launch/moveit_rviz.launch.py','custom_mount_rviz')
+    ctx=defaults(module);ctx.launch_configurations.update(camera_type='d405',use_sim_time='false',**mount)
+    node,=module.create_rviz(ctx)
+    actual=evaluate_parameters(ctx,node._Node__parameters)[0]
+    assert actual['robot_description']==params['robot_description']
+    assert actual['robot_description_semantic']==params['robot_description_semantic']

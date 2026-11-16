@@ -34,11 +34,15 @@ class BtDemoLaunchTest(unittest.TestCase):
             set(argument_map),
             {'params_file', 'rviz', 'rviz_config', 'tcp_offset', 'segmentation_endpoint',
              'segmentation_backend', 'target_text', 'endpoint', 'mode', 'start_sensors', 'enable_lidar',
-             'enable_d405', 'd405_serial', 'd405_profile', 'sensor_params_file'})
+             'enable_d405', 'd405_serial', 'd405_profile', 'sensor_params_file',
+             'camera_type', 'enable_d435', 'd435_serial', 'd435_depth_profile', 'd435_color_profile',
+             'd435_mount_parent', 'd435_mount_xyz', 'd435_mount_rpy',
+             'd405_mount_parent', 'd405_mount_xyz', 'd405_mount_rpy'})
         group = pipeline_group(entities)
         pipeline = next(entity for entity in group.get_sub_entities()
                         if isinstance(entity, IncludeLaunchDescription))
-        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription))
+        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription)
+                    and 'moveit_rviz.launch.py' in entity.launch_description_source.location)
         self.assertIsNone(pipeline.condition)
         context = LaunchContext()
         context.launch_configurations['mode'] = 'sim'
@@ -119,7 +123,8 @@ class BtDemoLaunchTest(unittest.TestCase):
         self.assertEqual(args['use_sim_time'], 'False')
         self.assertEqual(args['start_coordinator'], 'true')
         self.assertEqual(args['mode'], 'real')
-        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription))
+        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription)
+                    and 'moveit_rviz.launch.py' in entity.launch_description_source.location)
         context.launch_configurations['rviz'] = 'true'
         self.assertTrue(rviz.condition.evaluate(context))
         rviz_args = {name: value.perform(context) if hasattr(value, 'perform') else value
@@ -144,24 +149,24 @@ class BtDemoLaunchTest(unittest.TestCase):
         navigator = next(n for n in entities if isinstance(n, Node) and n.node_executable == 'bt_navigator')
         params = evaluate_parameters(context, navigator._Node__parameters)[-1]
         self.assertFalse(params['use_sim_time'])
-        self.assertTrue(params['default_demo_bt_xml'].endswith('/demo.xml'))
-        self.assertTrue(params['default_place_bt_xml'].endswith('/place.xml'))
-        real_tree = params['default_demo_bt_xml']
-        real_place_tree = params['default_place_bt_xml']
+        # YAML-selected tree paths must not be overwritten by launch defaults.
+        self.assertNotIn('default_demo_bt_xml', params)
+        self.assertNotIn('default_place_bt_xml', params)
+        yaml_layer = evaluate_parameters(context, navigator._Node__parameters)[0]
+        self.assertEqual(str(yaml_layer), context.launch_configurations['params_file'])
         context.launch_configurations['mode'] = 'sim'
         sim_navigator = next(n for n in module.generate_launch_description().entities
                              if isinstance(n, Node) and n.node_executable == 'bt_navigator')
         sim_params = evaluate_parameters(context, sim_navigator._Node__parameters)[-1]
         self.assertTrue(sim_params['use_sim_time'])
-        self.assertEqual(sim_params['default_demo_bt_xml'], real_tree)
-        self.assertEqual(sim_params['default_place_bt_xml'], real_place_tree)
+        self.assertNotIn('default_demo_bt_xml', sim_params)
+        self.assertNotIn('default_place_bt_xml', sim_params)
 
-    def test_default_parameters_preserve_previous_values(self):
+    def test_shared_parameters_preserve_required_navigator_settings(self):
         params_path = Path(__file__).resolve().parents[1] / 'config' / 'bt_demo.yaml'
         params = yaml.safe_load(params_path.read_text())
-        self.assertEqual({key: params[key] for key in ('bt_navigator', 'bt_lifecycle_manager')}, {
+        expected = {
             'bt_navigator': {'ros__parameters': {
-                'use_sim_time': True,
                 'global_frame': 'base_link',
                 'robot_base_frame': 'base_link',
                 'odom_topic': '/odom',
@@ -178,12 +183,44 @@ class BtDemoLaunchTest(unittest.TestCase):
                 },
             }},
             'bt_lifecycle_manager': {'ros__parameters': {
-                'use_sim_time': True,
                 'autostart': True,
                 'node_names': ['bt_navigator'],
             }},
-        })
+        }
+        for node, settings in expected.items():
+            actual = params[node]['ros__parameters']
+            for key, value in settings['ros__parameters'].items():
+                self.assertEqual(actual[key], value)
+            self.assertIsInstance(actual['use_sim_time'], bool)
 
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+def test_d435_sensor_include_is_scoped_and_does_not_override_main_rviz():
+    spec=importlib.util.spec_from_file_location('d435_bt',Path(__file__).resolve().parents[1]/'launch/bt_demo.launch.py')
+    module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+    entities=module.generate_launch_description().entities
+    context=LaunchContext()
+    for action in entities:
+        if isinstance(action,DeclareLaunchArgument):action.execute(context)
+    context.launch_configurations.update(mode='real',camera_type='d435',rviz='true')
+    group=next(g for g in entities if isinstance(g,GroupAction) and any(
+        isinstance(a,IncludeLaunchDescription) and 'd435.launch.py' in a.launch_description_source.location
+        for a in g.get_sub_entities()))
+    include=next(a for a in group.get_sub_entities() if isinstance(a,IncludeLaunchDescription))
+    assert include.condition.evaluate(context)
+    assert dict(include.launch_arguments)['pipeline_topics']=='true'
+    assert dict(include.launch_arguments)['rviz']=='false'
+    for action in group.execute(context):
+        if isinstance(action,IncludeLaunchDescription):
+            for key,value in action.launch_arguments:SetLaunchConfiguration(key,value).execute(context)
+        else:action.execute(context)
+    assert context.launch_configurations['rviz']=='true'
+    context.launch_configurations['start_sensors']='false'
+    assert not include.condition.evaluate(context)
+    rviz=next(a for a in entities if isinstance(a,IncludeLaunchDescription) and
+              'moveit_rviz.launch.py' in a.launch_description_source.location)
+    assert dict(rviz.launch_arguments)['camera_type'].perform(context)=='d435'
