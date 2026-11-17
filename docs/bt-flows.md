@@ -121,7 +121,7 @@ YAML 관측 기본값 Z=0.20m·Y=30°보다 XML의 값이 우선합니다.
 현재 공통 설정은 `octomap_enabled: false`이므로 두 `ClearOctomap`은 성공으로 건너뜁니다.
 대상 박스·Planning Scene 처리는 계속 사용합니다. Octomap을 켜면 clear 후 새 점군과 지도 재생성을 기다립니다.
 
-## 고정 폭 집기: demo.xml
+## 고정 폭 집기: demo.xml { #fixed-width-pick }
 
 집기 순서와 관측·접근·리프트 거리는 기본 집기와 같습니다. 차이는 다음 두 가지입니다.
 
@@ -249,11 +249,5 @@ sequenceDiagram
 
 성공은 BT 시퀀스의 완료입니다. 물체의 실제 잡힘 여부를 별도 센서로 판정하지는 않습니다.
 실행 결과와 실패 노드는 [RunDemo 인터페이스](bt-operation.md)에서 확인합니다.
-
-## 검증 기록
-
-2026-11-17, coordinator 제거 후 BT가 직접 MoveIt·그리퍼를 호출하는 구조에 대해
-사용자가 실행 검증을 마쳤다고 확인했습니다. 이 기록에는 별도 성공률·사이클 시간 측정값은 포함하지 않습니다.
-코드의 모의 서버·통합 검증 범위는 [실행 구조](bt-architecture.md#bt-validation)에 정리했습니다.
 
 [플러그인별 기능·포트](bt-grasp-stages.md) · [데이터와 좌표계](project-data.md) · [설정](real-bt.md)

@@ -93,7 +93,6 @@ simulation:
 심 TCP·카메라 주기 변경은 `bt_demo_sim`과 `piper_sim`을 다시 시작합니다.
 단독 카메라 설정은 `d405` runner를 다시 시작합니다.
 YAML 값만 바꾸면 재빌드는 필요 없습니다.
-이번 설정 로더를 처음 적용할 때는 빌드 후 runner 프로세스도 한 번 재시작합니다.
 
 설정은 상속된 `RWH_PIPER_*`, `RWH_D405_*` 환경변수보다 우선합니다.
 커스텀 `config_yaml`로 runner를 실행하면 장치 설정도 같은 파일에서 읽습니다.
@@ -104,11 +103,14 @@ YAML 값만 바꾸면 재빌드는 필요 없습니다.
 |---|---|
 | PiPER·카메라 runtime, TCP, 심 GUI/주기 | `ros_runner/config/runners.yaml` |
 | 외부 모델 SSH·포트 | 같은 파일의 `inference_connection` |
-| 관측 높이·기울임 | `rwh_beyond_bt/behavior_trees/demo.xml` |
-| 그리퍼 폭·닫기 시간·후보 수·리프트 | `rwh_beyond_bringup/config/bt_demo.yaml` |
-| 카메라 장착 위치·회전·intrinsics 모델 | `moma-mj-lab/config/cameras/d405.yaml` 및 장치 SDK |
+| 관측 높이·기울임 | 선택한 XML의 두 `MoveObservation`; 기본 `demo_width.xml` |
+| 그리퍼 폭·닫기 시간·후보 수 | `rwh_beyond_bringup/config/bt_demo.yaml` |
+| 접근·리프트 거리 | XML 명시값 우선, 생략 시 `bt_motion` YAML |
+| 실물 카메라 장착 위치·회전 | runner의 `d405.mount` / `d435.mount` |
+| 기본 카메라 모델·intrinsics | `moma-mj-lab`의 모델 파일 및 실물 장치 SDK |
 
-카메라 장착 TF와 로봇 기구 모델을 runner에서 중복 정의하지 않습니다.
+실물 runner 장착값은 기본 카메라 모델의 변환을 덮어쓰며 MoveIt·TF·RViz에 함께 전달됩니다.
+로봇 기구 모델과 센서 내부 보정은 각 모델·SDK에서 관리합니다.
 `tcp_offset`과 파지 모델의 `model_to_tcp_*` 보정은 서로 다른 변환입니다.
 
 [실행 가이드](grasp-pipeline-guide.md) · [D405와 TF](d405-sensors.md) ·
@@ -131,7 +133,7 @@ BT launch 시작 후 10초가 지나면 `/exit_teach_mode`를 한 번 호출합�
 대기 중 BT를 중지하면 예약도 취소됩니다. 이미 전송한 Empty 요청은 취소할 수 없습니다.
 서비스 대기/응답 시간이 제한을 넘으면 호출 클라이언트를 종료하고 자동 재시도 없이 BT를 유지합니다.
 로그와 실제 arm 상태를 확인한 뒤 `/run_demo`를 호출합니다.
-설정값은 다음 활성화부터 적용됩니다. 새 wrapper의 최초 적용에는 runner 재시작이 필요합니다.
+설정값은 다음 활성화부터 적용됩니다.
 
 실물 `bt_demo`가 RViz를 함께 시작하고 종료합니다. 의존 runner인 `piper_moveit`은
 RViz를 따로 시작하지 않아 창이 중복되지 않습니다. `piper.use_rviz: true`가 기본값입니다.
@@ -139,7 +141,7 @@ RViz를 따로 시작하지 않아 창이 중복되지 않습니다. `piper.use_
 ## D435와 장착 TF
 
 D435의 `serial`, `depth_profile`, `color_profile`, 단독 `use_rviz`는 `d435` 아래에 설정합니다.
-현재 깊이 480x270x6, 컬러 424x240x6은 USB 2.1에서 수신한 시험 프로파일입니다.
+현재 설정은 깊이 480x270x6, 컬러 424x240x6입니다. 장치·USB 대역폭에 맞는 프로파일을 선택합니다.
 BT 통합 RViz는 `piper.use_rviz`를 사용합니다.
 
 ```yaml

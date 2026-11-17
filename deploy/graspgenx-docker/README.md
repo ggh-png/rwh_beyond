@@ -33,7 +33,7 @@ SSH 터널을 사용할 경우 서버의 published loopback 포트를 로봇 PC�
 컨테이너 시작과 모델 준비는 구분하며 ROS `/graspgenx/health`로 준비 상태를 확인합니다.
 
 GPU 추론 API는 객체 XYZ를 받아 파지 변환 행렬·점수를 반환합니다.
-실제 팔의 도달 가능성·충돌은 coordinator와 MoveIt이 검사합니다.
+실제 팔의 도달 가능성·충돌은 BT와 MoveIt이 검사합니다.
 
 [모델 동작](../../docs/graspgenx-model.md) · [ROS 연결](../../docs/model-bridges.md) ·
 [런타임 설정](../../docs/piper-runtime.md) · [로컬 Podman 실행](LOCAL_PODMAN.md)

@@ -37,4 +37,23 @@ ros2 launch rwh_beyond_graspgenx_bridge bridge.launch.py endpoint:=tcp://127.0.0
 
 RGBD 편의 모드는 독립 호출용입니다. 기본 BT는 이미 분리한 점군을 사용하므로 SAM을 중복 호출하지 않습니다.
 
+## 결과와 오류
+
+두 모델 Action은 공통으로 아래 구조화된 오류 필드를 반환합니다.
+
+| 필드 | 의미 |
+|---|---|
+| `success`, `error_code` | 성공 여부와 오류 코드. 성공은 `true`·0 |
+| `error_domain`, `error_name` | 오류 발생 계통과 분류 |
+| `error_source`, `error_msg` | 발생 위치와 상세 설명 |
+| `message` | 사람이 읽는 상태 설명 |
+| Feedback `stage` | 최근 모델 처리 단계 |
+
+`SegmentImage`의 성공 데이터는 `object_mask`·`score`·`instance_count`,
+`InferGrasps`는 `candidates`이며 RGBD 모드에서는 분할 결과도 함께 반환합니다.
+`mock` 여부를 함께 확인합니다. 기본 BT는 mock 모델 결과를 거부합니다.
+오류 판정에는 `message`의 문자열 접두사 대신 구조화된 필드를 사용합니다.
+BT가 이 오류를 `/run_demo` Feedback·Result로 전달하는 방식은
+[RunDemo 오류 전달](bt-operation.md#feedback-result)을 참고하세요.
+
 [데이터·좌표계](project-data.md) · [런타임 endpoint](piper-runtime.md)

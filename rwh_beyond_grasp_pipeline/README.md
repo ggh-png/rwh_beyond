@@ -7,7 +7,7 @@ BT 파지 실행을 지원하는 장치·센서 노드와 모델 브릿지 launc
 - `feedback.py`: 실물 피드백 검증 공통 코드입니다.
 - `grasp_pipeline.launch.py`: SAM·GraspGenX 브릿지를 실행합니다.
 
-coordinator는 제거했습니다. 후보 선택·좌표 변환·계획·모션·장면·부착은
+후보 선택·좌표 변환·계획·모션·장면·부착은
 rwh_beyond_bt가 직접 수행하며 MoveIt 서비스·액션과 controller 액션을 호출합니다.
 설정은 rwh_beyond_bringup/config/bt_demo.yaml의 bt_navigator.ros__parameters.bt_motion입니다.
 

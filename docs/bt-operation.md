@@ -1,4 +1,4 @@
-# Manipulation Action 인터페이스
+# RunDemo 인터페이스
 
 외부 호출 측은 `/run_demo` (`rwh_beyond_msgs/action/RunDemo`)로 집기 또는 배치를 실행합니다.
 서버는 BT Navigator의 `rwh_beyond_navigator::DemoNavigator`입니다.
@@ -8,7 +8,7 @@
 
 | 필드 | 타입 | 의미 |
 |---|---|---|
-| `mode` | uint8 | 1=pick, 2=place/release. 0은 기존 호출을 위한 pick 별칭 |
+| `mode` | uint8 | 1=pick, 2=place/release. 생략 시 0이며 기본 pick 선택 |
 | `behavior_tree` | string | XML 경로. 있으면 mode보다 우선; 빈 값이면 YAML의 해당 기본 트리 |
 | `target_text` | string | 이번 실행의 대상 설명. 빈 값이면 XML·launch·YAML 대상 설정 사용 |
 

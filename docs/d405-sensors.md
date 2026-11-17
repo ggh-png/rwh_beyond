@@ -12,11 +12,14 @@
 | `/camera/depth/filtered_points` | MoveIt 처리 후 점군 갱신 |
 
 BT는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니다.
-유효한 frame·timestamp를 가진 빈 filtered cloud도 갱신 결과로 처리합니다.
+`ClearOctomap`은 초기화 후 서로 다른 timestamp의 비어 있지 않은 filtered cloud와
+재생성된 Octomap을 확인합니다. 현재 지도 비활성 설정에서는 이 대기를 생략합니다.
 
 ## 장착 설정
 
-원본은 `moma-mj-lab/config/cameras/d405.yaml`입니다.
+기본 모델은 `moma-mj-lab/config/cameras/d405.yaml`에 있습니다.
+실물 runner는 `ros_runner/config/runners.yaml`의 `d405.mount`로 장착 변환을 덮어씁니다.
+[실물 장착값 수정](d405-runner-mount.md)
 
 | 설정 | 현재 명목값 |
 |---|---|
@@ -42,7 +45,7 @@ BT는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니다.
 `ros_runner/config/runners.yaml`의 `realsense`에서 enabled·serial·profile을 지정합니다.
 PiPER에 포함한 D405와 `d405` 단독 runner가 같은 설정을 읽습니다. [Runner 장치 설정](runner-device-settings.md)을 참고하세요.
 
-실물 `piper_moveit`은 기본적으로 D405를 포함합니다. 별도 카메라 driver와 중복 실행하지 않습니다.
+실물 `piper_moveit`은 `realsense.model: d405`일 때 D405를 포함합니다. 별도 카메라 driver와 중복 실행하지 않습니다.
 센서만 실행할 때는 다음을 사용합니다.
 
 ```bash
@@ -58,4 +61,5 @@ USB 장치와 udev 접근 권한은 실행 환경에서 준비합니다.
 
 명목 형상에서 `d405_link`와 `gripper_base`가 약 3 mm 겹쳐 이 고정 부품 쌍을 SRDF와
 MuJoCo의 접촉 제외로 등록했습니다. 카메라와 손가락·외부 장애물의 충돌 검사는 유지합니다.
-장착 위치를 보정하면 MoveIt·MuJoCo 모델을 빌드하고 관련 runner를 재시작합니다.
+실물 runner 장착값 수정은 관련 runner 재활성화로 반영합니다.
+기본 모델 소스를 바꿀 때는 MoveIt·MuJoCo 모델의 빌드와 실행 반영도 확인합니다.

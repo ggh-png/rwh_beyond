@@ -1,6 +1,7 @@
-# 실행 가이드
+# 빠른 시작
 
-명령은 ROS 컨테이너 `moma_mj_lab_1.1.2_hostcan` 안에서 실행합니다.
+명령은 ROS 컨테이너 안에서 실행합니다. 이 문서의 작업 환경은
+`moma_mj_lab_1.1.2_hostcan`, workspace는 `/root/ros2_ws`이며 장비에 맞게 경로를 조정합니다.
 GPU 모델 서버와 필요한 네트워크 연결을 먼저 준비합니다.
 서버 접속·컨테이너 시작·모델 health는 [외부 GPU 추론 서버 운영](inference-server-operation.md)을 따릅니다.
 
@@ -55,7 +56,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 ```
 
 `target_text`를 생략하면 공통 YAML의 기본 대상을 사용합니다.
-`behavior_tree`를 생략하면 심·실물 모두 `demo.xml`을 실행합니다.
+`behavior_tree`를 생략하면 심·실물 모두 `demo_width.xml`을 실행합니다.
 목표는 준비·home·관측 이동부터 시작합니다.
 
 현재 기본 관측은 home에서 base Z 방향 0.10 m 상승과 home 로컬 Y축 40° 기울임입니다.
@@ -64,8 +65,18 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 ## 5. 결과와 다음 실행
 
 Action result의 `error_code=0`은 시퀀스 완료를 뜻합니다. 실제 물체 잡힘은 판정하지 않습니다.
-실패 시 `failed_stage`, `error_source`, `error_msg`를 확인합니다.
-계획용 부착이 남은 상태에서는 새 집기를 거부합니다. 물체 처리와 부착 상태 정리는 별도로 수행해야 합니다.
+실패 시 `error_domain`, `error_code`, `failed_stage`, `failed_node`, `error_source`, `error_msg`를 확인합니다.
+기본 집기 트리의 다음 pick은 남은 대상을 **현재 위치에서 개방·해제**합니다.
+지정 위치에 놓으려면 먼저 아래 배치 요청을 보냅니다.
+
+```bash
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  '{mode: 2}' --feedback
+```
+
+기본 `place.xml`은 home → home TCP + base X 0.20m·Z 0.15m → 개방·해제 → home 순서입니다.
+이 값은 배치 목표 오프셋이며 테이블 높이를 자동 인식한 값은 아닙니다.
+[트리와 배치 위치](bt-flows.md) · [문제 해결](troubleshooting.md)
 
 Action 취소는 [Action 인터페이스](bt-operation.md)를 참고하세요. ROS 프로세스 종료는 별도입니다.
 

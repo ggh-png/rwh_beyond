@@ -468,7 +468,7 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
 
     2. 모델 브릿지에 점군을 보내고 결과를 기다립니다.
 
-    3. 성공 응답, `OK:` 메시지, 비어 있지 않은 후보 배열을 확인합니다.
+    3. 성공 상태·오류 코드·mock 정책·비어 있지 않은 후보 배열을 확인합니다.
 
     4. `candidates`를 Blackboard에 출력합니다.
 
@@ -870,7 +870,7 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
 
 `selected_plan="{grasp_plan}"`을 후속 노드의 `plan="{grasp_plan}"`으로 연결합니다.
 단계 상태는 `SELECTED → PREGRASP → APPROACHED → ATTACHED → LIFTED`입니다.
-다른 계획·단계 생략·이미 실행한 단계의 재실행은 거부합니다. 문자열 plan_id나 서버 세션은 사용하지 않습니다.
+다른 계획·단계 생략·이미 실행한 단계의 재실행은 거부합니다.
 
 모션은 비동기 BT 작업으로 수행하며 진행 중에는 `RUNNING`을 반환합니다.
 서로 다른 BT 분기에서 동시에 같은 로봇을 명령하면 거부합니다. halt는 진행 중 작업과 액션을 취소합니다.
@@ -880,7 +880,7 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
 XML 입력은 해당 호출에만 적용되고 YAML 기본값을 바꾸지 않습니다.
 모션 노드에는 중계용 `server_name`·`server_timeout`이 없습니다.
 
-## Groot와 이전 XML
+## Groot 노드 모델
 
 노드 정의는 `node_models/rwh_beyond_tree_nodes.xml`입니다. 실행 XML과 별개이며 다음 명령으로 재생성합니다.
 
@@ -889,9 +889,7 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
   /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml
 ```
 
-기존 XML의 `SelectFeasibleGrasp.plan_id` 출력은 `selected_plan`으로,
-후속 모션 노드의 `plan_id` 입력은 `plan`으로 바꿉니다.
-`RunGraspStage`·`RunGraspStep` 중계 액션은 제거됐습니다. 인식 입력은 capture·mask·cloud·candidates로 직접 연결합니다.
+인식 입력은 `capture`·`mask`·`cloud`·`candidates`, 후속 모션은 `plan` 포트로 연결합니다.
 
 
 ## 구현 위치와 tick 방식
@@ -907,7 +905,6 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
 
     경로는 `rwh_beyond_bt/` 기준입니다. 모션 노드들은 BT 내부의 `MotionContext`를 공유합니다.
     노드별 헤더·소스와 등록 관계는 [플러그인 구조](bt-architecture.md#plugin-structure)를 참고하세요.
-    별도 coordinator 프로세스나 `/grasp/*` 단계 중계 액션 서버는 없습니다.
 
 ??? info "BT 노드 타입과 tick 방식 보기"
 

@@ -10,7 +10,7 @@ host 네트워크에서 호스트의 SocketCAN 인터페이스와 네트워크 �
 podman exec -it moma_mj_lab_1.1.2_hostcan bash
 ```
 
-컨테이너에는 GPU runtime, GUI를 사용할 경우 X11 연결, D405 USB 접근이 필요합니다.
+컨테이너에는 GPU runtime, GUI를 사용할 경우 X11 연결, 선택한 RealSense의 USB 접근이 필요합니다.
 CAN은 파일 장치가 아닌 네트워크 인터페이스입니다. 호스트에서 로봇과 일치하는 bitrate로 준비합니다.
 
 ```bash
@@ -18,18 +18,18 @@ ip -details link show can0
 ```
 
 실물 runner는 기본 `can0`를 사용하며 인터페이스가 UP인지 확인합니다.
-현재 장비의 CAN bitrate는 1 Mbps입니다.
+이 프로젝트 작업 장비의 CAN bitrate는 1 Mbps입니다. 다른 장비는 driver·firmware 설정을 확인합니다.
 
 ## 외부 서버와 모델 endpoint
 
 runner 사용 시 접속 설정 원본은 **`ros_runner/config/runners.yaml`의 `inference_connection`**입니다.
-서버 주소를 `.sh`나 `remote.env`에 따로 지정하지 않습니다.
+호스트 터널과 ROS bridge가 같은 접속 설정을 사용하도록 유지합니다.
 
 ```yaml
 inference_connection:
   mode: ssh
-  host: 166.104.138.121
-  user: ircgroup1
+  host: gpu.example.com
+  user: robot
   ssh_port: 5022
   grasp_local_port: 15566
   sam_local_port: 15567
@@ -45,7 +45,7 @@ inference_connection:
 
 호스트 SSH 서비스는 이 YAML을 읽어 터널을 구성하고, BT runner도 같은 YAML에서
 `RWH_GRASP_ENDPOINT`, `RWH_SEGMENTATION_ENDPOINT`를 만듭니다.
-현재 값은 각각 `tcp://127.0.0.1:15566`, `tcp://127.0.0.1:15567`입니다.
+위 포트 설정의 bridge 주소는 각각 `tcp://127.0.0.1:15566`, `tcp://127.0.0.1:15567`입니다.
 SSH가 서버의 5566/5567로 전달하므로 ROS에서는 localhost에 접속합니다.
 
 ## 주소 변경과 반영
@@ -58,8 +58,6 @@ systemctl --user status rwh-inference-tunnel
 ```
 
 실행 중인 BT와 bridge는 비활성화·재활성화해 새 주소를 읽습니다. 주소 수정만으로는 재빌드가 필요 없습니다.
-이번 runner 실행 구조 업데이트를 처음 적용할 때는 runner 프로세스도 한 번 재시작합니다.
-`remote.env`와 수동 export로 endpoint를 덮어쓰는 경로는 모델 runner에서 사용하지 않습니다.
 직접 ROS launch를 호출하는 경우에는 launch 인자·환경변수·BT YAML 기본값을 사용할 수 있습니다.
 
 ## 호스트 SSH 인증과 서비스

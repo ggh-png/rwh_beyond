@@ -8,7 +8,7 @@
 | MoveIt 2 | IK·충돌 검사·경로 계획·궤적 실행 |
 | MuJoCo / moma-mj-lab | PiPER 시뮬레이션과 공통 로봇·카메라 모델 |
 | AgileX agx_arm_ros | PiPER driver·description·MoveIt 패키지 |
-| RealSense realsense-ros | D405 driver와 장치 내부 TF |
+| RealSense realsense-ros | D405/D435 driver와 장치 내부 TF |
 | SAM 3 | 텍스트 조건 이미지 분할 |
 | GraspGenX | 물체 점군 기반 파지 후보 생성 |
 

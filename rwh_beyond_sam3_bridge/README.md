@@ -12,6 +12,6 @@ ros2 launch rwh_beyond_sam3_bridge bridge.launch.py endpoint:=tcp://127.0.0.1:55
 - 입력: RGB와 text/box/selection point. 출력: depth-safe mask·score·instance_count.
 - mock은 `allow_mock=false`가 기본이며 자동 fallback은 없습니다.
 - `action_server.py`: ROS 서버. `segmentation_client.py`: SAM ZMQ 요청. `action_client.py`: ROS client.
-- 설정은 `config/bridge.yaml`. MoveIt·coordinator·GraspGenX 없이 실행 가능합니다.
+- 설정은 `config/bridge.yaml`. MoveIt·BT·GraspGenX 없이 실행 가능합니다.
 
 [전체 패키지/API 안내](../docs/model-bridges.md)

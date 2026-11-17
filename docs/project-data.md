@@ -40,8 +40,9 @@ base_T_tcp = base_T_camera × camera_T_model_grasp × model_T_tcp
 
 SAM 경로는 객체 점군과 주변 Depth에서 물체 AABB와 수평 지지면을 추정합니다.
 대상 물체의 박스만 Planning Scene에 추가하고 대상 영역을 계획용 점군에서 제외합니다.
-넓은 가상 테이블 충돌 판은 생성하지 않으며, 주변 작업대·장애물은 Depth 기반 Octomap으로 표현합니다.
-이전 버전의 `observed_support_table` 객체는 home·관측 이동 또는 후보 선택 시 제거합니다.
+주변 작업대·장애물의 지도 기반 충돌 검사에는 Depth 기반 Octomap을 사용합니다.
+현재 공통 YAML의 `octomap_enabled=false`에서는 이 지도 갱신·대기를 생략하므로
+주변 작업대·장애물에 대한 Octomap 충돌 검사는 적용되지 않습니다. 대상 박스와 로봇 자체 충돌 검사는 유지합니다.
 추정 지지면 높이는 대상 영역 제외와 `grasp_table_clearance_m` 필터 계산에 계속 사용합니다.
 현재는 수평 지지면을 가진 tabletop 장면을 전제로 합니다.
 

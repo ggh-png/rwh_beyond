@@ -32,7 +32,8 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 | `unique` | 대상을 하나로 정할 수 없으면 실패 |
 | `highest_score` | 명시적으로 선택한 경우 최고 점수 인스턴스 사용 |
 
-공통 기본값은 `unique`입니다. 박스와 selection point로 대상을 좁힐 수도 있습니다.
+공통 실행 YAML은 `highest_score`입니다. 독립 API의 빈 선택 정책은 `unique`로 처리합니다.
+박스와 selection point로 대상을 좁힐 수도 있습니다.
 `/run_demo`는 현재 요청별 text를 제공하며 박스·point·policy는 bt_perception 설정을 사용합니다.
 모델 실패 시 색상 마스크나 mock 결과로 자동 전환하지 않습니다.
 

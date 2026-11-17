@@ -10,13 +10,15 @@ PiPER 물체 인식·파지·리프트 프로젝트입니다.
 
 **[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** · [문서 소스](docs/index.md)
 
+[데모 영상 보기](https://www.youtube.com/watch?v=bAOhPEUKsSQ)
+
 ## 시작하기
 
 1. [환경과 빌드](docs/project-containers.md) · [외부 GPU 추론 서버 운영](docs/inference-server-operation.md)
 2. [실행 가이드](docs/grasp-pipeline-guide.md)
 3. [Runner 장치 설정](docs/runner-device-settings.md) · [공통 BT와 설정](docs/real-bt.md)
-4. [Action 인터페이스](docs/bt-operation.md)
-5. [코드 안내](docs/project-code-map.md)
+4. [문제 해결](docs/troubleshooting.md) · [Action 인터페이스](docs/bt-operation.md)
+5. [코드 안내](docs/project-code-map.md) · [테스트와 개발](docs/development.md)
 
 ROS workspace는 `/root/ros2_ws`, 의존 저장소는 `moma-mj-lab.repos`에서 관리합니다.
 기반 ROS·GPU·장치 환경을 준비한 뒤 빌드합니다.
@@ -57,12 +59,14 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 
 기본 순서는 home → 열기 → 관측 → 분할·점군·파지 추론·경로 선택 → 접근 →
 닫기·계획용 부착 → 리프트 → 관측 복귀 → home입니다.
-BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 관측 자세는 `demo.xml`에서 조정합니다.
+기본 트리의 다음 pick은 남은 대상을 현재 위치에서 개방·해제합니다. 지정 위치에 놓으려면 먼저 `mode: 2`를 요청합니다.
+
+BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 관측 자세는 기본 `demo_width.xml`의 두 `MoveObservation`에서 조정합니다.
 
 ## 현재 동작 범위
 
-실제 잡힘 여부는 판정하지 않으며 실물 닫기는 4초 명령 완료를 기준으로 합니다.
-mode 2는 계획용 부착 물체의 배치·해제를 제공합니다. Navigation은 포함하지 않습니다. 외부 Navigation 연동에는 RunDemo Action을 제공합니다.
+실제 잡힘 여부는 판정하지 않으며 실물 닫기는 현재 2초 명령 완료를 기준으로 합니다.
+mode 2는 계획용 부착 물체의 배치·해제를 제공합니다. `/run_demo`는 Navigation을 실행하지 않으며 외부 이동 제어에서 별도로 호출할 수 있습니다.
 카메라 장착 TF는 명목값이며 hand-eye 실측 보정이 필요합니다.
 Action 성공은 시퀀스 완료를 뜻하며 일반 물체의 파지 성공률을 보장하지 않습니다.
 

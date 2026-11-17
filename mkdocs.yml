@@ -18,47 +18,56 @@ theme:
     logo: material/robot-industrial
     repo: fontawesome/brands/github
   features:
+    - navigation.tabs
+    - navigation.sections
     - navigation.tracking
+    - toc.follow
     - navigation.top
     - navigation.footer
     - search.suggest
     - search.highlight
     - content.code.copy
 nav:
-  - 문서 시작: index.md
-  - 시작하기:
+  - 홈: index.md
+  - 처음 사용하기:
       - 시스템 구성: project-overview.md
       - 환경과 빌드: project-containers.md
-      - 실행 가이드: grasp-pipeline-guide.md
-      - 심·실물 공통 BT와 설정: real-bt.md
-      - Manipulation Action 인터페이스: bt-operation.md
-  - 센서와 실행 환경:
+      - GPU 추론 서버 준비: inference-server-operation.md
+      - 빠른 시작: grasp-pipeline-guide.md
+      - 실물 PiPER 준비: piper-hardware-moveit.md
+  - 설정과 운영:
+      - BT와 공통 설정: real-bt.md
       - Runner 장치 설정: runner-device-settings.md
-      - 외부 GPU 추론 서버 운영: inference-server-operation.md
-      - 런타임·CAN·모델 연결: piper-runtime.md
-      - 실물 PiPER 제어: piper-hardware-moveit.md
-      - D405 센서·장착 TF: d405-sensors.md
-      - D405 runner 장착 설정: d405-runner-mount.md
-      - D435 단독 점검: d435-standalone.md
-      - D435 BT 연결·장착 설정: d435-bt-demo.md
+      - CAN·SSH·모델 연결: piper-runtime.md
+      - 카메라:
+          - D405 센서와 TF: d405-sensors.md
+          - D405 장착 설정: d405-runner-mount.md
+          - D435 단독 점검: d435-standalone.md
+          - D435 BT 연결·장착 설정: d435-bt-demo.md
+      - 파지와 모션:
+          - 점군 추정 폭으로 닫기: width-aware-bt.md
+          - 손목 회전·MoveIt 계획: grasp-motion-tuning.md
+          - 최종 TCP 높이 필터: grasp-height-filter.md
+          - 속도·실행 시간 제한: moveit-speed-settings.md
+  - 문제 해결:
+      - 증상별 확인 순서: troubleshooting.md
+      - 파지 후보 탈락·오류: grasp-troubleshooting.md
       - RViz 디버깅: grasp-visualization.md
-  - 파지와 모션 튜닝:
-      - 손목 회전·MoveIt 계획: grasp-motion-tuning.md
-      - 추정 폭으로 닫기: width-aware-bt.md
-      - 높이 필터: grasp-height-filter.md
-      - 속도·실행 시간 제한: moveit-speed-settings.md
-      - 후보 탈락·오류 진단: grasp-troubleshooting.md
-  - 구현과 데이터:
+  - 시스템 이해와 개발:
+      - 집기·배치 BT 흐름: bt-flows.md
+      - BT와 실행 구조: bt-architecture.md
       - 데이터와 좌표계: project-data.md
-      - 모델별 ROS 인터페이스: model-bridges.md
       - SAM 3 객체 분할: sam3-perception.md
       - GraspGenX 파지 후보: graspgenx-model.md
-      - BT와 실행 구조: bt-architecture.md
-      - 집기·배치 BT 흐름: bt-flows.md
-      - 플러그인별 기능·포트: bt-grasp-stages.md
       - 코드를 따라 읽기: project-code-map.md
-  - 문서 관리: documentation.md
-  - 구성 요소와 출처: upstream.md
+      - 테스트와 개발: development.md
+  - 인터페이스 참조:
+      - RunDemo Action: bt-operation.md
+      - 모델별 ROS 인터페이스: model-bridges.md
+      - BT 노드 기능·포트: bt-grasp-stages.md
+  - 프로젝트 안내:
+      - 문서 관리: documentation.md
+      - 구성 요소와 출처: upstream.md
 markdown_extensions:
   - attr_list
   - md_in_html
@@ -82,3 +91,8 @@ plugins:
       lang: [en]
 extra_css:
   - assets/stylesheets/docs.css
+validation:
+  nav:
+    omitted_files: warn
+  links:
+    anchors: warn

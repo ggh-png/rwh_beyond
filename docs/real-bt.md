@@ -38,7 +38,8 @@ GraspGenX → 후보 선택 → pregrasp → 접근 → 닫기·계획용 부착
 - 부분 경로·충돌·계획 실패는 실행하지 않습니다.
 - XML 값은 YAML의 관측 기본값보다 우선합니다. 각 입력은 독립적이며 생략한 X·Y는 0, Z·기울임은 YAML을 사용합니다.
 
-XML만 수정하면 재빌드는 필요 없으며, BT를 비활성화·재활성화해 다시 읽습니다.
+XML만 수정하면 재빌드는 필요 없으며, 저장 후 다음 요청에서 변경 내용을 다시 읽습니다.
+실행 중인 트리는 바뀌지 않습니다. [XML 로드 규칙](bt-operation.md#groot-xml-filter)
 home은 `home_joint_positions`에 정의한 6개 관절 목표입니다. 이미 home 허용 오차 안이면 이동을 생략합니다.
 
 ## 공통 YAML
@@ -102,7 +103,7 @@ ROS 공통 파라미터가 BT navigator에 설정값을 전달합니다. 실물 
 `true`로 복구할 때 runner의 `piper.octomap`도 `true`여야 합니다.
 이 스위치는 시뮬레이터의 MoveIt 지도 updater를 제어하지 않습니다.
 
-## 새 튜닝 항목
+## 파지 튜닝 안내
 
 - [손목 회전·MoveIt 계획](grasp-motion-tuning.md): 방향 우선 선택, joint4·joint6 경로 제약, OMPL 설정
 - [추정 폭으로 닫기](width-aware-bt.md): 닫기 보정량과 가변 폭 동작

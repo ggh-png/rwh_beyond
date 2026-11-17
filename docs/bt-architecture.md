@@ -1,7 +1,7 @@
 # BT와 실행 구조
 
 `DemoNavigator`가 `/run_demo`를 제공하고 **BT가 작업 순서·관측 데이터·목표·경로를 소유**합니다.
-coordinator 프로세스와 단계별 중계 액션은 없습니다. BT 플러그인이 모델 브릿지·MoveIt·그리퍼를 직접 호출합니다.
+BT 플러그인이 모델 브릿지·MoveIt·그리퍼를 직접 호출합니다.
 
 [집기·배치 흐름](bt-flows.md) → [16개 플러그인 기능·포트](bt-grasp-stages.md) →
 [데이터와 좌표계](project-data.md) 순서로 읽으면 실행과 구현을 연결할 수 있습니다.
@@ -84,7 +84,6 @@ rwh_beyond_bt/
 
 인식 노드 4종의 선언은 `include/rwh_beyond_bt/plugins/action/perception_actions.hpp`에
 함께 있으며, `ClearOctomap`은 별도 헤더·소스를 사용합니다.
-기존 `rwh_beyond_bt/perception_actions.hpp`는 호환 include입니다.
 전체 포트와 기능은 [플러그인별 기능·포트](bt-grasp-stages.md)를 참고하세요.
 
 ```mermaid
@@ -98,9 +97,8 @@ flowchart LR
   O --> Shared
 ```
 
-모션 노드가 파일과 클래스로 분리되어도 `rwh_beyond_motion_bt_nodes` **하나의 공유
-라이브러리**로 빌드됩니다. 기존 `rwh_beyond_bt_nodes` 로더, XML 노드 이름·포트와
-Groot 모델은 유지합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
+모션 노드는 `rwh_beyond_motion_bt_nodes` **하나의 공유 라이브러리**로 빌드합니다.
+공통 YAML은 `rwh_beyond_bt_nodes` 로더로 16개 노드를 등록합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
 같은 노드를 전체 로더와 개별 라이브러리로 중복 등록하지 않습니다.
 
 ## 모션 공통 실행과 Blackboard { #motion-execution }
@@ -229,17 +227,11 @@ stateDiagram-v2
 공통 파일은 `rwh_beyond_bringup/config/bt_demo.yaml`입니다.
 XML에서 명시한 값이 해당 노드 호출에 우선하며, 생략한 값은 YAML 또는 코드 기본값을 사용합니다.
 
-## 검증 범위 { #bt-validation }
+## 테스트와 검증 { #bt-validation }
 
-coordinator 제거와 직접 호출 구조의 기준 커밋은 `15d07eb`입니다.
-2026-11-17 사용자 확인으로 실행 검증 완료를 기록했습니다.
+BT 모의 서버는 촬영·모델 결과·IK·Cartesian·OMPL·궤적 실행과
+부착·배치·해제의 상태 전이를 검사합니다. Navigator 통합 검사는 요청별 대상,
+오류 전달·초기화·취소·Groot 연결을 다룹니다.
+테스트 위치와 실행 명령은 [테스트와 개발](development.md)에 정리했습니다.
 
-| 검증 계층 | 확인 내용 |
-|---|---|
-| BT 모의 서버 | 촬영·모델 브릿지·로컬 점군, 직접 IK/Cartesian/OMPL·실행·닫기·부착·리프트·배치·해제 |
-| 거부·취소 검사 | 부분 경로·목표 불일치·촬영 후 관절 이동·잘못된 단계·잘못된 inset·전송 준비·액션 취소 |
-| Navigator 통합 | 실제 navigator와 모의 controller의 오류·성공 초기화·요청별 대상·Groot |
-| Python·launch | 장치 전송·점군 필터·모델 브릿지·실물 launch·공통 설정 |
-| 사용자 실행 검증 | 변경된 BT 중심 구조의 실행 검증 완료 확인 |
-
-실행 성공은 시퀀스 완료를 의미합니다. 실제 물체 잡힘을 센서로 판정하는 별도 기능은 현재 포함하지 않습니다.
+모의 검사 통과는 실제 물체 파지나 실물 장착 보정의 검증을 뜻하지 않습니다.

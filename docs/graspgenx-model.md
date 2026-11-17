@@ -21,9 +21,9 @@ BT 공통 YAML `rwh_beyond_bringup/config/bt_demo.yaml`에서 조정합니다.
 | 설정 | 현재 값 | 의미 |
 |---|---|---|
 | `num_grasps` | 1000 | 생성 요청 수 |
-| `top_k` | 300 | 반환 후보 수 요청 |
-| `max_candidates` | 300 | ROS 선택기 검사 상한 |
-| `debug_max_candidates` | 10 | RViz 표시 상한 |
+| `top_k` | 500 | 반환 후보 수 요청 |
+| `max_candidates` | 1000 | ROS 선택기 검사 상한 |
+| `debug_max_candidates` | 10(코드 기본값) | RViz 표시 상한 |
 
 서버 설정에서 `fast_inference=false`이면 PyTorch 경로를 사용합니다.
 GPU·가중치·서버 실행 환경은 별도로 준비하며 모델 주소는 bridge endpoint에서 지정합니다.

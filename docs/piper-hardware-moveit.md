@@ -1,6 +1,6 @@
 # 실물 PiPER 제어
 
-실물 runner `piper_moveit`은 공식 CAN driver, robot_state_publisher, MoveIt, D405,
+실물 runner `piper_moveit`은 공식 CAN driver, robot_state_publisher, MoveIt, 선택한 D405/D435,
 계획용 점군 필터와 선택한 실행 transport를 시작합니다.
 `bt_demo` runner는 이를 의존 실행하고 BT와 모델 브릿지를 추가합니다.
 
@@ -52,7 +52,7 @@ FollowJointTrajectory를 받아 실제 joint feedback을 확인하며 명령을 
 직접 `piper_moveit.launch.py`를 호출할 때는 기본값이 `official`이므로
 실물 BT용이면 `execution_transport:=feedback`을 명시합니다.
 
-열기와 팔 이동은 실제 endpoint 확인을 사용합니다. 닫기는 설정한 폭을 4초간 명령한 뒤
+열기와 팔 이동은 실제 endpoint 확인을 사용합니다. 닫기는 설정한 폭을 현재 YAML의 2초 동안 명령한 뒤
 완료하며 물체 잡힘은 판정하지 않습니다. 취소와 피드백 통신 오류는 별도로 처리합니다.
 
 ## 시작 상태 허용 각도
@@ -75,5 +75,5 @@ URDF 한계를 이 범위 안에서 벗어난 관절만 계획용 복사본에�
 MoveIt 시작점 검사와 physical transport도 같은 허용량을 사용합니다.
 transport는 실측 상태에서 계획 시작점까지 연결 구간을 만들어 명령 점프를 줄입니다.
 
-계획 오류와 실행 오류를 구분해 확인합니다. 부분 Cartesian 경로는 실행하지 않습니다.
+계획 오류와 실행 오류를 구분해 확인합니다. 부분 Cartesian 경로는 그대로 실행하지 않습니다. 배치 이동만 같은 목표의 IK·OMPL 우회를 시도합니다.
 팔·카메라의 충돌과 실제 장착 TF는 [카메라 문서](d405-sensors.md)를 참고하세요.

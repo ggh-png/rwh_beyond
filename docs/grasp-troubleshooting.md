@@ -10,7 +10,8 @@ MoveIt이 반환한 후보별 오류가 있으면 원본 코드가 보고될 수
 
 현재 폭 추정기는 서로 다른 입력 오류를 모두 `invalid_observed_width`로 집계합니다.
 1000처럼 큰 숫자는 대칭 자세를 포함한 검사 탈락 횟수이며 서버 연결 실패 횟수가 아닙니다.
-폭 검사가 다른 필터보다 먼저 수행되므로 이 검사에서 모두 탈락하면 MoveIt 계획은 요청하지 않습니다.
+후보별 방향·대상 경계·높이·지지면 검사 후 폭을 검사합니다.
+폭 검사에서 탈락한 후보는 IK·경로 계획으로 진행하지 않습니다.
 
 먼저 `bt_navigator.ros__parameters.bt_motion.grasp_width_closing_inset`을 확인합니다.
 
@@ -44,13 +45,16 @@ bt_navigator:
 | `not_top_down` | 수직 하향 접근 각도 조건 불만족 | `grasp_top_down_max_angle_deg` |
 | `table_clearance` | 최종 TCP가 추정 지지면에 너무 가까움 | 지지면 추정, `grasp_table_clearance_m` |
 | `off_target` | 접촉점이 허용 물체 경계 밖 | 분할·TF, `grasp_target_margin_m` |
-| `grasp_height_above_object` | 물체 상단 대비 TCP 높이 범위 불만족 | 높이 필터와 최소·최대값 |
+| `height` | 물체 상단 대비 TCP 높이 범위 불만족 | 높이 필터와 최소·최대값 |
 | `pre_ik` | 사전 접근 자세의 충돌 없는 IK 실패 | 도달 범위·카메라 TF·로봇 모델 |
-| `wrist_goal_rotation` | IK 목표가 손목 허용 편차 밖 | 손목 회전 제한 |
-| `wrist_approach_rotation`, `wrist_lift_rotation` | 접근·리프트가 손목 허용 편차 밖 | 손목 회전 제한·파지 방향 |
-| `pre_plan` | MoveIt 사전 접근 계획 실패 | 플래너·계획 시간·충돌·제약 |
-| `wrist_path_rotation` | 반환 경로가 손목 제한을 벗어남 | MoveIt 경로·손목 제약 |
-| `pre_plan_goal_mismatch` | 성공 반환 경로 끝이 요청한 IK 목표와 다름 | 목표·경로 제약 충돌 여부 |
+| `wrist_goal` | IK 목표가 손목 허용 편차 밖 | joint4·joint6 제한 |
+| `approach_path` | 접근 Cartesian 오류·부분 경로·궤적/손목 검사 실패 | 원본 MoveIt 오류·fraction·충돌 |
+| `lift_path` | 리프트 Cartesian 오류·부분 경로·궤적/손목 검사 실패 | 원본 MoveIt 오류·fraction·충돌 |
+| `pre_plan` | 반환된 사전 접근 궤적의 유효성·손목 검사 실패 | 경로 제약·관절값·궤적 |
+
+후보별 MoveIt 계획 응답 오류와 최종 IK 목표 불일치도 `pre_plan`에 포함됩니다.
+모든 후보가 탈락하면 저장된 원본 MoveIt 오류가 보고될 수 있습니다.
+서비스 전송 예외는 후보 집계와 별도로 선택 작업 자체를 실패시킬 수 있습니다.
 
 높이 필터를 켠 상태에서 최소·최대값을 모두 0으로 두면 필터가 꺼지는 것이 아니라
 물체 상단과 같은 TCP 높이만 허용합니다. 해제는 `grasp_height_filter_enabled: false`입니다.
@@ -58,7 +62,7 @@ bt_navigator:
 
 ## 이동 중 시간 초과
 
-`move_pregrasp`에서 MoveIt `TIMED_OUT (-6)`가 나오면 후보 선택 이후 실행 단계의 문제입니다.
+`MoveToPregrasp`에서 MoveIt `TIMED_OUT (-6)`가 나오면 후보 선택 이후 실행 단계의 문제입니다.
 실제 driver 속도, 목표·피드백 관절 오차와 실행 완료 판정을 확인합니다.
 `move_group.trajectory_execution`은 실행 감시 시간이고 손목 회전 선호도가 아닙니다.
 [속도·시간 제한](moveit-speed-settings.md), [손목 회전 튜닝](grasp-motion-tuning.md)을 참고하세요.
