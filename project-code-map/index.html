@@ -1183,24 +1183,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    코드를 따라 읽기
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1217,58 +1199,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="목차">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      목차
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        패키지
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        주요 실행 파일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#coordinator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Coordinator 모듈
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1356,47 +1286,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      목차
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        패키지
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        주요 실행 파일
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#coordinator" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Coordinator 모듈
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1416,124 +1305,67 @@
 
 
 <h1 id="_1">코드를 따라 읽기<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<h2 id="_2">패키지<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
-<th>패키지</th>
+<th>위치</th>
 <th>책임</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>rwh_beyond_bringup</code></td>
-<td>launch, 공통 BT YAML, D405, 실물 MoveIt 구성</td>
+<td>rwh_beyond_bringup/launch/bt_demo.launch.py</td>
+<td>센서·브릿지·navigator·RViz 실행</td>
 </tr>
 <tr>
-<td><code>rwh_beyond_msgs</code></td>
-<td>RunDemo·RunGraspStage·RunGraspStep·SegmentImage·InferGrasps</td>
+<td>rwh_beyond_bringup/config/bt_demo.yaml</td>
+<td>bt_perception·bt_motion·MoveIt 공통 설정</td>
 </tr>
 <tr>
-<td><code>rwh_beyond_navigator</code></td>
-<td><code>/run_demo</code>, 대상 텍스트 전달, 결과·취소 진단</td>
+<td>rwh_beyond_navigator/src/demo_navigator.cpp</td>
+<td>RunDemo·오류·취소·Blackboard 정리</td>
 </tr>
 <tr>
-<td><code>rwh_beyond_bt</code></td>
-<td>BT 플러그인, 공통 <code>demo.xml</code></td>
+<td>rwh_beyond_bt/behavior_trees</td>
+<td>집기 2종·배치 XML</td>
 </tr>
 <tr>
-<td><code>rwh_beyond_grasp_pipeline</code></td>
-<td>관측·점군·추론 요청·후보 선택·경로 실행</td>
+<td>rwh_beyond_bt/plugins/action/perception_actions.cpp</td>
+<td>촬영·SAM·점군·모델 직접 호출</td>
 </tr>
 <tr>
-<td><code>rwh_beyond_sam3_bridge</code></td>
-<td><code>/segment_image</code>와 SAM 서버 연결</td>
+<td>rwh_beyond_bt/plugins/action/motion_actions.cpp</td>
+<td>각 모션 BT 단계의 입력·실행·출력·취소</td>
 </tr>
 <tr>
-<td><code>rwh_beyond_graspgenx_bridge</code></td>
-<td><code>/infer_grasps</code>와 GraspGenX 서버 연결</td>
+<td>rwh_beyond_bt/src/motion_context.cpp</td>
+<td>TCP·폭·형상·후보 선택, MoveIt/그리퍼 클라이언트·장면·피드백</td>
 </tr>
 <tr>
-<td><code>rwh_beyond_model_utils</code></td>
-<td>RGB·Depth·점군·pose·ZMQ 공통 변환</td>
+<td>rwh_beyond_grasp_pipeline</td>
+<td>모델 브릿지 launch, target_cloud_filter, physical_trajectory, feedback</td>
+</tr>
+<tr>
+<td>rwh_beyond_sam3_bridge</td>
+<td>SegmentImage·SAM health</td>
+</tr>
+<tr>
+<td>rwh_beyond_graspgenx_bridge</td>
+<td>InferGrasps·모델 health</td>
+</tr>
+<tr>
+<td>rwh_beyond_model_utils</td>
+<td>영상·점군·모델 프로토콜 변환</td>
+</tr>
+<tr>
+<td>rwh_beyond_msgs</td>
+<td>RunDemo·SegmentImage·InferGrasps·SetGraspRegion</td>
 </tr>
 </tbody>
 </table>
-<h2 id="_3">주요 실행 파일<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<ol>
-<li><code>rwh_beyond_bringup/launch/bt_demo.launch.py</code>: mode·시계·공통 YAML·기본 XML 선택.</li>
-<li><code>rwh_beyond_grasp_pipeline/launch/grasp_pipeline.launch.py</code>: 두 bridge와 mode별 coordinator 생성.</li>
-<li><code>rwh_beyond_navigator/src/demo_navigator.cpp</code>: Action goal을 BT 실행으로 연결.</li>
-<li><code>rwh_beyond_bt/behavior_trees/demo.xml</code>: 실제 공통 시나리오.</li>
-<li><code>rwh_beyond_bt/plugins/action/</code>: 역할별 ROS Action 클라이언트 플러그인.</li>
-</ol>
-<h2 id="coordinator">Coordinator 모듈<a class="headerlink" href="#coordinator" title="Permanent link">&para;</a></h2>
-<p>아래 파일은 <code>rwh_beyond_grasp_pipeline/rwh_beyond_grasp_pipeline/</code>에 있습니다.</p>
-<table>
-<thead>
-<tr>
-<th>파일</th>
-<th>책임</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>grasp_coordinator.py</code></td>
-<td>ROS 연결·단계 dispatch·관측/계획 수명·취소·정리, 심 backend</td>
-</tr>
-<tr>
-<td><code>hardware_coordinator.py</code></td>
-<td>실물 준비·피드백·계획 시작 상태 보정</td>
-</tr>
-<tr>
-<td><code>perception_stages.py</code></td>
-<td>요청별 텍스트·RGB-D·촬영 TF·분할·점군</td>
-</tr>
-<tr>
-<td><code>inference_stages.py</code></td>
-<td><code>/infer_grasps</code>에 객체 점군 전달</td>
-</tr>
-<tr>
-<td><code>selection_stages.py</code></td>
-<td>장면·TCP 보정·IK·충돌·경로 검사·후보 선택</td>
-</tr>
-<tr>
-<td><code>motion_stages.py</code></td>
-<td>MoveIt IK·Cartesian·ExecuteTrajectory</td>
-</tr>
-<tr>
-<td><code>scenario_motion.py</code></td>
-<td>공통 home·관측·계획용 attachment·리프트</td>
-</tr>
-<tr>
-<td><code>gripper_motion.py</code></td>
-<td>공통 그리퍼 trajectory Action·완료·취소</td>
-</tr>
-<tr>
-<td><code>physical_trajectory.py</code></td>
-<td>실물 명령 전달·시작 연결·시간 기반 닫기</td>
-</tr>
-<tr>
-<td><code>planning_state.py</code></td>
-<td>URDF 관절 한계·계획용 상태 복사본 보정</td>
-</tr>
-<tr>
-<td><code>observed_geometry.py</code></td>
-<td>관측 점군과 수평 지지면에서 충돌 형상 추정</td>
-</tr>
-<tr>
-<td><code>target_cloud_filter.py</code></td>
-<td>대상 영역을 계획용 점군에서 제외</td>
-</tr>
-<tr>
-<td><code>visualization.py</code></td>
-<td>마스크·점군·후보·선택 TCP 디버그 출력</td>
-</tr>
-</tbody>
-</table>
-<p>카메라 모델과 MoveIt robot description은 <code>moma-mj-lab</code>이 관리합니다.
-PiPER driver는 <code>agx_arm_ros</code>, runner 설정은 <code>ros_runner/config/runners.yaml</code>에 있습니다.</p>
-<p><a href="../bt-architecture/">BT 구조</a> · <a href="../project-data/">데이터 형식</a></p>
+<p>coordinator와 전용 Python 모션 모듈·호환 alias·중계 액션은 제거했습니다.
+물리 전송과 점군 필터는 장치·센서 기능이므로 별도 노드로 유지합니다.</p>
+<p><a href="../bt-architecture/">구조</a> · <a href="../project-data/">데이터</a></p>
 
 
 

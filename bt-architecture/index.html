@@ -1127,24 +1127,6 @@
         
       
       
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    BT와 실행 구조
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1161,69 +1143,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="목차">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      목차
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#groot" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Groot에서 보는 시나리오 그룹
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        역할 분리
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        데이터와 상태
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#backend" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        공통 backend 경계
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
       
     </li>
   
@@ -1367,58 +1286,6 @@
     
   
   
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      목차
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#groot" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Groot에서 보는 시나리오 그룹
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        역할 분리
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        데이터와 상태
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#backend" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        공통 backend 경계
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
 </nav>
                   </div>
                 </div>
@@ -1438,94 +1305,60 @@
 
 
 <h1 id="bt">BT와 실행 구조<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
-<p><code>DemoNavigator</code>가 <code>/run_demo</code>를 제공하고, <code>demo.xml</code>이 작업 순서를 결정합니다.
-각 BT Action 플러그인은 coordinator의 단계별 ROS Action을 호출합니다.
-coordinator는 관측·계획·장면 상태를 보관하고 모델 추론과 MoveIt을 연결합니다.</p>
-<h2 id="groot">Groot에서 보는 시나리오 그룹<a class="headerlink" href="#groot" title="Permanent link">&para;</a></h2>
-<p>최상위 <code>PickSequence</code> 아래의 네 Sequence가 순서대로 실행됩니다.
-같은 Blackboard를 공유하며, 한 단계가 실패하면 이후 그룹은 실행하지 않습니다.</p>
+<p><code>DemoNavigator</code>가 <code>/run_demo</code>를 제공하고 BT가 데이터와 작업 흐름을 소유합니다.
+별도 coordinator 프로세스와 단계 중계 액션은 없습니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>BT: RGB-D → SAM → 물체 점군 → 파지 추론 → TCP 변환·후보 선택
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    → 사전 접근 → 직선 접근 → 닫기·부착 → 리프트 → 복귀
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                   ↓ 직접 호출
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>MoveIt: IK / FK / 경로·충돌 검사 / Planning Scene / ExecuteTrajectory
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Controller: FollowJointTrajectory
+</code></pre></div>
 <table>
 <thead>
 <tr>
-<th>Sequence 이름</th>
+<th>구성</th>
 <th>역할</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>PrepareAndObserve</code></td>
-<td>준비 확인 → 지도 초기화 → home → 그리퍼 열기 → 관측 이동 → 지도 갱신</td>
-</tr>
-<tr>
-<td><code>PerceiveAndPlan</code></td>
-<td>물체 분할 → 점군 생성 → 파지 추론 → 실행 가능한 파지 선택</td>
-</tr>
-<tr>
-<td><code>GraspAndLift</code></td>
-<td>사전 접근 → 접근 → 그리퍼 닫기·부착 → 리프트</td>
-</tr>
-<tr>
-<td><code>ReturnHome</code></td>
-<td>관측 자세 복귀 → home 복귀</td>
-</tr>
-</tbody>
-</table>
-<h2 id="_1">역할 분리<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>계층</th>
-<th>책임</th>
-</tr>
-</thead>
-<tbody>
-<tr>
 <td>Navigator</td>
-<td>트리 로딩, 요청별 target_text, feedback/result, 취소</td>
+<td>트리 로딩, 요청별 대상, 결과·오류·취소</td>
 </tr>
 <tr>
 <td>BT XML</td>
-<td>단계 순서, 관측 상승량·각도</td>
+<td>단계 순서, 관측·접근·리프트 설정</td>
 </tr>
 <tr>
-<td>BT 플러그인</td>
-<td>RGB-D 획득, 점군 생성, 브릿지 직접 호출, 포트 데이터, 오류 전달</td>
+<td>BT 인식 노드</td>
+<td>촬영·SAM 호출·점군 생성·파지 브릿지 호출</td>
 </tr>
 <tr>
-<td>모션 backend</td>
-<td>전달받은 관측 검증, 후보 선택·MoveIt 계획, 충돌 장면·부착·실물 실행</td>
+<td>BT 모션 노드</td>
+<td>TCP 변환·후보 선택·폭·목표 생성, MoveIt/그리퍼 직접 호출</td>
 </tr>
 <tr>
-<td>모델 bridge</td>
-<td>ROS 메시지 검증, ZMQ 요청·응답 변환</td>
+<td>BT 공통 MotionContext</td>
+<td>클라이언트·TF·피드백·충돌 장면 자원 공유; 별도 ROS 서버 없음</td>
+</tr>
+<tr>
+<td>모델 브릿지</td>
+<td>모델 프로토콜·ROS 메시지 변환</td>
 </tr>
 <tr>
 <td>MoveIt/controller</td>
-<td>경로 계획·충돌 검사·궤적 실행</td>
+<td>계획·충돌 검사·실행</td>
 </tr>
 </tbody>
 </table>
-<p>home·열기·관측은 <code>MoveHome</code>, <code>OpenGripper</code>, <code>MoveObservation</code>이 각각
-<code>/grasp/move_home</code>, <code>/grasp/open_gripper</code>, <code>/grasp/move_observation</code> Action을 호출합니다.
-세 플러그인은 Nav2 <code>BtActionNode</code>를 상속하며 입력 변환·결과·취소 처리를 담당합니다.
-실제 동작은 coordinator에서 심·실물 공통 구현을 사용합니다.
-분할은 <code>/segment_image</code>, 추론은 <code>/infer_grasps</code> 브릿지에 BT가 직접 요청합니다.
-<code>CaptureRgbd</code>와 <code>BuildObjectCloud</code>는 BT 내부에서 수행합니다.
-모션 선택·접근·부착·리프트만 <code>/grasp/*</code> endpoint를 사용합니다.
-닫기는 <code>AttachObject</code> 내부에서 수행합니다. 별도의 독립 닫기 플러그인은 제공하지 않습니다.</p>
-<h2 id="_2">데이터와 상태<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p>BT Blackboard는 마스크 Image, PointCloud2, GraspCandidate 배열, 계획 ID와 pregrasp를 전달합니다.
-BT가 하나의 불변 촬영 묶음과 마스크·점군·후보를 포트로 연결합니다.
-모션 backend는 frame·stamp·관측 나이·촬영 후 관절 이동 여부를 검사합니다.</p>
-<p>계획 단계 순서는 <code>selected → pregrasp → approached → attached → lifted</code>입니다.
-계획 ID 불일치·단계 생략·중복 실행은 거부합니다.</p>
-<h2 id="backend">공통 backend 경계<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h2>
-<p>심·실물은 XML과 시나리오 이동 구현을 공유합니다. backend 준비 확인·피드백·controller는
-각 환경을 사용합니다. 실물은 MuJoCo 검증 서비스를 호출하지 않습니다.
-통신·충돌·팔 동작 완료 확인과 물체 잡힘 판정은 구분합니다. 현재 물체 잡힘은 판정하지 않습니다.</p>
-<p>실패·취소 시 미부착 계획의 임시 대상 제외와 손가락 충돌 허용 규칙을 정리합니다.
-부착된 대상은 이후 경로의 충돌 검사에 포함하고 자동으로 놓지 않습니다.</p>
-<p><a href="../real-bt/">공통 시나리오</a> · <a href="../bt-grasp-stages/">포트와 Action</a></p>
+<p>Blackboard는 촬영·마스크·점군·후보와 typed GraspPlan을 전달합니다.
+촬영 유효성, 단계 순서, 손목 회전 제한, 경로 목표 도달, 피드백 최신성 검사를 유지합니다.
+동시에 두 BT 분기가 같은 로봇을 명령하는 것은 거부합니다.</p>
+<p>실패·취소 시 실행 액션을 취소하고 미부착 물체·임시 충돌 허용·점군 제외 영역을 정리합니다.
+닫기 중단으로 잡힘 여부가 불명확하거나 이미 부착된 물체는 자동으로 놓지 않습니다.
+심·실물은 같은 XML과 BT 코드를 쓰며 실물은 전송 준비·URDF 시작 한계·실측 도달을 확인합니다.
+물체의 실제 잡힘은 판정하지 않습니다.</p>
+<p><a href="../bt-grasp-stages/">포트와 직접 호출</a> · <a href="../real-bt/">공통 설정</a></p>
 
 
 

@@ -1099,10 +1099,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#id" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        관측·계획 ID
+        관측과 계획
       
     </span>
   </a>
@@ -1407,10 +1407,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#id" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        관측·계획 ID
+        관측과 계획
       
     </span>
   </a>
@@ -1439,7 +1439,7 @@
 
 <h1 id="_1">데이터와 좌표계<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <h2 id="rgb-d">RGB-D와 물체 마스크<a class="headerlink" href="#rgb-d" title="Permanent link">&para;</a></h2>
-<p>coordinator는 같은 timestamp의 RGB·정렬 Depth·CameraInfo를 수집하고 촬영 시각의 TF를 보관합니다.
+<p><code>CaptureRgbd</code> BT 노드는 같은 timestamp의 RGB·정렬 Depth·CameraInfo를 수집하고 촬영 묶음을 Blackboard에 보관합니다. 파지 선택 BT는 촬영 시각의 TF를 조회합니다.
 SAM 3에는 RGB와 물체 설명을 전달합니다. 반환된 한 물체의 binary 마스크를 Depth에 적용합니다.</p>
 <table>
 <thead>
@@ -1472,7 +1472,6 @@ SAM 3에는 RGB와 물체 설명을 전달합니다. 반환된 한 물체의 bin
 </tbody>
 </table>
 <p>마스크 밖과 유효하지 않은 Depth를 제외하고 로컬 CPU에서 역투영합니다.
-마스크 경계를 침식해 배경 깊이가 물체 점군에 섞이는 것을 줄입니다.
 GraspGenX는 RGB나 텍스트가 아닌 <code>float32 [N,3]</code> XYZ 점군을 받습니다.</p>
 <h2 id="tcp">파지 후보와 TCP<a class="headerlink" href="#tcp" title="Permanent link">&para;</a></h2>
 <p>GraspGenX 응답은 파지 변환 행렬·점수이며 bridge가 <code>GraspCandidate[]</code>로 변환합니다.
@@ -1498,11 +1497,11 @@ GraspGenX는 RGB나 텍스트가 아닌 <code>float32 [N,3]</code> XYZ 점군을
 현재는 수평 지지면을 가진 tabletop 장면을 전제로 합니다.</p>
 <p>닫기 후에는 같은 물체를 TCP에 부착된 충돌 객체로 취급합니다.
 이는 물체가 실제로 잡혔다는 측정 결과가 아닙니다.</p>
-<h2 id="id">관측·계획 ID<a class="headerlink" href="#id" title="Permanent link">&para;</a></h2>
+<h2 id="_3">관측과 계획<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p><code>observation_id</code>는 한 번의 촬영과 마스크·점군·후보를 연결합니다.
 촬영 후 30초 초과 또는 관절 0.02 rad 초과 변화는 재관측을 요구합니다.
-<code>plan_id</code>는 coordinator에 보관한 선택 경로와 단계 진행 상태를 참조합니다.</p>
-<p>RViz의 base 점군·마커는 디버그 출력입니다. 다음 BT 단계는 토픽에서 결과를 다시 읽지 않고
+<code>selected_plan</code> 출력은 선택 경로·목표·폭·단계 상태를 담은 typed GraspPlan 포인터입니다. 후속 BT 노드의 plan 입력으로 연결합니다.</p>
+<p>점군과 선택 자세 토픽은 디버그 출력입니다. 다음 BT 단계는 토픽에서 결과를 다시 읽지 않고
 Action 결과와 Blackboard 데이터를 사용합니다.</p>
 <p><a href="../bt-grasp-stages/">단계별 포트</a> · <a href="../d405-sensors/">카메라 TF</a></p>
 

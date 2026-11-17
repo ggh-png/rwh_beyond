@@ -1440,7 +1440,7 @@
 <h1 id="piper">실물 PiPER 제어<a class="headerlink" href="#piper" title="Permanent link">&para;</a></h1>
 <p>실물 runner <code>piper_moveit</code>은 공식 CAN driver, robot_state_publisher, MoveIt, D405,
 계획용 점군 필터와 선택한 실행 transport를 시작합니다.
-<code>bt_demo</code> runner는 이를 의존 실행하고 실물 coordinator와 BT를 추가합니다.</p>
+<code>bt_demo</code> runner는 이를 의존 실행하고 BT와 모델 브릿지를 추가합니다.</p>
 <h2 id="_1">준비<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <p>CAN을 준비하고 <code>ros_runner/config/runners.yaml</code>의 <code>piper</code>·<code>realsense</code> 설정을 확인합니다.
 기본 CAN은 <code>can0</code>, 자동 활성화는 false, 실물 BT transport는 feedback입니다.
@@ -1476,9 +1476,10 @@ FollowJointTrajectory를 받아 실제 joint feedback을 확인하며 명령을 
 완료하며 물체 잡힘은 판정하지 않습니다. 취소와 피드백 통신 오류는 별도로 처리합니다.</p>
 <h2 id="_3">시작 상태 허용 각도<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>시작 허용 각도는 공통 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>에서 관리합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">grasp_coordinator</span><span class="p">:</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nt">bt_navigator</span><span class="p">:</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="nt">ros__parameters</span><span class="p">:</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">planning_start_bounds_tolerance_deg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="nt">bt_motion</span><span class="p">:</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">      </span><span class="nt">planning_start_bounds_tolerance_deg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
 </code></pre></div>
 <p>단위는 도이며 기본값은 10°입니다. 유효 범위는 0 초과~180°이며 내부에서 rad로 변환합니다.
 장치 runner와 BT를 중지·재활성화하면 변경값이 적용됩니다.

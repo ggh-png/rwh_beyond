@@ -1439,7 +1439,7 @@
 
 <h1 id="sam-3">SAM 3 객체 분할<a class="headerlink" href="#sam-3" title="Permanent link">&para;</a></h1>
 <p>SAM 3 서버는 한 RGB 이미지와 텍스트/박스 조건에서 해당 물체의 마스크 후보를 반환합니다.
-ROS bridge가 선택된 한 인스턴스의 마스크를 coordinator에 전달합니다.</p>
+ROS bridge가 선택된 한 인스턴스의 마스크를 BT Blackboard에 전달합니다.</p>
 <h2 id="_1">입력과 출력<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <ul>
 <li>입력: RGB, <code>target_text</code>, 선택적 pixel xyxy box, 인스턴스 선택용 pixel point.</li>
@@ -1477,7 +1477,7 @@ SAM 서버는 로봇 TF·IK·그리퍼 제어를 수행하지 않습니다.</p>
 </tbody>
 </table>
 <p>공통 기본값은 <code>unique</code>입니다. 박스와 selection point로 대상을 좁힐 수도 있습니다.
-<code>/run_demo</code>는 현재 요청별 text를 제공하며 박스·point·policy는 coordinator 설정을 사용합니다.
+<code>/run_demo</code>는 현재 요청별 text를 제공하며 박스·point·policy는 bt_perception 설정을 사용합니다.
 모델 실패 시 색상 마스크나 mock 결과로 자동 전환하지 않습니다.</p>
 <h2 id="_4">서버와 환경<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <p>서버는 공식 image model과 준비한 <code>sam3.pt</code>를 사용합니다. 현재 어댑터는 요청마다 새 이미지 상태를 만듭니다.
