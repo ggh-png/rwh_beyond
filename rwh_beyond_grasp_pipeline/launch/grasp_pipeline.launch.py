@@ -16,7 +16,6 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true'),
         DeclareLaunchArgument('mode', default_value='sim', choices=['sim', 'real']),
-        DeclareLaunchArgument('start_coordinator', default_value='true'),
         DeclareLaunchArgument('params_file', default_value=config(
             'rwh_beyond_grasp_pipeline', 'grasp_pipeline.yaml')),
         DeclareLaunchArgument('sam3_params_file', default_value=config(
@@ -45,15 +44,5 @@ def pipeline_nodes(context):
              name='graspgenx_bridge', namespace='',
              output='screen', parameters=[LaunchConfiguration('graspgenx_params_file'),
                  {**overrides('endpoint', 'endpoint'),
-                  'use_sim_time': ParameterValue(LaunchConfiguration('use_sim_time'), value_type=bool)}]),
-        # Scope launch overrides to this node so common YAML wildcard settings cannot
-        # cause a later wildcard override to lose against node-specific defaults.
-        Node(package='rwh_beyond_grasp_pipeline', name='grasp_coordinator', namespace='', executable=PythonExpression(["'grasp_coordinator' if '", LaunchConfiguration('mode'),
-                 "' == 'sim' else 'hardware_grasp_coordinator'"]),
-             condition=IfCondition(LaunchConfiguration('start_coordinator')),
-             output='screen', parameters=[LaunchConfiguration('params_file'),
-                 {'simulation_only': ParameterValue(PythonExpression(["'", LaunchConfiguration('mode'), "' == 'sim'"]), value_type=bool),
-                  **overrides('segmentation_backend', 'segmentation_backend'),
-                  **overrides('target_text', 'target_text'),
                   'use_sim_time': ParameterValue(LaunchConfiguration('use_sim_time'), value_type=bool)}]),
     ]

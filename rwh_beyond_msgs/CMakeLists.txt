@@ -10,8 +10,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/GraspCandidate.msg"
   "action/SegmentImage.action"
   "action/InferGrasps.action"
-  "action/RunGraspStep.action"
-  "action/RunGraspStage.action"
   "action/RunDemo.action"
   "srv/GetStatus.srv"
   DEPENDENCIES geometry_msgs sensor_msgs)

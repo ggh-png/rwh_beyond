@@ -11,7 +11,6 @@ setup(name='rwh_beyond_grasp_bridge', version='1.0.0',
  maintainer='Woosung Yoon', maintainer_email='71277820+ggh-png@users.noreply.github.com',
  description='Compatibility entrypoints for split model bridges and grasp pipeline', license='Apache-2.0',
  entry_points={'console_scripts': [
- 'grasp_coordinator = rwh_beyond_grasp_bridge.grasp_coordinator:main',
  'mock_zmq_server = rwh_beyond_grasp_bridge.mock_zmq_server:main',
  'infer_rgbd = rwh_beyond_grasp_bridge.infer_rgbd:main',
  'infer_depth = rwh_beyond_grasp_bridge.infer_depth:main',

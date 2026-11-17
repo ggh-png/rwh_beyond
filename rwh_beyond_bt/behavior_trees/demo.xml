@@ -3,14 +3,14 @@
   <BehaviorTree ID="Demo">
     <Sequence name="PickSequence">
       <Sequence name="PrepareAndObserve">
-        <CheckGraspReady server_timeout="1000"/>
+        <CheckGraspReady/>
         <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
         <!-- Optional home_joint_positions="0;0;0;0;0;0" overrides YAML for this node. -->
-        <MoveHome server_timeout="1000"/>
+        <MoveHome/>
         <!-- Optional opening (m) and duration (s) override gripper opening defaults. -->
-        <OpenGripper server_timeout="1000"/>
+        <OpenGripper/>
         <!-- x/y/z offsets in base axes (m), tilt_deg (home-local Y degrees); optional settle_time (s) and home_joint_positions. -->
-        <MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0" server_timeout="1000"/>
+        <MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0"/>
         <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
       </Sequence>
       <Sequence name="PerceiveAndPlan">
@@ -18,18 +18,18 @@
         <SegmentObject server_timeout="1000" capture="{capture}" mask="{object_mask}"/>
         <BuildObjectCloud capture="{capture}" mask="{object_mask}" cloud="{object_cloud}"/>
         <InferGrasps server_timeout="1000" cloud="{object_cloud}" candidates="{grasps}"/>
-        <SelectFeasibleGrasp pregrasp_distance="0.10" lift_distance="0.08" grasp_pose="{grasp_pose}" capture="{capture}" mask="{object_mask}" server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}" plan_id="{grasp_plan}" pregrasp="{pregrasp}"/>
+        <SelectFeasibleGrasp pregrasp_distance="0.10" lift_distance="0.08" grasp_pose="{grasp_pose}" capture="{capture}" mask="{object_mask}" cloud="{object_cloud}" candidates="{grasps}" selected_plan="{grasp_plan}" pregrasp="{pregrasp}"/>
       </Sequence>
       <Sequence name="GraspAndLift">
-        <MoveToPregrasp server_timeout="1000" plan_id="{grasp_plan}"/>
-        <ApproachGrasp server_timeout="1000" plan_id="{grasp_plan}"/>
+        <MoveToPregrasp plan="{grasp_plan}"/>
+        <ApproachGrasp plan="{grasp_plan}"/>
         <!-- Close the gripper, then attach the target for planning without judging physical grip. -->
-        <AttachObject server_timeout="1000" plan_id="{grasp_plan}"/>
-        <LiftObject server_timeout="1000" plan_id="{grasp_plan}"/>
+        <AttachObject plan="{grasp_plan}"/>
+        <LiftObject plan="{grasp_plan}"/>
       </Sequence>
       <Sequence name="ReturnHome">
-        <MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0" server_timeout="1000"/>
-        <MoveHome server_timeout="1000"/>
+        <MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0"/>
+        <MoveHome/>
       </Sequence>
     </Sequence>
   </BehaviorTree>

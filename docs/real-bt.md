@@ -6,7 +6,7 @@
 
 | 항목 | sim | real |
 |---|---|---|
-| coordinator | `grasp_coordinator` | `hardware_grasp_coordinator` |
+| 모션 | BT → MoveIt 직접 호출 | BT → MoveIt 직접 호출 |
 | 시간 | `use_sim_time=true` | `use_sim_time=false` |
 | 피드백·controller | MuJoCo | PiPER CAN + physical transport |
 | 기본 집기 XML | `demo_width.xml` | `demo_width.xml` |
@@ -25,7 +25,7 @@ GraspGenX → 후보 선택 → pregrasp → 접근 → 닫기·계획용 부착
 두 위치에 동일한 값을 지정합니다.
 
 ```xml
-<MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0" server_timeout="1000"/>
+<MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0"/>
 ```
 
 - `x`, `y`, `z`: home TCP 기준 base 축 방향 이동량(m). 양수·0·음수 모두 가능합니다.
@@ -41,9 +41,9 @@ home은 `home_joint_positions`에 정의한 6개 관절 목표입니다. 이미 
 ## 공통 YAML
 
 `rwh_beyond_bringup/config/bt_demo.yaml`을 navigator·lifecycle manager·SAM bridge·
-GraspGenX bridge·모션 backend가 함께 읽습니다.
+GraspGenX bridge가 함께 읽습니다.
 대상·모델 요청 개수는 `bt_navigator.ros__parameters.bt_perception`,
-모션·충돌 설정은 기존 `grasp_coordinator.ros__parameters`에 있습니다.
+모션·충돌 설정은 `bt_navigator.ros__parameters.bt_motion`에 있습니다.
 
 | 설정 | 현재 값 | 의미 |
 |---|---|---|
@@ -51,7 +51,7 @@ GraspGenX bridge·모션 backend가 함께 읽습니다.
 | `gripper_open_width` | 0.10 m | 열기 목표 |
 | `gripper_close_width` | 0.04 m | 고정 폭 트리의 닫기 목표 |
 | `grasp_width_closing_inset` | 0.005 m | 추정 폭 보정, 허용 범위 0~0.005 m |
-| `gripper_close_duration` | 4.0 s | 실물 닫기 완료 기준 시간 |
+| `gripper_close_duration` | 2.0 s | 실물 닫기 완료 기준 시간 |
 | `grasp_top_down_max_angle_deg` | 55° | 수직 하향에서 허용하는 최대 파지 각도 |
 | `grasp_table_clearance_m` | 0.01 m | TCP의 지지면 위 최소 여유 높이 |
 | `grasp_target_margin_m` | 0.05 m | 물체 경계 바깥 접촉점 허용 여유 |
@@ -60,21 +60,22 @@ GraspGenX bridge·모션 backend가 함께 읽습니다.
 | `home_joint_tolerance` | 0.01 rad | home 도착 판정 |
 | `planning_start_bounds_tolerance_deg` | 10° | 계획·MoveIt·실물 궤적의 시작 상태 허용량(도) |
 
-실물 닫기는 목표 폭을 4초간 명령하면 완료합니다. 열기·팔 이동은 위치 기반 확인을 유지합니다.
+실물 닫기는 목표 폭을 설정한 시간(현재 2초) 동안 명령하면 완료합니다. 열기·팔 이동은 위치 기반 확인을 유지합니다.
 심에서는 설정한 duration으로 controller Action을 요청하고 Action 완료 결과를 확인합니다.
 설정 변경 후 BT를 재시작합니다. 실물 전달기도 읽는 닫기 폭·시간이나 시작 오차 허용량을 변경하면
 `piper_moveit`도 재시작합니다.
 
 ## 파지 후보 필터 조정
 
-세 필터는 공통 YAML의 `grasp_coordinator.ros__parameters`에서 관리하며 심·실물이 공유합니다.
+세 필터는 공통 YAML의 `bt_navigator.ros__parameters.bt_motion`에서 관리하며 심·실물이 공유합니다.
 
 ```yaml
-grasp_coordinator:
+bt_navigator:
   ros__parameters:
-    grasp_top_down_max_angle_deg: 55.0
-    grasp_table_clearance_m: 0.01
-    grasp_target_margin_m: 0.05
+    bt_motion:
+      grasp_top_down_max_angle_deg: 55.0
+      grasp_table_clearance_m: 0.01
+      grasp_target_margin_m: 0.05
 ```
 
 - `not_top_down`: 허용각을 키우면 더 기울어진 파지 후보도 검사합니다. 범위는 0~180°입니다.
@@ -90,7 +91,7 @@ YAML 수정 후 BT runner를 비활성화·재활성화하면 적용되며 YAML 
 
 `rwh_beyond_bringup/config/bt_demo.yaml`의 `/**.ros__parameters.octomap_enabled`로
 실물 Octomap 장애물 회피를 제어합니다. 현재 시험 설정은 `false`입니다.
-ROS 공통 파라미터가 navigator와 coordinator에 같은 값을 전달합니다. 실물 MoveIt은 이 설정이 `false`이면
+ROS 공통 파라미터가 BT navigator에 설정값을 전달합니다. 실물 MoveIt은 이 설정이 `false`이면
 점군 지도 updater를 시작하지 않으며, BT와 후보 선택 단계는 지도 갱신 대기를 건너뜁니다.
 카메라·SAM·GraspGenX, 로봇 자체 충돌 검사와 대상 물체 충돌 형상은 유지됩니다.
 주변 테이블·장애물은 Octomap 충돌 검사에서 제외됩니다.

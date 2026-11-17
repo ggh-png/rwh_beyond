@@ -12,7 +12,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import JointState
 from std_srvs.srv import SetBool, Trigger
 from control_msgs.action import FollowJointTrajectory
-from .hardware_coordinator import feedback_values
+from .feedback import feedback_values
 
 
 def trajectory_points(trajectory, current, expected, initial_tolerance=math.radians(10.0)):

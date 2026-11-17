@@ -151,7 +151,7 @@ def test_execution_and_physical_start_tolerance_share_coordinator_setting():
     import yaml
     settings=yaml.safe_load((Path(get_package_share_directory('rwh_beyond_bringup')) /
         'config/bt_demo.yaml').read_text())
-    expected=math.radians(settings['grasp_coordinator']['ros__parameters']['planning_start_bounds_tolerance_deg'])
+    expected=math.radians(settings['bt_navigator']['ros__parameters']['bt_motion']['planning_start_bounds_tolerance_deg'])
     module=load(Path(__file__).resolve().parents[1]/'launch/piper_moveit.launch.py','tolerance_hardware')
     context=defaults(module);context.launch_configurations['execution_transport']='feedback'
     _,group,*_=hardware_nodes(context)
@@ -160,8 +160,8 @@ def test_execution_and_physical_start_tolerance_share_coordinator_setting():
     move_group=next(node for node in nodes if node.node_executable=='move_group')
     assert evaluate_parameters(context,transport._Node__parameters)[0]['initial_position_tolerance']==expected
     transport_params=evaluate_parameters(context,transport._Node__parameters)[0]
-    assert transport_params['gripper_close_width']==settings['grasp_coordinator']['ros__parameters']['gripper_close_width']
-    assert transport_params['gripper_close_duration']==settings['grasp_coordinator']['ros__parameters']['gripper_close_duration']
+    assert transport_params['gripper_close_width']==settings['bt_navigator']['ros__parameters']['bt_motion']['gripper_close_width']
+    assert transport_params['gripper_close_duration']==settings['bt_navigator']['ros__parameters']['bt_motion']['gripper_close_duration']
     assert evaluate_parameters(context,move_group._Node__parameters)[0]['trajectory_execution.allowed_start_tolerance']==expected
 
 
@@ -171,7 +171,7 @@ def test_start_tolerance_reads_degrees_from_yaml(monkeypatch, tmp_path, degrees)
     import rwh_beyond_bringup.piper_hardware as hardware
     original = hardware.get_package_share_directory
     data = yaml.safe_load((Path(original('rwh_beyond_bringup')) / 'config/bt_demo.yaml').read_text())
-    data['grasp_coordinator']['ros__parameters']['planning_start_bounds_tolerance_deg'] = degrees
+    data['bt_navigator']['ros__parameters']['bt_motion']['planning_start_bounds_tolerance_deg'] = degrees
     (tmp_path/'config').mkdir()
     (tmp_path/'config/bt_demo.yaml').write_text(yaml.safe_dump(data))
     monkeypatch.setattr(hardware, 'get_package_share_directory',

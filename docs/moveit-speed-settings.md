@@ -1,6 +1,6 @@
 # MoveIt speed and planning settings
 
-Edit `grasp_coordinator.ros__parameters` in `rwh_beyond_bringup/config/bt_demo.yaml` (the same file as the default BT paths). Restart the BT coordinator after changing these startup settings. Existing user YAML settings are preserved.
+Edit `bt_navigator.ros__parameters.bt_motion` in `rwh_beyond_bringup/config/bt_demo.yaml` (the same file as the default BT paths). Restart bt_demo after changing these startup settings. Existing user YAML settings are preserved.
 
 | Parameter | Default | Applies to |
 |---|---:|---|

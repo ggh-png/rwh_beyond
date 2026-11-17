@@ -32,12 +32,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
-#include "rwh_beyond_msgs/action/run_grasp_stage.hpp"
-#include "rwh_beyond_msgs/action/run_grasp_step.hpp"
 #include "rwh_beyond_msgs/msg/tcp_pose.hpp"
 
 using TcpPose = rwh_beyond_msgs::msg::TcpPose;
-using GraspStageAction = rwh_beyond_msgs::action::RunGraspStage;
 using namespace std::chrono_literals;
 
 class BtActions : public ::testing::Test
@@ -174,44 +171,16 @@ TEST_F(BtActions, DirectBridgesAndLocalCloudPassArtifactsIntoMotionSelection)
         result->candidates.push_back(candidate);
         handle->succeed(result);
       });
-  auto select = rclcpp_action::create_server<GraspStageAction>(server_,
-    "grasp/select_feasible_grasp",
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [&](auto handle) {
-        calls.push_back("select");
-        auto goal = handle->get_goal();
-        EXPECT_EQ(goal->observation_id, capture->id);
-        EXPECT_EQ(goal->depth_image, capture->depth);
-        EXPECT_EQ(goal->camera_info, capture->info);
-        EXPECT_EQ(goal->capture_joints, capture->joints);
-        EXPECT_EQ(goal->object_cloud.width, 144u);
-        EXPECT_EQ(goal->candidates.size(), 1u);
-        auto result = std::make_shared<GraspStageAction::Result>();
-        result->success = true;
-        result->plan_id = "plan-9";
-        result->pregrasp.frame_id = "base_link";
-        result->grasp_width = .034;
-        result->close_width = .032;
-        result->width_source = "point_cloud_estimate";
-        handle->succeed(result);
-      });
-  for (const auto width : {"false", "true"}) {
-    EXPECT_EQ(run(std::string(
-      R"(<Sequence>
-      <SegmentObject capture="{capture}" mask="{mask}"/>
-      <BuildObjectCloud capture="{capture}" mask="{mask}" cloud="{cloud}"/>
-      <InferGrasps cloud="{cloud}" candidates="{candidates}"/>
-      <SelectFeasibleGrasp capture="{capture}" mask="{mask}" observation_id="capture-42"
-        cloud="{cloud}" candidates="{candidates}" use_estimated_width=")")
-      +
-        width +
-      R"(" plan_id="{plan}" pregrasp="{pre}" grasp_width="{width}" close_width="{close}"/>
-      </Sequence>)"),
-      BT::NodeStatus::SUCCESS);
-    EXPECT_EQ(blackboard_->get<std::string>("plan"), "plan-9");
-    EXPECT_DOUBLE_EQ(blackboard_->get<double>("close"), .032);
-  }
-  EXPECT_EQ(calls, std::vector<std::string>({"sam", "infer", "select", "sam", "infer", "select"}));
+  EXPECT_EQ(run(
+    R"(<Sequence>
+    <SegmentObject capture="{capture}" mask="{mask}"/>
+    <BuildObjectCloud capture="{capture}" mask="{mask}" cloud="{cloud}"/>
+    <InferGrasps cloud="{cloud}" candidates="{candidates}"/>
+    </Sequence>)"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(blackboard_->get<std::vector<rwh_beyond_msgs::msg::GraspCandidate>>(
+    "candidates").size(), 1u);
+  EXPECT_EQ(calls, std::vector<std::string>({"sam", "infer"}));
 }
 
 TEST_F(BtActions, LocalProjectionHandlesUnitsAndRejectsWrongExposure)
@@ -332,283 +301,17 @@ TEST_F(BtActions, HaltingSegmentationCancelsTheBridgeGoal)
   EXPECT_TRUE(canceled);
 }
 
-TEST_F(BtActions, ObservationXmlOverridesAreDeliveredAndOmissionUsesYaml)
+TEST(PluginRegistration, DirectMotionAndPerceptionRegistered)
 {
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  std::vector<Step::Goal> goals;
-  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_observation",
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
-      [&](auto handle) {
-        goals.push_back(*handle->get_goal());
-        auto result = std::make_shared<Step::Result>();
-        result->success = true;
-        handle->succeed(result);
-      });
-  EXPECT_EQ(run(R"(<MoveObservation x="0.03" y="-0.02" z="0.20" tilt_deg="50"/>)"),
-    BT::NodeStatus::SUCCESS);
-  ASSERT_EQ(goals.size(), 1u);
-  EXPECT_TRUE(goals[0].override_observation_z);
-  EXPECT_TRUE(goals[0].override_observation_tilt);
-  EXPECT_DOUBLE_EQ(goals[0].observation_x_offset, 0.03);
-  EXPECT_DOUBLE_EQ(goals[0].observation_y_offset, -0.02);
-  EXPECT_DOUBLE_EQ(goals[0].observation_z_offset, 0.2);
-  EXPECT_DOUBLE_EQ(goals[0].observation_tilt_deg, 50.0);
-  EXPECT_EQ(run(R"(<MoveObservation/>)"), BT::NodeStatus::SUCCESS);
-  ASSERT_EQ(goals.size(), 2u);
-  EXPECT_FALSE(goals[1].override_observation_z);
-  EXPECT_FALSE(goals[1].override_observation_tilt);
-}
-
-TEST_F(BtActions, InvalidObservationXmlNeverSendsMotionGoal)
-{
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  std::atomic<int> goals{0};
-  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_observation",
-      [&](auto, auto) {
-        ++goals;
-        return rclcpp_action::GoalResponse::REJECT;
-      },
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
-  for (const auto * xml : {
-    R"(<MoveObservation x="nan"/>)",
-    R"(<MoveObservation y="inf" tilt_deg="50"/>)",
-    R"(<MoveObservation z="0.2" tilt_deg="nan"/>)"})
+  BT::BehaviorTreeFactory factory;
+  factory.registerFromPlugin(BT_PLUGIN_PATH);
+  for (auto id : {"CheckGraspReady", "SelectFeasibleGrasp", "MoveToPregrasp", "ApproachGrasp",
+      "AttachObject", "LiftObject", "MoveHome", "MoveObservation", "MovePlace", "OpenGripper",
+      "ReleaseObject", "CaptureRgbd", "SegmentObject", "BuildObjectCloud", "InferGrasps",
+      "ClearOctomap"})
   {
-    EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
-  }
-  EXPECT_EQ(goals, 0);
-}
-
-TEST_F(BtActions, ScenarioNodesForwardCoordinatorCommands)
-{
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  std::vector<rclcpp_action::Server<Step>::SharedPtr> servers;
-  std::vector<std::string> calls;
-  for (const auto & command : {"move_home", "open_gripper", "move_observation"}) {
-    servers.push_back(rclcpp_action::create_server<Step>(server_, std::string("grasp/") + command,
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
-      [&, command](auto handle) {
-        EXPECT_EQ(handle->get_goal()->command, command);
-        calls.push_back(command);
-        auto result = std::make_shared<Step::Result>();
-        result->success = true;
-        handle->succeed(result);
-      }));
-  }
-  EXPECT_EQ(run("<Sequence><MoveHome/><OpenGripper/><MoveObservation/></Sequence>"),
-    BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(calls, std::vector<std::string>({"move_home", "open_gripper", "move_observation"}));
-  EXPECT_EQ(factory_.manifests().count("GraspStep"), 0u);
-  EXPECT_EQ(factory_.manifests().at("MoveHome").ports.count("command"), 0u);
-}
-
-TEST_F(BtActions, ScenarioFailureStopsSequenceAndReportsNode)
-{
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_home",
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
-      [](auto handle) {
-        auto result = std::make_shared<Step::Result>();
-        result->success = false;
-        result->message = "Home trajectory rejected";
-        handle->succeed(result);
-    });
-  std::atomic<int> openings{0};
-  auto open = rclcpp_action::create_server<Step>(server_, "grasp/open_gripper",
-      [&](auto, auto) {++openings; return rclcpp_action::GoalResponse::REJECT;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
-  EXPECT_EQ(run("<Sequence><MoveHome name=\"home\"/><OpenGripper/></Sequence>"),
-    BT::NodeStatus::FAILURE);
-  const auto diagnostic =
-    blackboard_->get<rwh_beyond_msgs::action::RunDemo::Feedback>("demo_feedback");
-  EXPECT_EQ(diagnostic.current_stage, "move_home");
-  EXPECT_EQ(diagnostic.current_node, "home");
-  EXPECT_EQ(diagnostic.error_source, "grasp/move_home");
-  EXPECT_EQ(diagnostic.error_msg, "Home trajectory rejected");
-  EXPECT_EQ(openings, 0);
-}
-
-TEST_F(BtActions, ScenarioServerNameOverrideAndHaltCancelGoal)
-{
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  std::shared_ptr<rclcpp_action::ServerGoalHandle<Step>> active;
-  std::atomic<bool> accepted{false}, canceled{false};
-  auto server = rclcpp_action::create_server<Step>(server_, "custom_home",
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [&](auto) {canceled = true; return rclcpp_action::CancelResponse::ACCEPT;},
-      [&](auto handle) {active = handle; accepted = true;});
-  auto timer = server_->create_wall_timer(5ms, [&]() {
-        if (active && active->is_canceling()) {
-          active->canceled(std::make_shared<Step::Result>());
-          active.reset();
-        }
-  });
-  auto tree = factory_.createTreeFromText(
-    R"(<root BTCPP_format="4"><BehaviorTree ID="Test"><MoveHome server_name="custom_home"/></BehaviorTree></root>)",
-    blackboard_);
-  auto deadline = std::chrono::steady_clock::now() + 3s;
-  while (!accepted && std::chrono::steady_clock::now() < deadline) {
-    ASSERT_EQ(tree.tickOnce(), BT::NodeStatus::RUNNING);
-    std::this_thread::sleep_for(1ms);
-  }
-  ASSERT_TRUE(accepted);
-  tree.haltTree();
-  EXPECT_TRUE(canceled);
-}
-
-TEST_F(BtActions, ScenarioXmlValuesReachServerAndDoNotLeakToNextGoal)
-{
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  std::vector<rclcpp_action::Server<Step>::SharedPtr> servers;
-  std::vector<Step::Goal> goals;
-  for (const auto & endpoint : {"move_home", "open_gripper", "move_observation"}) {
-    servers.push_back(rclcpp_action::create_server<Step>(server_, std::string("grasp/") + endpoint,
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
-      [&](auto handle) {
-        goals.push_back(*handle->get_goal());
-        auto result = std::make_shared<Step::Result>();
-        result->success = true;
-        handle->succeed(result);
-      }));
-  }
-  EXPECT_EQ(run(R"(<MoveHome home_joint_positions="0.1;0;0;0;0;0"/>)"), BT::NodeStatus::SUCCESS);
-  ASSERT_EQ(goals.size(), 1u);
-  EXPECT_DOUBLE_EQ(goals.back().home_joint_positions.at(0), 0.1);
-  EXPECT_EQ(run(R"(<OpenGripper opening="0.08" duration="1.5"/>)"), BT::NodeStatus::SUCCESS);
-  EXPECT_TRUE(goals.back().override_gripper_width);
-  EXPECT_DOUBLE_EQ(goals.back().gripper_open_width, 0.08);
-  EXPECT_DOUBLE_EQ(goals.back().gripper_open_duration, 1.5);
-  EXPECT_EQ(run(R"(<MoveObservation home_joint_positions="0.1;0;0;0;0;0" settle_time="0"/>)"),
-    BT::NodeStatus::SUCCESS);
-  EXPECT_TRUE(goals.back().override_settle_time);
-  EXPECT_DOUBLE_EQ(goals.back().observation_settle_time, 0.0);
-  EXPECT_EQ(run("<MoveHome/>"), BT::NodeStatus::SUCCESS);
-  EXPECT_TRUE(goals.back().home_joint_positions.empty());
-  EXPECT_EQ(run("<OpenGripper/>"), BT::NodeStatus::SUCCESS);
-  EXPECT_FALSE(goals.back().override_gripper_width);
-  EXPECT_FALSE(goals.back().override_gripper_duration);
-}
-
-TEST_F(BtActions, InvalidScenarioXmlValuesNeverSendGoal)
-{
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  std::atomic<int> goals{0};
-  auto server = rclcpp_action::create_server<Step>(server_, "invalid_test",
-      [&](auto, auto) {++goals; return rclcpp_action::GoalResponse::REJECT;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;}, [](auto) {});
-  for (const auto & xml : {
-    R"(<MoveHome server_name="invalid_test" home_joint_positions="0;0;0"/>)",
-    R"(<MoveHome server_name="invalid_test" home_joint_positions="nan;0;0;0;0;0"/>)",
-    R"(<OpenGripper server_name="invalid_test" opening="0.11"/>)",
-    R"(<OpenGripper server_name="invalid_test" duration="0"/>)",
-    R"(<MoveObservation server_name="invalid_test" settle_time="-1"/>)"})
-  {
-    EXPECT_EQ(run(xml), BT::NodeStatus::FAILURE);
-  }
-  EXPECT_EQ(goals, 0);
-}
-
-TEST_F(BtActions, ObservationAllowsIndependentSignedAxesAndTilt)
-{
-  using Step = rwh_beyond_msgs::action::RunGraspStep;
-  std::vector<Step::Goal> goals;
-  auto server = rclcpp_action::create_server<Step>(server_, "grasp/move_observation",
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
-      [&](auto handle) {
-        goals.push_back(*handle->get_goal());
-        auto result = std::make_shared<Step::Result>();
-        result->success = true;
-        handle->succeed(result);
-    });
-  EXPECT_EQ(run(R"(<MoveObservation x="-0.03"/>)"), BT::NodeStatus::SUCCESS);
-  ASSERT_EQ(goals.size(), 1u);
-  EXPECT_TRUE(goals.back().override_observation_x);
-  EXPECT_FALSE(goals.back().override_observation_z);
-  EXPECT_FALSE(goals.back().override_observation_tilt);
-  EXPECT_EQ(run(R"(<MoveObservation z="-0.02"/>)"), BT::NodeStatus::SUCCESS);
-  EXPECT_DOUBLE_EQ(goals.back().observation_z_offset, -0.02);
-  EXPECT_EQ(run(R"(<MoveObservation z="0" tilt_deg="0"/>)"), BT::NodeStatus::SUCCESS);
-  EXPECT_TRUE(goals.back().override_observation_z);
-  EXPECT_TRUE(goals.back().override_observation_tilt);
-  EXPECT_DOUBLE_EQ(goals.back().observation_z_offset, 0.0);
-  EXPECT_DOUBLE_EQ(goals.back().observation_tilt_deg, 0.0);
-}
-
-TEST_F(BtActions, RepeatPickReadinessForwardsExplicitReleaseFlag)
-{
-  bool release_previous = false;
-  auto ready = rclcpp_action::create_server<GraspStageAction>(server_, "grasp/check_ready",
-      [](auto, auto) {return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;},
-      [](auto) {return rclcpp_action::CancelResponse::ACCEPT;},
-      [&](auto handle) {
-        release_previous = handle->get_goal()->release_previous;
-        auto result = std::make_shared<GraspStageAction::Result>();
-        result->success = true;
-        handle->succeed(result);
-    });
-  EXPECT_EQ(runXml(
-    R"(
-    <root BTCPP_format="4"><BehaviorTree ID="Test">
-      <CheckGraspReady release_previous="true"/>
-    </BehaviorTree></root>)"),
-    BT::NodeStatus::SUCCESS);
-  EXPECT_TRUE(release_previous);
-}
-
-TEST(PluginRegistration, IndividualLibrariesMatchCompatibilityLoader)
-{
-  const std::vector<std::pair<std::string, std::string>> plugins = {
-    {"clear_octomap", "ClearOctomap"}, {"move_home", "MoveHome"},
-    {"move_observation", "MoveObservation"},
-    {"move_place", "MovePlace"},
-    {"open_gripper", "OpenGripper"}, {"release_object", "ReleaseObject"},
-    {"check_grasp_ready", "CheckGraspReady"},
-    {"select_feasible_grasp", "SelectFeasibleGrasp"},
-    {"move_to_pregrasp", "MoveToPregrasp"}, {"approach_grasp", "ApproachGrasp"},
-    {"attach_object", "AttachObject"}, {"lift_object", "LiftObject"}
-  };
-  BT::BehaviorTreeFactory individual;
-  const auto builtin_count = individual.manifests().size();
-  for (const auto & entry : plugins) {
-    const auto library = "rwh_beyond_" + entry.first + "_action_bt_node";
-    ASSERT_NO_THROW(individual.registerFromPlugin(
-      std::string(BT_PLUGIN_DIR) + "/" + BT::SharedLibrary::getOSName(library)));
-    ASSERT_EQ(individual.manifests().count(entry.second), 1u);
-  }
-  individual.registerFromPlugin(std::string(BT_PLUGIN_DIR) + "/" +
-    BT::SharedLibrary::getOSName("rwh_beyond_perception_bt_nodes"));
-  EXPECT_EQ(individual.manifests().size(), builtin_count + plugins.size() + 4);
-  for (const auto * id : {"CaptureRgbd", "SegmentObject", "BuildObjectCloud", "InferGrasps"}) {
-    ASSERT_EQ(individual.manifests().count(id), 1u);
-  }
-
-  BT::BehaviorTreeFactory aggregate;
-  ASSERT_NO_THROW(aggregate.registerFromPlugin(BT_PLUGIN_PATH));
-  ASSERT_EQ(aggregate.manifests().size(), individual.manifests().size());
-  for (const auto & entry : plugins) {
-    const auto & actual = aggregate.manifests().at(entry.second).ports;
-    const auto & expected = individual.manifests().at(entry.second).ports;
-    ASSERT_EQ(actual.size(), expected.size());
-    for (const auto & port : expected) {
-      ASSERT_EQ(actual.count(port.first), 1u);
-      EXPECT_EQ(actual.at(port.first).direction(), port.second.direction());
-      EXPECT_EQ(actual.at(port.first).type(), port.second.type());
-    }
-    if (entry.second != "ClearOctomap") {
-      EXPECT_EQ(actual.count("server_name"), 1u);
-      EXPECT_EQ(actual.count("server_timeout"), 1u);
-    }
-  }
-  const auto & manifests = individual.manifests();
-  EXPECT_EQ(manifests.at("SegmentObject").ports.at("mask").type(),
-    typeid(sensor_msgs::msg::Image));
-  EXPECT_EQ(manifests.at("BuildObjectCloud").ports.at("cloud").type(),
-    typeid(sensor_msgs::msg::PointCloud2));
-  EXPECT_EQ(manifests.at("InferGrasps").ports.at("candidates").type(),
-    typeid(std::vector<rwh_beyond_msgs::msg::GraspCandidate>));
+    EXPECT_EQ(factory.manifests().count(id), 1u);
+                                                }
+  EXPECT_EQ(factory.manifests().at("MoveToPregrasp").ports.count("plan_id"), 0u);
+  EXPECT_EQ(factory.manifests().at("SelectFeasibleGrasp").ports.count("selected_plan"), 1u);
 }

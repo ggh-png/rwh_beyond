@@ -8,7 +8,7 @@ ROS 2 Jazzy와 MoveIt 2를 사용합니다. `/root/ros2_ws`는 컨테이너 내�
 
 | 저장소 | 역할 |
 |---|---|
-| `rwh_beyond` | BT·Action·모델 bridge·파지 coordinator·bringup |
+| `rwh_beyond` | BT·Action·모델 bridge·장치 전송·bringup |
 | `moma-mj-lab` | MuJoCo, 로봇·카메라 모델, 공통 MoveIt 설정 |
 | `agx_arm_ros` | PiPER 공식 ROS driver·description·MoveIt 패키지 |
 | `ros_runner` | 심·실물 의존 실행과 종료 관리 |

@@ -1,4 +1,4 @@
-"""Exercise the actual navigator with a mock coordinator; no hardware/simulation."""
+"""Exercise the actual navigator with a mock controller; no hardware/simulation."""
 import os
 from pathlib import Path
 import signal
@@ -17,8 +17,9 @@ from lifecycle_msgs.srv import ChangeState
 from moveit_msgs.srv import GetPlanningScene
 from sensor_msgs.msg import PointCloud2, Image, CameraInfo, JointState
 from std_srvs.srv import Empty
+from control_msgs.action import FollowJointTrajectory
 from rclpy.qos import qos_profile_sensor_data
-from rwh_beyond_msgs.action import RunDemo, SegmentImage, RunGraspStep
+from rwh_beyond_msgs.action import RunDemo, SegmentImage
 import yaml
 
 
@@ -36,7 +37,7 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.root = Path(self.directory.name)
         tree = self.root / 'tree.xml'
         tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
-                        '<MoveHome name="return_home"/>'
+                        '<OpenGripper name="open"/>'
                         '</BehaviorTree></root>')
         place_tree = self.root / 'place_tree.xml'
         place_tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
@@ -49,6 +50,7 @@ class NavigatorErrorReporting(unittest.TestCase):
             'plugin_lib_names': ['rwh_beyond_bt_nodes'], 'default_demo_bt_xml': str(tree),
             'default_place_bt_xml': str(place_tree),
             'bt_perception.target_text': 'default object',
+            'bt_motion.gripper_open_width': .08,
             'wait_for_service_timeout': 3000, 'default_server_timeout': 1000,
             'error_code_names': ['nav2_unused_error_code'],
         }}}))
@@ -57,13 +59,19 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.reject = False
         self.node = rclpy.create_node('navigator_error_mock')
         self.group = ReentrantCallbackGroup()
-        self.server = ActionServer(self.node, RunGraspStep, 'grasp/move_home', self.execute,
+        self.server = ActionServer(self.node, FollowJointTrajectory, 'gripper_controller/follow_joint_trajectory', self.execute,
                                    goal_callback=self.accept, callback_group=self.group)
         self.action = ActionClient(self.node, RunDemo, 'run_demo', callback_group=self.group)
         self.executor = MultiThreadedExecutor(num_threads=4)
         self.executor.add_node(self.node)
         self.thread = threading.Thread(target=self.executor.spin)
         self.thread.start()
+        self.joint_pub = self.node.create_publisher(JointState, 'feedback/joint_states', 10)
+        def publish_joints():
+            message = JointState(name=[f'joint{i}' for i in range(1,7)]+['gripper'], position=[0.]*6+[.08])
+            message.header.stamp = self.node.get_clock().now().to_msg()
+            self.joint_pub.publish(message)
+        self.timer = self.node.create_timer(.02, publish_joints, callback_group=self.group)
         self.log = (self.root / 'navigator.log').open('w')
         self.process = subprocess.Popen(
             ['ros2', 'run', 'nav2_bt_navigator', 'bt_navigator', '--ros-args',
@@ -84,10 +92,9 @@ class NavigatorErrorReporting(unittest.TestCase):
         return GoalResponse.REJECT if self.reject else GoalResponse.ACCEPT
 
     def execute(self, handle):
-        feedback = RunGraspStep.Feedback(stage='move_home')
-        handle.publish_feedback(feedback)
+        self.assertAlmostEqual(handle.request.trajectory.points[0].positions[0], .08)
         time.sleep(0.05)
-        result = RunGraspStep.Result(success=self.success, message=self.message)
+        result = FollowJointTrajectory.Result(error_code=0 if self.success else -1, error_string=self.message)
         if self.success:
             handle.succeed()
         else:
@@ -120,18 +127,18 @@ class NavigatorErrorReporting(unittest.TestCase):
         place, _ = self.run_goal(mode=RunDemo.Goal.MODE_PLACE)
         self.assertEqual(place.status, 4)
 
-    def test_coordinator_failure_feedback_result_and_success_reset(self):
+    def test_direct_controller_failure_feedback_result_and_success_reset(self):
         wrapped, feedback = self.run_goal()
         self.assertEqual(wrapped.status, 6)  # ROS action ABORTED
         result = wrapped.result
         self.assertEqual(result.error_code, -1201)
-        self.assertEqual(result.error_name, 'GRASP_STAGE_FAILED')
-        self.assertEqual(result.error_source, 'grasp/move_home')
-        self.assertEqual(result.error_msg, self.message)
-        self.assertEqual(result.failed_stage, 'move_home')
-        self.assertEqual(result.failed_node, 'return_home')
+        self.assertEqual(result.error_name, 'BT_MOTION_FAILED')
+        self.assertEqual(result.error_source, 'OpenGripper')
+        self.assertEqual(result.error_msg, 'Action execution failed')
+        self.assertEqual(result.failed_stage, 'OpenGripper')
+        self.assertEqual(result.failed_node, 'open')
         self.assertEqual(result.moveit_state, '')
-        self.assertTrue(any(f.error_code == -1201 and f.error_msg == self.message for f in feedback))
+        self.assertTrue(any(f.error_code == -1201 and f.error_msg == 'Action execution failed' for f in feedback))
         self.success = True
         wrapped, feedback = self.run_goal()
         self.assertEqual(wrapped.status, 4)  # ROS action SUCCEEDED
@@ -142,7 +149,7 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.reject = True
         wrapped, feedback = self.run_goal()
         self.assertEqual(wrapped.status, 6)
-        self.assertEqual(wrapped.result.error_name, 'GRASP_ACTION_REQUEST_FAILED')
+        self.assertEqual(wrapped.result.error_name, 'BT_MOTION_FAILED')
         self.assertNotEqual(wrapped.result.error_code, 0)
 
     def test_clear_plugin_runs_in_tree_and_reuses_success_across_goals(self):

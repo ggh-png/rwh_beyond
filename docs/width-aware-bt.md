@@ -27,7 +27,7 @@ This width tree opts in to `CheckGraspReady release_previous="true"`. At the beg
 
 ## 닫기 보정값 조정
 
-`bt_demo.yaml`의 `grasp_coordinator.ros__parameters.grasp_width_closing_inset`을 조절합니다.
+`bt_demo.yaml`의 `bt_navigator.ros__parameters.bt_motion.grasp_width_closing_inset`을 조절합니다.
 단위는 m이며 전체 손가락 간격에서 빼는 양입니다. 한쪽 손가락당 보정량이 아닙니다.
 추정 폭이 40mm일 때 0.002는 38mm, 0.004는 36mm의 목표 간격을 만듭니다.
 허용 범위는 0~0.005m이며, 범위를 넘으면 후보별 `invalid_observed_width`가 발생합니다.

@@ -1,3 +1,4 @@
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -24,10 +25,12 @@ public:
   std::string getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node) override
   {
     auto node = parent_node.lock();
-    // Declare BT-owned perception overrides before Nav2 copies parameters to
+    // Declare BT-owned perception/motion overrides before Nav2 copies parameters to
     // the private action-client node used by the tree plugins.
     for (const auto & item : node->get_node_parameters_interface()->get_parameter_overrides()) {
-      if (item.first.rfind("bt_perception.", 0) == 0 && !node->has_parameter(item.first)) {
+      if ((item.first.rfind("bt_perception.", 0) == 0 ||
+        item.first.rfind("bt_motion.", 0) == 0 || item.first == "octomap_enabled") &&
+        !node->has_parameter(item.first)) {
         node->declare_parameter(item.first, item.second);
       }
     }
@@ -55,7 +58,6 @@ public:
       return false;
     }
 
-    cleanup_client_ = node->create_client<std_srvs::srv::Trigger>("grasp/cleanup");
     const auto enabled_param = getName() + ".enable_groot_monitoring";
     const auto port_param = getName() + ".groot_server_port";
     if (!node->has_parameter(enabled_param)) {
@@ -161,17 +163,19 @@ public:
         result->error_name.c_str(), result->error_code, result->error_source.c_str(),
         result->error_msg.c_str());
     }
-    if (final_bt_status != nav2_behavior_tree::BtStatus::SUCCEEDED &&
-      cleanup_client_ && cleanup_client_->service_is_ready())
-    {
-      (void)cleanup_client_->async_send_request(std::make_shared<std_srvs::srv::Trigger::Request>());
+    if (final_bt_status != nav2_behavior_tree::BtStatus::SUCCEEDED) {
+      std::function<void()> cleanup;
+      if (bt_action_server_->getBlackboard()->rootBlackboard()->get("bt_motion_cleanup", cleanup)) {
+        try {cleanup();} catch (const std::exception & error) {
+          RCLCPP_ERROR(logger_, "BT motion cleanup failed: %s", error.what());
+        }
+      }
     }
     // Failure can arrive on the last BT tick: always publish one final diagnostic feedback.
     bt_action_server_->publishFeedback(std::make_shared<ActionT::Feedback>(diagnostic));
   }
 
 private:
-  rclcpp::Client<std_srvs::srv::Trigger>::SharedPtr cleanup_client_;
   std::string default_pick_bt_;
   std::string default_place_bt_;
 };

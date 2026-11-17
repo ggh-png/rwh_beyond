@@ -1,14 +1,10 @@
 <root BTCPP_format="4">
     <TreeNodesModel>
         <Action ID="ApproachGrasp">
-            <input_port name="plan_id" type="std::string"/>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
         </Action>
         <Action ID="AttachObject">
-            <input_port name="plan_id" type="std::string"/>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
         </Action>
         <Action ID="BuildObjectCloud">
             <output_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
@@ -21,9 +17,7 @@
             <input_port name="timeout" type="double" default="10.000000">Fresh exposure wait in seconds</input_port>
         </Action>
         <Action ID="CheckGraspReady">
-            <input_port name="release_previous" type="bool" default="false">Open gripper and clear prior target before a new pick</input_port>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="release_previous" type="bool" default="false">Explicitly release prior payload in place</input_port>
         </Action>
         <Action ID="ClearOctomap">
             <input_port name="scene_service" type="std::string" default="/get_planning_scene">MoveIt planning scene service</input_port>
@@ -40,48 +34,34 @@
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="LiftObject">
-            <input_port name="plan_id" type="std::string"/>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
         </Action>
         <Action ID="MoveHome">
-            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles in radians; omit for YAML</input_port>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
         </Action>
         <Action ID="MoveObservation">
-            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Home reference joint angles; omit for YAML</input_port>
-            <input_port name="settle_time" type="double">Settling time in seconds [0, 30]; omit for YAML</input_port>
-            <input_port name="x" type="double">Home-relative base X offset (m); omit for zero</input_port>
-            <input_port name="y" type="double">Home-relative base Y offset (m); omit for zero</input_port>
-            <input_port name="z" type="double">Home-relative base Z offset (m); omit for YAML</input_port>
-            <input_port name="tilt_deg" type="double">Home-local Y tilt (degrees); omit for YAML</input_port>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="z" type="double">Base Z offset (m)</input_port>
+            <input_port name="tilt_deg" type="double">Home-local Y tilt (deg)</input_port>
+            <input_port name="settle_time" type="double">Observation settling time (s)</input_port>
+            <input_port name="x" type="double">Base X offset (m)</input_port>
+            <input_port name="y" type="double">Base Y offset (m)</input_port>
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
         </Action>
         <Action ID="MovePlace">
-            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Home reference joint angles; omit for YAML</input_port>
-            <input_port name="x" type="double">Home TCP local +X offset in metres [0, 0.30]</input_port>
-            <input_port name="z" type="double">Base +Z offset in metres [0, 0.30]</input_port>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="z" type="double">Base Z offset (m)</input_port>
+            <input_port name="x" type="double">Base X offset (m)</input_port>
+            <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
         </Action>
         <Action ID="MoveToPregrasp">
-            <input_port name="plan_id" type="std::string"/>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
         </Action>
         <Action ID="OpenGripper">
-            <input_port name="opening" type="double">Gripper width in metres [0, 0.10]; omit for YAML</input_port>
-            <input_port name="duration" type="double">Opening duration in seconds (0, 30]; omit for default</input_port>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="opening" type="double">Gripper total gap (m)</input_port>
+            <input_port name="duration" type="double">Gripper duration (s)</input_port>
         </Action>
         <Action ID="ReleaseObject">
-            <input_port name="opening" type="double">Gripper width in metres [0, 0.10]; omit for YAML</input_port>
-            <input_port name="duration" type="double">Opening duration in seconds (0, 30]; omit for default</input_port>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
+            <input_port name="opening" type="double">Gripper total gap (m)</input_port>
+            <input_port name="duration" type="double">Gripper duration (s)</input_port>
         </Action>
         <Action ID="SegmentObject">
             <input_port name="capture" type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
@@ -91,21 +71,18 @@
             <input_port name="server_name" type="std::string">Action server name</input_port>
         </Action>
         <Action ID="SelectFeasibleGrasp">
-            <input_port name="observation_id" type="std::string"/>
-            <input_port name="server_name" type="std::string">Action server name</input_port>
-            <output_port name="grasp_pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
-            <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
-            <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
-            <input_port name="server_timeout" type="std::chrono::milliseconds"/>
             <output_port name="close_width" type="double"/>
             <output_port name="grasp_width" type="double"/>
-            <input_port name="use_estimated_width" type="bool" default="false">Estimate aperture from object cloud</input_port>
-            <input_port name="lift_distance" type="double">Lift distance in metres; omit for YAML</input_port>
             <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
-            <input_port name="pregrasp_distance" type="double">Pregrasp offset in metres; omit for YAML</input_port>
-            <output_port name="plan_id" type="std::string"/>
-            <input_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+            <output_port name="selected_plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+            <input_port name="pregrasp_distance" type="double">Approach offset (m); omit for bt_motion YAML</input_port>
+            <output_port name="grasp_pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
             <input_port name="capture" type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+            <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+            <input_port name="use_estimated_width" type="bool" default="false">Estimate close width from point cloud</input_port>
+            <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="lift_distance" type="double">Lift distance (m); omit for bt_motion YAML</input_port>
         </Action>
     </TreeNodesModel>
 </root>

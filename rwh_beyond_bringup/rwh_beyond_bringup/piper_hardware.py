@@ -74,7 +74,7 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         validate_mount_parent(config.to_dict()['robot_description'], mount, camera_type)
     tolerance_path = Path(get_package_share_directory('rwh_beyond_bringup')) / 'config/bt_demo.yaml'
     shared_settings = yaml.safe_load(tolerance_path.read_text())
-    bt_settings = shared_settings['grasp_coordinator']['ros__parameters']
+    bt_settings = shared_settings['bt_navigator']['ros__parameters']['bt_motion']
     octomap_enabled = shared_settings.get('/**', {}).get('ros__parameters', {}).get(
         'octomap_enabled', True)
     if type(octomap_enabled) is not bool:
@@ -190,7 +190,7 @@ def hardware_nodes(context):
                             parameters=[{'use_sim_time': False}], output='screen'))
     if transport == 'feedback':
         settings = yaml.safe_load((Path(get_package_share_directory('rwh_beyond_bringup')) /
-            'config/bt_demo.yaml').read_text())['grasp_coordinator']['ros__parameters']
+            'config/bt_demo.yaml').read_text())['bt_navigator']['ros__parameters']['bt_motion']
         actions.append(Node(package='rwh_beyond_grasp_pipeline', executable='physical_trajectory',
                             parameters=[{'use_sim_time': False, 'initial_position_tolerance':
                                 params['trajectory_execution']['allowed_start_tolerance'],

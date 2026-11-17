@@ -2,7 +2,7 @@
 
 실물 runner `piper_moveit`은 공식 CAN driver, robot_state_publisher, MoveIt, D405,
 계획용 점군 필터와 선택한 실행 transport를 시작합니다.
-`bt_demo` runner는 이를 의존 실행하고 실물 coordinator와 BT를 추가합니다.
+`bt_demo` runner는 이를 의존 실행하고 BT와 모델 브릿지를 추가합니다.
 
 ## 준비
 
@@ -60,9 +60,10 @@ FollowJointTrajectory를 받아 실제 joint feedback을 확인하며 명령을 
 시작 허용 각도는 공통 `rwh_beyond_bringup/config/bt_demo.yaml`에서 관리합니다.
 
 ```yaml
-grasp_coordinator:
+bt_navigator:
   ros__parameters:
-    planning_start_bounds_tolerance_deg: 10.0
+    bt_motion:
+      planning_start_bounds_tolerance_deg: 10.0
 ```
 
 단위는 도이며 기본값은 10°입니다. 유효 범위는 0 초과~180°이며 내부에서 rad로 변환합니다.

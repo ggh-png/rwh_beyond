@@ -1,7 +1,7 @@
 # 파지 접근 중 손목 뒤집기 감소
 
-`rwh_beyond_bringup/config/bt_demo.yaml`의 `grasp_coordinator.ros__parameters`에서 설정합니다.
-coordinator는 인식·모델 좌표 변환·대칭 파지 선택과 MoveIt 요청을 연결합니다.
+`rwh_beyond_bringup/config/bt_demo.yaml`의 `bt_navigator.ros__parameters.bt_motion`에서 설정합니다.
+BT가 모델 좌표 변환·대칭 파지 선택을 수행하고 MoveIt 서비스를 직접 호출합니다.
 OMPL 경로 생성, IK, 충돌 검사와 관절 경로 제약 판정은 MoveIt에서 수행합니다.
 MoveIt 실행 감시 설정인 `move_group.trajectory_execution`은 경로 형태를 바꾸지 않습니다.
 

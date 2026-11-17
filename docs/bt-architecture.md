@@ -1,57 +1,33 @@
 # BT와 실행 구조
 
-`DemoNavigator`가 `/run_demo`를 제공하고, `demo.xml`이 작업 순서를 결정합니다.
-각 BT Action 플러그인은 coordinator의 단계별 ROS Action을 호출합니다.
-coordinator는 관측·계획·장면 상태를 보관하고 모델 추론과 MoveIt을 연결합니다.
+`DemoNavigator`가 `/run_demo`를 제공하고 BT가 데이터와 작업 흐름을 소유합니다.
+별도 coordinator 프로세스와 단계 중계 액션은 없습니다.
 
-## Groot에서 보는 시나리오 그룹
+```text
+BT: RGB-D → SAM → 물체 점군 → 파지 추론 → TCP 변환·후보 선택
+    → 사전 접근 → 직선 접근 → 닫기·부착 → 리프트 → 복귀
+                   ↓ 직접 호출
+MoveIt: IK / FK / 경로·충돌 검사 / Planning Scene / ExecuteTrajectory
+Controller: FollowJointTrajectory
+```
 
-최상위 `PickSequence` 아래의 네 Sequence가 순서대로 실행됩니다.
-같은 Blackboard를 공유하며, 한 단계가 실패하면 이후 그룹은 실행하지 않습니다.
-
-| Sequence 이름 | 역할 |
+| 구성 | 역할 |
 |---|---|
-| `PrepareAndObserve` | 준비 확인 → 지도 초기화 → home → 그리퍼 열기 → 관측 이동 → 지도 갱신 |
-| `PerceiveAndPlan` | 물체 분할 → 점군 생성 → 파지 추론 → 실행 가능한 파지 선택 |
-| `GraspAndLift` | 사전 접근 → 접근 → 그리퍼 닫기·부착 → 리프트 |
-| `ReturnHome` | 관측 자세 복귀 → home 복귀 |
+| Navigator | 트리 로딩, 요청별 대상, 결과·오류·취소 |
+| BT XML | 단계 순서, 관측·접근·리프트 설정 |
+| BT 인식 노드 | 촬영·SAM 호출·점군 생성·파지 브릿지 호출 |
+| BT 모션 노드 | TCP 변환·후보 선택·폭·목표 생성, MoveIt/그리퍼 직접 호출 |
+| BT 공통 MotionContext | 클라이언트·TF·피드백·충돌 장면 자원 공유; 별도 ROS 서버 없음 |
+| 모델 브릿지 | 모델 프로토콜·ROS 메시지 변환 |
+| MoveIt/controller | 계획·충돌 검사·실행 |
 
-## 역할 분리
+Blackboard는 촬영·마스크·점군·후보와 typed GraspPlan을 전달합니다.
+촬영 유효성, 단계 순서, 손목 회전 제한, 경로 목표 도달, 피드백 최신성 검사를 유지합니다.
+동시에 두 BT 분기가 같은 로봇을 명령하는 것은 거부합니다.
 
-| 계층 | 책임 |
-|---|---|
-| Navigator | 트리 로딩, 요청별 target_text, feedback/result, 취소 |
-| BT XML | 단계 순서, 관측 상승량·각도 |
-| BT 플러그인 | RGB-D 획득, 점군 생성, 브릿지 직접 호출, 포트 데이터, 오류 전달 |
-| 모션 backend | 전달받은 관측 검증, 후보 선택·MoveIt 계획, 충돌 장면·부착·실물 실행 |
-| 모델 bridge | ROS 메시지 검증, ZMQ 요청·응답 변환 |
-| MoveIt/controller | 경로 계획·충돌 검사·궤적 실행 |
+실패·취소 시 실행 액션을 취소하고 미부착 물체·임시 충돌 허용·점군 제외 영역을 정리합니다.
+닫기 중단으로 잡힘 여부가 불명확하거나 이미 부착된 물체는 자동으로 놓지 않습니다.
+심·실물은 같은 XML과 BT 코드를 쓰며 실물은 전송 준비·URDF 시작 한계·실측 도달을 확인합니다.
+물체의 실제 잡힘은 판정하지 않습니다.
 
-home·열기·관측은 `MoveHome`, `OpenGripper`, `MoveObservation`이 각각
-`/grasp/move_home`, `/grasp/open_gripper`, `/grasp/move_observation` Action을 호출합니다.
-세 플러그인은 Nav2 `BtActionNode`를 상속하며 입력 변환·결과·취소 처리를 담당합니다.
-실제 동작은 coordinator에서 심·실물 공통 구현을 사용합니다.
-분할은 `/segment_image`, 추론은 `/infer_grasps` 브릿지에 BT가 직접 요청합니다.
-`CaptureRgbd`와 `BuildObjectCloud`는 BT 내부에서 수행합니다.
-모션 선택·접근·부착·리프트만 `/grasp/*` endpoint를 사용합니다.
-닫기는 `AttachObject` 내부에서 수행합니다. 별도의 독립 닫기 플러그인은 제공하지 않습니다.
-
-## 데이터와 상태
-
-BT Blackboard는 마스크 Image, PointCloud2, GraspCandidate 배열, 계획 ID와 pregrasp를 전달합니다.
-BT가 하나의 불변 촬영 묶음과 마스크·점군·후보를 포트로 연결합니다.
-모션 backend는 frame·stamp·관측 나이·촬영 후 관절 이동 여부를 검사합니다.
-
-계획 단계 순서는 `selected → pregrasp → approached → attached → lifted`입니다.
-계획 ID 불일치·단계 생략·중복 실행은 거부합니다.
-
-## 공통 backend 경계
-
-심·실물은 XML과 시나리오 이동 구현을 공유합니다. backend 준비 확인·피드백·controller는
-각 환경을 사용합니다. 실물은 MuJoCo 검증 서비스를 호출하지 않습니다.
-통신·충돌·팔 동작 완료 확인과 물체 잡힘 판정은 구분합니다. 현재 물체 잡힘은 판정하지 않습니다.
-
-실패·취소 시 미부착 계획의 임시 대상 제외와 손가락 충돌 허용 규칙을 정리합니다.
-부착된 대상은 이후 경로의 충돌 검사에 포함하고 자동으로 놓지 않습니다.
-
-[공통 시나리오](real-bt.md) · [포트와 Action](bt-grasp-stages.md)
+[포트와 직접 호출](bt-grasp-stages.md) · [공통 설정](real-bt.md)

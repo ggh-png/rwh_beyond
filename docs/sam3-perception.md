@@ -1,7 +1,7 @@
 # SAM 3 객체 분할
 
 SAM 3 서버는 한 RGB 이미지와 텍스트/박스 조건에서 해당 물체의 마스크 후보를 반환합니다.
-ROS bridge가 선택된 한 인스턴스의 마스크를 coordinator에 전달합니다.
+ROS bridge가 선택된 한 인스턴스의 마스크를 BT Blackboard에 전달합니다.
 
 ## 입력과 출력
 
@@ -33,7 +33,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 | `highest_score` | 명시적으로 선택한 경우 최고 점수 인스턴스 사용 |
 
 공통 기본값은 `unique`입니다. 박스와 selection point로 대상을 좁힐 수도 있습니다.
-`/run_demo`는 현재 요청별 text를 제공하며 박스·point·policy는 coordinator 설정을 사용합니다.
+`/run_demo`는 현재 요청별 text를 제공하며 박스·point·policy는 bt_perception 설정을 사용합니다.
 모델 실패 시 색상 마스크나 mock 결과로 자동 전환하지 않습니다.
 
 ## 서버와 환경

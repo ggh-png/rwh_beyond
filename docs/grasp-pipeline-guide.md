@@ -20,12 +20,12 @@ ros2 launch ros_runner runner.launch.py
 별도 터미널에서 ROS 환경을 source한 뒤 아래 중 하나를 호출합니다.
 
 ```bash
-# 심: piper_sim 의존 실행 + ROS bridge + coordinator + BT + RViz
+# 심: piper_sim 의존 실행 + ROS bridge + BT + RViz
 ros2 service call /ros_runner/activate_bt_demo_sim std_srvs/srv/Empty '{}'
 ```
 
 ```bash
-# 실물: piper_moveit 의존 실행 + ROS bridge + coordinator + BT
+# 실물: piper_moveit 의존 실행 + ROS bridge + BT
 ros2 service call /ros_runner/activate_bt_demo std_srvs/srv/Empty '{}'
 ```
 
@@ -45,7 +45,7 @@ ros2 topic hz /camera/color/image_raw
 ```
 
 RGB·정렬 Depth·CameraInfo와 촬영 시각 TF가 필요합니다.
-같은 로봇에 대한 MoveIt, 센서, coordinator를 중복 실행하지 않습니다.
+같은 로봇에 대한 MoveIt, 센서, BT navigator를 중복 실행하지 않습니다.
 
 ## 4. 대상 지정과 실행
 

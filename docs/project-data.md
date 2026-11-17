@@ -2,7 +2,7 @@
 
 ## RGB-D와 물체 마스크
 
-coordinator는 같은 timestamp의 RGB·정렬 Depth·CameraInfo를 수집하고 촬영 시각의 TF를 보관합니다.
+`CaptureRgbd` BT 노드는 같은 timestamp의 RGB·정렬 Depth·CameraInfo를 수집하고 촬영 묶음을 Blackboard에 보관합니다. 파지 선택 BT는 촬영 시각의 TF를 조회합니다.
 SAM 3에는 RGB와 물체 설명을 전달합니다. 반환된 한 물체의 binary 마스크를 Depth에 적용합니다.
 
 | 데이터 | 형식 |
@@ -14,7 +14,6 @@ SAM 3에는 RGB와 물체 설명을 전달합니다. 반환된 한 물체의 bin
 | 객체 점군 | `sensor_msgs/PointCloud2`, XYZ, m, 카메라 optical frame |
 
 마스크 밖과 유효하지 않은 Depth를 제외하고 로컬 CPU에서 역투영합니다.
-마스크 경계를 침식해 배경 깊이가 물체 점군에 섞이는 것을 줄입니다.
 GraspGenX는 RGB나 텍스트가 아닌 `float32 [N,3]` XYZ 점군을 받습니다.
 
 ## 파지 후보와 TCP
@@ -49,13 +48,13 @@ SAM 경로는 객체 점군과 주변 Depth에서 물체 AABB와 수평 지지�
 닫기 후에는 같은 물체를 TCP에 부착된 충돌 객체로 취급합니다.
 이는 물체가 실제로 잡혔다는 측정 결과가 아닙니다.
 
-## 관측·계획 ID
+## 관측과 계획
 
 `observation_id`는 한 번의 촬영과 마스크·점군·후보를 연결합니다.
 촬영 후 30초 초과 또는 관절 0.02 rad 초과 변화는 재관측을 요구합니다.
-`plan_id`는 coordinator에 보관한 선택 경로와 단계 진행 상태를 참조합니다.
+`selected_plan` 출력은 선택 경로·목표·폭·단계 상태를 담은 typed GraspPlan 포인터입니다. 후속 BT 노드의 plan 입력으로 연결합니다.
 
-RViz의 base 점군·마커는 디버그 출력입니다. 다음 BT 단계는 토픽에서 결과를 다시 읽지 않고
+점군과 선택 자세 토픽은 디버그 출력입니다. 다음 BT 단계는 토픽에서 결과를 다시 읽지 않고
 Action 결과와 Blackboard 데이터를 사용합니다.
 
 [단계별 포트](bt-grasp-stages.md) · [카메라 TF](d405-sensors.md)

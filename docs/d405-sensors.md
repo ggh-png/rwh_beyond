@@ -11,7 +11,7 @@
 | `/camera/depth/planning_points` | 실물 대상 영역 필터의 계획용 점군 |
 | `/camera/depth/filtered_points` | MoveIt 처리 후 점군 갱신 |
 
-coordinator는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니다.
+BT는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니다.
 유효한 frame·timestamp를 가진 빈 filtered cloud도 갱신 결과로 처리합니다.
 
 ## 장착 설정

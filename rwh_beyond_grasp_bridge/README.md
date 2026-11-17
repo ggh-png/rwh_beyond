@@ -7,7 +7,7 @@
 |---|---|
 | SAM Action | `rwh_beyond_sam3_bridge` |
 | GraspGenX Action·CLI | `rwh_beyond_graspgenx_bridge` |
-| 파지 coordinator·시각화 | `rwh_beyond_grasp_pipeline` |
+| 파지·모션·시각화 | `rwh_beyond_bt` |
 | 변환·wire helper | `rwh_beyond_model_utils` |
 
 [현재 구조와 API](../docs/model-bridges.md) · [실행 가이드](../docs/grasp-pipeline-guide.md)

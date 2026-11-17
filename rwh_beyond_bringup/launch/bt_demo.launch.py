@@ -78,7 +78,7 @@ def generate_launch_description():
                 'config',
                 'bt_demo.yaml',
             ]),
-            description='Shared BT, bridge and coordinator parameter YAML',
+            description='Shared BT and bridge parameter YAML',
         ),
         DeclareLaunchArgument(
             'segmentation_endpoint',
@@ -111,7 +111,6 @@ def generate_launch_description():
                 'target_text': LaunchConfiguration('target_text'),
                 'endpoint': LaunchConfiguration('endpoint'),
                 'use_sim_time': simulation,
-                'start_coordinator': 'true',
                 'mode': LaunchConfiguration('mode'),
             }.items())]),
         # RViz belongs to this BT launch, not the simulator dependency.
@@ -142,6 +141,7 @@ def generate_launch_description():
                         # Tree paths come from params_file. The navigator supplies
                         # package defaults when those parameters are absent.
                         {'use_sim_time': ParameterValue(simulation, value_type=bool),
+                         'bt_motion.simulation_only': ParameterValue(simulation, value_type=bool),
                          'bt_perception.target_text_override': ParameterValue(LaunchConfiguration('target_text'), value_type=str)}],
         ),
         Node(

@@ -9,7 +9,6 @@ from std_msgs.msg import Header
 from rclpy.parameter import Parameter
 from rwh_beyond_msgs.action import InferGrasps
 from rwh_beyond_grasp_bridge.segmentation_client import rgb_array
-from rwh_beyond_grasp_bridge.observed_geometry import observed_bounds
 from rwh_beyond_grasp_bridge.depth_converter import depth_xyz
 from test_bridge import MockServer, mock, bridge, run
 
@@ -72,25 +71,7 @@ def test_rgb_strided_bgr_conversion():
     assert rgb_array(rgb,goal.depth_image)[0,0].tolist()==[3,2,1]
 
 
-def test_observed_geometry_measures_height_from_background_support():
-    goal=rgbd_goal();z=np.full((32,32),.5,np.float32);z[8:24,8:24]=.45
-    goal.depth_image.data=z.tobytes()
-    mask=np.zeros((32,32),np.uint8);mask[8:24,8:24]=1
-    mask=Image(header=goal.depth_image.header,height=32,width=32,encoding='mono8',step=32,data=mask.tobytes())
-    xyz=depth_xyz(goal.depth_image,goal.camera_info,mask)
-    transform=np.eye(4);transform[:3,:3]=np.diag([1,-1,-1]);transform[2,3]=.5
-    center,dims,support=observed_bounds(xyz,goal.depth_image,goal.camera_info,mask,transform)
-    assert support==pytest.approx(0.) and dims[2]==pytest.approx(.056,abs=1e-6)
-    assert center[2]==pytest.approx(.025,abs=1e-6)
-
-
-def test_observed_geometry_rejects_missing_support():
-    goal=rgbd_goal();mask=Image(header=goal.depth_image.header,height=32,width=32,encoding='mono8',step=32,data=bytes([1])*1024)
-    xyz=depth_xyz(goal.depth_image,goal.camera_info,mask)
-    with pytest.raises(ValueError):observed_bounds(xyz,goal.depth_image,goal.camera_info,mask,np.eye(4))
-
-
-@pytest.mark.parametrize('failure',['malformed','no_object','timeout'])
+@pytest.mark.parametrize('failure', ['malformed', 'no_object', 'timeout'])
 def test_segmentation_failure_never_reaches_grasp_model(bridge,mock,failure):
     import time
     segment=MockServer()
@@ -109,30 +90,3 @@ def test_segmentation_failure_never_reaches_grasp_model(bridge,mock,failure):
         assert not result.success and result.message.startswith(expected)
         assert not mock.requests
     finally:segment.close()
-
-
-def test_local_cloud_stage_requires_segmentation_and_expires():
-    import time
-    from types import SimpleNamespace
-    from rwh_beyond_grasp_bridge.grasp_coordinator import GraspCoordinator
-    node=SimpleNamespace(perception=None)
-    with pytest.raises(RuntimeError,match='No BT observation'):
-        GraspCoordinator.perception_context(node)
-    node.perception={'captured_at':time.monotonic()-31}
-    with pytest.raises(RuntimeError,match='expired'):
-        GraspCoordinator.perception_context(node)
-    assert node.perception is None
-
-
-def test_local_snapshot_invalidated_when_arm_moves_but_not_when_gripper_changes():
-    import time
-    from types import SimpleNamespace
-    from sensor_msgs.msg import JointState
-    from rwh_beyond_grasp_bridge.grasp_coordinator import GraspCoordinator
-    context=dict(captured_at=time.monotonic(),capture_joints=JointState(name=['joint1','gripper'],position=[0.,.1]))
-    node=SimpleNamespace(perception=context,joints=JointState(name=['joint1','gripper'],position=[0.,0.]))
-    assert GraspCoordinator.perception_context(node) is context
-    node.joints.position=[.1,0.]
-    with pytest.raises(RuntimeError,match='Arm moved'):
-        GraspCoordinator.perception_context(node)
-    assert node.perception is None

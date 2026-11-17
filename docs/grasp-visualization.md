@@ -1,6 +1,6 @@
 # RViz 디버깅
 
-coordinator가 분할·점군·파지 결과를 Reliable / Transient Local / Keep Last 1로 발행합니다.
+BT가 분할·점군·파지 결과를 Reliable / Transient Local / Keep Last 1로 발행합니다.
 노드가 실행 중이면 나중에 연결한 RViz에서도 마지막 결과를 받을 수 있습니다.
 이 데이터는 마지막 관측의 스냅샷이며 이동 중 물체를 추적한 결과가 아닙니다.
 
@@ -32,7 +32,7 @@ ros2 launch rwh_beyond_grasp_pipeline grasp_visualization.launch.py
 직접 display를 추가하면 Fixed Frame은 `base_link`, 이미지에는 preview/overlay,
 PointCloud2에는 `object_cloud_base`를 사용합니다. durability를 Transient Local로 맞춥니다.
 
-결과가 없으면 coordinator 실행, 분할·점군 단계 성공, 동일 ROS domain과 QoS를 확인합니다.
+결과가 없으면 BT 실행, 분할·점군 단계 성공, 동일 ROS domain과 QoS를 확인합니다.
 모델 서버만 시작해서는 RViz 결과 토픽이 생성되지 않습니다.
 
 [단계별 데이터](project-data.md) · [실행 가이드](grasp-pipeline-guide.md)

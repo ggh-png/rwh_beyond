@@ -1,6 +1,6 @@
 # Final grasp TCP height filter
 
-Configure `grasp_coordinator.ros__parameters` in `rwh_beyond_bringup/config/bt_demo.yaml`:
+Configure `bt_navigator.ros__parameters.bt_motion` in `rwh_beyond_bringup/config/bt_demo.yaml`:
 
 ```yaml
 grasp_height_filter_enabled: true

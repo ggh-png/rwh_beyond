@@ -7,7 +7,7 @@ from sensor_msgs.msg import JointState
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
 from rwh_beyond_msgs.srv import SetGraspRegion
-from rwh_beyond_grasp_pipeline.hardware_coordinator import HardwareGraspCoordinator, feedback_values
+from rwh_beyond_grasp_pipeline.feedback import feedback_values
 from rwh_beyond_grasp_pipeline.physical_trajectory import trajectory_points
 from rwh_beyond_grasp_pipeline.target_cloud_filter import validate_region
 
@@ -37,15 +37,6 @@ def test_trajectory_starts_at_measured_state_and_rejects_invalid_inputs():
                     JointTrajectory(joint_names=names,points=[JointTrajectoryPoint(positions=[float('nan')]*6,time_from_start=Duration(sec=3))]),
                     JointTrajectory(joint_names=names,points=[JointTrajectoryPoint(positions=[.3]*6)])]:
         with pytest.raises(ValueError):trajectory_points(invalid,current,names)
-
-
-def test_physical_readiness_requires_transport_marker_and_never_calls_physics():
-    state=NS(get_parameter=lambda name:NS(value=False),feedback=Mock(),
-             call=Mock(return_value=NS(success=True,message='mock_transport')),physics=Mock())
-    with pytest.raises(RuntimeError):HardwareGraspCoordinator.ensure_backend(state)
-    state.physics.assert_not_called()
-    state.call.return_value.message='physical_feedback_transport'
-    HardwareGraspCoordinator.ensure_backend(state)
 
 
 def test_region_cannot_remove_arbitrary_world_geometry():
@@ -159,27 +150,6 @@ def test_depth_xyz_undistorts_realsense_plumb_bob_calibration():
     assert point[2] == pytest.approx(1.)
 
 
-def test_attach_and_lift_do_not_judge_grasp_or_require_force():
-    from geometry_msgs.msg import TransformStamped
-    from moveit_msgs.msg import CollisionObject
-    transform=TransformStamped();transform.transform.rotation.w=1.
-    state=NS(prepared=True,attached=False,tcp='tcp_link',base='base_link',
-        object=CollisionObject(id='test_target'),
-        get_parameter=lambda name:NS(value={'gripper_close_width':.04,'lift_distance':.08}[name]),
-        command_gripper=Mock(),apply=Mock(),stage=Mock(),
-        holding=Mock(side_effect=AssertionError('Grasp must not be checked')),
-        wait=Mock(side_effect=AssertionError('No wait for contact/force')),
-        buffer=NS(lookup_transform=Mock(return_value=transform)),execute_cartesian=Mock())
-    HardwareGraspCoordinator.attach(state)
-    state.command_gripper.assert_called_once_with(.04)
-    assert state.attached
-    assert state.apply.call_args.args[0].robot_state.attached_collision_objects[0].object.id=='test_target'
-    HardwareGraspCoordinator.lift(state)
-    assert state.execute_cartesian.call_args.args[0].position.z==pytest.approx(.08)
-    state.holding.assert_not_called()
-    state.stage.assert_called_with('lift_motion_completed_grasp_not_checked')
-
-
 def test_fully_closed_gripper_completion_uses_position_without_force(monkeypatch):
     import threading
     import rwh_beyond_grasp_pipeline.physical_trajectory as module
@@ -247,49 +217,3 @@ def test_timed_close_uses_four_seconds_and_keeps_cancel_and_feedback_checks(monk
         handle.abort.assert_called_once()
         handle.succeed.assert_not_called()
         assert result.error_code!=0
-
-
-def test_coordinator_close_goal_carries_four_second_duration():
-    result=NS(status=4,result=NS(error_code=0))
-    handle=NS(accepted=True,get_result_async=lambda:NS(done=lambda:True,result=lambda:result))
-    send=Mock(return_value=NS(done=lambda:True,result=lambda:handle))
-    params={'gripper_close_width':.04,'gripper_close_duration':4.,'simulation_only':False}
-    state=NS(ensure_backend=Mock(),wait=lambda predicate,timeout:predicate(),motion_handle=None,
-        get_parameter=lambda name:NS(value=params[name]),
-        gripper_client=NS(server_is_ready=lambda:True,send_goal_async=send))
-    HardwareGraspCoordinator.command_gripper(state,.04)
-    goal=send.call_args.args[0]
-    assert list(goal.trajectory.points[0].positions)==[.04]
-    assert goal.trajectory.points[0].time_from_start.sec==4
-    assert not goal.path_tolerance
-
-
-@pytest.mark.parametrize('release_previous', [False, True])
-def test_physical_readiness_defers_rgbd_and_capture_tf_to_bt(release_previous):
-    # Deliberately no snapshot(), buffer, or RGB-D subscriptions on this object.
-    node=NS(attached=False, ensure_backend=Mock(), release_previous_target=Mock(),
-        get_parameter=lambda name:NS(value='sam3'),
-        stage_clients={key:NS(service_is_ready=lambda:True)
-                       for key in ('ik','cartesian','plan','region','clear')})
-    scene=NS(scene=NS(robot_state=NS(attached_collision_objects=[])))
-    node.call=Mock(side_effect=lambda key,*args:scene if key=='scene' else NS(success=True))
-    node.wait=Mock(side_effect=lambda predicate,timeout:predicate())
-    HardwareGraspCoordinator.check_ready(node,release_previous=release_previous)
-    node.ensure_backend.assert_called_once()
-    assert [call.args[0] for call in node.call.call_args_list]==['scene','grasp_health','sam_health']
-    assert node.wait.call_args.args[0]()
-    assert node.release_previous_target.call_count==int(release_previous)
-
-
-@pytest.mark.parametrize('failure', ['attachment','grasp_health','sam_health'])
-def test_physical_readiness_still_rejects_attachment_or_unhealthy_models(failure):
-    from rwh_beyond_grasp_pipeline.stage_constants import TARGET
-    attached=[NS(object=NS(id=TARGET))] if failure=='attachment' else []
-    def call(key,*args):
-        if key=='scene':return NS(scene=NS(robot_state=NS(attached_collision_objects=attached)))
-        return NS(success=key!=failure,message='model unavailable')
-    node=NS(attached=False,ensure_backend=Mock(),call=call,
-        get_parameter=lambda name:NS(value='sam3'),wait=Mock())
-    with pytest.raises(RuntimeError):
-        HardwareGraspCoordinator.check_ready(node)
-    node.wait.assert_not_called()

@@ -20,7 +20,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 ```
 
 `target_text`는 해당 실행에만 적용됩니다. 다음 요청에서 생략하면 이전 대상이 아닌 YAML 기본값을 사용합니다.
-Navigator → BT Blackboard → SegmentObject → coordinator → SAM 3로 전달됩니다.
+Navigator → BT Blackboard → SegmentObject → SAM 3 브릿지로 전달됩니다.
 기본 인스턴스 선택 정책은 `unique`이므로 같은 설명에 여러 물체가 해당하면 모호성으로 실패할 수 있습니다.
 
 ## Feedback와 Result

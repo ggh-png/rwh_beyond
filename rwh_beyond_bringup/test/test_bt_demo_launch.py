@@ -54,7 +54,7 @@ class BtDemoLaunchTest(unittest.TestCase):
         context.launch_configurations['params_file'] = '/tmp/bt.yaml'
         self.assertEqual(
             {name: value.perform(context) if hasattr(value, 'perform') else value for name, value in pipeline.launch_arguments},
-            {**{name: f'test_{name}' for name in names}, 'params_file': '/tmp/bt.yaml', 'sam3_params_file': '/tmp/bt.yaml', 'graspgenx_params_file': '/tmp/bt.yaml', 'use_sim_time': 'True', 'start_coordinator': 'true', 'mode': 'sim'})
+            {**{name: f'test_{name}' for name in names}, 'params_file': '/tmp/bt.yaml', 'sam3_params_file': '/tmp/bt.yaml', 'graspgenx_params_file': '/tmp/bt.yaml', 'use_sim_time': 'True', 'mode': 'sim'})
         env_vars = {
             'segmentation_endpoint': ('RWH_SEGMENTATION_ENDPOINT', ''),
             'segmentation_backend': ('RWH_SEGMENTATION_BACKEND', ''),
@@ -121,7 +121,7 @@ class BtDemoLaunchTest(unittest.TestCase):
                        if isinstance(child, IncludeLaunchDescription))
         args = {name: value.perform(context) if hasattr(value, 'perform') else value for name, value in include.launch_arguments}
         self.assertEqual(args['use_sim_time'], 'False')
-        self.assertEqual(args['start_coordinator'], 'true')
+        self.assertNotIn('start_coordinator', args)
         self.assertEqual(args['mode'], 'real')
         rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription)
                     and 'moveit_rviz.launch.py' in entity.launch_description_source.location)

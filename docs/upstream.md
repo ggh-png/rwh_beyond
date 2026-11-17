@@ -15,7 +15,7 @@
 의존 ROS 저장소는 `moma-mj-lab.repos`, GPU 모델 빌드 소스와 버전은 `deploy/`의 Dockerfile과
 설정에서 관리합니다. 각 구성 요소의 라이선스와 모델 가중치 사용 조건을 따릅니다.
 
-프로젝트에서 작성한 코드는 ROS 모델 bridge, coordinator, BT 플러그인, navigator,
+프로젝트에서 작성한 코드는 ROS 모델 bridge, BT 플러그인, navigator,
 센서·실물 실행 통합입니다. pretrained 모델은 별도로 학습하지 않습니다.
 D405 mesh 출처와 라이선스는 `moma_description/meshes/D405-SOURCE.md`, `LICENSE.realsense`에 있습니다.
 

@@ -21,24 +21,6 @@ BT_REGISTER_NODES(factory)
 {
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_clear_octomap_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_home_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_move_observation_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_place_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_open_gripper_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_release_object_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_perception_bt_nodes"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_check_grasp_ready_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_select_feasible_grasp_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_move_to_pregrasp_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_approach_grasp_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_attach_object_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_lift_object_action_bt_node"));
+  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_motion_bt_nodes"));
 }

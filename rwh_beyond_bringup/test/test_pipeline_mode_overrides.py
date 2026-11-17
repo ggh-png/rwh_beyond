@@ -48,8 +48,8 @@ def test_mode_overrides_survive_shared_yaml_wildcard(mode):
         try:
             assert node.get_parameter('use_sim_time').value is (mode == 'sim')
             assert node.declare_parameter('octomap_enabled', True).value is False
-            if launched.node_name == '/grasp_coordinator':
-                assert node.declare_parameter('simulation_only', True).value is (mode == 'sim')
+            if launched.node_name == '/bt_navigator':
+                assert node.declare_parameter('bt_motion.simulation_only', True).value is (mode == 'sim')
         finally:
             node.destroy_node()
             ros.shutdown()

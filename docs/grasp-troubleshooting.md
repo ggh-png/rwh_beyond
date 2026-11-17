@@ -11,13 +11,14 @@
 1000처럼 큰 숫자는 대칭 자세를 포함한 검사 탈락 횟수이며 서버 연결 실패 횟수가 아닙니다.
 폭 검사가 다른 필터보다 먼저 수행되므로 이 검사에서 모두 탈락하면 MoveIt 계획은 요청하지 않습니다.
 
-먼저 `grasp_coordinator.ros__parameters.grasp_width_closing_inset`을 확인합니다.
+먼저 `bt_navigator.ros__parameters.bt_motion.grasp_width_closing_inset`을 확인합니다.
 
 ```yaml
-grasp_coordinator:
+bt_navigator:
   ros__parameters:
-    # 전체 손가락 간격에서 뺄 양(m), 허용 범위 0~0.005.
-    grasp_width_closing_inset: 0.004
+    bt_motion:
+      # 전체 손가락 간격에서 뺄 양(m), 허용 범위 0~0.005.
+      grasp_width_closing_inset: 0.004
 ```
 
 이 예시는 4mm이며, `0.05`는 50mm로 허용 상한 5mm를 초과합니다.
