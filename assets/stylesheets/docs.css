@@ -23,3 +23,62 @@
   .md-typeset table:not([class]) { font-size: .7rem; }
   .md-typeset .mermaid { padding: .5rem; }
 }
+
+/* Plugin reference: scope layout changes to this page. */
+.md-typeset .bt-plugin-index > ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+  padding: 0;
+  margin: 1rem 0 1.5rem;
+  list-style: none;
+}
+.md-typeset .bt-plugin-index > ul > li {
+  padding: .8rem;
+  margin: 0;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: .4rem;
+  font-size: .72rem;
+  line-height: 1.8;
+}
+.md-typeset .bt-plugin-index strong { display: block; margin-bottom: .3rem; }
+.md-typeset .bt-plugin {
+  margin: 1.25rem 0 2rem;
+  padding: 1.1rem 1.2rem .6rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-top: 3px solid var(--md-primary-fg-color);
+  border-radius: .4rem;
+  background: var(--md-default-bg-color);
+}
+.md-typeset .bt-plugin h3 {
+  margin: 0 0 .45rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+  scroll-margin-top: 4rem;
+}
+.md-typeset .bt-plugin-kind {
+  display: inline-block;
+  padding: .1rem .5rem;
+  border-radius: 1rem;
+  background: var(--md-code-bg-color);
+  color: var(--md-default-fg-color--light);
+  font-size: .65rem;
+  font-weight: 600;
+}
+.md-typeset .bt-plugin > p { margin: .6rem 0 1rem; }
+.md-typeset .bt-plugin .tabbed-labels > label { padding: .65rem .7rem; }
+.md-typeset .bt-plugin .tabbed-block > ol { padding-left: .3rem; }
+.md-typeset .bt-plugin .tabbed-block > ol > li { margin-bottom: .7rem; }
+.md-typeset .bt-plugin .admonition { margin: .8rem 0; }
+.md-typeset .bt-plugin .md-typeset__table { display: block; }
+.md-typeset .bt-plugin .md-typeset__scrollwrap { overflow-x: auto; }
+.md-typeset .bt-plugin table code { white-space: nowrap; }
+.md-typeset .bt-plugin table:not([class]) { width: 100%; font-size: .72rem; }
+.md-typeset .bt-plugin td, .md-typeset .bt-plugin th { padding: .6rem .7rem; }
+.md-typeset .bt-plugin-reference > h2 { margin-top: 2.5rem; }
+@media (max-width: 44.984375em) {
+  .md-typeset .bt-plugin-index > ul { grid-template-columns: 1fr; }
+  .md-typeset .bt-plugin { padding: .8rem .7rem .4rem; }
+  .md-typeset .bt-plugin .tabbed-labels > label { padding-inline: .5rem; }
+  .md-typeset .bt-plugin table:not([class]) { min-width: 28rem; }
+}
