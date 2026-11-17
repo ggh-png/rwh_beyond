@@ -4,7 +4,78 @@ SAM 3와 GraspGenX는 ROS 컨테이너와 분리한 GPU 프로세스로 실행�
 서버에서 모델을 준비한 뒤 로봇 PC의 SSH 터널·ROS bridge를 연결합니다.
 아래 Docker 명령은 **GPU 서버 호스트**에서 실행합니다.
 
-## 1. 서버와 모델 준비
+## 배포 모델 컨테이너 생성 { #deployment-model-containers }
+
+`/home/ggh/RWH/beyond`의 **20261117 배포 아카이브**를 받은 경우 이 절을 사용합니다.
+[이미지 불러오기](project-containers.md#deployment-containers)를 먼저 수행합니다.
+다른 GPU 호스트에 복사했다면 `cd` 경로를 실제 배포 폴더로 바꿉니다.
+`compose.models.yaml`과 `scripts/models.sh`는 이 배포 폴더에 포함된 파일입니다.
+
+```bash
+cd /home/ggh/RWH/beyond
+# GPU 서버에 아직 모델 이미지를 불러오지 않은 경우
+docker load --input rwh_beyond_models_20261117.tar.gz
+# 컨테이너 생성·시작
+docker compose -f compose.models.yaml config
+docker compose -f compose.models.yaml up -d
+# 상태와 로그
+docker compose -f compose.models.yaml ps -a
+docker compose -f compose.models.yaml logs --tail 100 sam3 graspgenx
+```
+
+위 Compose 대신 **직접 Docker 명령으로 생성**하려면 다음을 사용합니다.
+이는 배포본 `scripts/models.sh`의 Docker 생성 옵션과 같습니다.
+같은 이름의 컨테이너를 두 방식으로 중복 생성하지 않습니다.
+
+```bash
+docker run -d --name rwh_beyond_graspgenx \
+  --restart unless-stopped --shm-size 256m --gpus all \
+  -p 127.0.0.1:5566:5566 \
+  -v rwh_beyond_graspgenx_cache:/data/cache \
+  -v rwh_beyond_graspgenx_logs:/data/logs \
+  docker.io/rwh_beyond/graspgenx:20261117
+
+docker run -d --name rwh_beyond_sam3 \
+  --restart unless-stopped --shm-size 256m --gpus all \
+  -p 127.0.0.1:5567:5567 \
+  -v rwh_beyond_sam3_cache:/data/cache \
+  -v rwh_beyond_sam3_logs:/data/logs \
+  docker.io/rwh_beyond/sam3:20261117
+```
+
+Podman에서는 GPU CDI를 준비한 뒤 배포 helper를 사용합니다.
+
+```bash
+cd /home/ggh/RWH/beyond
+CONTAINER_ENGINE=podman ./scripts/models.sh start
+CONTAINER_ENGINE=podman ./scripts/models.sh status
+```
+
+가중치는 이미지에 포함돼 있으며 캐시·로그만 named volume으로 보관합니다.
+컨테이너 생성 시 이미지의 기본 서버 명령이 실행됩니다. 가중치 로딩 후 다음으로 확인합니다.
+
+```bash
+docker exec rwh_beyond_graspgenx python /opt/deploy/scripts/health_check.py \
+  --endpoint tcp://127.0.0.1:5566
+docker exec rwh_beyond_sam3 python -c \
+  "from wire import request; print(request('tcp://127.0.0.1:5567', {'action': 'health'}, timeout=5))"
+```
+
+Podman이면 `docker exec`를 `podman exec`로 바꿉니다. 배포 helper의
+`CONTAINER_ENGINE=docker ./scripts/models.sh health`로 두 모델을 함께 검사할 수도 있습니다.
+재시작·종료는 기존 컨테이너를 대상으로 수행합니다.
+
+```bash
+docker start rwh_beyond_graspgenx rwh_beyond_sam3
+docker stop rwh_beyond_graspgenx rwh_beyond_sam3
+```
+
+이 배포본은 GraspGenX 5566·SAM 5567을 사용하며 호스트 loopback에만 공개합니다.
+다른 로봇 PC에서 접속할 때는 SSH 터널을 준비하고 runner의 모델 연결 설정을 맞춥니다.
+다음 절은 배포 이미지가 아닌 **저장소 소스에서 이미지를 빌드하는 방법**입니다.
+서비스 이름과 GraspGenX 기본 포트가 다르므로 명령을 섞어 사용하지 않습니다.
+
+## 1. 소스 빌드로 서버와 모델 준비
 
 로봇 PC `ros_runner/config/runners.yaml`의 `inference_connection`에서
 SSH 주소·계정·포트와 모델 포트를 확인합니다. 인증은 호스트 SSH 키/agent를 사용합니다.

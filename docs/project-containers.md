@@ -1,8 +1,144 @@
 # 환경과 빌드
 
+## 배포 이미지 불러오기와 컨테이너 생성 { #deployment-containers }
+
+아래 명령은 **컨테이너 밖의 Linux 호스트 터미널**에서 실행합니다.
+확인한 배포 폴더는 `/home/ggh/RWH/beyond`이며, 다른 PC에서는 전달받은 폴더 경로로 바꿉니다.
+이 배포 폴더는 Git 저장소의 `deploy/`와 별개입니다. `config/`, `scripts/`,
+`compose.models.yaml`, `SHA256SUMS`를 이미지 파일과 함께 준비합니다.
+
+20261117 배포본은 레지스트리에 게시한 이미지가 아니라 **이미지 아카이브를 전달하는 방식**입니다.
+아래 `docker.io/rwh_beyond/...`는 아카이브를 불러왔을 때 등록되는 로컬 태그이며,
+`docker pull`로 다운로드하는 주소로 사용하지 않습니다.
+이 절은 배포 폴더를 전달받은 상태에서 시작합니다.
+
+| 배포 파일 | 불러오는 이미지 | 생성할 컨테이너 |
+|---|---|---|
+| `rwh_beyond_robot_20261117.tar.gz` | `docker.io/rwh_beyond/robot:20261117` | `rwh_beyond_robot` |
+| `rwh_beyond_models_20261117.tar.gz` | `docker.io/rwh_beyond/sam3:20261117`, `docker.io/rwh_beyond/graspgenx:20261117` | `rwh_beyond_sam3`, `rwh_beyond_graspgenx` |
+
+### 1. 이미지 파일 불러오기
+
+Docker를 사용하는 호스트:
+
+```bash
+cd /home/ggh/RWH/beyond
+sha256sum --check SHA256SUMS
+docker load --input rwh_beyond_robot_20261117.tar.gz
+docker load --input rwh_beyond_models_20261117.tar.gz
+docker image ls --filter reference='docker.io/rwh_beyond/*:20261117'
+```
+
+현재 개발 호스트는 `docker` 명령이 Podman으로 연결되는 환경입니다.
+Podman을 명시해서 사용할 때는 다음 명령을 사용합니다.
+
+```bash
+cd /home/ggh/RWH/beyond
+CONTAINER_ENGINE=podman ./scripts/load-images.sh
+```
+
+이 스크립트는 체크섬 확인 → 두 아카이브 `load` → 세 이미지 ID 확인을 수행합니다.
+Docker에서도 `CONTAINER_ENGINE=docker ./scripts/load-images.sh`로 같은 작업을 할 수 있습니다.
+로봇 PC와 GPU 서버를 분리하면 각 호스트에 필요한 아카이브만 `load`합니다.
+
+### 2. 로봇 컨테이너 생성·접속
+
+현재 호스트의 Podman에서는:
+
+```bash
+cd /home/ggh/RWH/beyond
+CONTAINER_ENGINE=podman ./scripts/robot.sh start
+CONTAINER_ENGINE=podman ./scripts/robot.sh status
+CONTAINER_ENGINE=podman ./scripts/robot.sh shell
+```
+
+Docker를 사용하는 호스트에서는 대신:
+
+```bash
+cd /home/ggh/RWH/beyond
+CONTAINER_ENGINE=docker ./scripts/robot.sh start
+CONTAINER_ENGINE=docker ./scripts/robot.sh shell
+```
+
+**`start`가 최초 호출이면 `run -d`로 생성하고, 같은 이름의 컨테이너가 있으면 `start`로 재시작합니다.**
+로봇·runner는 자동 실행하지 않으며 이미지의 `sleep infinity`로 대기합니다.
+셸 접속은 이미지의 entrypoint를 거쳐 ROS 환경을 불러옵니다.
+
+| 생성 설정 | `robot.sh`가 적용하는 옵션·경로 |
+|---|---|
+| 기본 실행 | `run -d --name rwh_beyond_robot --network host --ipc host --init --security-opt label=disable` |
+| ROS domain | `ROS_DOMAIN_ID` 환경변수, 생략 시 0 |
+| runner 설정 | `config/runners.yaml` → `/opt/rwh_beyond/config/runners.yaml` 읽기 전용 |
+| BT 설정 | `config/bt_demo.yaml` → `/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml` 읽기 전용 |
+| USB·장치 | 존재하는 `/dev/bus/usb`, `/run/udev`, `/dev/video*`, `/dev/media*`, `/dev/dri/renderD*` 연결 |
+| 화면 | `DISPLAY`와 X11 socket이 있으면 연결; 유효한 `XAUTHORITY` 파일이 있으면 함께 연결 |
+| Podman 그룹 | `--group-add keep-groups` |
+| NVIDIA GPU | `RWH_GPU=1`일 때 Podman은 `--device nvidia.com/gpu=all`, Docker는 `--gpus all`과 `NVIDIA_DRIVER_CAPABILITIES=all` |
+
+GPU를 사용하는 시뮬레이션·화면 구성이 필요하면 **최초 생성 시** 다음을 사용합니다.
+NVIDIA driver와 Docker GPU runtime 또는 Podman CDI가 호스트에 준비되어 있어야 합니다.
+
+```bash
+# Podman
+RWH_GPU=1 CONTAINER_ENGINE=podman ./scripts/robot.sh start
+# Docker에서는 위 명령 대신:
+# RWH_GPU=1 CONTAINER_ENGINE=docker ./scripts/robot.sh start
+```
+
+기존 컨테이너의 `start`는 생성 옵션을 바꾸지 않습니다.
+GPU·장치·마운트 옵션을 바꾸려면 기존 생성 설정과 컨테이너 내부 변경분을 확인한 뒤 재생성합니다.
+전체 장치 옵션은 배포 폴더의 `scripts/robot.sh`가 기준입니다.
+
+runner 실행과 종료도 호스트에서 별도로 요청합니다.
+
+```bash
+# 별도 호스트 터미널에서 runner 실행
+CONTAINER_ENGINE=podman ./scripts/robot.sh runner
+# 컨테이너 종료
+CONTAINER_ENGINE=podman ./scripts/robot.sh stop
+```
+
+Docker에서는 `CONTAINER_ENGINE=docker`로 바꿉니다.
+이 배포 컨테이너 이름 `rwh_beyond_robot`은 기존 개발 컨테이너
+`moma_mj_lab_1.1.2_hostcan`과 다릅니다. 새 컨테이너에도 `/root/ros2_ws`가 들어 있으며
+기존 호스트의 `/work` bind mount는 필요하지 않습니다.
+배포 runner는 `config/runners.yaml`을 사용하므로 모델 주소·카메라·CAN을 장비에 맞춥니다.
+실행 절차는 [빠른 시작](grasp-pipeline-guide.md)을 참고하세요.
+
+### 3. 모델 컨테이너 생성
+
+두 모델 이미지와 가중치가 포함된 아카이브를 GPU 호스트에 불러온 뒤 실행합니다.
+로봇 PC와 GPU 호스트가 같으면 같은 배포 폴더에서 이어서 실행합니다.
+
+```bash
+cd /home/ggh/RWH/beyond
+CONTAINER_ENGINE=docker ./scripts/models.sh start
+CONTAINER_ENGINE=docker ./scripts/models.sh status
+# 가중치 로딩이 끝난 뒤
+CONTAINER_ENGINE=docker ./scripts/models.sh health
+```
+
+Podman GPU 호스트에서는 위 명령에서 `CONTAINER_ENGINE=podman`을 사용합니다.
+Docker Compose로 생성하려면 `models.sh start` 대신 다음을 사용합니다.
+
+```bash
+cd /home/ggh/RWH/beyond
+docker compose -f compose.models.yaml config
+docker compose -f compose.models.yaml up -d
+docker compose -f compose.models.yaml ps -a
+```
+
+배포 Compose는 로컬 이미지를 사용하고 자동으로 pull하지 않습니다.
+배포 이미지의 모델 공개 포트는 GraspGenX **5566**, SAM **5567**이며
+호스트 `127.0.0.1`에 연결합니다. 원본 `deploy/graspgenx-docker/`의
+소스 빌드 템플릿 포트 5556과 구분합니다.
+컨테이너 생성·로그·health의 자세한 명령은
+[배포 모델 컨테이너](inference-server-operation.md#deployment-model-containers)를 참고하세요.
+
 ## ROS workspace
 
-현재 작업 컨테이너는 `moma_mj_lab_1.1.2_hostcan`, ROS workspace는 `/root/ros2_ws`입니다.
+기존 개발 컨테이너는 `moma_mj_lab_1.1.2_hostcan`, 위 배포본의 컨테이너는
+`rwh_beyond_robot`이며 ROS workspace는 모두 `/root/ros2_ws`입니다.
 ROS 2 Jazzy와 MoveIt 2를 사용합니다. `/root/ros2_ws`는 컨테이너 내부 파일이며
 호스트 bind mount인 `/work`와 구분합니다.
 
