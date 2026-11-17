@@ -17,9 +17,9 @@ def coordinator():
         cleanup_requested=False,active_handle=None,pre_trajectory='trajectory',grasp_pose='pose',
         cleanups=0,motions=[])
     obj.perception_context=lambda:context
-    obj.require_observation=MethodType(GraspCoordinator.require_observation,obj)
+    obj.accept_observation=lambda request:context
     obj.stage=lambda text:None
-    obj.get_parameter=lambda name:SimpleNamespace(value=True)
+    obj.get_parameter=lambda name:SimpleNamespace(value={'pregrasp_distance':.1,'lift_distance':.08}.get(name,True))
     obj.physics=lambda:None
     obj.ensure_backend=lambda:None
     obj.get_logger=lambda:SimpleNamespace(error=lambda message:None)
@@ -28,7 +28,7 @@ def coordinator():
         if not obj.attached:obj.plan_id='';obj.prepared=False
     obj.cleanup=cleanup
     obj.execute_trajectory=lambda path:obj.motions.append(path)
-    obj.execute_cartesian=lambda pose:obj.motions.append(pose)
+    obj.execute_cartesian=lambda pose,**kwargs:obj.motions.append(pose)
     return obj
 
 
@@ -45,25 +45,6 @@ class Handle:
 def execute(obj,handle,stage):
     assert obj.lock.acquire(False)
     return GraspCoordinator.execute_stage(obj,handle,stage)
-
-
-def test_reject_observation_from_other_capture(coordinator):
-    with pytest.raises(ValueError,match='ID mismatch'):
-        coordinator.require_observation(RunGraspStage.Goal(observation_id='old'))
-
-
-@pytest.mark.parametrize('artifact', ['object_mask','object_cloud'])
-def test_reject_modified_artifact(coordinator,artifact):
-    request=RunGraspStage.Goal(observation_id='capture-a')
-    with pytest.raises(ValueError,match='does not match'):
-        coordinator.require_observation(request,artifact)
-
-
-def test_accept_original_artifacts(coordinator):
-    context=coordinator.perception_context()
-    request=RunGraspStage.Goal(observation_id='capture-a',object_mask=copy.deepcopy(context['mask']),object_cloud=copy.deepcopy(context['cloud']))
-    assert coordinator.require_observation(request,'object_mask') is context
-    assert coordinator.require_observation(request,'object_cloud') is context
 
 
 def test_wrong_plan_never_moves_and_cleans_up(coordinator):
@@ -116,6 +97,8 @@ def test_width_selection_result_binds_apertures_to_the_new_plan(coordinator):
         coordinator.selected_observed_width=.034
         coordinator.selected_gripper_width=.032
         return TcpPose(frame_id='base_link')
+    from geometry_msgs.msg import Pose
+    coordinator.base='base_link';coordinator.grasp_pose=Pose()
     coordinator.select_feasible_grasp=select
     handle=Handle(observation_id='capture-a',object_cloud=copy.deepcopy(context['cloud']),
                   candidates=[candidate],use_estimated_width=True)

@@ -14,10 +14,11 @@
         <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
       </Sequence>
       <Sequence name="PerceiveAndPlan">
-        <SegmentObject server_timeout="1000" observation_id="{observation}" mask="{object_mask}"/>
-        <BuildObjectCloud server_timeout="1000" observation_id="{observation}" mask="{object_mask}" cloud="{object_cloud}"/>
-        <InferGrasps server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}"/>
-        <SelectFeasibleGrasp use_estimated_width="true" grasp_width="{grasp_width}" close_width="{close_width}" server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}" plan_id="{grasp_plan}" pregrasp="{pregrasp}"/>
+        <CaptureRgbd capture="{capture}" observation_id="{observation}"/>
+        <SegmentObject server_timeout="1000" capture="{capture}" mask="{object_mask}"/>
+        <BuildObjectCloud capture="{capture}" mask="{object_mask}" cloud="{object_cloud}"/>
+        <InferGrasps server_timeout="1000" cloud="{object_cloud}" candidates="{grasps}"/>
+        <SelectFeasibleGrasp pregrasp_distance="0.10" lift_distance="0.08" grasp_pose="{grasp_pose}" capture="{capture}" mask="{object_mask}" use_estimated_width="true" grasp_width="{grasp_width}" close_width="{close_width}" server_timeout="1000" observation_id="{observation}" cloud="{object_cloud}" candidates="{grasps}" plan_id="{grasp_plan}" pregrasp="{pregrasp}"/>
       </Sequence>
       <Sequence name="GraspAndLift">
         <MoveToPregrasp server_timeout="1000" plan_id="{grasp_plan}"/>

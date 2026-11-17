@@ -10,6 +10,14 @@
 bt_navigator:
   # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
+    # BT가 직접 수행하는 RGB-D 획득·SAM·파지 추론 설정입니다.
+    bt_perception:
+      target_text: yellow block
+      target_box: [0.0, 0.0, 0.0, 0.0]
+      selection_point: [-1, -1]
+      selection_policy: highest_score
+      num_grasps: 1000
+      top_k: 500
     # 노드 간 생존 확인(bond)의 하트비트 시간 초과 판정을 비활성화합니다.
     bond_disable_heartbeat_timeout: true
     # 액션 서버가 완료된 결과를 보관하는 시간입니다(초).
@@ -141,27 +149,13 @@ grasp_coordinator:
   # 이 노드에 전달할 ROS 2 파라미터입니다.
   ros__parameters:
     # 추정 폭에서 빼는 전체 그리퍼 간격입니다(m). 허용 범위: 0~0.005.
-    grasp_width_closing_inset: 0.05
+    grasp_width_closing_inset: 0.005
     # true이면 /clock의 시뮬레이션 시간을 사용합니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     use_sim_time: true
     # 시뮬레이션 전용 실행 여부입니다. launch의 실행 모드 설정으로 덮어쓸 수 있습니다.
     simulation_only: true
     # 물체 분할 방식입니다. sam3는 서버 분할, color_demo는 명시적인 색상 데모입니다.
     segmentation_backend: sam3
-    # 분할할 대상 물체를 설명하는 기본 텍스트입니다.
-    target_text: yellow block
-    # 분할에 사용할 영상 바운딩 박스입니다. 모두 0이면 박스 입력을 생략합니다.
-    target_box:
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
-    # 분할 대상 선택에 사용할 영상 좌표 [u, v]입니다(픽셀). 음수가 있으면 생략합니다.
-    selection_point:
-    - -1
-    - -1
-    # 여러 분할 결과 중 대상을 고르는 정책입니다. highest_score는 점수가 가장 높은 결과를 선택합니다.
-    selection_policy: highest_score
     # 파지 위치·높이를 계산할 기준 좌표계입니다.
     base_frame: base_link
     # MoveIt에서 목표 자세와 Cartesian 경로를 계산할 공구 중심(TCP) 링크입니다.
@@ -185,10 +179,6 @@ grasp_coordinator:
     - 0.0
     - 0.0
     - -1.5707963267948966
-    # 모델에 요청하는 파지 후보 생성 개수입니다.
-    num_grasps: 1000
-    # 모델 결과에서 점수 기준으로 유지하도록 요청하는 상위 후보 개수입니다.
-    top_k: 500
     # 실제 도달 가능성·경로 검사에 사용할 최대 후보 개수입니다.
     max_candidates: 1000
     # 수직 아래로 향하는 접근 방향에서 허용할 최대 기울기입니다(도, 0~180).
@@ -257,7 +247,7 @@ grasp_coordinator:
     # 고정 폭 BT의 그리퍼 닫기 목표 간격입니다(m). 폭 추정 BT는 선택한 후보의 가변 폭을 사용합니다.
     gripper_close_width: 0.04
     # 그리퍼 닫기 명령의 목표 동작 시간입니다(초).
-    gripper_close_duration: 4.0
+    gripper_close_duration: 2.0
     # 실물 팔의 관절 목표 도달 판정에 사용하는 위치 허용 오차입니다(rad).
     physical_position_tolerance: 0.03
 

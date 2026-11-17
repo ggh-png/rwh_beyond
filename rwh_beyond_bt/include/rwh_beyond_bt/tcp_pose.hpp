@@ -23,8 +23,6 @@ namespace rwh_beyond_bt
 {
 using TcpPose = rwh_beyond_msgs::msg::TcpPose;
 
-// Validate a copy so normalization never mutates the shared blackboard target.
-TcpPose validate_tcp_pose(TcpPose target);
 }  // namespace rwh_beyond_bt
 
 namespace BT
@@ -32,7 +30,7 @@ namespace BT
 template<>
 inline rwh_beyond_msgs::msg::TcpPose convertFromString(StringView)
 {
-  throw RuntimeError("TcpPose requires a typed blackboard object; use MakeTcpPose");
+  throw RuntimeError("TcpPose requires a typed blackboard object");
 }
 }  // namespace BT
 

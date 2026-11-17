@@ -141,7 +141,8 @@ def generate_launch_description():
             parameters=[LaunchConfiguration('params_file'),
                         # Tree paths come from params_file. The navigator supplies
                         # package defaults when those parameters are absent.
-                        {'use_sim_time': ParameterValue(simulation, value_type=bool)}],
+                        {'use_sim_time': ParameterValue(simulation, value_type=bool),
+                         'bt_perception.target_text_override': ParameterValue(LaunchConfiguration('target_text'), value_type=str)}],
         ),
         Node(
             package='nav2_lifecycle_manager',

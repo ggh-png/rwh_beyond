@@ -24,6 +24,13 @@ public:
   std::string getDefaultBTFilepath(rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node) override
   {
     auto node = parent_node.lock();
+    // Declare BT-owned perception overrides before Nav2 copies parameters to
+    // the private action-client node used by the tree plugins.
+    for (const auto & item : node->get_node_parameters_interface()->get_parameter_overrides()) {
+      if (item.first.rfind("bt_perception.", 0) == 0 && !node->has_parameter(item.first)) {
+        node->declare_parameter(item.first, item.second);
+      }
+    }
     const auto package_share = ament_index_cpp::get_package_share_directory("rwh_beyond_bt");
     const auto default_pick_path = package_share + "/behavior_trees/demo.xml";
     const auto default_place_path = package_share + "/behavior_trees/place.xml";

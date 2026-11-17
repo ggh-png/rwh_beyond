@@ -25,25 +25,13 @@ BT_REGISTER_NODES(factory)
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_move_observation_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_place_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_tcp_up_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_close_gripper_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_open_gripper_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_release_object_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_set_gripper_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_move_tcp_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_make_tcp_pose_action_bt_node"));
+  factory.registerFromPlugin(BT::SharedLibrary::getOSName("rwh_beyond_perception_bt_nodes"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_check_grasp_ready_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_segment_object_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_build_object_cloud_action_bt_node"));
-  factory.registerFromPlugin(BT::SharedLibrary::getOSName(
-    "rwh_beyond_infer_grasps_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(
     "rwh_beyond_select_feasible_grasp_action_bt_node"));
   factory.registerFromPlugin(BT::SharedLibrary::getOSName(

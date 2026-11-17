@@ -8,28 +8,18 @@ find_package(moveit_msgs REQUIRED)
 find_package(nav2_behavior_tree REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
-find_package(shape_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(trajectory_msgs REQUIRED)
-find_package(control_msgs REQUIRED)
 find_package(rwh_beyond_msgs REQUIRED)
 
 set(dependencies
-  behaviortree_cpp control_msgs geometry_msgs moveit_msgs nav2_behavior_tree rclcpp
-  rclcpp_action rwh_beyond_msgs sensor_msgs shape_msgs std_srvs tf2_geometry_msgs tf2_ros
-  trajectory_msgs)
+  behaviortree_cpp geometry_msgs moveit_msgs nav2_behavior_tree rclcpp
+  rclcpp_action rwh_beyond_msgs sensor_msgs std_srvs)
 
 add_library(${PROJECT_NAME}_common SHARED
-  src/bt_diagnostic_action_node.cpp
   src/bt_scenario_action_node.cpp
   src/bt_grasp_action_node.cpp
-  src/bt_gripper_command.cpp
-  src/bt_move_group_node.cpp
-  src/diagnostics.cpp
-  src/tcp_pose.cpp)
+  src/diagnostics.cpp)
 target_include_directories(${PROJECT_NAME}_common PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
@@ -53,22 +43,21 @@ add_bt_action_plugin(clear_octomap)
 add_bt_action_plugin(move_home)
 add_bt_action_plugin(move_observation)
 add_bt_action_plugin(move_place)
-add_bt_action_plugin(move_tcp_up)
-add_bt_action_plugin(close_gripper)
 add_bt_action_plugin(open_gripper)
 add_bt_action_plugin(release_object)
-add_bt_action_plugin(set_gripper)
-add_bt_action_plugin(move_tcp)
-add_bt_action_plugin(make_tcp_pose)
 add_bt_action_plugin(check_grasp_ready)
-add_bt_action_plugin(segment_object)
-add_bt_action_plugin(build_object_cloud)
-add_bt_action_plugin(infer_grasps)
 add_bt_action_plugin(select_feasible_grasp)
 add_bt_action_plugin(move_to_pregrasp)
 add_bt_action_plugin(approach_grasp)
 add_bt_action_plugin(attach_object)
 add_bt_action_plugin(lift_object)
+
+add_library(rwh_beyond_perception_bt_nodes SHARED plugins/action/perception_actions.cpp)
+target_link_libraries(rwh_beyond_perception_bt_nodes ${PROJECT_NAME}_common)
+target_compile_features(rwh_beyond_perception_bt_nodes PUBLIC cxx_std_17)
+target_compile_definitions(rwh_beyond_perception_bt_nodes PRIVATE BT_PLUGIN_EXPORT)
+ament_target_dependencies(rwh_beyond_perception_bt_nodes ${dependencies})
+list(APPEND plugin_libs rwh_beyond_perception_bt_nodes)
 
 # Compatibility loader; individual plugins can also be loaded directly by Nav2.
 add_library(${PROJECT_NAME}_nodes SHARED src/register_nodes.cpp)
@@ -95,22 +84,16 @@ if(BUILD_TESTING)
   find_package(ament_cmake_uncrustify REQUIRED)
   ament_cpplint(include plugins src test)
   ament_uncrustify(include plugins src test)
-  ament_add_gtest(test_plugin_registration test/test_plugin_registration.cpp)
-  ament_target_dependencies(test_plugin_registration
-    behaviortree_cpp rwh_beyond_msgs sensor_msgs)
-  target_compile_features(test_plugin_registration PRIVATE cxx_std_17)
-  target_compile_definitions(test_plugin_registration PRIVATE
+  ament_add_gtest(test_bt_actions test/test_bt_actions.cpp)
+  ament_target_dependencies(test_bt_actions
+    behaviortree_cpp geometry_msgs rclcpp rclcpp_action rwh_beyond_msgs sensor_msgs)
+  target_link_libraries(test_bt_actions rwh_beyond_perception_bt_nodes)
+  target_compile_features(test_bt_actions PRIVATE cxx_std_17)
+  target_compile_definitions(test_bt_actions PRIVATE
     BT_PLUGIN_PATH="$<TARGET_FILE:${PROJECT_NAME}_nodes>"
     BT_PLUGIN_DIR="$<TARGET_FILE_DIR:${PROJECT_NAME}_nodes>")
-  add_dependencies(test_plugin_registration ${PROJECT_NAME}_nodes)
-  ament_add_gtest(test_custom_actions test/test_custom_actions.cpp)
-  ament_target_dependencies(test_custom_actions
-    behaviortree_cpp control_msgs geometry_msgs moveit_msgs rclcpp rclcpp_action rwh_beyond_msgs tf2_ros)
-  target_compile_features(test_custom_actions PRIVATE cxx_std_17)
-  target_compile_definitions(test_custom_actions PRIVATE
-    BT_PLUGIN_PATH="$<TARGET_FILE:${PROJECT_NAME}_nodes>")
-  add_dependencies(test_custom_actions ${PROJECT_NAME}_nodes)
-  set_tests_properties(test_custom_actions PROPERTIES ENVIRONMENT "ROS_DOMAIN_ID=87")
+  add_dependencies(test_bt_actions ${PROJECT_NAME}_nodes)
+  set_tests_properties(test_bt_actions PROPERTIES ENVIRONMENT "ROS_DOMAIN_ID=87")
   ament_add_gtest(test_clear_octomap test/test_clear_octomap.cpp)
   ament_target_dependencies(test_clear_octomap
     behaviortree_cpp moveit_msgs rclcpp rwh_beyond_msgs sensor_msgs std_srvs)

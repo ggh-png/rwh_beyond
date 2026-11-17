@@ -41,14 +41,16 @@ home은 `home_joint_positions`에 정의한 6개 관절 목표입니다. 이미 
 ## 공통 YAML
 
 `rwh_beyond_bringup/config/bt_demo.yaml`을 navigator·lifecycle manager·SAM bridge·
-GraspGenX bridge·coordinator가 함께 읽습니다.
+GraspGenX bridge·모션 backend가 함께 읽습니다.
+대상·모델 요청 개수는 `bt_navigator.ros__parameters.bt_perception`,
+모션·충돌 설정은 기존 `grasp_coordinator.ros__parameters`에 있습니다.
 
 | 설정 | 현재 값 | 의미 |
 |---|---|---|
 | `target_text` | `yellow block` | Action에 대상이 없을 때의 기본값 |
 | `gripper_open_width` | 0.10 m | 열기 목표 |
 | `gripper_close_width` | 0.04 m | 고정 폭 트리의 닫기 목표 |
-| `grasp_width_closing_inset` | 0.05 m(유효하지 않음) | 추정 폭 보정, 허용 범위 0~0.005 m |
+| `grasp_width_closing_inset` | 0.005 m | 추정 폭 보정, 허용 범위 0~0.005 m |
 | `gripper_close_duration` | 4.0 s | 실물 닫기 완료 기준 시간 |
 | `grasp_top_down_max_angle_deg` | 55° | 수직 하향에서 허용하는 최대 파지 각도 |
 | `grasp_table_clearance_m` | 0.01 m | TCP의 지지면 위 최소 여유 높이 |

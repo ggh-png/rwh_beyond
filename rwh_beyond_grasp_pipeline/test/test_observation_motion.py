@@ -94,8 +94,8 @@ def test_partial_cartesian_path_is_not_executed():
 def test_shared_tree_orders_home_observation_before_segmentation():
     sequence=ET.parse(ROOT/'rwh_beyond_bt/behavior_trees/demo.xml').find('.//Sequence')
     steps=[node.tag for node in sequence.iter() if node.tag != 'Sequence']
-    assert steps[:7]==['CheckGraspReady','ClearOctomap','MoveHome','OpenGripper',
-                       'MoveObservation','ClearOctomap','SegmentObject']
+    assert steps[:8]==['CheckGraspReady','ClearOctomap','MoveHome','OpenGripper',
+                       'MoveObservation','ClearOctomap','CaptureRgbd','SegmentObject']
     # Operators tune these values in XML; validate their contract, not a fixed preset.
     import math
     observation = sequence.find('.//MoveObservation')

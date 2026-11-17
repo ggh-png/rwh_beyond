@@ -6,8 +6,6 @@ import time
 import rclpy
 from rcl_interfaces.srv import GetParameters
 from .planning_state import arm_position_limits, bounded_planning_state
-from rclpy.time import Time
-from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor, ExternalShutdownException
 from moveit_msgs.srv import GetPlanningScene
 from .stage_constants import TARGET
@@ -107,14 +105,9 @@ class HardwareGraspCoordinator(GraspCoordinator):
             ),
             15,
         )
-        # Require a fresh synchronized physical RGB-D frame and its capture-time TF.
-        frame = self.snapshot()
-        self.buffer.lookup_transform(
-            self.base,
-            frame['depth'].header.frame_id,
-            Time.from_msg(frame['depth'].header.stamp),
-            timeout=Duration(seconds=2),
-        )
+        # CaptureRgbd owns camera acquisition in the BT. The motion boundary
+        # checks the supplied exposure's timestamp, joint state and TF when
+        # SelectFeasibleGrasp runs; readiness must not acquire a second frame.
 
     def state(self):
         self.feedback()

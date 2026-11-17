@@ -16,6 +16,7 @@
 
 #include <cmath>
 #include <memory>
+#include "rwh_beyond_bt/perception_actions.hpp"
 
 namespace rwh_beyond_bt
 {
@@ -32,10 +33,16 @@ BT::PortsList SelectFeasibleGraspAction::providedPorts()
 {
   return providedBasicPorts({BT::InputPort<std::string>("observation_id"),
              BT::InputPort<ObjectCloud>("cloud"),
+             BT::InputPort<Observation>("capture"),
+             BT::InputPort<ObjectMask>("mask"),
              BT::InputPort<GraspCandidates>("candidates"),
              BT::OutputPort<std::string>("plan_id"),
              BT::OutputPort<TcpPose>("pregrasp"),
-             BT::InputPort<bool>("use_estimated_width", false, "Estimate aperture from object cloud"),
+             BT::OutputPort<TcpPose>("grasp_pose"),
+             BT::InputPort<double>("pregrasp_distance", "Pregrasp offset in metres; omit for YAML"),
+             BT::InputPort<double>("lift_distance", "Lift distance in metres; omit for YAML"),
+             BT::InputPort<bool>("use_estimated_width", false,
+        "Estimate aperture from object cloud"),
              BT::OutputPort<double>("grasp_width"),
              BT::OutputPort<double>("close_width")});
 }
@@ -46,6 +53,21 @@ void SelectFeasibleGraspAction::on_tick()
   goal_.use_estimated_width = getInput<bool>("use_estimated_width").value();
   goal_.observation_id = required_input<std::string>("observation_id");
   goal_.object_cloud = required_input<ObjectCloud>("cloud");
+  const auto capture = required_input<Observation>("capture");
+  if (!capture || capture->id != goal_.observation_id) {
+    throw BT::RuntimeError("RGB-D capture does not match observation ID");
+  }
+  goal_.rgb_image = capture->rgb;
+  goal_.depth_image = capture->depth;
+  goal_.camera_info = capture->info;
+  goal_.capture_joints = capture->joints;
+  goal_.object_mask = required_input<ObjectMask>("mask");
+  if (config().input_ports.count("pregrasp_distance")) {
+    goal_.pregrasp_distance = required_input<double>("pregrasp_distance");
+  }
+  if (config().input_ports.count("lift_distance")) {
+    goal_.lift_distance = required_input<double>("lift_distance");
+  }
   goal_.candidates = required_input<GraspCandidates>("candidates");
 }
 
@@ -69,6 +91,7 @@ BT::NodeStatus SelectFeasibleGraspAction::on_success()
   setOutput("close_width", result_.result->close_width);
   setOutput("plan_id", result_.result->plan_id);
   setOutput("pregrasp", result_.result->pregrasp);
+  setOutput("grasp_pose", result_.result->grasp_pose);
   return BT::NodeStatus::SUCCESS;
 }
 

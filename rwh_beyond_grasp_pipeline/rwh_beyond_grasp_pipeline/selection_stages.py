@@ -215,7 +215,7 @@ class SelectionStages:
                 reasons['table_clearance'] += 1
                 continue
             pre = tcp.copy()
-            pre[:3, 3] -= g[:3, 2] * self.get_parameter('pregrasp_distance').value
+            pre[:3, 3] -= g[:3, 2] * getattr(self, 'selection_distances', {}).get('pregrasp_distance', self.get_parameter('pregrasp_distance').value)
             pre_pose, grasp_pose = matrix_pose(pre), matrix_pose(tcp)
             state = self.ik(pre_pose, copy.deepcopy(start_state) if start_state is not None else self.state())
             if state is None:
@@ -239,7 +239,7 @@ class SelectionStages:
                 for n, q in zip(grasp_state.joint_state.name, grasp_state.joint_state.position)
             ]
             lift_pose = copy.deepcopy(grasp_pose)
-            lift_pose.position.z += self.get_parameter('lift_distance').value
+            lift_pose.position.z += getattr(self, 'selection_distances', {}).get('lift_distance', self.get_parameter('lift_distance').value)
             lift_path = self.cartesian(lift_pose, grasp_state)
             if lift_path.fraction < 0.999 or lift_path.error_code.val != 1:
                 reasons['lift_path'] += 1
@@ -290,6 +290,7 @@ class SelectionStages:
                 self.stage(f'grasp_width_m={width:.4f} close_width_m={close_width:.4f} source=point_cloud_estimate')
             if height_band is not None:
                 self.stage(f'selected_grasp_height_above_object_m={tcp[2,3] - object_top_z:.4f}')
+            self.selected_lift_distance = getattr(self, 'selection_distances', {}).get('lift_distance', self.get_parameter('lift_distance').value)
             self.selected_wrist_limits = constraints
             self.grasp_pose = grasp_pose
             self.pre_trajectory = planned.trajectory

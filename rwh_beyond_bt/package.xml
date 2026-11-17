@@ -7,19 +7,14 @@
   <license>Apache-2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>behaviortree_cpp</depend>
-  <depend>control_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>moveit_msgs</depend>
   <depend>nav2_behavior_tree</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
   <depend>rwh_beyond_msgs</depend>
-  <depend>shape_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>std_srvs</depend>
-  <depend>tf2_geometry_msgs</depend>
-  <depend>tf2_ros</depend>
-  <depend>trajectory_msgs</depend>
   <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>ament_cmake_cpplint</test_depend>
   <test_depend>ament_cmake_uncrustify</test_depend>

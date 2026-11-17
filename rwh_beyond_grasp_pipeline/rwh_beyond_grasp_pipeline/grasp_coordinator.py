@@ -1,4 +1,4 @@
-"""RGBD/GraspGenX/MoveIt coordinator with a MuJoCo backend. BT owns stage sequencing."""
+"""Motion/scene backend for BT-owned observations; no RGB-D capture or model forwarding."""
 
 import uuid
 import copy
@@ -32,7 +32,7 @@ from moveit_msgs.srv import (
 )
 from moveit_msgs.action import ExecuteTrajectory
 from tf2_ros import Buffer, TransformListener
-from rwh_beyond_msgs.action import InferGrasps, RunGraspStep, RunGraspStage, SegmentImage
+from rwh_beyond_msgs.action import RunGraspStep, RunGraspStage
 from rwh_beyond_msgs.srv import SetGraspRegion
 from .red_perception import pose_matrix, set_pair
 
@@ -45,7 +45,6 @@ from .stage_errors import Canceled
 
 from .perception_stages import PerceptionStages
 
-from .inference_stages import InferenceStages
 
 from .selection_stages import SelectionStages
 
@@ -62,7 +61,6 @@ class GraspCoordinator(
     ScenarioMotion,
     MotionStages,
     SelectionStages,
-    InferenceStages,
     PerceptionStages,
     Node,
 ):
@@ -70,10 +68,6 @@ class GraspCoordinator(
         super().__init__('grasp_coordinator')
         defaults = {
             'segmentation_backend': 'sam3',
-            'target_text': 'red box',
-            'target_box': [0.0, 0.0, 0.0, 0.0],
-            'selection_point': [-1, -1],
-            'selection_policy': 'unique',
             'base_frame': 'base_link',
             'tcp_link': 'tcp_link',
             'pregrasp_distance': 0.08,
@@ -93,8 +87,6 @@ class GraspCoordinator(
             'grasp_width_closing_inset': 0.002,
             'gripper_close_duration': 4.0,
             'debug_max_candidates': 10,
-            'num_grasps': 100,
-            'top_k': 100,
             'simulation_only': True,
             'octomap_enabled': True,
             'max_candidates': 100,
@@ -151,7 +143,6 @@ class GraspCoordinator(
         self.scene_lock = threading.RLock()
         self.active_handle = None
         self.motion_handle = None
-        self.frames = {}
         self.joints = None
         self.cloud_stamp = 0
         self.cloud_seq = 0
@@ -167,16 +158,6 @@ class GraspCoordinator(
         self.buffer = Buffer(cache_time=Duration(seconds=30))
         self.listener = TransformListener(self.buffer, self)
         self.subs = []
-        for key, typ, topic in [
-            ('rgb', Image, 'camera/color/image_raw'),
-            ('depth', Image, 'camera/depth/image_rect_raw'),
-            ('info', CameraInfo, 'camera/depth/camera_info'),
-        ]:
-            self.subs.append(
-                self.create_subscription(
-                    typ, topic, lambda m, k=key: self.capture(k, m), qos_profile_sensor_data
-                )
-            )
         self.subs.append(
             self.create_subscription(JointState, 'feedback/joint_states', self.joint_callback, 10)
         )
@@ -220,8 +201,6 @@ class GraspCoordinator(
             self.stage_clients['physics'] = self.create_client(
                 Trigger, 'simulation/grasp_state', callback_group=self.group
             )
-        self.segment = ActionClient(self, SegmentImage, 'segment_image', callback_group=self.group)
-        self.infer = ActionClient(self, InferGrasps, 'infer_grasps', callback_group=self.group)
         self.execute_client = ActionClient(
             self, ExecuteTrajectory, 'execute_trajectory', callback_group=self.group
         )
@@ -247,9 +226,6 @@ class GraspCoordinator(
             )
             for command in (
                 "check_ready",
-                "segment_object",
-                "build_object_cloud",
-                "infer_grasps",
                 "select_feasible_grasp",
                 "move_pregrasp",
                 "approach",
@@ -273,12 +249,6 @@ class GraspCoordinator(
         self.cleanup_service = self.create_service(
             Trigger, 'grasp/cleanup', self.cleanup_service_cb, callback_group=self.group
         )
-
-    def capture(self, key, msg):
-        stamp = (msg.header.stamp.sec, msg.header.stamp.nanosec)
-        self.frames.setdefault(stamp, {})[key] = msg
-        for old in sorted(self.frames)[:-8]:
-            self.frames.pop(old, None)
 
     def joint_callback(self, msg):
         self.joints = msg
@@ -450,18 +420,6 @@ class GraspCoordinator(
             if not health.success:
                 raise RuntimeError('Real SAM 3 server required: ' + health.message)
 
-    def require_observation(self, request, artifact=None):
-        context = self.perception_context()
-        if not request.observation_id or request.observation_id != self.observation_id:
-            raise ValueError('Observation ID mismatch; reobserve target')
-        if (
-            artifact
-            and getattr(request, artifact)
-            != context[{'object_mask': 'mask', 'object_cloud': 'cloud'}[artifact]]
-        ):
-            raise ValueError('Input ' + artifact + ' does not match the observation')
-        return context
-
     def execute_stage(self, handle, command):
         self.scene_lock.acquire()
         self.active_handle = handle
@@ -476,18 +434,14 @@ class GraspCoordinator(
                     self.check_ready(release_previous=True)
                 else:
                     self.check_ready()
-            elif command == 'segment_object':
-                self.segment_target(request.target_text)
-                result.object_mask = self.perception['mask']
-            elif command == 'build_object_cloud':
-                self.require_observation(request, 'object_mask')
-                self.build_object_cloud()
-                result.object_cloud = self.perception['cloud']
-            elif command == 'infer_grasps':
-                context = self.require_observation(request, 'object_cloud')
-                result.candidates = self.infer_grasps(context)['candidates']
             elif command == 'select_feasible_grasp':
-                context = self.require_observation(request, 'object_cloud')
+                context = self.accept_observation(request)
+                self.selection_distances = {}
+                for name, minimum, maximum in [('pregrasp_distance', .02, .2), ('lift_distance', .065, .2)]:
+                    value = getattr(request, name) or self.get_parameter(name).value
+                    if not math.isfinite(value) or not minimum <= value <= maximum:
+                        raise ValueError(f'{name} must be in [{minimum}, {maximum}] metres')
+                    self.selection_distances[name] = value
                 if not request.candidates:
                     raise ValueError('No grasp candidates supplied')
                 for candidate in request.candidates:
@@ -504,6 +458,8 @@ class GraspCoordinator(
                     result.width_source = 'point_cloud_estimate'
                 else:
                     result.pregrasp = self.select_feasible_grasp(context, request.candidates)
+                result.grasp_pose.frame_id = self.base
+                result.grasp_pose.pose = self.grasp_pose
                 self.plan_id = uuid.uuid4().hex
                 self.plan_phase = "selected"
                 result.plan_id = self.plan_id
@@ -559,18 +515,6 @@ class GraspCoordinator(
             self.scene_lock.release()
             self.lock.release()
         return result
-
-    def prepare(self):
-        if self.attached:
-            raise RuntimeError('Already holding object')
-        # Legacy prepare remains usable; explicit BT stages reuse the same snapshot.
-        if self.perception is None:
-            self.segment_target()
-        context = self.perception_context()
-        if 'cloud' not in context:
-            self.build_object_cloud()
-        candidates = self.infer_grasps(context)['candidates']
-        return self.select_feasible_grasp(context, candidates)
 
     def cleanup_service_cb(self, request, response):
         if not self.scene_lock.acquire(False):

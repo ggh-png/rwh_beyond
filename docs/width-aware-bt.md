@@ -32,5 +32,5 @@ This width tree opts in to `CheckGraspReady release_previous="true"`. At the beg
 추정 폭이 40mm일 때 0.002는 38mm, 0.004는 36mm의 목표 간격을 만듭니다.
 허용 범위는 0~0.005m이며, 범위를 넘으면 후보별 `invalid_observed_width`가 발생합니다.
 코드 기본값 0.002m와 YAML에 명시한 실행값은 구분해야 합니다.
-현재 YAML의 0.05m는 허용 범위 밖입니다. [오류 진단](grasp-troubleshooting.md)을 참고하세요.
+현재 YAML은 0.005m이며 허용 상한입니다. [오류 진단](grasp-troubleshooting.md)을 참고하세요.
 변경 후 `bt_demo`를 재시작합니다. 이 값은 힘·접촉 제어가 아닙니다.
