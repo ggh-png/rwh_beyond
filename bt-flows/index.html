@@ -1729,7 +1729,7 @@ ROS 통신이 아니라 BT의 포함 관계를 나타냅니다. 각 Sequence의 
 </tbody>
 </table>
 <p>시작·종료 MoveHome을 XML에서 주석 처리하면 시작 home 이동과 최종 home 복귀가 생략됩니다.
-이 경우 첫 관측 전 이미 home에 있어야 하고 관측 자세에서 끝납니다.
+첫 관측은 현재 자세에서 home 기준 관측 목표까지 계획하며 마지막에는 관측 자세에서 끝납니다.
 배치 트리의 첫 MoveHome은 별도로 적용됩니다.</p>
 <p>현재 XML은 사전 접근 0.10m, 리프트 0.08m를 명시합니다.
 관측 목표는 <strong>home TCP 위치 + base Z 0.10m</strong>, 방향은 <strong>home 로컬 Y +40°</strong>입니다.
@@ -1778,7 +1778,7 @@ YAML 관측 기본값 Z=0.20m·Y=30°보다 XML의 값이 우선합니다.</p>
   Joint --&gt;|실패| Stop["중단: 부착·닫힘 유지"]
   Execute --&gt; Release["ReleaseObject&lt;br/&gt;개방 확인 → 부착 해제 → 임시 장면 정리"]
   Release --&gt; Home2["MoveHome"] --&gt; Done["성공: 미부착 상태"]</code></pre>
-<p><code>MovePlace</code>는 부착된 대상이 있고 home에 도착한 경우에만 실행합니다.
+<p><code>MovePlace</code>는 부착된 대상이 필요하며 현재 자세에서 목표로 계획합니다. home 도착은 전제조건이 아닙니다.
 XML의 X·Z는 home TCP 기준 <strong>base 축</strong> 오프셋이며, 절대 위치나 현재 자세에서 누적하는 이동량이 아닙니다.
 Cartesian 요청 자체가 오류이면 중단합니다. 정상 응답이지만 부분 경로이면 충돌 검사 IK·관절 경로를 시도합니다.
 <code>ReleaseObject</code>는 배치 이동이 성공해야 열 수 있습니다. 새로운 촬영·SAM·파지 추론은 하지 않습니다.</p>

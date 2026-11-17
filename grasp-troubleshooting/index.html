@@ -1466,10 +1466,11 @@
 
 
 <h1 id="_1">파지 후보 탈락·오류 진단<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p><code>GRASP_STAGE_FAILED (-1201)</code>은 파지 단계 실패를 묶어 표현합니다.
-<code>error_source</code>, <code>failed_stage</code>, <code>error_msg</code>를 함께 확인합니다.
-<code>select_collision_free_grasp</code>의 <code>No feasible model grasp</code>는 후보를 선택하지 못했다는 뜻이며,
-이 메시지만으로 SAM·GraspGenX 서버가 꺼졌다고 판단할 수 없습니다.</p>
+<p><code>error_domain</code>, <code>error_code</code>, <code>error_source</code>, <code>failed_stage</code>, <code>error_msg</code>를 함께 확인합니다.
+<code>SelectFeasibleGrasp</code>의 <code>No feasible model grasp</code>는 후보를 선택하지 못했다는 뜻이며,
+이 메시지만으로 SAM·GraspGenX 서버가 꺼졌다고 판단할 수 없습니다.
+MoveIt이 반환한 후보별 오류가 있으면 원본 코드가 보고될 수 있고, 그렇지 않으면
+<code>NO_FEASIBLE_GRASP</code>가 사용됩니다. <a href="../bt-operation/#feedback-result">Feedback·Result</a>를 참고하세요.</p>
 <h2 id="invalid_observed_width">invalid_observed_width만 발생하는 경우<a class="headerlink" href="#invalid_observed_width" title="Permanent link">&para;</a></h2>
 <p>현재 폭 추정기는 서로 다른 입력 오류를 모두 <code>invalid_observed_width</code>로 집계합니다.
 1000처럼 큰 숫자는 대칭 자세를 포함한 검사 탈락 횟수이며 서버 연결 실패 횟수가 아닙니다.
@@ -1483,9 +1484,7 @@
 </code></pre></div>
 <p>이 예시는 4mm이며, <code>0.05</code>는 50mm로 허용 상한 5mm를 초과합니다.
 현재 YAML은 <code>0.005</code>m로 설정되어 있습니다. <code>0.05</code>처럼 허용 범위를 넘는 값으로
-바꾸면 후보가 모두 탈락하므로 단위를 확인하고, 변경 후 <code>bt_demo</code>를 재시작합니다.
-현재 코드에서는 이 값의 범위 검사를 후보별 폭 추정에서 수행하기 때문에
-노드가 시작됐더라도 모든 후보가 같은 오류로 탈락할 수 있습니다.</p>
+바꾸면 후보별 검사 전에 설정 오류로 실패하므로 단위를 확인하고, 변경 후 <code>bt_demo</code>를 재시작합니다.</p>
 <p>설정이 유효한데 계속 실패하면 아래 입력 조건을 확인합니다.</p>
 <ul>
 <li>분할된 물체의 3차원 점이 최소 100개이고 모두 유한한 값인지</li>

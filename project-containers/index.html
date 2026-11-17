@@ -430,6 +430,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="변경 반영">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bt-common-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigator 링크 오류
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1421,6 +1438,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="변경 반영">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#bt-common-link" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Navigator 링크 오류
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
     </ul>
@@ -1505,6 +1539,26 @@ ROS 컨테이너에 두 모델을 import하지 않고 ROS bridge가 모델 서�
 <p>Python과 XML은 symlink install을 사용합니다. 실행 중인 ROS 노드는 코드 변경 후 재시작합니다.
 Action 정의나 C++ 플러그인을 변경하면 관련 패키지와 호출 측을 다시 빌드합니다.
 카메라 모델은 <code>moma-mj-lab</code>에서 수정·빌드하며 MoveIt과 BT를 재시작합니다.</p>
+<h3 id="bt-common-link">Navigator 링크 오류<a class="headerlink" href="#bt-common-link" title="Permanent link">&para;</a></h3>
+<p><code>cannot find -lrwh_beyond_bt_common</code>이 발생하면 <code>rwh_beyond_navigator</code>가 BT 공통
+라이브러리를 이름만으로 링크하고 있지 않은지 확인합니다. BT 패키지는 설치된 CMake
+타깃 <code>rwh_beyond_bt::rwh_beyond_bt_common</code>을 내보내므로 navigator에서는 다음과 같이
+사용합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">find_package</span><span class="p">(</span><span class="s">rwh_beyond_bt</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">rwh_beyond_bt::rwh_beyond_bt_common</span><span class="p">)</span>
+</code></pre></div>
+<p>라이브러리의 런타임 검색 경로가 있어도 <code>-l</code>의 <strong>빌드 시</strong> 검색 경로가 자동으로
+추가되는 것은 아닙니다. 이름공간 타깃은 설치된 라이브러리 위치와 의존성을 전달합니다.
+소스 수정 후에는 의존 패키지부터 다시 빌드합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--packages-up-to<span class="w"> </span>rwh_beyond_navigator
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>colcon<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--packages-select<span class="w"> </span>rwh_beyond_navigator
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>colcon<span class="w"> </span>test-result<span class="w"> </span>--test-result-base<span class="w"> </span>build/rwh_beyond_navigator<span class="w"> </span>--verbose
+</code></pre></div>
+<p>이 명령은 navigator와 그 의존성만 빌드합니다. 나머지 패키지까지 필요하면 일반
+<code>colcon build</code>를 실행합니다. 실행 중인 ROS 노드는 재빌드 후 재시작해야 합니다.</p>
 <p><a href="../grasp-pipeline-guide/">실행 가이드</a> · <a href="../piper-runtime/">런타임 설정</a></p>
 
 

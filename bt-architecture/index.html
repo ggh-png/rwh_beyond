@@ -1189,6 +1189,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#plugin-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        플러그인 디렉터리와 등록
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#motion-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        모션 공통 실행과 Blackboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1446,6 +1468,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#plugin-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        플러그인 디렉터리와 등록
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#motion-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        모션 공통 실행과 Blackboard
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1604,6 +1648,130 @@ coordinator 프로세스와 단계별 중계 액션은 없습니다. BT 플러�
 </table>
 <p>MotionContext는 root Blackboard에 보관하며 별도 ROS 서버를 제공하지 않습니다.
 물리 전송과 점군 필터는 장치·센서 기능을 담당하는 별도 노드로 유지합니다.</p>
+<h2 id="plugin-structure">플러그인 디렉터리와 등록<a class="headerlink" href="#plugin-structure" title="Permanent link">&para;</a></h2>
+<p><code>rwh_beyond_bt/</code>에는 사용자 정의 Action 노드 <strong>16종</strong>이 있습니다. 현재 사용자 정의
+Condition 노드는 없으며 <code>plugins/condition/</code>은 향후 Condition을 위한 자리입니다.
+<code>CheckGraspReady</code>는 설정에 따라 기존 물체를 해제할 수 있으므로 Action입니다.
+<code>Sequence</code>는 BehaviorTree.CPP가 제공하는 제어 노드입니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>rwh_beyond_bt/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── include/rwh_beyond_bt/plugins/action/  # Action 선언
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   ├── motion_action.hpp                 # 모션 노드 공통 기반
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>│   └── move_home_action.hpp              # 예: 노드별 헤더
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── plugins/
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── action/
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │   ├── motion_action.cpp             # 공통 실행·취소
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   ├── motion_actions.cpp            # 모션 노드 11종 등록
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   │   ├── move_home_action.cpp          # 예: 노드별 구현
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   │   ├── perception_actions.cpp        # 인식 노드 4종 구현·등록
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   │   └── clear_octomap_action.cpp      # 지도 초기화 구현·등록
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>│   ├── condition/                        # 현재 사용자 정의 노드 없음
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>│   └── register_nodes.cpp                # 전체 라이브러리 로더
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>└── src/                                  # 진단·MotionContext 등 공통 코드
+</code></pre></div>
+<p>모션 Action은 아래 파일명에 <code>.hpp</code>를 붙이면 <code>include/rwh_beyond_bt/plugins/action/</code>의
+선언이고, <code>.cpp</code>를 붙이면 <code>plugins/action/</code>의 구현입니다.</p>
+<table>
+<thead>
+<tr>
+<th>BT 노드</th>
+<th>파일명</th>
+<th>BT 노드</th>
+<th>파일명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CheckGraspReady</code></td>
+<td><code>check_grasp_ready_action</code></td>
+<td><code>SelectFeasibleGrasp</code></td>
+<td><code>select_feasible_grasp_action</code></td>
+</tr>
+<tr>
+<td><code>MoveToPregrasp</code></td>
+<td><code>move_to_pregrasp_action</code></td>
+<td><code>ApproachGrasp</code></td>
+<td><code>approach_grasp_action</code></td>
+</tr>
+<tr>
+<td><code>AttachObject</code></td>
+<td><code>attach_object_action</code></td>
+<td><code>LiftObject</code></td>
+<td><code>lift_object_action</code></td>
+</tr>
+<tr>
+<td><code>MoveHome</code></td>
+<td><code>move_home_action</code></td>
+<td><code>MoveObservation</code></td>
+<td><code>move_observation_action</code></td>
+</tr>
+<tr>
+<td><code>MovePlace</code></td>
+<td><code>move_place_action</code></td>
+<td><code>OpenGripper</code></td>
+<td><code>open_gripper_action</code></td>
+</tr>
+<tr>
+<td><code>ReleaseObject</code></td>
+<td><code>release_object_action</code></td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>인식 노드 4종의 선언은 <code>include/rwh_beyond_bt/plugins/action/perception_actions.hpp</code>에
+함께 있으며, <code>ClearOctomap</code>은 별도 헤더·소스를 사용합니다.
+기존 <code>rwh_beyond_bt/perception_actions.hpp</code>는 호환 include입니다.
+전체 포트와 기능은 <a href="../bt-grasp-stages/">플러그인별 기능·포트</a>를 참고하세요.</p>
+<pre class="mermaid"><code>flowchart LR
+  YAML["bt_demo.yaml&lt;br/&gt;plugin_lib_names"] --&gt; Loader["rwh_beyond_bt_nodes&lt;br/&gt;전체 로더"]
+  Loader --&gt; P["perception_bt_nodes&lt;br/&gt;인식 4종"]
+  Loader --&gt; M["motion_bt_nodes&lt;br/&gt;모션 11종"]
+  Loader --&gt; O["clear_octomap_action_bt_node&lt;br/&gt;지도 1종"]
+  M --&gt; Shared["rwh_beyond_bt_common&lt;br/&gt;진단 상태"]
+  P --&gt; Shared
+  O --&gt; Shared</code></pre>
+<p>모션 노드가 파일과 클래스로 분리되어도 <code>rwh_beyond_motion_bt_nodes</code> <strong>하나의 공유
+라이브러리</strong>로 빌드됩니다. 기존 <code>rwh_beyond_bt_nodes</code> 로더, XML 노드 이름·포트와
+Groot 모델은 유지합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
+같은 노드를 전체 로더와 개별 라이브러리로 중복 등록하지 않습니다.</p>
+<h2 id="motion-execution">모션 공통 실행과 Blackboard<a class="headerlink" href="#motion-execution" title="Permanent link">&para;</a></h2>
+<p>각 모션 클래스의 <code>providedPorts()</code>는 XML 포트를 정의하고 <code>prepare()</code>는 BT 스레드에서
+입력을 읽습니다. <code>perform()</code>에는 해당 노드의 실제 동작이 있습니다.
+<code>SelectFeasibleGrasp</code>는 완료 후 선택된 계획·목표·폭을 출력 포트로 기록합니다.</p>
+<table>
+<thead>
+<tr>
+<th>공통 처리</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MotionAction::onStart()</code></td>
+<td>단계 진단 초기화, 입력 확인, 취소 토큰 생성, 비동기 작업 시작</td>
+</tr>
+<tr>
+<td><code>MotionContext::operation</code></td>
+<td>동시 모션 작업을 거부해 두 분기가 같은 로봇을 동시에 명령하지 않도록 보호</td>
+</tr>
+<tr>
+<td><code>MotionAction::onRunning()</code></td>
+<td>작업 완료 전 <code>RUNNING</code>, 완료 후 출력과 <code>SUCCESS</code> 또는 진단과 <code>FAILURE</code></td>
+</tr>
+<tr>
+<td><code>onHalted()</code>·소멸자</td>
+<td>취소 요청 후 작업 종료를 기다림. 파생 노드도 소멸 전에 작업을 중지</td>
+</tr>
+<tr>
+<td><code>MotionContext</code></td>
+<td>Blackboard의 공유 객체로 MoveIt·그리퍼 클라이언트, 장면과 부착 상태 관리</td>
+</tr>
+</tbody>
+</table>
+<p>Blackboard는 관측·계획과 공유 객체를 전달하지만 비동기 실행이나 취소를 대신하지 않습니다.
+<code>execution_state</code>에는 mutex로 보호하는 최신 진단 상태가 있으며, Navigator가 이를 읽어
+ROS Feedback과 Result를 만듭니다. 과거 이력을 저장하는 큐는 아닙니다.
+<a href="../bt-operation/#feedback-result">Feedback·오류 전달</a>에서 외부 필드를 확인하세요.</p>
 <h2 id="xml">XML 로드 전 처리<a class="headerlink" href="#xml" title="Permanent link">&para;</a></h2>
 <p>Groot에서 저장한 기본·사용자 XML은 Navigator의 <code>XmlTreeFilter</code>를 거칩니다.
 빈 문자열 속성을 제거한 임시 실행 사본을 Nav2에 전달하며 상대 include도 함께 처리합니다.
