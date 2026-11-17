@@ -1436,6 +1436,89 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bt-equations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        좌표·목표·폭 계산식
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="좌표·목표·폭 계산식">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 마스크·깊이 → 카메라 점군
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-tf-tcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 촬영 TF·대칭 후보·TCP 보정
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 후보 검사 순서와 위치 필터
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 사전 접근·접근·리프트 목표
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grasp-width-equations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 점군 백분위수 → 전체 닫기 폭
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-home" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. home 기준 관측·배치 목표
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2003,6 +2086,89 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#bt-equations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        좌표·목표·폭 계산식
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="좌표·목표·폭 계산식">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 마스크·깊이 → 카메라 점군
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-tf-tcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 촬영 TF·대칭 후보·TCP 보정
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 후보 검사 순서와 위치 필터
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 사전 접근·접근·리프트 목표
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grasp-width-equations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 점군 백분위수 → 전체 닫기 폭
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-home" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. home 기준 관측·배치 목표
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2247,6 +2413,170 @@ Cartesian 요청 자체가 오류이면 중단합니다. 정상 응답이지만 
 <p>모델이 만드는 것은 후보 위치·방향·점수입니다. TCP 보정과 사전 접근·리프트 목표는 BT가 생성합니다.
 선택 중에는 실제 팔을 움직이지 않습니다. <code>MoveToPregrasp</code>가 처음으로 선택 경로를 실행하고,
 접근·리프트는 실행 시점의 현재 상태와 장면으로 Cartesian 경로를 다시 계산합니다.</p>
+<h2 id="bt-equations">좌표·목표·폭 계산식<a class="headerlink" href="#bt-equations" title="Permanent link">&para;</a></h2>
+<p>이 절은 위 흐름의 <strong>실제 C++ 계산</strong>을 풀어 쓴 것입니다. 거리·폭은 m,
+회전 행렬에 넣는 각도는 rad입니다. XML의 <code>tilt_deg</code>는 도 단위로 받고 rad로 바꿉니다.
+<code>B</code>는 base, <code>C</code>는 촬영 카메라 optical frame, <code>G</code>는 모델 파지 좌표계,
+<code>T</code>는 로봇 TCP입니다. <span class="arithmatex">\(\mathbf e_x,\mathbf e_y,\mathbf e_z\)</span>는 각 좌표계의 단위축입니다.</p>
+<h3 id="1">1. 마스크·깊이 → 카메라 점군<a class="headerlink" href="#1" title="Permanent link">&para;</a></h3>
+<p><code>BuildObjectCloud</code>는 마스크가 0이 아닌 픽셀 <span class="arithmatex">\((u,v)\)</span> 중 유한한 양의 깊이만 사용합니다.
+<code>CameraInfo.K</code>의 <span class="arithmatex">\(f_x,f_y\)</span>는 초점 거리(px), <span class="arithmatex">\(c_x,c_y\)</span>는 주점(px),
+<span class="arithmatex">\(s=K_{01}\)</span>은 skew입니다. 왜곡이 0일 때 코드의 계산은 다음과 같습니다.</p>
+<div class="arithmatex">\[
+z = \begin{cases}0.001\,D(u,v) &amp; \texttt{16UC1 (mm)}\\D(u,v)&amp;\texttt{32FC1 (m)}\end{cases}
+\]</div>
+<div class="arithmatex">\[
+x_n=\frac{u-c_x}{f_x},\qquad y_n=\frac{v-c_y}{f_y},\qquad
+\mathbf p^C=z\begin{bmatrix}x_n\\y_n\\1\end{bmatrix}.
+\]</div>
+<p>현재 코드는 <span class="arithmatex">\(K_{01}\)</span>을 계산에 사용하지 않으므로 위 식은 skew를 보정하지 않습니다.
+왜곡 계수가 있으면 <code>plumb_bob</code>의 5개 또는 8개 계수만 지원하며,
+<span class="arithmatex">\((x_0,y_0)=(x_n,y_n)\)</span>에서 아래 갱신을 <strong>8회</strong> 수행한 뒤 <span class="arithmatex">\((zx_8,zy_8,z)\)</span>를 저장합니다.</p>
+<div class="arithmatex">\[
+\begin{aligned}
+r_j^2&amp;=x_j^2+y_j^2,\\
+a_j&amp;=\frac{1+k_1r_j^2+k_2r_j^4+k_3r_j^6}{1+k_4r_j^2+k_5r_j^4+k_6r_j^6},\\
+\delta x_j&amp;=2p_1x_jy_j+p_2(r_j^2+2x_j^2),\\
+\delta y_j&amp;=p_1(r_j^2+2y_j^2)+2p_2x_jy_j,\\
+x_{j+1}&amp;=x_j+x_n-(x_ja_j+\delta x_j),\\
+y_{j+1}&amp;=y_j+y_n-(y_ja_j+\delta y_j).
+\end{aligned}
+\]</div>
+<p>계수 배열 순서는 <code>D=[k1,k2,p1,p2,k3,k4,k5,k6]</code>이며 5개 계수에서는 분모를 1로 둡니다.
+유효한 대상 점이 100개 미만이면 실패합니다. RGB·Depth·보정은 동일 해상도·좌표계의
+정렬된 관측이어야 하며, 이 단계에서 RGB와 Depth의 외부 보정을 새로 계산하지 않습니다.</p>
+<p>구현: <code>rwh_beyond_bt/plugins/action/perception_actions.cpp</code>의 <code>project_object_cloud()</code>.</p>
+<h3 id="2-tf-tcp">2. 촬영 TF·대칭 후보·TCP 보정<a class="headerlink" href="#2-tf-tcp" title="Permanent link">&para;</a></h3>
+<p><span class="arithmatex">\({}^{A}\!T_D\)</span>는 D 좌표를 A 좌표로 옮기는 4×4 동차 변환입니다.
+촬영 시각 <span class="arithmatex">\(t_c\)</span>의 TF와 모델 응답을 곱해 base 기준 파지 자세를 만듭니다.</p>
+<div class="arithmatex">\[
+{}^BT_G={}^BT_C(t_c)\,{}^CT_G,\qquad
+{}^BT_G=\begin{bmatrix}R_G&amp;\mathbf p_G\\\mathbf0^\mathsf T&amp;1\end{bmatrix}.
+\]</div>
+<p>모델 로컬 Z축을 중심으로 180° 회전한 대칭 자세도 검사합니다.
+<span class="arithmatex">\(\sigma\in\{0,1\}\)</span>에 대해:</p>
+<div class="arithmatex">\[
+{}^BT_{G,\sigma}={}^BT_G
+\begin{bmatrix}R_z(\sigma\pi)&amp;\mathbf0\\\mathbf0^\mathsf T&amp;1\end{bmatrix},\qquad
+{}^BT_{T,\sigma}={}^BT_{G,\sigma}\,{}^GT_T.
+\]</div>
+<div class="arithmatex">\[
+{}^GT_T=\begin{bmatrix}R_z(\psi)R_y(\theta)R_x(\phi)&amp;\mathbf t\\\mathbf0^\mathsf T&amp;1\end{bmatrix},\quad
+\mathbf t=\begin{bmatrix}0\\0\\0.13\end{bmatrix},\quad
+(\phi,\theta,\psi)=(0,0,-\pi/2).
+\]</div>
+<p>위 보정값은 현재 YAML <code>model_to_tcp_xyz/rpy</code>입니다.
+곱셈을 풀어 쓰면 <span class="arithmatex">\(\mathbf p_T=\mathbf p_G+R_{G,\sigma}\mathbf t\)</span>,
+<span class="arithmatex">\(R_T=R_{G,\sigma}R_{GT}\)</span>입니다. <strong>0.13m는 모델 로컬 축 방향의 보정</strong>이며,
+base Z에 일괄 0.13m를 더하는 계산이 아닙니다. URDF의 flange→TCP 오프셋과도 다릅니다.</p>
+<h3 id="3">3. 후보 검사 순서와 위치 필터<a class="headerlink" href="#3" title="Permanent link">&para;</a></h3>
+<p>브릿지는 점수 내림차순의 <code>top_k</code>개 후보를 반환합니다. BT는 그중 앞의
+<code>max_candidates</code>개를 원본·대칭 자세로 확장합니다. 기본값
+<code>moveit_prefer_current_grasp_orientation=true</code>에서는 다음 회전 차이가 작은 순서로
+<strong>전체 대칭 후보 목록을 stable sort</strong>합니다.</p>
+<div class="arithmatex">\[
+\alpha_{i,\sigma}=\cos^{-1}\!\left(
+\frac{\operatorname{tr}(R_{\mathrm{current}}^\mathsf T R_{T,i,\sigma})-1}{2}\right),\qquad
+0\le\alpha\le\pi.
+\]</div>
+<p>코드는 Eigen의 <code>AngleAxisd(...).angle()</code>로 같은 회전각을 구합니다.
+동률일 때 입력 순서를 유지하며, 옵션이 false이면 모든 정렬 키가 0이므로
+원래 후보 순서에서 원본→대칭 순으로 검사합니다. 모든 검사를 통과한 <strong>첫 후보</strong>를
+선택하며 점수와 회전각의 가중합을 최적화하지 않습니다.</p>
+<p>모델 접근축은 <span class="arithmatex">\(\mathbf a=R_G\mathbf e_z\)</span>입니다. 하향 접근 허용각
+<span class="arithmatex">\(\beta=55^\circ\)</span>이면 다음 조건이 필요합니다.</p>
+<div class="arithmatex">\[
+\mathbf e_z^\mathsf T\mathbf a\le-\cos\beta.
+\]</div>
+<p>대상 경계는 base 점군 각 축의 1·99백분위로 계산합니다. Z 하한은 주변 Depth로
+추정한 지지면 <span class="arithmatex">\(z_s\)</span>로 교체하고, 박스 크기에 총 6mm를 더합니다.</p>
+<div class="arithmatex">\[
+\mathbf l=(Q_{.01}(X_B),Q_{.01}(Y_B),z_s)^\mathsf T,\quad
+\mathbf u=(Q_{.99}(X_B),Q_{.99}(Y_B),Q_{.99}(Z_B))^\mathsf T,
+\]</div>
+<div class="arithmatex">\[
+\mathbf c=\frac{\mathbf l+\mathbf u}{2},\quad
+\mathbf d=\mathbf u-\mathbf l+0.006\,\mathbf1,\quad
+\mathbf p_{\mathrm{contact}}=\mathbf p_G+0.105\,\mathbf a.
+\]</div>
+<p>경계 검사는 <span class="arithmatex">\(|p_{\mathrm{contact},a}-c_a|\le d_a/2+m\)</span>이며 현재 여유
+<span class="arithmatex">\(m=0.05\)</span>m입니다. 높이 필터가 꺼져 있으면 X·Y·Z, 켜져 있으면 X·Y만 검사합니다.
+접촉 기준점의 0.105m와 TCP 보정 0.13m는 서로 다른 값입니다.</p>
+<p>지지면 추정은 물체 XY 중심 반경 0.35m 안이고 물체 상단보다 5mm 이상 낮은
+배경 점을 모아 5mm 높이 bin의 최빈 구간을 찾습니다. 해당 bin 중심 ±6mm의 점이
+100개 이상이면서 전체 배경 후보의 15% 이상이면 그 중앙값을 <span class="arithmatex">\(z_s\)</span>로 사용합니다.
+물체 상단은 <span class="arithmatex">\(z_{\mathrm{top}}=Q_{.99}(Z_B)\)</span>입니다.</p>
+<div class="arithmatex">\[
+p_{T,z}\ge z_s+c_{\mathrm{table}},\qquad
+h_{\min}-10^{-9}\le p_{T,z}-z_{\mathrm{top}}\le h_{\max}+10^{-9}.
+\]</div>
+<p>첫 조건은 항상 적용하며 현재 <span class="arithmatex">\(c_{\mathrm{table}}=0.01\)</span>m입니다. 두 번째 조건은
+<code>grasp_height_filter_enabled=true</code>일 때만 적용합니다(현재 false).
+높이 필터는 후보를 이동시키지 않고 탈락 여부만 결정합니다.</p>
+<h3 id="4">4. 사전 접근·접근·리프트 목표<a class="headerlink" href="#4" title="Permanent link">&para;</a></h3>
+<p>최종 TCP 위치 <span class="arithmatex">\(\mathbf p_T\)</span>에서 <strong>모델 접근축의 반대 방향</strong>으로
+<span class="arithmatex">\(d_{\mathrm{pre}}=0.10\)</span>m 이동한 곳이 사전 접근 목표입니다.</p>
+<div class="arithmatex">\[
+\mathbf p_{\mathrm{pre}}=\mathbf p_T-d_{\mathrm{pre}}\mathbf a,\qquad
+R_{\mathrm{pre}}=R_T.
+\]</div>
+<p>접근은 이 목표에서 <span class="arithmatex">\(\mathbf p_T\)</span>까지의 Cartesian 경로입니다.
+선택 중 리프트 검사는 <span class="arithmatex">\(\mathbf p_T+d_{\mathrm{lift}}\mathbf e_z\)</span>를 사용하지만,
+실행 중 <code>LiftObject</code>는 <strong>그 시점 관절 피드백의 FK</strong>를 기준으로 목표를 다시 만듭니다.</p>
+<div class="arithmatex">\[
+\mathbf p_{\mathrm{lift,check}}=\mathbf p_T+0.08\mathbf e_z,\qquad
+\mathbf p_{\mathrm{lift,run}}=\mathbf p_{\mathrm{FK,current}}+0.08\mathbf e_z.
+\]</div>
+<p>리프트는 base +Z이며 접근축 방향이 아닙니다. 각 리프트 계산은 기준 자세의 방향을 유지합니다.
+후보 검사는 사전 접근 IK→접근 Cartesian→리프트 Cartesian→사전 접근 OMPL 순입니다.
+Cartesian 응답은 MoveIt 성공, 유한한 <code>fraction &gt;= 0.999</code>, 유효 궤적을 모두 요구합니다.
+손목 제한이 켜지면 선택 시작 시 <code>joint4/joint6</code> 값 <span class="arithmatex">\(q_{j,0}\)</span> 기준으로
+<span class="arithmatex">\(|q_j-q_{j,0}|\le\Delta\)</span>를 IK 목표와 검사 궤적의 모든 점에 적용합니다.
+<span class="arithmatex">\(\Delta\)</span>는 <code>moveit_pregrasp_wrist_max_deviation_deg</code>를 rad로 변환한 값입니다.</p>
+<h3 id="grasp-width-equations">5. 점군 백분위수 → 전체 닫기 폭<a class="headerlink" href="#grasp-width-equations" title="Permanent link">&para;</a></h3>
+<p>카메라 점 <span class="arithmatex">\(\mathbf p_k^C\)</span>를 원본 모델 파지의 로컬 X축으로 투영합니다.
+TCP 보정 후의 로컬 X축과 혼동하지 않도록 주의합니다.</p>
+<div class="arithmatex">\[
+s_k=(\mathbf p_k^C-\mathbf p_G^C)^\mathsf T R_G^C\mathbf e_x,\qquad
+L=Q_{.02}(s),\quad U=Q_{.98}(s).
+\]</div>
+<p><span class="arithmatex">\(Q_p\)</span>는 정렬된 <span class="arithmatex">\(n\)</span>개 값 <span class="arithmatex">\(s_{(0)},\ldots,s_{(n-1)}\)</span>에서 선형 보간합니다.
+<span class="arithmatex">\(j=\lfloor p(n-1)\rfloor\)</span>, <span class="arithmatex">\(\lambda=p(n-1)-j\)</span>일 때:</p>
+<div class="arithmatex">\[
+Q_p(s)=s_{(j)}+\lambda\big(s_{(\min(j+1,n-1))}-s_{(j)}\big).
+\]</div>
+<p>최소 100점, <span class="arithmatex">\(U-L\ge0.008\)</span>m, <span class="arithmatex">\(L&lt;0&lt;U\)</span>가 필요합니다.
+통과하면 중심축 양쪽을 대칭으로 감싸는 전체 폭과 명령 폭을 계산합니다.</p>
+<div class="arithmatex">\[
+w_{\mathrm{observed}}=2\max(|L|,|U|),\qquad
+w_{\mathrm{close}}=\min(w_{\max},w_{\mathrm{observed}}-\delta).
+\]</div>
+<p><span class="arithmatex">\(U-L\)</span> 대신 대칭 폭을 쓰므로 후보 중심이 물체 중앙에서 벗어나도 더 먼 쪽까지 감쌉니다.
+현재 YAML은 <span class="arithmatex">\(\delta=0.005\)</span>m(전체 간격에서 차감), <span class="arithmatex">\(w_{\max}=0.10\)</span>m입니다.
+예를 들어 <span class="arithmatex">\(L=-0.018\)</span>m, <span class="arithmatex">\(U=0.022\)</span>m이면 관측 폭은 44mm,
+닫기 명령은 39mm입니다. inset은 손가락마다 빼는 값이 아닙니다.</p>
+<p><code>grasp_width</code>는 상한 적용 전 관측 폭, <code>close_width</code>는 명령 전체 간격입니다.
+관측 폭이 최대 개방 폭보다 커도 코드는 명령 폭만 제한합니다.
+추정 실패 시 해당 후보가 탈락하며 고정 폭으로 대체하지 않습니다.
+고정 폭 트리는 이 추정을 생략하고 <code>gripper_close_width</code>(현재 0.04m)를 사용합니다.</p>
+<h3 id="6-home">6. home 기준 관측·배치 목표<a class="headerlink" href="#6-home" title="Permanent link">&para;</a></h3>
+<p>home 관절값의 FK를 <span class="arithmatex">\((R_H,\mathbf p_H)\)</span>라고 하면 관측 목표는:</p>
+<div class="arithmatex">\[
+\mathbf p_{\mathrm{obs}}=\mathbf p_H+\begin{bmatrix}x\\y\\z\end{bmatrix},\qquad
+R_{\mathrm{obs}}=R_HR_z(\gamma)R_y(\beta)R_x(\alpha).
+\]</div>
+<p>평행이동은 base 축, 회전은 home 로컬 축 기준입니다. roll·yaw는 YAML의
+<code>observation_tilt_rpy_deg</code>를 사용하고 <code>tilt_deg</code> 포트가 pitch를 덮어씁니다.
+현재 XML/YAML 조합은 <span class="arithmatex">\((x,y,z)=(0,0,0.10)\)</span>m, <span class="arithmatex">\((\alpha,\beta,\gamma)=(0,40^\circ,0)\)</span>입니다.
+복귀 시에도 같은 home 기준 목표를 계산하므로 현재 위치에 오프셋을 누적하지 않습니다.</p>
+<p>배치 목표는 다음과 같고 home 방향을 유지합니다.</p>
+<div class="arithmatex">\[
+\mathbf p_{\mathrm{place}}=\mathbf p_H+\begin{bmatrix}0.20\\0\\0.15\end{bmatrix},\qquad
+R_{\mathrm{place}}=R_H.
+\]</div>
+<p>구현 근거: <code>rwh_beyond_bt/src/motion_context.cpp</code>의 <code>select()</code>·<code>estimate_aperture()</code>·<code>quantile()</code>,
+<code>plugins/action/move_observation_action.cpp</code>, <code>move_place_action.cpp</code>, <code>lift_object_action.cpp</code>.
+현재 값은 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>과 <code>behavior_trees/demo_width.xml</code>·<code>place.xml</code> 기준입니다.</p>
 <h2 id="_3">플러그인 내부 처리의 연결<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>다음 그림은 XML의 새 제어 노드가 아니라 플러그인 안의 처리 단계입니다.
 실선은 정상 진행, 점선은 실패 이후 정리 판단으로 이어집니다.</p>
@@ -2430,6 +2760,10 @@ Cartesian 요청 자체가 오류이면 중단합니다. 정상 응답이지만 
     
     
       <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../assets/javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
       
     
   </body>

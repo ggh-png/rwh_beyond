@@ -1816,7 +1816,10 @@
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>git<span class="w"> </span>diff<span class="w"> </span>--check
 </code></pre></div>
 <p>메뉴와 테마는 <code>mkdocs.yml</code>, 버전은 <code>requirements-docs.txt</code>, 스타일은
-<code>docs/assets/stylesheets/docs.css</code>에서 관리합니다. Mermaid fenced block으로 구조도를 작성합니다.</p>
+<code>docs/assets/stylesheets/docs.css</code>에서 관리합니다. Mermaid fenced block으로 구조도를 작성합니다.
+수식은 <code>pymdownx.arithmatex</code>와 MathJax로 렌더링하며 <code>$...$</code>는 인라인,
+별도 줄의 <code>$$...$$</code>는 블록 수식입니다. MathJax 설정은
+<code>docs/assets/javascripts/mathjax.js</code>, 로딩 버전은 <code>mkdocs.yml</code>에서 관리합니다.</p>
 <p><code>main</code>의 문서 변경은 GitHub Actions에서 strict 빌드 후 <code>gh-pages</code>로 배포합니다.
 소스는 <code>docs/</code>에서 수정하며 생성된 <code>site/</code>와 <code>gh-pages</code> 파일을 직접 편집하지 않습니다.
 문서는 <a href="../">홈</a>의 목적별 안내에서 시작해 <strong>처음 사용하기 → 설정과 운영 → 문제 해결 →
@@ -1923,6 +1926,10 @@
     
     
       <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../assets/javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
       
     
   </body>

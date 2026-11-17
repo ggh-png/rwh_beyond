@@ -1983,8 +1983,10 @@ GraspGenX는 RGB나 텍스트가 아닌 <code>float32 [N,3]</code> XYZ 점군을
 <p>공통 YAML의 <code>model_to_tcp_xyz=[0,0,0.13]</code> m,
 <code>model_to_tcp_rpy=[0,0,-pi/2]</code> rad를 사용합니다.
 이 값은 flange에서 TCP까지의 URDF <code>tcp_offset</code>과 다른 변환입니다.</p>
-<p>선택기는 후보 점수뿐 아니라 하향 접근 조건·TCP 보정·IK·충돌·Cartesian 접근/리프트·
-사전 접근 경로를 검사합니다. 모든 후보가 탈락하면 실행하지 않습니다.</p>
+<p>브릿지는 점수 내림차순으로 후보를 반환합니다. BT는 기본 설정에서 원본·180° 대칭 후보를
+현재 TCP와의 회전 차이 오름차순으로 다시 정렬하고, 하향 접근 조건·TCP 보정·IK·충돌·
+Cartesian 접근/리프트·사전 접근 경로를 통과한 첫 후보를 선택합니다.
+모든 후보가 탈락하면 실행하지 않습니다. <a href="../bt-flows/#bt-equations">계산식과 정렬 조건</a>을 참고하세요.</p>
 <h2 id="_2">관측 기반 충돌 장면<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>SAM 경로는 객체 점군과 주변 Depth에서 물체 AABB와 수평 지지면을 추정합니다.
 대상 물체의 박스만 Planning Scene에 추가하고 대상 영역을 계획용 점군에서 제외합니다.
@@ -2101,6 +2103,10 @@ Action 결과와 Blackboard 데이터를 사용합니다.</p>
     
     
       <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../assets/javascripts/mathjax.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
       
     
   </body>
