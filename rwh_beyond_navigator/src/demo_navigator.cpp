@@ -6,7 +6,7 @@
 #include "nav2_core/behavior_tree_navigator.hpp"
 #include "pluginlib/class_list_macros.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
-#include "std_srvs/srv/trigger.hpp"
+#include "xml_tree_filter.hpp"
 
 namespace rwh_beyond_navigator
 {
@@ -30,7 +30,8 @@ public:
     for (const auto & item : node->get_node_parameters_interface()->get_parameter_overrides()) {
       if ((item.first.rfind("bt_perception.", 0) == 0 ||
         item.first.rfind("bt_motion.", 0) == 0 || item.first == "octomap_enabled") &&
-        !node->has_parameter(item.first)) {
+        !node->has_parameter(item.first))
+      {
         node->declare_parameter(item.first, item.second);
       }
     }
@@ -45,12 +46,12 @@ public:
     }
     default_pick_bt_ = node->get_parameter("default_demo_bt_xml").as_string();
     default_place_bt_ = node->get_parameter("default_place_bt_xml").as_string();
-    return default_pick_bt_;
+    return filtered_tree(default_pick_bt_);
   }
 
   bool configure(
     rclcpp_lifecycle::LifecycleNode::WeakPtr parent_node,
-    std::shared_ptr<nav2_util::OdomSmoother> /*odom_smoother*/) override
+    std::shared_ptr<nav2_util::OdomSmoother>/*odom_smoother*/) override
   {
     auto node = parent_node.lock();
     if (!node) {
@@ -97,8 +98,13 @@ public:
         return false;
       }
     }
-    if (!bt_action_server_->loadBehaviorTree(tree)) {
-      RCLCPP_ERROR(logger_, "Unable to load arm demo behavior tree");
+    try {
+      if (!bt_action_server_->loadBehaviorTree(filtered_tree(tree))) {
+        RCLCPP_ERROR(logger_, "Unable to load arm demo behavior tree: %s", tree.c_str());
+        return false;
+      }
+    } catch (const std::exception & error) {
+      RCLCPP_ERROR(logger_, "BT XML preparation failed: %s", error.what());
       return false;
     }
     auto board = bt_action_server_->getBlackboard();
@@ -176,6 +182,17 @@ public:
   }
 
 private:
+  std::string filtered_tree(const std::string & source)
+  {
+    const auto path = xml_filter_.prepare(source);
+    if (xml_filter_.removed_attributes()) {
+      RCLCPP_INFO(logger_, "BT XML filter: removed %zu empty attributes from %s (with includes)",
+        xml_filter_.removed_attributes(), source.c_str());
+    }
+    return path;
+  }
+
+  XmlTreeFilter xml_filter_;
   std::string default_pick_bt_;
   std::string default_place_bt_;
 };

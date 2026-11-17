@@ -54,7 +54,8 @@ nav:
       - SAM 3 객체 분할: sam3-perception.md
       - GraspGenX 파지 후보: graspgenx-model.md
       - BT와 실행 구조: bt-architecture.md
-      - BT 단계·포트·Action: bt-grasp-stages.md
+      - 집기·배치 BT 흐름: bt-flows.md
+      - 플러그인별 기능·포트: bt-grasp-stages.md
       - 코드를 따라 읽기: project-code-map.md
   - 문서 관리: documentation.md
   - 구성 요소와 출처: upstream.md

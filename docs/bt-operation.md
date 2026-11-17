@@ -1,27 +1,62 @@
 # Manipulation Action 인터페이스
 
-외부 Navigation 시스템은 `/run_demo`를 호출해 PiPER의 공통 파지 시나리오를 실행할 수 있습니다.
-Navigation 자체는 이 Action이 수행하지 않습니다.
+외부 호출 측은 `/run_demo` (`rwh_beyond_msgs/action/RunDemo`)로 집기 또는 배치를 실행합니다.
+서버는 BT Navigator의 `rwh_beyond_navigator::DemoNavigator`입니다.
+각 단계의 내부 연결은 [실행 흐름](bt-flows.md)과 [플러그인 기능](bt-grasp-stages.md)에 정리했습니다.
 
-- 이름: `/run_demo`
-- 타입: `rwh_beyond_msgs/action/RunDemo`
-- 서버: BT Navigator의 `rwh_beyond_navigator::DemoNavigator`
-
-## Goal
+## Goal과 트리 선택
 
 | 필드 | 타입 | 의미 |
 |---|---|---|
-| `target_text` | string | 이번 실행에서 찾을 물체 설명. 빈 값은 YAML 기본값 |
-| `behavior_tree` | string | 실행할 XML 경로. 빈 값은 공통 `demo.xml` |
+| `mode` | uint8 | 1=pick, 2=place/release. 0은 기존 호출을 위한 pick 별칭 |
+| `behavior_tree` | string | XML 경로. 있으면 mode보다 우선; 빈 값이면 YAML의 해당 기본 트리 |
+| `target_text` | string | 이번 실행의 대상 설명. 빈 값이면 XML·launch·YAML 대상 설정 사용 |
+
+현재 YAML의 기본 pick은 `demo_width.xml`, place는 `place.xml`입니다.
+고정 폭 `demo.xml`은 `behavior_tree`로 명시할 수 있습니다.
 
 ```bash
+# 점군 추정 폭으로 집기·리프트·home 복귀
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
-  '{target_text: "blue cup"}' --feedback
+  '{mode: 1, target_text: "blue cup"}' --feedback
+
+# 부착한 물체를 배치·개방·해제하고 home 복귀
+ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
+  '{mode: 2}' --feedback
 ```
 
-`target_text`는 해당 실행에만 적용됩니다. 다음 요청에서 생략하면 이전 대상이 아닌 YAML 기본값을 사용합니다.
-Navigator → BT Blackboard → SegmentObject → SAM 3 브릿지로 전달됩니다.
-기본 인스턴스 선택 정책은 `unique`이므로 같은 설명에 여러 물체가 해당하면 모호성으로 실패할 수 있습니다.
+대상 텍스트는 이번 요청에만 적용됩니다. 다음 요청에서 생략하면 이전 요청의 텍스트를 재사용하지 않습니다.
+전달 경로는 Navigator → Blackboard → SegmentObject → SAM 브릿지입니다.
+현재 인스턴스 선택 정책은 `bt_perception.selection_policy=highest_score`입니다.
+place는 인식을 다시 수행하지 않습니다. Navigation은 이 Action이 수행하지 않습니다.
+
+## Groot 저장 XML 자동 정리 { #groot-xml-filter }
+
+Navigator는 트리 로드 직전에 `attr=""`처럼 **값이 정확히 빈 문자열인 속성**을 자동으로 제거합니다.
+Groot가 생략 가능한 숫자 포트를 `opening=""`, `duration=""` 등으로 저장해도
+해당 포트를 생략한 것으로 처리해 노드 기본값을 사용합니다.
+
+```xml
+<!-- Groot 저장 파일 -->
+<OpenGripper opening="" duration=""/>
+<!-- Navigator에 전달하는 실행 사본 -->
+<OpenGripper/>
+```
+
+- 기본 pick XML은 navigator lifecycle 설정·활성화 전에 정리합니다.
+- pick·place·사용자 `behavior_tree`는 매 요청의 로드 전에 정리합니다.
+- 상대 경로 `<include path="..."/>`와 `ros_pkg` include도 재귀적으로 정리하고,
+  실행 사본 안의 include 경로를 정리된 파일의 절대 경로로 연결합니다.
+- 원본 XML과 `.bak`은 수정·생성하지 않습니다. 전용 임시 디렉터리에 실행 사본을 만들고 navigator 객체 종료 시 정리합니다.
+- `"  "`처럼 공백만 있는 값, `"0"`, `"false"`, `"{capture}"`, 요소의 텍스트·주석은 유지합니다.
+  필요한 입력을 빈 값으로 두었다면 속성 제거 뒤에도 필수 입력 검사에서 실패합니다.
+- 잘못된 XML·누락된 include·순환 include는 로드를 거부하며 실행하지 않습니다.
+
+원본 또는 include의 내용이 바뀌면 새 실행 사본 경로를 사용하므로
+`always_reload_bt_xml=false`여도 **다음 요청**에서 저장한 변경을 읽습니다.
+실행 중인 트리는 저장만으로 바뀌지 않습니다. 내용이 같으면 같은 사본 경로를 재사용해 기존 트리 캐시를 유지합니다.
+빈 속성을 제거한 경우 로그의 `BT XML filter: removed ... empty attributes`에서 확인할 수 있습니다.
+별도의 수동 정리 스크립트 실행은 필요하지 않습니다.
 
 ## Feedback와 Result
 
@@ -29,31 +64,39 @@ Navigator → BT Blackboard → SegmentObject → SAM 3 브릿지로 전달됩�
 |---|---|---|---|
 | `current_stage`, `current_node` | 사용 | — | 실행 중인 단계·BT 노드 |
 | `failed_stage`, `failed_node` | — | 사용 | 실패한 단계·BT 노드 |
-| `moveit_state` | 사용 | 사용 | 전달받은 MoveIt 상태 |
-| `error_code` | 사용 | 사용 | 0은 성공, 오류는 원본 signed code 또는 BT 코드 |
-| `error_name`, `error_source`, `error_msg` | 사용 | 사용 | 오류 이름·발생 위치·설명 |
+| `moveit_state` | 사용 | 사용 | 상태 문자열. 현재 직접 호출 경로에서는 비어 있을 수 있음 |
+| `error_code` | 사용 | 사용 | 0=성공, 음수=오류 |
+| `error_name`, `error_source`, `error_msg` | 사용 | 사용 | 오류 분류·발생 위치·설명 |
 
-ROS Action의 최종 status와 result를 함께 확인합니다. `SUCCEEDED`와 `error_code=0`은
-시퀀스 완료를 뜻하며 물체 잡힘을 확인한 결과는 아닙니다.
-MoveIt·controller 오류 코드는 원본 부호를 유지합니다. BT 내부 오류는 -1000 이하를 사용합니다.
+현재 모션 플러그인 실패는 `-1201 / BT_MOTION_FAILED`이며 source는 노드 등록 이름입니다.
+촬영·분할·점군·추론 실패는 `-1201 / GRASP_STAGE_FAILED`, 지도 초기화는 입력 오류 `-1000`,
+시간 초과 `-1100`, 서비스 오류 `-1101`을 사용합니다.
+오류 정보가 없는 BT 실패·취소는 Navigator가 각각 `-1002 / BT_FAILED`, `-1004 / DEMO_CANCELED`로 보완합니다.
+
+현재 경로는 MoveIt·controller의 원본 숫자 코드를 항상 외부 result로 전달하지 않습니다.
+ROS Action의 최종 status와 `failed_node`, `error_source`, `error_msg`를 함께 확인합니다.
+`SUCCEEDED`와 `error_code=0`은 시퀀스 완료이며 실제 잡힘 판정 결과가 아닙니다.
 
 ## 취소와 연속 요청
 
 호출 측 ActionClient의 goal handle에서 `cancel_goal_async()`를 사용합니다.
-실행 중 요청을 새 목표로 교체하는 preemption은 지원하지 않습니다. 취소 결과를 받은 뒤 새 목표를 보냅니다.
-동작 취소 시 궤적 취소와 임시 장면 정리를 요청하며 이미 부착된 대상은 유지합니다.
-부착 대상이 남아 있으면 새 집기 요청의 준비 검사에서 거부합니다.
+실행 중 목표 교체(preemption)는 지원하지 않습니다. 취소 결과를 받은 뒤 다음 요청을 보냅니다.
+취소는 BT 작업과 실행 액션에 전달되고 미부착 임시 장면을 정리합니다.
+닫기 시작 이후·부착 이후에는 자동 개방하지 않습니다.
 
-## 외부 연구실 연동
+현재 기본 `demo_width.xml`의 준비 노드는 `release_previous=true`입니다.
+이 트리로 새 pick을 요청하면 기존 부착 대상을 **현재 위치에서 개방·해제**할 수 있습니다.
+지정한 배치 위치에서 놓을 때는 먼저 `mode: 2`를 실행합니다.
+고정 폭 `demo.xml`은 자동 해제하지 않으며 부착 대상이 남으면 새 pick을 거부합니다.
 
-호출 측도 동일한 `rwh_beyond_msgs`를 빌드하고 ROS 환경을 source합니다.
-ROS Domain, RMW 및 DDS 네트워크를 맞추고 `/run_demo` 서버가 하나인지 확인합니다.
-물체 설명은 짧은 명사구로 전달합니다. 호출 측에서 결과와 취소 처리를 구현합니다.
+## 외부 연동과 Groot2
 
-## Groot2
+호출 측은 같은 버전의 `rwh_beyond_msgs`를 빌드하고 source합니다.
+ROS Domain·RMW·DDS 네트워크를 맞추고 `/run_demo` 서버가 하나인지 확인합니다.
 
-BT 노드 모델은 `rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml`, 기본 트리는 `demo.xml`입니다.
+Groot 노드 정의는 `rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml`입니다.
+기본 실행 트리는 `demo_width.xml`이며 노드 정의 파일 자체는 실행 트리가 아닙니다.
 공통 YAML의 `run_demo.enable_groot_monitoring`, `run_demo.groot_server_port`로 모니터링을 설정합니다.
-현재 포트 기본값은 5555입니다. Groot2 연결은 시퀀스의 성공이나 물체 잡힘을 보증하지 않습니다.
+현재 포트는 5555입니다.
 
-[실행 가이드](grasp-pipeline-guide.md) · [단계별 Action](bt-grasp-stages.md)
+[실행 가이드](grasp-pipeline-guide.md) · [집기·배치 흐름](bt-flows.md) · [오류 진단](grasp-troubleshooting.md)

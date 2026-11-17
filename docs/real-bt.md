@@ -13,6 +13,9 @@
 
 ## 시나리오
 
+각 트리의 플로우 차트와 차이는 [집기·배치 BT 흐름](bt-flows.md),
+개별 노드의 기능·포트는 [플러그인별 안내](bt-grasp-stages.md)를 참고하세요.
+
 준비 확인 → Octomap 갱신 → home → 열기 → 관측 → Octomap 갱신 → SAM → 점군 →
 GraspGenX → 후보 선택 → pregrasp → 접근 → 닫기·계획용 부착 → 리프트 → 관측 복귀 → home.
 

@@ -1,36 +1,212 @@
-<root BTCPP_format="4" main_tree_to_execute="WidthDemo">
-  <!-- Experimental: model pose + observed point-cloud width, not model-predicted width. -->
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="WidthDemo">
   <BehaviorTree ID="WidthDemo">
     <Sequence name="PickSequence">
       <Sequence name="PrepareAndObserve">
         <CheckGraspReady release_previous="true"/>
-        <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
-        <!-- Optional home_joint_positions="0;0;0;0;0;0" overrides YAML for this node. -->
-        <MoveHome/>
-        <!-- Optional opening (m) and duration (s) override gripper opening defaults. -->
-        <OpenGripper/>
-        <!-- x/y/z offsets in base axes (m), tilt_deg (home-local Y degrees); optional settle_time (s) and home_joint_positions. -->
-        <MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0"/>
-        <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
+        <ClearOctomap scene_service="/get_planning_scene"
+                      cloud_topic="/camera/depth/filtered_points"
+                      service_name="/clear_octomap"
+                      fresh_clouds="2"
+                      timeout="30.0"
+                      once="false"/>
+        <MoveHome home_joint_positions=""/>
+        <OpenGripper opening=""
+                     duration=""/>
+        <MoveObservation z="0.10"
+                         tilt_deg="40.0"
+                         settle_time=""
+                         x="0.0"
+                         y="0.0"
+                         home_joint_positions=""/>
+        <ClearOctomap scene_service="/get_planning_scene"
+                      cloud_topic="/camera/depth/filtered_points"
+                      service_name="/clear_octomap"
+                      fresh_clouds="2"
+                      timeout="30.0"
+                      once="false"/>
       </Sequence>
       <Sequence name="PerceiveAndPlan">
-        <CaptureRgbd capture="{capture}" observation_id="{observation}"/>
-        <SegmentObject server_timeout="1000" capture="{capture}" mask="{object_mask}"/>
-        <BuildObjectCloud capture="{capture}" mask="{object_mask}" cloud="{object_cloud}"/>
-        <InferGrasps server_timeout="1000" cloud="{object_cloud}" candidates="{grasps}"/>
-        <SelectFeasibleGrasp pregrasp_distance="0.10" lift_distance="0.08" grasp_pose="{grasp_pose}" capture="{capture}" mask="{object_mask}" use_estimated_width="true" grasp_width="{grasp_width}" close_width="{close_width}" cloud="{object_cloud}" candidates="{grasps}" selected_plan="{grasp_plan}" pregrasp="{pregrasp}"/>
+        <CaptureRgbd observation_id="{observation}"
+                     capture="{capture}"
+                     timeout="10.000000"/>
+        <SegmentObject capture="{capture}"
+                       target_text=""
+                       server_timeout="1000"
+                       mask="{object_mask}"
+                       server_name=""/>
+        <BuildObjectCloud cloud="{object_cloud}"
+                          mask="{object_mask}"
+                          capture="{capture}"/>
+        <InferGrasps cloud="{object_cloud}"
+                     candidates="{grasps}"
+                     server_timeout="1000"
+                     server_name=""/>
+        <SelectFeasibleGrasp close_width="{close_width}"
+                             grasp_width="{grasp_width}"
+                             pregrasp="{pregrasp}"
+                             selected_plan="{grasp_plan}"
+                             pregrasp_distance="0.10"
+                             grasp_pose="{grasp_pose}"
+                             capture="{capture}"
+                             cloud="{object_cloud}"
+                             candidates="{grasps}"
+                             use_estimated_width="true"
+                             mask="{object_mask}"
+                             lift_distance="0.08"/>
       </Sequence>
       <Sequence name="GraspAndLift">
         <MoveToPregrasp plan="{grasp_plan}"/>
         <ApproachGrasp plan="{grasp_plan}"/>
-        <!-- Close the gripper, then attach the target for planning without judging physical grip. -->
         <AttachObject plan="{grasp_plan}"/>
         <LiftObject plan="{grasp_plan}"/>
       </Sequence>
       <Sequence name="ReturnHome">
-        <MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0"/>
-        <MoveHome/>
+        <MoveObservation z="0.10"
+                         tilt_deg="40.0"
+                         settle_time=""
+                         x="0.0"
+                         y="0.0"
+                         home_joint_positions=""/>
+        <MoveHome home_joint_positions=""/>
       </Sequence>
     </Sequence>
   </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="ApproachGrasp">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="AttachObject">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="BuildObjectCloud">
+      <output_port name="cloud"
+                   type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="mask"
+                  type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="capture"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+    </Action>
+    <Action ID="CaptureRgbd">
+      <output_port name="observation_id"
+                   type="std::string"/>
+      <output_port name="capture"
+                   type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+      <input_port name="timeout"
+                  default="10.000000"
+                  type="double">Fresh exposure wait in seconds</input_port>
+    </Action>
+    <Action ID="CheckGraspReady">
+      <input_port name="release_previous"
+                  default="false"
+                  type="bool">Explicitly release prior payload in place</input_port>
+    </Action>
+    <Action ID="ClearOctomap">
+      <input_port name="scene_service"
+                  default="/get_planning_scene"
+                  type="std::string">MoveIt planning scene service</input_port>
+      <input_port name="cloud_topic"
+                  default="/camera/depth/filtered_points"
+                  type="std::string">Robot-filtered depth XYZ</input_port>
+      <input_port name="service_name"
+                  default="/clear_octomap"
+                  type="std::string">MoveIt clear service</input_port>
+      <input_port name="fresh_clouds"
+                  default="2"
+                  type="int">Distinct nonempty depth clouds required after clear</input_port>
+      <input_port name="timeout"
+                  default="30.000000"
+                  type="double">Total wall-time limit in seconds</input_port>
+      <input_port name="once"
+                  default="true"
+                  type="bool">Skip after successful initialization for this node instance</input_port>
+    </Action>
+    <Action ID="InferGrasps">
+      <input_port name="cloud"
+                  type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <output_port name="candidates"
+                   type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+      <input_port name="server_timeout"
+                  type="std::chrono::milliseconds"/>
+      <input_port name="server_name"
+                  type="std::string">Action server name</input_port>
+    </Action>
+    <Action ID="LiftObject">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="MoveHome">
+      <input_port name="home_joint_positions"
+                  type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
+    </Action>
+    <Action ID="MoveObservation">
+      <input_port name="z"
+                  type="double">Base Z offset (m)</input_port>
+      <input_port name="tilt_deg"
+                  type="double">Home-local Y tilt (deg)</input_port>
+      <input_port name="settle_time"
+                  type="double">Observation settling time (s)</input_port>
+      <input_port name="x"
+                  type="double">Base X offset (m)</input_port>
+      <input_port name="y"
+                  type="double">Base Y offset (m)</input_port>
+      <input_port name="home_joint_positions"
+                  type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
+    </Action>
+    <Action ID="MoveToPregrasp">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="OpenGripper">
+      <input_port name="opening"
+                  type="double">Gripper total gap (m)</input_port>
+      <input_port name="duration"
+                  type="double">Gripper duration (s)</input_port>
+    </Action>
+    <Action ID="SegmentObject">
+      <input_port name="capture"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+      <input_port name="target_text"
+                  type="std::string">Optional target description</input_port>
+      <input_port name="server_timeout"
+                  type="std::chrono::milliseconds"/>
+      <output_port name="mask"
+                   type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="server_name"
+                  type="std::string">Action server name</input_port>
+    </Action>
+    <Action ID="SelectFeasibleGrasp">
+      <output_port name="close_width"
+                   type="double"/>
+      <output_port name="grasp_width"
+                   type="double"/>
+      <output_port name="pregrasp"
+                   type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <output_port name="selected_plan"
+                   type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+      <input_port name="pregrasp_distance"
+                  type="double">Approach offset (m); omit for bt_motion YAML</input_port>
+      <output_port name="grasp_pose"
+                   type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="capture"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+      <input_port name="cloud"
+                  type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="candidates"
+                  type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+      <input_port name="use_estimated_width"
+                  default="false"
+                  type="bool">Estimate close width from point cloud</input_port>
+      <input_port name="mask"
+                  type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="lift_distance"
+                  type="double">Lift distance (m); omit for bt_motion YAML</input_port>
+    </Action>
+  </TreeNodesModel>
+
 </root>

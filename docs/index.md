@@ -19,10 +19,16 @@ PiPER 로봇의 접근·그리퍼 닫기·리프트·복귀를 실행하는 ROS 
 - [데이터·좌표계](project-data.md) · [코드 안내](project-code-map.md)
 - [모델별 ROS 인터페이스](model-bridges.md) · [SAM 3](sam3-perception.md) · [GraspGenX](graspgenx-model.md)
 - [Runner 장치 설정](runner-device-settings.md) · [D405와 TF](d405-sensors.md) · [실물 제어](piper-hardware-moveit.md)
-- [RViz](grasp-visualization.md) · [BT 구조](bt-architecture.md) · [단계별 포트](bt-grasp-stages.md)
+- [RViz](grasp-visualization.md) · [BT 구조](bt-architecture.md) · [플러그인 기능·포트](bt-grasp-stages.md)
 
 기본 집기는 Pick·리프트·복귀이며 mode 2로 부착 물체의 배치·해제를 요청할 수 있습니다. Navigation은 별도 연동 대상입니다.
 Action의 성공은 시퀀스 완료를 뜻하며 실제 잡힘 여부는 판정하지 않습니다.
+
+## BT 구현 안내
+
+- [집기·배치 BT 흐름](bt-flows.md): 기본·고정 폭 집기, 배치·해제, 후보 선택 플로우
+- [플러그인별 기능·포트](bt-grasp-stages.md): 등록된 16개 노드의 기능·입출력·직접 호출
+- [BT와 실행 구조](bt-architecture.md): 프로세스 경계·Blackboard·계획 상태·취소 처리
 
 ## 파지 튜닝과 오류 진단
 

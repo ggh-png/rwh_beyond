@@ -37,11 +37,11 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.root = Path(self.directory.name)
         tree = self.root / 'tree.xml'
         tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
-                        '<OpenGripper name="open"/>'
+                        '<OpenGripper name="open" opening="" duration=""/>'
                         '</BehaviorTree></root>')
         place_tree = self.root / 'place_tree.xml'
         place_tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
-                              '<AlwaysSuccess/>'
+                              '<AlwaysSuccess name=""/>'
                               '</BehaviorTree></root>')
         config = self.root / 'params.yaml'
         config.write_text(yaml.safe_dump({'bt_navigator': {'ros__parameters': {
@@ -55,6 +55,7 @@ class NavigatorErrorReporting(unittest.TestCase):
             'error_code_names': ['nav2_unused_error_code'],
         }}}))
         self.success = False
+        self.executions = 0
         self.message = 'Trajectory invalid after scene update'
         self.reject = False
         self.node = rclpy.create_node('navigator_error_mock')
@@ -92,6 +93,7 @@ class NavigatorErrorReporting(unittest.TestCase):
         return GoalResponse.REJECT if self.reject else GoalResponse.ACCEPT
 
     def execute(self, handle):
+        self.executions += 1
         self.assertAlmostEqual(handle.request.trajectory.points[0].positions[0], .08)
         time.sleep(0.05)
         result = FollowJointTrajectory.Result(error_code=0 if self.success else -1, error_string=self.message)
@@ -151,6 +153,34 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.assertEqual(wrapped.status, 6)
         self.assertEqual(wrapped.result.error_name, 'BT_MOTION_FAILED')
         self.assertNotEqual(wrapped.result.error_code, 0)
+
+    def test_groot_custom_include_and_same_path_resave(self):
+        self.success = True
+        child = self.root / 'child.xml'
+        child.write_text('<root BTCPP_format="4"><BehaviorTree ID="Child">'
+                         '<OpenGripper opening="" duration=""/></BehaviorTree></root>')
+        tree = self.root / 'groot.xml'
+        original = ('<root BTCPP_format="4" main_tree_to_execute="Main">'
+                    '<include path="child.xml"/>'
+                    '<BehaviorTree ID="Main"><SubTree ID="Child" _autoremap="true"/></BehaviorTree></root>')
+        tree.write_text(original)
+        wrapped, _ = self.run_goal(str(tree))
+        self.assertEqual(wrapped.status, 4)
+        self.assertEqual(tree.read_text(), original)
+        self.assertIn('opening=""', child.read_text())
+        # Re-save only the include at the same source path, while Nav2's
+        # always_reload_bt_xml remains false. The next goal must see the edit.
+        child.write_text('<root BTCPP_format="4"><BehaviorTree ID="Child">'
+                         '<AlwaysFailure/></BehaviorTree></root>')
+        wrapped, _ = self.run_goal(str(tree))
+        self.assertEqual(wrapped.status, 6)
+        self.assertFalse(tree.with_suffix('.xml.bak').exists())
+        self.assertEqual(self.executions, 1)
+        child.write_text('<root>')
+        wrapped, _ = self.run_goal(str(tree))
+        self.assertEqual(wrapped.status, 6)
+        self.assertEqual(self.executions, 1)
+        self.assertEqual(child.read_text(), '<root>')
 
     def test_clear_plugin_runs_in_tree_and_reuses_success_across_goals(self):
         counts = {'clear': 0}

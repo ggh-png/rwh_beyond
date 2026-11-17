@@ -5,6 +5,7 @@
 | rwh_beyond_bringup/launch/bt_demo.launch.py | 센서·브릿지·navigator·RViz 실행 |
 | rwh_beyond_bringup/config/bt_demo.yaml | bt_perception·bt_motion·MoveIt 공통 설정 |
 | rwh_beyond_navigator/src/demo_navigator.cpp | RunDemo·오류·취소·Blackboard 정리 |
+| rwh_beyond_navigator/src/xml_tree_filter.cpp | Groot 빈 속성 제거·include 정리·변경된 XML 재로드 |
 | rwh_beyond_bt/behavior_trees | 집기 2종·배치 XML |
 | rwh_beyond_bt/plugins/action/perception_actions.cpp | 촬영·SAM·점군·모델 직접 호출 |
 | rwh_beyond_bt/plugins/action/motion_actions.cpp | 각 모션 BT 단계의 입력·실행·출력·취소 |

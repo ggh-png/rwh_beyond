@@ -11,12 +11,14 @@
   <depend>nav2_core</depend>
   <depend>nav2_util</depend>
   <depend>pluginlib</depend>
-  <depend>std_srvs</depend>
+  <depend>tinyxml2_vendor</depend>
+  <depend>tinyxml2</depend>
   <depend>rclcpp</depend>
   <depend>rclcpp_action</depend>
   <depend>rwh_beyond_msgs</depend>
   <exec_depend>rwh_beyond_bt</exec_depend>
   <test_depend>ament_cmake_pytest</test_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
   <test_depend>moveit_msgs</test_depend>
   <test_depend>lifecycle_msgs</test_depend>
   <test_depend>python3-yaml</test_depend>

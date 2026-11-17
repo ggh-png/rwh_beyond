@@ -51,4 +51,5 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
 `test_clear_octomap.cpp`는 지도 초기화와 신선한 점군 대기를 검증합니다.
 실물 장치는 테스트에서 실행하지 않습니다.
 
-[구조](../docs/bt-architecture.md) · [포트](../docs/bt-grasp-stages.md) · [설정](../docs/real-bt.md)
+[구조](../docs/bt-architecture.md) · [집기·배치 흐름](../docs/bt-flows.md) ·
+[16개 플러그인 기능·포트](../docs/bt-grasp-stages.md) · [설정](../docs/real-bt.md)
