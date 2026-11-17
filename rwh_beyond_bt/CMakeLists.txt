@@ -55,7 +55,20 @@ ament_target_dependencies(rwh_beyond_perception_bt_nodes ${dependencies})
 list(APPEND plugin_libs rwh_beyond_perception_bt_nodes)
 
 add_library(rwh_beyond_motion_bt_nodes SHARED
-  plugins/action/motion_actions.cpp src/motion_context.cpp)
+  plugins/action/motion_actions.cpp
+  plugins/action/motion_action.cpp
+  plugins/action/check_grasp_ready_action.cpp
+  plugins/action/select_feasible_grasp_action.cpp
+  plugins/action/move_to_pregrasp_action.cpp
+  plugins/action/approach_grasp_action.cpp
+  plugins/action/attach_object_action.cpp
+  plugins/action/lift_object_action.cpp
+  plugins/action/move_home_action.cpp
+  plugins/action/move_observation_action.cpp
+  plugins/action/move_place_action.cpp
+  plugins/action/open_gripper_action.cpp
+  plugins/action/release_object_action.cpp
+  src/motion_context.cpp)
 target_link_libraries(rwh_beyond_motion_bt_nodes ${PROJECT_NAME}_common rwh_beyond_perception_bt_nodes Eigen3::Eigen)
 target_compile_features(rwh_beyond_motion_bt_nodes PUBLIC cxx_std_17)
 target_compile_definitions(rwh_beyond_motion_bt_nodes PRIVATE BT_PLUGIN_EXPORT)
@@ -63,7 +76,7 @@ ament_target_dependencies(rwh_beyond_motion_bt_nodes ${dependencies})
 list(APPEND plugin_libs rwh_beyond_motion_bt_nodes)
 
 # Compatibility loader; individual plugins can also be loaded directly by Nav2.
-add_library(${PROJECT_NAME}_nodes SHARED src/register_nodes.cpp)
+add_library(${PROJECT_NAME}_nodes SHARED plugins/register_nodes.cpp)
 target_compile_features(${PROJECT_NAME}_nodes PUBLIC cxx_std_17)
 target_compile_definitions(${PROJECT_NAME}_nodes PRIVATE BT_PLUGIN_EXPORT)
 ament_target_dependencies(${PROJECT_NAME}_nodes behaviortree_cpp)
@@ -106,6 +119,7 @@ if(BUILD_TESTING)
   add_dependencies(test_motion ${PROJECT_NAME}_nodes)
   set_tests_properties(test_motion PROPERTIES ENVIRONMENT "ROS_DOMAIN_ID=88")
   ament_add_gtest(test_clear_octomap test/test_clear_octomap.cpp)
+  target_link_libraries(test_clear_octomap ${PROJECT_NAME}_common)
   ament_target_dependencies(test_clear_octomap
     behaviortree_cpp moveit_msgs rclcpp rwh_beyond_msgs sensor_msgs std_srvs)
   target_compile_features(test_clear_octomap PRIVATE cxx_std_17)
@@ -116,5 +130,5 @@ endif()
 
 ament_export_include_directories(include)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${dependencies})
+ament_export_dependencies(${dependencies} Eigen3)
 ament_package()

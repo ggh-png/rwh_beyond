@@ -6,6 +6,7 @@
   <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>rwh_beyond_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>sensor_msgs_py</exec_depend>
   <exec_depend>python3-numpy</exec_depend>

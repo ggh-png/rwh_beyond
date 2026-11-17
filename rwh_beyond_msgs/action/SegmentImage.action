@@ -8,6 +8,13 @@ uint32 selection_v
 string selection_policy
 ---
 bool success
+# Structured error; do not parse message to determine the failure kind.
+# Constants: rwh_beyond_msgs/msg/ErrorCode. Success is 0.
+int32 error_code
+string error_domain
+string error_name
+string error_source
+string error_msg
 string message
 # Depth-safe mono8 binary mask, same header and resolution as rgb_image.
 sensor_msgs/Image object_mask

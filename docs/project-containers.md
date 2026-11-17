@@ -50,4 +50,32 @@ Python과 XML은 symlink install을 사용합니다. 실행 중인 ROS 노드는
 Action 정의나 C++ 플러그인을 변경하면 관련 패키지와 호출 측을 다시 빌드합니다.
 카메라 모델은 `moma-mj-lab`에서 수정·빌드하며 MoveIt과 BT를 재시작합니다.
 
+### Navigator 링크 오류 { #bt-common-link }
+
+`cannot find -lrwh_beyond_bt_common`이 발생하면 `rwh_beyond_navigator`가 BT 공통
+라이브러리를 이름만으로 링크하고 있지 않은지 확인합니다. BT 패키지는 설치된 CMake
+타깃 `rwh_beyond_bt::rwh_beyond_bt_common`을 내보내므로 navigator에서는 다음과 같이
+사용합니다.
+
+```cmake
+find_package(rwh_beyond_bt REQUIRED)
+target_link_libraries(${PROJECT_NAME} rwh_beyond_bt::rwh_beyond_bt_common)
+```
+
+라이브러리의 런타임 검색 경로가 있어도 `-l`의 **빌드 시** 검색 경로가 자동으로
+추가되는 것은 아닙니다. 이름공간 타깃은 설치된 라이브러리 위치와 의존성을 전달합니다.
+소스 수정 후에는 의존 패키지부터 다시 빌드합니다.
+
+```bash
+source /opt/ros/jazzy/setup.bash
+cd /root/ros2_ws
+colcon build --packages-up-to rwh_beyond_navigator
+source install/setup.bash
+colcon test --packages-select rwh_beyond_navigator
+colcon test-result --test-result-base build/rwh_beyond_navigator --verbose
+```
+
+이 명령은 navigator와 그 의존성만 빌드합니다. 나머지 패키지까지 필요하면 일반
+`colcon build`를 실행합니다. 실행 중인 ROS 노드는 재빌드 후 재시작해야 합니다.
+
 [실행 가이드](grasp-pipeline-guide.md) · [런타임 설정](piper-runtime.md)

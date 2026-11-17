@@ -58,23 +58,33 @@ Groot가 생략 가능한 숫자 포트를 `opening=""`, `duration=""` 등으로
 빈 속성을 제거한 경우 로그의 `BT XML filter: removed ... empty attributes`에서 확인할 수 있습니다.
 별도의 수동 정리 스크립트 실행은 필요하지 않습니다.
 
-## Feedback와 Result
+## Feedback와 Result { #feedback-result }
 
 | 필드 | Feedback | Result | 의미 |
 |---|---|---|---|
 | `current_stage`, `current_node` | 사용 | — | 실행 중인 단계·BT 노드 |
 | `failed_stage`, `failed_node` | — | 사용 | 실패한 단계·BT 노드 |
-| `moveit_state` | 사용 | 사용 | 상태 문자열. 현재 직접 호출 경로에서는 비어 있을 수 있음 |
-| `error_code` | 사용 | 사용 | 0=성공, 음수=오류 |
+| `moveit_state` | 사용 | 사용 | 최신 MoveIt 호출·단계 문자열; 해당 호출이 없으면 비어 있을 수 있음 |
+| `backend_stage` | 사용 | 사용 | 최근 백엔드 액션 또는 전송 작업 단계 |
+| `error_code` | 사용 | 사용 | 0=성공, 그 외 오류 코드 |
+| `error_domain` | 사용 | 사용 | 코드의 발생 계통. 예: `bt`, `moveit`, `controller`, `transport`, `navigator` |
 | `error_name`, `error_source`, `error_msg` | 사용 | 사용 | 오류 분류·발생 위치·설명 |
 
-현재 모션 플러그인 실패는 `-1201 / BT_MOTION_FAILED`이며 source는 노드 등록 이름입니다.
-촬영·분할·점군·추론 실패는 `-1201 / GRASP_STAGE_FAILED`, 지도 초기화는 입력 오류 `-1000`,
-시간 초과 `-1100`, 서비스 오류 `-1101`을 사용합니다.
-오류 정보가 없는 BT 실패·취소는 Navigator가 각각 `-1002 / BT_FAILED`, `-1004 / DEMO_CANCELED`로 보완합니다.
+BT는 root Blackboard의 `execution_state`에 최신 진단을 보관합니다. 새 요청과 새 단계
+시작 시 진단을 초기화하고, 실패 기록 이후의 정리 작업이 그 오류를 덮어쓰지 않도록 합니다.
+Navigator의 `onLoop()`는 스냅샷을 Feedback으로 변환하며, 완료 시 Result와 마지막
+Feedback을 만듭니다. ROS Feedback 객체 자체나 오류 이력을 Blackboard에 저장하지 않습니다.
 
-현재 경로는 MoveIt·controller의 원본 숫자 코드를 항상 외부 result로 전달하지 않습니다.
-ROS Action의 최종 status와 `failed_node`, `error_source`, `error_msg`를 함께 확인합니다.
+SAM·GraspGenX 브릿지의 구조화된 오류와 MoveIt·controller의 원본 오류 코드는 전달 가능한
+경로에서 domain·source와 함께 보존합니다. 실패 응답에 필수 오류 정보가 없으면
+`INVALID_RESPONSE`로 보고합니다. 숫자만으로는 발생 계통을 구분할 수 없으므로
+`error_domain`, `error_source`, `error_name`, `error_msg`와 ROS Action status를 함께 확인합니다.
+후보별 검사 실패가 누적된 경우에는 원본 MoveIt 오류가 보존될 수 있으며,
+그렇지 않으면 `NO_FEASIBLE_GRASP`로 보고합니다.
+
+프로젝트 오류 상수는 `rwh_beyond_msgs/msg/ErrorCode.msg`에 있습니다.
+진단이 없는 BT 실패·취소는 Navigator가 각각 `-1002 / BT_FAILED`,
+`-1004 / CANCELED`로 보완합니다.
 `SUCCEEDED`와 `error_code=0`은 시퀀스 완료이며 실제 잡힘 판정 결과가 아닙니다.
 
 ## 취소와 연속 요청

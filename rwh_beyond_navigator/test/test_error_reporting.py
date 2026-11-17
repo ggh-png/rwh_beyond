@@ -14,12 +14,13 @@ from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from lifecycle_msgs.msg import Transition
 from lifecycle_msgs.srv import ChangeState
-from moveit_msgs.srv import GetPlanningScene
+from moveit_msgs.srv import GetPlanningScene, GetMotionPlan
 from sensor_msgs.msg import PointCloud2, Image, CameraInfo, JointState
 from std_srvs.srv import Empty
 from control_msgs.action import FollowJointTrajectory
 from rclpy.qos import qos_profile_sensor_data
 from rwh_beyond_msgs.action import RunDemo, SegmentImage
+from rwh_beyond_msgs.msg import ErrorCode
 import yaml
 
 
@@ -133,14 +134,15 @@ class NavigatorErrorReporting(unittest.TestCase):
         wrapped, feedback = self.run_goal()
         self.assertEqual(wrapped.status, 6)  # ROS action ABORTED
         result = wrapped.result
-        self.assertEqual(result.error_code, -1201)
-        self.assertEqual(result.error_name, 'BT_MOTION_FAILED')
-        self.assertEqual(result.error_source, 'OpenGripper')
-        self.assertEqual(result.error_msg, 'Action execution failed')
+        self.assertEqual(result.error_code, -1)
+        self.assertEqual(result.error_domain, "controller")
+        self.assertEqual(result.error_name, 'INVALID_GOAL')
+        self.assertEqual(result.error_source, '/gripper_controller/follow_joint_trajectory')
+        self.assertEqual(result.error_msg, self.message)
         self.assertEqual(result.failed_stage, 'OpenGripper')
         self.assertEqual(result.failed_node, 'open')
         self.assertEqual(result.moveit_state, '')
-        self.assertTrue(any(f.error_code == -1201 and f.error_msg == 'Action execution failed' for f in feedback))
+        self.assertTrue(any(f.error_code == -1 and f.error_domain == 'controller' and f.error_msg == self.message for f in feedback))
         self.success = True
         wrapped, feedback = self.run_goal()
         self.assertEqual(wrapped.status, 4)  # ROS action SUCCEEDED
@@ -151,8 +153,52 @@ class NavigatorErrorReporting(unittest.TestCase):
         self.reject = True
         wrapped, feedback = self.run_goal()
         self.assertEqual(wrapped.status, 6)
-        self.assertEqual(wrapped.result.error_name, 'BT_MOTION_FAILED')
+        self.assertEqual(wrapped.result.error_name, 'GOAL_REJECTED')
         self.assertNotEqual(wrapped.result.error_code, 0)
+
+    def test_invalid_mode_and_xml_abort_with_diagnostics_without_robot_execution(self):
+        for fields, code, name in [
+            ({'mode': 99}, ErrorCode.INVALID_MODE, 'INVALID_MODE'),
+            ({'tree': str(self.root / 'missing.xml')}, ErrorCode.INVALID_TREE, 'INVALID_TREE')]:
+            wrapped, feedback = self.run_goal(**fields)
+            self.assertEqual(wrapped.status, 6)
+            self.assertEqual(wrapped.result.error_code, code)
+            self.assertEqual(wrapped.result.error_domain, 'navigator')
+            self.assertEqual(wrapped.result.error_name, name)
+            self.assertEqual(wrapped.result.failed_stage, 'request_validation')
+            self.assertTrue(any(f.error_code == code for f in feedback))
+        self.assertEqual(self.executions, 0)
+        self.success = True
+        wrapped, _ = self.run_goal()
+        self.assertEqual(wrapped.status, 4)
+        self.assertEqual(wrapped.result.error_code, 0)
+
+    def test_native_moveit_service_error_matches_code_but_not_controller_domain(self):
+        def scene(request, response):
+            return response
+        def plan(request, response):
+            response.motion_plan_response.error_code.val = -1
+            response.motion_plan_response.error_code.message = 'planner has no collision-free path'
+            return response
+        scene_server = self.node.create_service(GetPlanningScene, 'get_planning_scene', scene,
+                                                callback_group=self.group)
+        plan_server = self.node.create_service(GetMotionPlan, 'plan_kinematic_path', plan,
+                                               callback_group=self.group)
+        self.addCleanup(lambda:self.node.destroy_service(plan_server))
+        self.addCleanup(lambda:self.node.destroy_service(scene_server))
+        tree = self.root / 'native_plan.xml'
+        tree.write_text('<root BTCPP_format="4"><BehaviorTree ID="Test">'
+                        '<MoveHome home_joint_positions=".1;.1;.1;.1;.1;.1"/>'
+                        '</BehaviorTree></root>')
+        wrapped, feedback = self.run_goal(str(tree))
+        self.assertEqual(wrapped.status, 6)
+        self.assertEqual(wrapped.result.error_code, -1)
+        self.assertEqual(wrapped.result.error_domain, 'moveit')
+        self.assertEqual(wrapped.result.error_name, 'PLANNING_FAILED')
+        self.assertEqual(wrapped.result.error_source, '/plan_kinematic_path')
+        self.assertEqual(wrapped.result.error_msg, 'planner has no collision-free path')
+        self.assertTrue(any(f.error_domain == 'moveit' and f.error_code == -1 for f in feedback))
+        self.assertEqual(self.executions, 0)
 
     def test_groot_custom_include_and_same_path_resave(self):
         self.success = True
@@ -220,9 +266,17 @@ class NavigatorErrorReporting(unittest.TestCase):
 
     def test_target_text_reaches_segmentation_and_resets_between_goals(self):
         received = []
+        fail_segment = [False]
 
         def segment(handle):
             received.append(handle.request.target_text)
+            if fail_segment[0]:
+                handle.publish_feedback(SegmentImage.Feedback(stage='waiting_for_sam_model'))
+                result = SegmentImage.Result(success=False, error_code=ErrorCode.SERVER_ERROR,
+                    error_domain='sam3', error_name='SERVER_ERROR', error_source='/segment_image',
+                    error_msg='CUDA model unavailable', message='free form display, not parsed')
+                handle.abort()
+                return result
             result = SegmentImage.Result(success=True)
             result.object_mask = Image(header=handle.request.rgb_image.header, width=12, height=12,
                                        encoding="mono8", step=12, data=bytes([1])*144)
@@ -254,6 +308,18 @@ class NavigatorErrorReporting(unittest.TestCase):
             wrapped, _ = self.run_goal(str(tree), target_text=target)
             self.assertEqual(wrapped.status, 4)
         self.assertEqual(received, ['yellow block', 'blue cup', 'default object'])
+        fail_segment[0] = True
+        wrapped, feedback = self.run_goal(str(tree))
+        self.assertEqual(wrapped.status, 6)
+        self.assertEqual(wrapped.result.error_code, ErrorCode.SERVER_ERROR)
+        self.assertEqual(wrapped.result.error_domain, 'sam3')
+        self.assertEqual(wrapped.result.error_source, '/segment_image')
+        self.assertEqual(wrapped.result.error_msg, 'CUDA model unavailable')
+        self.assertTrue(any(f.error_code == ErrorCode.SERVER_ERROR for f in feedback))
+        fail_segment[0] = False
+        wrapped, feedback = self.run_goal(str(tree))
+        self.assertEqual(wrapped.result.error_code, 0)
+        self.assertTrue(all(f.error_code == 0 for f in feedback))
 
     def cleanup_runtime(self):
         if self.process.poll() is None:

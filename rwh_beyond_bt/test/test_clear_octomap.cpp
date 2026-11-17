@@ -20,12 +20,11 @@
 #include "gtest/gtest.h"
 #include "moveit_msgs/srv/get_planning_scene.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "rwh_beyond_msgs/action/run_demo.hpp"
+#include "rwh_beyond_bt/diagnostics.hpp"
 #include "sensor_msgs/msg/point_cloud2.hpp"
 #include "std_srvs/srv/empty.hpp"
 
 using namespace std::chrono_literals;
-using Feedback = rwh_beyond_msgs::action::RunDemo::Feedback;
 
 class ClearOctomapTest : public ::testing::Test
 {
@@ -139,7 +138,7 @@ TEST_F(ClearOctomapTest, StaleCloudFailsWithoutStartingNextOrRetryingClear)
   EXPECT_EQ(finish(bt), BT::NodeStatus::FAILURE);
   EXPECT_EQ(clears_, 1);
   EXPECT_EQ(next_, 0);
-  const auto feedback = board_->get<Feedback>("demo_feedback");
+  const auto feedback = rwh_beyond_bt::execution_diagnostic(board_);
   EXPECT_EQ(feedback.current_stage, "clear_octomap");
   EXPECT_EQ(feedback.error_name, "OCTOMAP_TIMEOUT");
   EXPECT_NE(feedback.error_msg.find("fresh post-clear"), std::string::npos);
@@ -180,7 +179,7 @@ TEST_F(ClearOctomapTest, InvalidInputsNeverClear)
   {
     auto bt = tree(xml);
     EXPECT_EQ(finish(bt), BT::NodeStatus::FAILURE);
-    EXPECT_EQ(board_->get<Feedback>("demo_feedback").error_name, "INVALID_INPUT");
+    EXPECT_EQ(rwh_beyond_bt::execution_diagnostic(board_).error_name, "INVALID_INPUT");
   }
   EXPECT_EQ(clears_, 0);
 }

@@ -27,7 +27,7 @@
 
 #include "behaviortree_cpp/bt_factory.h"
 #include "gtest/gtest.h"
-#include "rwh_beyond_bt/perception_actions.hpp"
+#include "rwh_beyond_bt/plugins/action/perception_actions.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
@@ -314,4 +314,13 @@ TEST(PluginRegistration, DirectMotionAndPerceptionRegistered)
                                                 }
   EXPECT_EQ(factory.manifests().at("MoveToPregrasp").ports.count("plan_id"), 0u);
   EXPECT_EQ(factory.manifests().at("SelectFeasibleGrasp").ports.count("selected_plan"), 1u);
+  for (auto id : {"MoveToPregrasp", "ApproachGrasp", "AttachObject", "LiftObject"}) {
+    const auto & ports = factory.manifests().at(id).ports;
+    EXPECT_EQ(ports.size(), 1u);
+    EXPECT_EQ(ports.count("plan"), 1u);
+  }
+  const auto & observation = factory.manifests().at("MoveObservation").ports;
+  EXPECT_EQ(observation.size(), 6u);
+  EXPECT_EQ(observation.count("tilt_deg"), 1u);
+  EXPECT_EQ(observation.count("plan"), 0u);
 }

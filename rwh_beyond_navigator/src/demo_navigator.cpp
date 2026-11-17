@@ -7,9 +7,12 @@
 #include "pluginlib/class_list_macros.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
 #include "xml_tree_filter.hpp"
+#include "rwh_beyond_bt/diagnostics.hpp"
 
 namespace rwh_beyond_navigator
 {
+using rwh_beyond_bt::ErrorCode;
+using rwh_beyond_bt::execution_diagnostic;
 
 class DemoNavigator
   : public nav2_core::BehaviorTreeNavigator<rwh_beyond_msgs::action::RunDemo>
@@ -86,6 +89,9 @@ public:
 
   bool goalReceived(ActionT::Goal::ConstSharedPtr goal) override
   {
+    auto board = bt_action_server_->getBlackboard();
+    rwh_beyond_bt::reset_diagnostics(board);
+    board->rootBlackboard()->set("target_text", goal->target_text);
     std::string tree = goal->behavior_tree;
     if (tree.empty()) {
       const auto mode = goal->mode == 0 ? ActionT::Goal::MODE_PICK : goal->mode;
@@ -94,36 +100,26 @@ public:
       } else if (mode == ActionT::Goal::MODE_PLACE) {
         tree = default_place_bt_;
       } else {
-        RCLCPP_ERROR(logger_, "Unsupported RunDemo mode: %u", goal->mode);
-        return false;
+        return reject_request(ErrorCode::INVALID_MODE, "INVALID_MODE",
+          "Unsupported RunDemo mode: " + std::to_string(goal->mode));
       }
     }
     try {
       if (!bt_action_server_->loadBehaviorTree(filtered_tree(tree))) {
-        RCLCPP_ERROR(logger_, "Unable to load arm demo behavior tree: %s", tree.c_str());
-        return false;
+        return reject_request(ErrorCode::INVALID_TREE, "INVALID_TREE",
+          "Unable to load arm demo behavior tree: " + tree);
       }
     } catch (const std::exception & error) {
-      RCLCPP_ERROR(logger_, "BT XML preparation failed: %s", error.what());
-      return false;
+      return reject_request(ErrorCode::INVALID_TREE, "INVALID_TREE", error.what());
     }
-    auto board = bt_action_server_->getBlackboard();
-    // Always overwrite, including empty goals, so targets never leak across runs.
-    board->rootBlackboard()->set("target_text", goal->target_text);
-    board->set("demo_stage", std::string("starting"));
-    ActionT::Feedback feedback;
-    feedback.current_stage = "starting";
-    board->set("demo_feedback", feedback);
     return true;
   }
 
   void onLoop() override
   {
-    auto feedback = std::make_shared<ActionT::Feedback>();
-    if (!bt_action_server_->getBlackboard()->get("demo_feedback", *feedback)) {
-      feedback->current_stage = "starting";
-    }
-    bt_action_server_->publishFeedback(feedback);
+    // Snapshot the BT-owned state; no ROS message is stored in the Blackboard.
+    bt_action_server_->publishFeedback(make_feedback(
+        execution_diagnostic(bt_action_server_->getBlackboard())));
   }
 
   void onPreempt(ActionT::Goal::ConstSharedPtr) override
@@ -136,38 +132,39 @@ public:
     ActionT::Result::SharedPtr result,
     const nav2_behavior_tree::BtStatus final_bt_status) override
   {
-    ActionT::Feedback diagnostic;
-    if (!bt_action_server_->getBlackboard()->get("demo_feedback", diagnostic)) {
-      diagnostic.current_stage = "unknown";
-    }
+    auto diagnostic = execution_diagnostic(bt_action_server_->getBlackboard());
     result->moveit_state = diagnostic.moveit_state;
+    result->backend_stage = diagnostic.backend_stage;
     if (final_bt_status == nav2_behavior_tree::BtStatus::SUCCEEDED) {
       result->error_code = 0;
       result->error_name = "SUCCESS";
       result->error_msg = "arm demo completed";
       diagnostic.error_code = 0;
+      diagnostic.error_domain.clear();
       diagnostic.error_name.clear();
       diagnostic.error_source.clear();
       diagnostic.error_msg.clear();
     } else {
       if (diagnostic.error_code == 0) {
         const bool canceled = final_bt_status == nav2_behavior_tree::BtStatus::CANCELED;
-        diagnostic.error_code = canceled ? -1004 : -1002;
-        diagnostic.error_name = canceled ? "DEMO_CANCELED" : "BT_FAILED";
-        diagnostic.error_source = "bt_navigator";
+        diagnostic.error_code = canceled ? ErrorCode::CANCELED : ErrorCode::BT_FAILED;
+        diagnostic.error_domain = "navigator";
+        diagnostic.error_name = canceled ? "CANCELED" : "BT_FAILED";
+        diagnostic.error_source = "/run_demo";
         diagnostic.error_msg = canceled ? "Demo was canceled." :
-          "Behavior tree failed without an action result; inspect the BT/MoveIt logs.";
+          "Behavior tree failed without a structured diagnostic.";
       }
       result->error_code = diagnostic.error_code;
+      result->error_domain = diagnostic.error_domain;
       result->error_name = diagnostic.error_name;
       result->error_source = diagnostic.error_source;
       result->error_msg = diagnostic.error_msg;
       result->failed_stage = diagnostic.current_stage;
       result->failed_node = diagnostic.current_node;
-      RCLCPP_ERROR(logger_, "Demo failed at %s [%s]: %s (%d), source=%s: %s",
+      RCLCPP_ERROR(logger_, "Demo failed at %s [%s]: %s/%s (%d), source=%s: %s",
         result->failed_stage.c_str(), result->failed_node.c_str(),
-        result->error_name.c_str(), result->error_code, result->error_source.c_str(),
-        result->error_msg.c_str());
+        result->error_domain.c_str(), result->error_name.c_str(), result->error_code,
+        result->error_source.c_str(), result->error_msg.c_str());
     }
     if (final_bt_status != nav2_behavior_tree::BtStatus::SUCCEEDED) {
       std::function<void()> cleanup;
@@ -178,10 +175,42 @@ public:
       }
     }
     // Failure can arrive on the last BT tick: always publish one final diagnostic feedback.
-    bt_action_server_->publishFeedback(std::make_shared<ActionT::Feedback>(diagnostic));
+    bt_action_server_->publishFeedback(make_feedback(diagnostic));
   }
 
 private:
+  ActionT::Feedback::SharedPtr make_feedback(const rwh_beyond_bt::ExecutionDiagnostic & state)
+  {
+    auto feedback = std::make_shared<ActionT::Feedback>();
+    feedback->current_stage = state.current_stage;
+    feedback->current_node = state.current_node;
+    feedback->moveit_state = state.moveit_state;
+    feedback->backend_stage = state.backend_stage;
+    feedback->error_code = state.error_code;
+    feedback->error_domain = state.error_domain;
+    feedback->error_name = state.error_name;
+    feedback->error_source = state.error_source;
+    feedback->error_msg = state.error_msg;
+    return feedback;
+  }
+
+  bool reject_request(int32_t code, const std::string & name, const std::string & message)
+  {
+    // Jazzy's false goalReceived path aborts with a default Result. A built-in,
+    // failure-only tree lets completion publish the structured error instead,
+    // without ticking a previously loaded robot tree.
+    const auto rejection_tree = ament_index_cpp::get_package_share_directory(
+      "rwh_beyond_navigator") + "/behavior_trees/rejected_goal.xml";
+    if (!bt_action_server_->loadBehaviorTree(rejection_tree)) {
+      RCLCPP_FATAL(logger_, "Unable to load the installed request rejection tree");
+      return false;
+    }
+    auto board = bt_action_server_->getBlackboard();
+    rwh_beyond_bt::begin_stage(board, "request_validation", "DemoNavigator");
+    rwh_beyond_bt::report_failure(board, code, name, "/run_demo", message, "navigator");
+    return true;
+  }
+
   std::string filtered_tree(const std::string & source)
   {
     const auto path = xml_filter_.prepare(source);

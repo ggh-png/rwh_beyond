@@ -259,7 +259,7 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
 
 !!! note "알아둘 점"
 
-    대상을 들고 있지 않으면 먼저 home에 있어야 합니다. 오프셋은 매번 home 기준이며 누적되지 않습니다.
+    현재 자세에서 이동을 계획합니다. 목표 오프셋은 매번 home 기준이며 누적되지 않습니다.
 
 === "처리 흐름"
 
@@ -301,12 +301,12 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
     - X·Y·Z 허용 범위는 각각 -0.30~0.30m, `tilt_deg`는 -90~90°이며 Y 기울임만 덮어씁니다.
       `settle_time`은 0~30초입니다. X·Y 기본값은 0, 나머지는 YAML에서 읽습니다.
 
-    - 물체를 들고 있지 않으면 먼저 home에 있어야 합니다. 부착 상태에서는 복귀용으로도 사용합니다.
-      호출할 때마다 home 기준으로 계산하며 현재 위치에 오프셋을 누적하지 않습니다.
+    - home 도착은 전제조건이 아닙니다. 부착 상태에서는 복귀용으로도 사용합니다.
+      호출할 때마다 목표를 home 기준으로 계산하며 현재 위치에 오프셋을 누적하지 않습니다.
 
     **실행과 완료.** 현재 관절 상태에서 이 목표로 완전한 Cartesian 경로를 계획·실행하고,
     `settle_time`을 기다린 뒤 성공합니다. 같은 노드를 두 번 실행해도 오프셋을 두 번 더하지 않습니다.
-    물체가 없는데 home이 아니거나 Cartesian이 불완전하면 실패하며, 이 노드 자체는 촬영하지 않습니다.
+    Cartesian 경로가 불완전하면 실패하며, 이 노드 자체는 촬영하지 않습니다.
 
 </div>
 
@@ -778,7 +778,7 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
 
 === "처리 흐름"
 
-    1. `release_ready=false`로 초기화하고 부착·home 도착 상태를 확인합니다.
+    1. `release_ready=false`로 초기화하고 대상의 부착 상태를 확인합니다.
 
     2. home FK 위치에 base X·Z 오프셋을 더합니다. 방향은 home TCP 방향을 유지합니다.
 
@@ -805,7 +805,7 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
     - **직접 호출:** Planning Scene 확인, `/compute_fk`, `/compute_cartesian_path`,
       필요 시 `/compute_ik`, `/plan_kinematic_path`, 이후 `/execute_trajectory`.
 
-    - **조건:** 부착된 대상이 있고 home 허용 오차 안이어야 합니다.
+    - **조건:** 부착된 대상이 필요합니다. 현재 자세에서 목표로 계획하며 home 도착은 요구하지 않습니다.
 
     - 완료 시 `release_ready=true`로 표시합니다. 실패하면 부착·닫힘 상태를 유지합니다.
 
@@ -901,11 +901,12 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
     | 라이브러리 | 노드 수 | 구현 |
     |---|---:|---|
     | `rwh_beyond_perception_bt_nodes` | 4 | `plugins/action/perception_actions.cpp` |
-    | `rwh_beyond_motion_bt_nodes` | 11 | `plugins/action/motion_actions.cpp`, 공통 연산·통신은 `src/motion_context.cpp` |
+    | `rwh_beyond_motion_bt_nodes` | 11 | `plugins/action/`의 노드별 파일, 공통 실행은 `motion_action.cpp`, 연산·통신은 `src/motion_context.cpp` |
     | `rwh_beyond_clear_octomap_action_bt_node` | 1 | `plugins/action/clear_octomap_action.cpp` |
-    | `rwh_beyond_bt_nodes` | 전체 로더 | `src/register_nodes.cpp`; 위 3개 라이브러리를 등록 |
+    | `rwh_beyond_bt_nodes` | 전체 로더 | `plugins/register_nodes.cpp`; 위 3개 라이브러리를 등록 |
 
     경로는 `rwh_beyond_bt/` 기준입니다. 모션 노드들은 BT 내부의 `MotionContext`를 공유합니다.
+    노드별 헤더·소스와 등록 관계는 [플러그인 구조](bt-architecture.md#plugin-structure)를 참고하세요.
     별도 coordinator 프로세스나 `/grasp/*` 단계 중계 액션 서버는 없습니다.
 
 ??? info "BT 노드 타입과 tick 방식 보기"

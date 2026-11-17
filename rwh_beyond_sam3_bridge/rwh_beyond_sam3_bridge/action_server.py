@@ -1,3 +1,5 @@
+from rwh_beyond_model_utils.errors import ActionFailure, set_failure
+from rwh_beyond_msgs.msg import ErrorCode
 """ROS segmentation server; the SAM GPU model stays in its own container."""
 import json
 import threading
@@ -67,17 +69,13 @@ class SegmentationActionServer(Node):
             result.message = ('MOCK_ONLY' if mock else 'OK') + ': segmented one target'
             handle.succeed()
         except RequestCanceled as error:
-            result.message = 'CANCELED: ' + str(error)
+            set_failure(result, error, 'sam3', '/segment_image')
             if handle.is_cancel_requested:
                 handle.canceled()
             else:
                 handle.abort()
         except Exception as error:
-            prefix = ('TIMEOUT' if isinstance(error, TimeoutError) else
-                      'SERVER_ERROR' if isinstance(error, ServerError) else
-                      'INVALID_RESPONSE' if isinstance(error, ProtocolError) else
-                      'INVALID_INPUT' if isinstance(error, ValueError) else 'INTERNAL_ERROR')
-            result.message = f'{prefix}: {error}'
+            set_failure(result, error, 'sam3', '/segment_image')
             self.get_logger().error(result.message)
             handle.abort()
         finally:

@@ -26,8 +26,15 @@ int32 num_grasps
 int32 top_k
 ---
 bool success
-# Prefix identifies INVALID_INPUT, TIMEOUT, SERVER_ERROR, INVALID_RESPONSE,
-# NO_CANDIDATES, CANCELED or INTERNAL_ERROR.
+bool mock
+# Structured error; do not parse message to determine the failure kind.
+# Constants: rwh_beyond_msgs/msg/ErrorCode. Success is 0.
+int32 error_code
+string error_domain
+string error_name
+string error_source
+string error_msg
+# Human-readable status; legacy prefixes are kept for CLI display.
 string message
 rwh_beyond_msgs/GraspCandidate[] candidates
 # RGBD only: selected depth-safe mask and segmentation confidence (not grasp score).

@@ -11,6 +11,7 @@
 #include <set>
 #include <stdexcept>
 #include <utility>
+#include <type_traits>
 #include "urdf/model.h"
 #include "moveit_msgs/msg/planning_scene_components.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
@@ -20,6 +21,80 @@ namespace rwh_beyond_bt
 {
 using PC = moveit_msgs::msg::PlanningSceneComponents;
 using Object = moveit_msgs::msg::CollisionObject;
+namespace
+{
+std::string moveit_name(int32_t code)
+{
+  switch (code) {
+    case 1: return "SUCCESS";
+    case 0: return "UNDEFINED";
+    case 99999: return "FAILURE";
+    case -1: return "PLANNING_FAILED";
+    case -2: return "INVALID_MOTION_PLAN";
+    case -3: return "MOTION_PLAN_INVALIDATED_BY_ENVIRONMENT_CHANGE";
+    case -4: return "CONTROL_FAILED";
+    case -5: return "UNABLE_TO_AQUIRE_SENSOR_DATA";
+    case -6: return "TIMED_OUT";
+    case -7: return "PREEMPTED";
+    case -10: return "START_STATE_IN_COLLISION";
+    case -11: return "START_STATE_VIOLATES_PATH_CONSTRAINTS";
+    case -26: return "START_STATE_INVALID";
+    case -12: return "GOAL_IN_COLLISION";
+    case -13: return "GOAL_VIOLATES_PATH_CONSTRAINTS";
+    case -14: return "GOAL_CONSTRAINTS_VIOLATED";
+    case -27: return "GOAL_STATE_INVALID";
+    case -28: return "UNRECOGNIZED_GOAL_TYPE";
+    case -15: return "INVALID_GROUP_NAME";
+    case -16: return "INVALID_GOAL_CONSTRAINTS";
+    case -17: return "INVALID_ROBOT_STATE";
+    case -18: return "INVALID_LINK_NAME";
+    case -19: return "INVALID_OBJECT_NAME";
+    case -21: return "FRAME_TRANSFORM_FAILURE";
+    case -22: return "COLLISION_CHECKING_UNAVAILABLE";
+    case -23: return "ROBOT_STATE_STALE";
+    case -24: return "SENSOR_INFO_STALE";
+    case -25: return "COMMUNICATION_FAILURE";
+    case -29: return "CRASH";
+    case -30: return "ABORT";
+    case -31: return "NO_IK_SOLUTION";
+    default: return "MOVEIT_ERROR_" + std::to_string(code);
+  }
+}
+ActionFailure moveit_failure(
+  const moveit_msgs::msg::MoveItErrorCodes & error, const std::string & source)
+{
+  if (error.val == 0) {
+    return ActionFailure(ErrorCode::INVALID_RESPONSE, "moveit", "INVALID_RESPONSE", source,
+      "MoveIt returned UNDEFINED (0)");
+  }
+  return ActionFailure(error.val, "moveit", moveit_name(error.val), source,
+    error.message.empty() ? moveit_name(error.val) : error.message);
+}
+ActionFailure controller_failure(int32_t code, const std::string & source, const std::string & text)
+{
+  std::string name;
+  switch (code) {
+    case -1: name = "INVALID_GOAL"; break;
+    case -2: name = "INVALID_JOINTS"; break;
+    case -3: name = "OLD_HEADER_TIMESTAMP"; break;
+    case -4: name = "PATH_TOLERANCE_VIOLATED"; break;
+    case -5: name = "GOAL_TOLERANCE_VIOLATED"; break;
+    default: name = "CONTROLLER_ERROR_" + std::to_string(code);
+  }
+  return ActionFailure(code, "controller", name, source, text.empty() ? name : text);
+}
+}  // namespace
+void MotionContext::status(const std::string & source, const std::string & stage)
+{
+  if (auto board = diagnostic_board.lock()) {
+    const bool moveit = source.find("compute_") != std::string::npos ||
+      source.find("plan_kinematic") != std::string::npos ||
+      source.find("planning_scene") != std::string::npos ||
+      source.find("execute_trajectory") != std::string::npos;
+    backend_stage(board, source + ":" + stage, moveit ? source + ":" + stage : "");
+  }
+}
+
 constexpr char TARGET[] = "red_grasp_target";
 const std::vector<std::string> FINGERS = {"gripper_link1", "gripper_link2"};
 
@@ -235,6 +310,7 @@ std::shared_ptr<MotionContext> MotionContext::get(const BT::Blackboard::Ptr & bo
         }
     });
   }
+  context->diagnostic_board = board;
   return context;
 }
 double MotionContext::number(const std::string & name, double fallback, double low, double high)
@@ -251,10 +327,13 @@ void MotionContext::wait(
 {
   auto until = std::chrono::steady_clock::now() + std::chrono::duration<double>(timeout);
   while (true) {
-    if (cancel->load() || !rclcpp::ok()) {throw std::runtime_error("BT motion canceled");}
+    if (cancel->load() || !rclcpp::ok()) {
+      throw ActionFailure(ErrorCode::CANCELED, "bt", "CANCELED", "motion", "BT motion canceled");
+    }
     if (predicate()) {return;}
     if (std::chrono::steady_clock::now() >= until) {
-      throw std::runtime_error("BT motion request timed out");
+      throw ActionFailure(ErrorCode::TIMEOUT, "bt", "TIMEOUT", "motion",
+          "BT motion request timed out");
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
   }
@@ -265,7 +344,8 @@ Joints MotionContext::feedback()
   if (std::chrono::duration<double>(std::chrono::steady_clock::now() - received_).count() >
     number("hardware_feedback_timeout", 1, .01, 10))
   {
-    throw std::runtime_error("Joint feedback is missing or stale");
+    throw ActionFailure(ErrorCode::STALE_FEEDBACK, "bt", "STALE_FEEDBACK", "/feedback/joint_states",
+        "Joint feedback is missing or stale");
   }
   auto values = joint_values(joints_);
   for (int i = 1; i <= 6; ++i) {
@@ -340,11 +420,17 @@ void MotionContext::check_ready(bool repeat, const Cancel & cancel)
   if (attached && repeat) {
     release(number("gripper_open_width", .10, .001, .10), 3, true, cancel);
   }
-  if (attached) {throw std::runtime_error("Target remains attached; place/release before picking");}
+  if (attached) {
+    throw ActionFailure(ErrorCode::PAYLOAD_PRESENT, "bt", "PAYLOAD_PRESENT", "CheckGraspReady",
+        "Target remains attached; place/release before picking");
+  }
   for (auto & client : {sam_, model_}) {
     auto result = call<std_srvs::srv::Trigger>(client, std_srvs::srv::Trigger::Request(), cancel,
         10);
-    if (!result->success) {throw std::runtime_error(result->message);}
+    if (!result->success) {
+      throw ActionFailure(ErrorCode::HEALTH_CHECK_FAILED, "transport", "HEALTH_CHECK_FAILED",
+        client->get_service_name(), result->message);
+    }
   }
   wait(
     [&]() {
@@ -359,14 +445,16 @@ geometry_msgs::msg::Pose MotionContext::fk(const State & start, const Cancel & c
   moveit_msgs::srv::GetPositionFK::Request request;
   request.header.frame_id = base; request.fk_link_names = {tcp}; request.robot_state = start;
   auto response = call<moveit_msgs::srv::GetPositionFK>(fk_, request, cancel);
-  if (response->error_code.val != 1 || response->pose_stamped.size() != 1) {
-    throw std::runtime_error("TCP FK failed");
+  if (response->error_code.val != 1) {throw moveit_failure(response->error_code, "/compute_fk");}
+  if (response->pose_stamped.size() != 1) {
+    throw ActionFailure(ErrorCode::INVALID_RESPONSE, "moveit", "INVALID_RESPONSE", "/compute_fk",
+      "TCP FK returned the wrong number of poses");
   }
   return response->pose_stamped[0].pose;
 }
 State MotionContext::ik(
   const geometry_msgs::msg::Pose & pose, const State & start,
-  const Cancel & cancel)
+  const Cancel & cancel, bool candidate)
 {
   moveit_msgs::srv::GetPositionIK::Request request;
   auto & r = request.ik_request;
@@ -374,7 +462,13 @@ State MotionContext::ik(
   r.pose_stamped.header.frame_id = base; r.pose_stamped.pose = pose;
   r.timeout = rclcpp::Duration::from_seconds(number("moveit_ik_timeout", .2, .001, 10));
   auto response = call<moveit_msgs::srv::GetPositionIK>(ik_, request, cancel);
-  return response->error_code.val == 1 ? response->solution : State();
+  if (response->error_code.val != 1) {
+    auto error = moveit_failure(response->error_code, "/compute_ik");
+    if (!candidate) {throw error;}
+    candidate_error = error;
+    return State();
+  }
+  return response->solution;
 }
 moveit_msgs::srv::GetCartesianPath::Response::SharedPtr MotionContext::cartesian(
   const geometry_msgs::msg::Pose & pose, const State & start, const Cancel & cancel)
@@ -418,8 +512,17 @@ Trajectory MotionContext::plan(
   auto response = call<moveit_msgs::srv::GetMotionPlan>(plan_, request, cancel,
       r.allowed_planning_time + 10);
   auto & result = response->motion_plan_response;
-  if (result.error_code.val != 1) {return Trajectory();}
+  if (result.error_code.val != 1) {
+    auto error = moveit_failure(result.error_code, "/plan_kinematic_path");
+    if (!candidate) {throw error;}
+    candidate_error = error;
+    return Trajectory();
+  }
   if (!trajectory_valid(result.trajectory, wrist) || !trajectory_reaches(result.trajectory, goal)) {
+    if (!candidate) {
+      throw ActionFailure(ErrorCode::INVALID_TRAJECTORY, "bt", "INVALID_TRAJECTORY",
+        "/plan_kinematic_path", "Returned trajectory violates constraints or misses its goal");
+    }
     return Trajectory();
   }
   return result.trajectory;
@@ -433,8 +536,19 @@ void run_action(
   const typename Action::Goal & goal, MotionContext & context, const Cancel & cancel,
   double timeout, const std::function<bool(const typename Action::Result &)> & success)
 {
-  context.wait(
-    [&]() {return client->action_server_is_ready();}, 10, cancel);
+  const std::string source = context.node->get_node_topics_interface()->resolve_topic_name(
+    std::is_same_v<Action, moveit_msgs::action::ExecuteTrajectory> ?
+    "execute_trajectory" : "gripper_controller/follow_joint_trajectory");
+  context.status(source, "waiting_for_server");
+  try {
+    context.wait([&]() {
+        return client->action_server_is_ready();
+                                                                   }, 10, cancel);
+  } catch (const ActionFailure & e) {
+    throw ActionFailure(e.code == ErrorCode::TIMEOUT ? ErrorCode::SERVER_UNAVAILABLE : e.code,
+      "transport", e.code == ErrorCode::TIMEOUT ? "SERVER_UNAVAILABLE" : e.name, source, e.what());
+  }
+  context.status(source, "sending_goal");
   typename rclcpp_action::Client<Action>::SendGoalOptions options;
   options.goal_response_callback = [client, cancel](auto handle) {
       if (handle && cancel->load()) {
@@ -452,7 +566,11 @@ void run_action(
         return sent.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
         }, 10, cancel);
     handle = sent.get();
-    if (!handle) {throw std::runtime_error("Action goal rejected");}
+    if (!handle) {
+      throw ActionFailure(ErrorCode::GOAL_REJECTED, "transport", "GOAL_REJECTED", source,
+        "Action goal rejected");
+    }
+    context.status(source, "executing");
     auto result = client->async_get_result(handle);
     context.wait(
       [&]() {
@@ -460,11 +578,24 @@ void run_action(
     },
         timeout, cancel);
     auto value = result.get();
-    if (value.code != rclcpp_action::ResultCode::SUCCEEDED || !value.result ||
-      !success(*value.result))
-    {
-      throw std::runtime_error("Action execution failed");
+    if (!value.result) {
+      throw ActionFailure(ErrorCode::INVALID_RESPONSE, "transport", "INVALID_RESPONSE", source,
+        "Action returned no result");
     }
+    if (!success(*value.result)) {
+      if constexpr (std::is_same_v<Action, moveit_msgs::action::ExecuteTrajectory>) {
+        throw moveit_failure(value.result->error_code, source);
+      } else {
+        throw controller_failure(value.result->error_code, source, value.result->error_string);
+      }
+    }
+    if (value.code != rclcpp_action::ResultCode::SUCCEEDED) {
+      const bool canceled = value.code == rclcpp_action::ResultCode::CANCELED;
+      throw ActionFailure(canceled ? ErrorCode::ACTION_CANCELED : ErrorCode::ACTION_ABORTED,
+        "transport", canceled ? "ACTION_CANCELED" : "ACTION_ABORTED", source,
+        "Action status was not SUCCEEDED despite a success payload");
+    }
+    context.status(source, "completed");
   } catch (...) {
     if (handle) {
       try {
@@ -483,12 +614,22 @@ void run_action(
         }
       }
     }
-    throw;
+    try {
+      throw;
+    } catch (const ActionFailure & error) {
+      if (error.source == "motion") {
+        throw ActionFailure(error.code, "transport", error.name, source, error.what());
+      }
+      throw;
+    }
   }
 }
 void MotionContext::execute(const Trajectory & trajectory, const Cancel & cancel)
 {
-  if (!trajectory_valid(trajectory)) {throw std::runtime_error("Invalid executable trajectory");}
+  if (!trajectory_valid(trajectory)) {
+    throw ActionFailure(ErrorCode::INVALID_TRAJECTORY, "bt", "INVALID_TRAJECTORY",
+        "/execute_trajectory", "Invalid executable trajectory");
+  }
   ensure_backend(cancel);
   auto current = feedback();
   auto & j = trajectory.joint_trajectory;
@@ -496,7 +637,8 @@ void MotionContext::execute(const Trajectory & trajectory, const Cancel & cancel
     if (j.joint_names[i] != "gripper" &&
       std::abs(current.at(j.joint_names[i]) - j.points.front().positions[i]) > .20)
     {
-      throw std::runtime_error("Robot moved since planning");
+      throw ActionFailure(ErrorCode::INVALID_PLAN, "bt", "INVALID_PLAN", "/execute_trajectory",
+          "Robot moved since planning");
     }
   }
   moveit_msgs::action::ExecuteTrajectory::Goal goal;
@@ -522,10 +664,16 @@ void MotionContext::execute_cartesian(
   const Constraints & wrist, const Cancel & cancel)
 {
   auto result = cartesian(pose, state(cancel), cancel);
-  if (result->error_code.val != 1 || !std::isfinite(result->fraction) || result->fraction < .999 ||
-    !trajectory_valid(result->solution, wrist))
-  {
-    throw std::runtime_error("Incomplete Cartesian path or wrist limit violation");
+  if (result->error_code.val != 1) {
+    throw moveit_failure(result->error_code, "/compute_cartesian_path");
+  }
+  if (!std::isfinite(result->fraction) || result->fraction < .999 || result->fraction > 1) {
+    throw ActionFailure(ErrorCode::PARTIAL_PATH, "bt", "PARTIAL_PATH", "/compute_cartesian_path",
+      "Incomplete Cartesian path: fraction=" + std::to_string(result->fraction));
+  }
+  if (!trajectory_valid(result->solution, wrist)) {
+    throw ActionFailure(ErrorCode::INVALID_TRAJECTORY, "bt", "INVALID_TRAJECTORY",
+      "/compute_cartesian_path", "Cartesian trajectory is invalid or violates wrist limits");
   }
   execute(result->solution, cancel);
 }
@@ -568,7 +716,8 @@ void MotionContext::apply(moveit_msgs::msg::PlanningScene value, const Cancel & 
   value.is_diff = value.robot_state.is_diff = true;
   moveit_msgs::srv::ApplyPlanningScene::Request request; request.scene = value;
   if (!call<moveit_msgs::srv::ApplyPlanningScene>(apply_, request, cancel)->success) {
-    throw std::runtime_error("Planning Scene update rejected");
+    throw ActionFailure(ErrorCode::SCENE_UPDATE_FAILED, "moveit", "SCENE_UPDATE_FAILED",
+        "/apply_planning_scene", "Planning Scene update rejected");
   }
 }
 static void set_pair(
@@ -650,7 +799,8 @@ void MotionContext::prepare_motion(const Cancel & cancel)
 void MotionContext::release(double opening, double duration, bool repeat, const Cancel & cancel)
 {
   if (!attached || (!repeat && !release_ready)) {
-    throw std::runtime_error("Release requires attached payload and successful place");
+    throw ActionFailure(ErrorCode::RELEASE_NOT_READY, "bt", "RELEASE_NOT_READY", "ReleaseObject",
+        "Release requires attached payload and successful place");
   }
   gripper(opening, duration, false, cancel);
   moveit_msgs::msg::PlanningScene update;
@@ -665,12 +815,16 @@ void MotionContext::validate_capture(const Observation & capture)
   if (!capture || capture->id.empty()) {throw std::invalid_argument("Missing BT capture");}
   double age = (node->now() - rclcpp::Time(capture->depth.header.stamp,
       node->get_clock()->get_clock_type())).seconds();
-  if (age < 0 || age > 30) {throw std::runtime_error("Capture expired or future timestamp");}
+  if (age < 0 || age > 30) {
+    throw ActionFailure(ErrorCode::STALE_OBSERVATION, "bt", "STALE_OBSERVATION",
+        "SelectFeasibleGrasp", "Capture expired or future timestamp");
+  }
   auto old = joint_values(capture->joints), now = feedback();
   for (int i = 1; i <= 6; ++i) {
     auto name = "joint" + std::to_string(i);
     if (std::abs(old.at(name) - now.at(name)) > .02) {
-      throw std::runtime_error("Arm moved since capture; reobserve");
+      throw ActionFailure(ErrorCode::STALE_OBSERVATION, "bt", "STALE_OBSERVATION",
+          "SelectFeasibleGrasp", "Arm moved since capture; reobserve");
     }
   }
 }
@@ -752,6 +906,7 @@ Plan MotionContext::select(
   const std::vector<rwh_beyond_msgs::msg::GraspCandidate> & candidates,
   bool estimated_width, double pre_distance, double lift_distance, const Cancel & cancel)
 {
+  candidate_error.reset();
   if (attached || scene_active) {throw std::runtime_error("Previous target still active");}
   selected.reset();
   validate_capture(capture);
@@ -857,7 +1012,10 @@ Plan MotionContext::select(
       z.push_back(point.z());
     }
   }
-  if (z.size() < 100) {throw std::runtime_error("No observed nearby support plane; reobserve");}
+  if (z.size() < 100) {
+    throw ActionFailure(ErrorCode::GEOMETRY_INVALID, "bt", "GEOMETRY_INVALID",
+        "SelectFeasibleGrasp", "No observed nearby support plane; reobserve");
+  }
   std::map<int, int> histogram;
   for (double value : z) {
     ++histogram[static_cast<int>(std::floor(value / .005))];
@@ -873,7 +1031,8 @@ Plan MotionContext::select(
     }
   }
   if (plane.size() < 100 || plane.size() < .15 * z.size()) {
-    throw std::runtime_error("Uncertain support plane");
+    throw ActionFailure(ErrorCode::GEOMETRY_INVALID, "bt", "GEOMETRY_INVALID",
+        "SelectFeasibleGrasp", "Uncertain support plane");
   }
   double support = quantile(plane, .5);
   lower.z() = support;
@@ -1027,7 +1186,7 @@ Plan MotionContext::select(
       }
     }
     Eigen::Isometry3d pre = tcp_goal; pre.translation() -= g.linear().col(2) * pre_distance;
-    auto goal = ik(matrix_pose(pre), start, cancel);
+    auto goal = ik(matrix_pose(pre), start, cancel, true);
     if (goal.joint_state.name.empty()) {++rejected["pre_ik"]; continue;}
     auto positions = joint_values(goal.joint_state);
     bool wrist_ok = true;
@@ -1040,6 +1199,9 @@ Plan MotionContext::select(
     if (approach->error_code.val != 1 || !std::isfinite(approach->fraction) ||
       approach->fraction < .999 || !trajectory_valid(approach->solution, wrist))
     {
+      if (approach->error_code.val != 1) {
+        candidate_error = moveit_failure(approach->error_code, "/compute_cartesian_path");
+      }
       ++rejected["approach_path"]; continue;
     }
     State grasp_state = goal;
@@ -1056,7 +1218,13 @@ Plan MotionContext::select(
     auto lift_pose = matrix_pose(tcp_goal); lift_pose.position.z += lift_distance;
     auto lift = cartesian(lift_pose, grasp_state, cancel);
     if (lift->error_code.val != 1 || !std::isfinite(lift->fraction) || lift->fraction < .999 ||
-      !trajectory_valid(lift->solution, wrist)) {++rejected["lift_path"]; continue;}
+      !trajectory_valid(lift->solution, wrist))
+    {
+      if (lift->error_code.val != 1) {
+        candidate_error = moveit_failure(lift->error_code, "/compute_cartesian_path");
+      }
+      ++rejected["lift_path"]; continue;
+    }
     auto trajectory = plan(start, goal, wrist, cancel, true);
     if (!trajectory_valid(trajectory, wrist)) {++rejected["pre_plan"]; continue;}
     selected = std::make_shared<GraspPlan>();
@@ -1074,6 +1242,12 @@ Plan MotionContext::select(
   for (auto & pair : rejected) {
     reasons += pair.first + "=" + std::to_string(pair.second) + " ";
   }
-  throw std::runtime_error("No feasible model grasp: " + reasons);
+  if (candidate_error) {
+    throw ActionFailure(candidate_error->code, candidate_error->domain, candidate_error->name,
+      candidate_error->source,
+        std::string(candidate_error->what()) + "; No feasible model grasp: " + reasons);
+  }
+  throw ActionFailure(ErrorCode::NO_FEASIBLE_GRASP, "bt", "NO_FEASIBLE_GRASP",
+    "SelectFeasibleGrasp", "No feasible model grasp: " + reasons);
 }
 }  // namespace rwh_beyond_bt

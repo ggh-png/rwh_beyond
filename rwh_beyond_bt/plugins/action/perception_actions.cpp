@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "rwh_beyond_bt/perception_actions.hpp"
+#include "rwh_beyond_bt/plugins/action/perception_actions.hpp"
 
 #include <algorithm>
 #include <array>
@@ -39,7 +39,7 @@ template<typename T>
 T required(const BT::TreeNode & node, const std::string & port)
 {
   auto value = node.getInput<T>(port);
-  if (!value) {throw BT::RuntimeError("Missing ", port, ": ", value.error());}
+  if (!value) {throw std::invalid_argument("Missing " + port + ": " + value.error());}
   return value.value();
 }
 
@@ -53,10 +53,26 @@ T setting(const rclcpp::Node::SharedPtr & node, const std::string & key, const T
 
 BT::NodeStatus failed(
   const BT::TreeNode & node, const std::string & source,
-  const std::string & message)
+  const std::string & message, int32_t code = ErrorCode::INVALID_INPUT,
+  const std::string & name = "INVALID_INPUT", const std::string & domain = "bt")
 {
-  report_failure(node.config().blackboard, -1201, "GRASP_STAGE_FAILED", source, message);
+  report_failure(node.config().blackboard, code, name, source, message, domain);
   return BT::NodeStatus::FAILURE;
+}
+
+template<class Result>
+BT::NodeStatus model_failure(
+  const BT::TreeNode & node, const std::shared_ptr<Result> & result, const std::string & source)
+{
+  if (!result || result->error_code == 0 || result->error_domain.empty() ||
+    result->error_source.empty())
+  {
+    return failed(node, source, "Model action returned no structured failure",
+          ErrorCode::INVALID_RESPONSE,
+      "INVALID_RESPONSE", "transport");
+  }
+  return failed(node, result->error_source, result->error_msg, result->error_code,
+    result->error_name, result->error_domain);
 }
 
 void validate_image(const sensor_msgs::msg::Image & image, size_t pixel_size)
@@ -264,7 +280,7 @@ BT::NodeStatus CaptureRgbdAction::onRunning()
   }
   if (std::chrono::steady_clock::now() > s.deadline) {
     return failed(*this, "bt/capture_rgbd",
-        "Fresh synchronized RGB-D/calibration/joints unavailable");
+        "Fresh synchronized RGB-D/calibration/joints unavailable", ErrorCode::TIMEOUT, "TIMEOUT");
   }
   return BT::NodeStatus::RUNNING;
 }
@@ -315,16 +331,35 @@ BT::NodeStatus SegmentObjectAction::tick()
   try {
     const auto status = BtActionNode::tick();
     if (status == BT::NodeStatus::RUNNING && std::chrono::steady_clock::now() > deadline_) {
+      failed(*this, "/segment_image", "Bridge result timed out; cancellation requested",
+        ErrorCode::TIMEOUT, "TIMEOUT", "transport");
       BtActionNode::halt();
-      return failed(*this, name(), "Bridge result timed out; cancellation requested");
+      return BT::NodeStatus::FAILURE;
     }
-    if (status == BT::NodeStatus::FAILURE && demo_feedback(config().blackboard).error_code == 0) {
-      return failed(*this, name(), "Bridge action request failed or was rejected");
+    if (status == BT::NodeStatus::FAILURE &&
+      execution_diagnostic(config().blackboard).error_code == 0)
+    {
+      return failed(*this, "/segment_image",
+          "Bridge goal request failed, timed out or was rejected",
+        ErrorCode::ACTION_REQUEST_FAILED, "ACTION_REQUEST_FAILED", "transport");
     }
     return status;
-  } catch (const std::exception & e) {
-    return failed(*this, "sam3/segment_image", e.what());
+  } catch (const std::exception & error) {
+    report_exception(config().blackboard, error, "/segment_image");
+    return BT::NodeStatus::FAILURE;
   }
+}
+void SegmentObjectAction::on_wait_for_result(std::shared_ptr<const Action::Feedback> feedback)
+{
+  if (feedback) {backend_stage(config().blackboard, feedback->stage);}
+}
+BT::NodeStatus SegmentObjectAction::on_cancelled()
+{
+  if (result_.result && result_.result->error_code != 0) {
+    return model_failure(*this, result_.result, "/segment_image");
+  }
+  return failed(*this, "/segment_image", "Model action canceled", ErrorCode::CANCELED, "CANCELED",
+    "transport");
 }
 void SegmentObjectAction::on_tick()
 {
@@ -357,17 +392,19 @@ void SegmentObjectAction::on_tick()
 }
 BT::NodeStatus SegmentObjectAction::on_success()
 {
-  if (!result_.result || !result_.result->success) {return on_aborted();}
+  if (!result_.result || !result_.result->success || result_.result->error_code != 0) {
+    return on_aborted();
+  }
   if (result_.result->mock && !setting<bool>(node_, "allow_mock_segmentation", false)) {
-    return failed(*this, "sam3/segment_image", "Mock segmentation is disabled");
+    return failed(*this, "/segment_image", "Mock segmentation is disabled",
+      ErrorCode::MOCK_NOT_ALLOWED, "MOCK_NOT_ALLOWED");
   }
   setOutput("mask", result_.result->object_mask);
   return BT::NodeStatus::SUCCESS;
 }
 BT::NodeStatus SegmentObjectAction::on_aborted()
 {
-  return failed(*this, "sam3/segment_image",
-      result_.result ? result_.result->message : "No SAM result");
+  return model_failure(*this, result_.result, "/segment_image");
 }
 
 InferGraspsAction::InferGraspsAction(
@@ -384,16 +421,34 @@ BT::NodeStatus InferGraspsAction::tick()
   try {
     const auto status = BtActionNode::tick();
     if (status == BT::NodeStatus::RUNNING && std::chrono::steady_clock::now() > deadline_) {
+      failed(*this, "/infer_grasps", "Bridge result timed out; cancellation requested",
+        ErrorCode::TIMEOUT, "TIMEOUT", "transport");
       BtActionNode::halt();
-      return failed(*this, name(), "Bridge result timed out; cancellation requested");
+      return BT::NodeStatus::FAILURE;
     }
-    if (status == BT::NodeStatus::FAILURE && demo_feedback(config().blackboard).error_code == 0) {
-      return failed(*this, name(), "Bridge action request failed or was rejected");
+    if (status == BT::NodeStatus::FAILURE &&
+      execution_diagnostic(config().blackboard).error_code == 0)
+    {
+      return failed(*this, "/infer_grasps", "Bridge goal request failed, timed out or was rejected",
+        ErrorCode::ACTION_REQUEST_FAILED, "ACTION_REQUEST_FAILED", "transport");
     }
     return status;
-  } catch (const std::exception & e) {
-    return failed(*this, "graspgenx/infer_grasps", e.what());
+  } catch (const std::exception & error) {
+    report_exception(config().blackboard, error, "/infer_grasps");
+    return BT::NodeStatus::FAILURE;
   }
+}
+void InferGraspsAction::on_wait_for_result(std::shared_ptr<const Action::Feedback> feedback)
+{
+  if (feedback) {backend_stage(config().blackboard, feedback->stage);}
+}
+BT::NodeStatus InferGraspsAction::on_cancelled()
+{
+  if (result_.result && result_.result->error_code != 0) {
+    return model_failure(*this, result_.result, "/infer_grasps");
+  }
+  return failed(*this, "/infer_grasps", "Model action canceled", ErrorCode::CANCELED, "CANCELED",
+    "transport");
 }
 void InferGraspsAction::on_tick()
 {
@@ -408,18 +463,23 @@ void InferGraspsAction::on_tick()
 }
 BT::NodeStatus InferGraspsAction::on_success()
 {
-  if (!result_.result || !result_.result->success || result_.result->message.rfind("OK:",
-      0) != 0 || result_.result->candidates.empty())
-  {
+  if (!result_.result || !result_.result->success || result_.result->error_code != 0) {
     return on_aborted();
+  }
+  if (result_.result->mock) {
+    return failed(*this, "/infer_grasps", "Mock grasps are disabled", ErrorCode::MOCK_NOT_ALLOWED,
+      "MOCK_NOT_ALLOWED");
+  }
+  if (result_.result->candidates.empty()) {
+    return failed(*this, "/infer_grasps", "Successful model action returned no candidates",
+      ErrorCode::NO_CANDIDATES, "NO_CANDIDATES");
   }
   setOutput("candidates", result_.result->candidates);
   return BT::NodeStatus::SUCCESS;
 }
 BT::NodeStatus InferGraspsAction::on_aborted()
 {
-  return failed(*this, "graspgenx/infer_grasps",
-      result_.result ? result_.result->message : "No inference result");
+  return model_failure(*this, result_.result, "/infer_grasps");
 }
 }  // namespace rwh_beyond_bt
 

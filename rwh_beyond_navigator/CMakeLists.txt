@@ -12,17 +12,19 @@ find_package(TinyXML2 REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rwh_beyond_msgs REQUIRED)
+find_package(rwh_beyond_bt REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED src/demo_navigator.cpp src/xml_tree_filter.cpp)
-target_link_libraries(${PROJECT_NAME} tinyxml2::tinyxml2)
+target_link_libraries(${PROJECT_NAME} tinyxml2::tinyxml2 rwh_beyond_bt::rwh_beyond_bt_common)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra -Wpedantic)
 ament_target_dependencies(${PROJECT_NAME}
   ament_index_cpp nav2_behavior_tree nav2_core nav2_util pluginlib rclcpp rclcpp_action
-  rwh_beyond_msgs)
+  rwh_beyond_msgs rwh_beyond_bt)
 
 pluginlib_export_plugin_description_file(nav2_core navigator_plugins.xml)
 install(TARGETS ${PROJECT_NAME} LIBRARY DESTINATION lib)
+install(DIRECTORY behavior_trees DESTINATION share/${PROJECT_NAME})
 install(FILES navigator_plugins.xml DESTINATION share/${PROJECT_NAME})
 if(BUILD_TESTING)
   find_package(ament_cmake_pytest REQUIRED)

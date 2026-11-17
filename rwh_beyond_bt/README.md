@@ -27,12 +27,20 @@ home 관절값·관측 높이/각도/안정화 시간·그리퍼 열림 폭/시�
 
 ## 플러그인 구조
 
+사용자 정의 BT 노드의 구현은 `plugins/action/`에 있고, 공개 선언은
+`include/rwh_beyond_bt/plugins/action/`에 있습니다. 현재 Condition 노드는 없습니다.
+`CheckGraspReady`는 설정에 따라 이전 물체를 해제할 수 있는 Action입니다.
+공통 로더는 `plugins/register_nodes.cpp`에 있으며 특정 노드 유형에 속하지 않습니다.
+공유 진단과 모션 클라이언트는 `src/`에 둡니다.
+
 - `rwh_beyond_perception_bt_nodes`: CaptureRgbd·SegmentObject·BuildObjectCloud·InferGrasps
 - `rwh_beyond_motion_bt_nodes`: 후보 선택·모션·그리퍼·부착 등 11개 노드
 - `rwh_beyond_clear_octomap_action_bt_node`: 지도 초기화
 - `rwh_beyond_bt_nodes`: 전체 호환 로더
 
-`motion_actions.cpp`가 BT 단계별 동작을 수행하고 `motion_context.cpp`가 MoveIt/그리퍼
+모션 노드는 `include/rwh_beyond_bt/plugins/action/`에 노드별 헤더를,
+`plugins/action/`에 대응하는 소스를 둡니다. `motion_action.cpp`에서 공통 실행·취소
+처리를 공유하고 `motion_context.cpp`는 MoveIt/그리퍼
 클라이언트·TF·피드백·장면 자원을 공유합니다. coordinator·단계 서버·plan_id는 없습니다.
 관측과 typed GraspPlan은 Blackboard 포트로 전달합니다.
 설정은 bt_navigator.ros__parameters의 bt_perception·bt_motion에 있습니다.

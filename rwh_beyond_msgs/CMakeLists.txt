@@ -6,6 +6,7 @@ find_package(geometry_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/SetGraspRegion.srv"
+  "msg/ErrorCode.msg"
   "msg/TcpPose.msg"
   "msg/GraspCandidate.msg"
   "action/SegmentImage.action"

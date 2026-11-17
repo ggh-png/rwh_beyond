@@ -15,10 +15,13 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <thread>
 #include <vector>
 #include <utility>
+
+#include "rwh_beyond_bt/diagnostics.hpp"
 #include "Eigen/Geometry"
 #include "behaviortree_cpp/blackboard.h"
 #include "rclcpp/rclcpp.hpp"
@@ -37,7 +40,7 @@
 #include "std_srvs/srv/empty.hpp"
 #include "rcl_interfaces/srv/get_parameters.hpp"
 #include "rwh_beyond_msgs/srv/set_grasp_region.hpp"
-#include "rwh_beyond_bt/perception_actions.hpp"
+#include "rwh_beyond_bt/plugins/action/perception_actions.hpp"
 #include "visualization_msgs/msg/marker_array.hpp"
 
 namespace rwh_beyond_bt
@@ -84,6 +87,10 @@ public:
   moveit_msgs::msg::CollisionObject object;
   std::map<std::string, bool> original_pairs;
   Plan selected;
+  std::weak_ptr<BT::Blackboard> diagnostic_board;
+  std::optional<ActionFailure> candidate_error;
+  void status(const std::string & source, const std::string & stage);
+
   std::mutex operation;  // Parallel BT branches cannot command the same robot.
 
   template<class T> T parameter(const std::string & name, const T & fallback)
@@ -99,12 +106,24 @@ public:
     const typename rclcpp::Client<Service>::SharedPtr & client,
     const typename Service::Request & request, const Cancel & cancel, double timeout = 15)
   {
-    wait([&]() {return client->service_is_ready();}, timeout, cancel);
+    const std::string source = client->get_service_name();
+    status(source, "waiting_for_service");
+    try {
+      wait([&]() {
+          return client->service_is_ready();
+                                                       }, timeout, cancel);
+    } catch (const ActionFailure & e) {
+      throw ActionFailure(e.code, "transport", e.name, source, e.what());
+    }
+    status(source, "waiting_for_response");
     auto future = client->async_send_request(std::make_shared<typename Service::Request>(request));
     try {
       wait([&]() {return future.wait_for(std::chrono::seconds(0)) == std::future_status::ready;},
         timeout, cancel);
       return future.get();
+    } catch (const ActionFailure & e) {
+      client->remove_pending_request(future);
+      throw ActionFailure(e.code, "transport", e.name, source, e.what());
     } catch (...) {client->remove_pending_request(future); throw;}
   }
   Joints feedback();
@@ -112,7 +131,9 @@ public:
   void ensure_backend(const Cancel & cancel);
   void check_ready(bool release_previous, const Cancel & cancel);
   geometry_msgs::msg::Pose fk(const State & state, const Cancel & cancel);
-  State ik(const geometry_msgs::msg::Pose & pose, const State & start, const Cancel & cancel);
+  State ik(
+    const geometry_msgs::msg::Pose & pose, const State & start, const Cancel & cancel,
+    bool candidate = false);
   moveit_msgs::srv::GetCartesianPath::Response::SharedPtr cartesian(
     const geometry_msgs::msg::Pose & pose, const State & start, const Cancel & cancel);
   Trajectory plan(

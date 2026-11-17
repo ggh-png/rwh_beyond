@@ -1,3 +1,5 @@
+from rwh_beyond_model_utils.errors import ActionFailure, set_failure
+from rwh_beyond_msgs.msg import ErrorCode
 import json
 import copy
 import threading
@@ -124,26 +126,25 @@ class InferenceActionServer(Node):
             if handle.is_cancel_requested:
                 raise RequestCanceled('canceled before result publication')
             if not result.candidates:
-                result.message = 'NO_CANDIDATES: inference completed with no grasps'
+                set_failure(result, ActionFailure(ErrorCode.NO_CANDIDATES, 'graspgenx',
+                    'NO_CANDIDATES', '/infer_grasps', 'inference completed with no grasps'),
+                    'graspgenx', '/infer_grasps')
                 handle.abort()
             else:
                 result.success = True
-                prefix = 'MOCK_ONLY' if response.get('mock') is True or segmentation_mock else 'OK'
+                result.mock = response.get('mock') is True or segmentation_mock
+                prefix = 'MOCK_ONLY' if result.mock else 'OK'
                 result.message = f'{prefix}: {len(result.candidates)} candidates in input frame'
                 handle.succeed()
         except RequestCanceled as error:
             result.candidates = []
-            result.message = 'CANCELED: ' + str(error)
+            set_failure(result, error, 'graspgenx', '/infer_grasps')
             if handle.is_cancel_requested:
                 handle.canceled()
             else:
                 handle.abort()
         except Exception as error:
-            prefix = ('TIMEOUT' if isinstance(error, TimeoutError) else
-                      'SERVER_ERROR' if isinstance(error, ServerError) else
-                      'INVALID_RESPONSE' if isinstance(error, ProtocolError) else
-                      'INVALID_INPUT' if isinstance(error, (ValueError, AssertionError)) else 'INTERNAL_ERROR')
-            result.message = f'{prefix}: {error}'
+            set_failure(result, error, 'graspgenx', '/infer_grasps')
             result.candidates = []
             self.get_logger().error(result.message)
             handle.abort()

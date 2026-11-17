@@ -1,9 +1,10 @@
 # 파지 후보 탈락·오류 진단
 
-`GRASP_STAGE_FAILED (-1201)`은 파지 단계 실패를 묶어 표현합니다.
-`error_source`, `failed_stage`, `error_msg`를 함께 확인합니다.
-`select_collision_free_grasp`의 `No feasible model grasp`는 후보를 선택하지 못했다는 뜻이며,
+`error_domain`, `error_code`, `error_source`, `failed_stage`, `error_msg`를 함께 확인합니다.
+`SelectFeasibleGrasp`의 `No feasible model grasp`는 후보를 선택하지 못했다는 뜻이며,
 이 메시지만으로 SAM·GraspGenX 서버가 꺼졌다고 판단할 수 없습니다.
+MoveIt이 반환한 후보별 오류가 있으면 원본 코드가 보고될 수 있고, 그렇지 않으면
+`NO_FEASIBLE_GRASP`가 사용됩니다. [Feedback·Result](bt-operation.md#feedback-result)를 참고하세요.
 
 ## invalid_observed_width만 발생하는 경우
 
@@ -23,9 +24,7 @@ bt_navigator:
 
 이 예시는 4mm이며, `0.05`는 50mm로 허용 상한 5mm를 초과합니다.
 현재 YAML은 `0.005`m로 설정되어 있습니다. `0.05`처럼 허용 범위를 넘는 값으로
-바꾸면 후보가 모두 탈락하므로 단위를 확인하고, 변경 후 `bt_demo`를 재시작합니다.
-현재 코드에서는 이 값의 범위 검사를 후보별 폭 추정에서 수행하기 때문에
-노드가 시작됐더라도 모든 후보가 같은 오류로 탈락할 수 있습니다.
+바꾸면 후보별 검사 전에 설정 오류로 실패하므로 단위를 확인하고, 변경 후 `bt_demo`를 재시작합니다.
 
 설정이 유효한데 계속 실패하면 아래 입력 조건을 확인합니다.
 

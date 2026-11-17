@@ -154,7 +154,7 @@
       <input_port name="x"
                   type="double">Base X offset (m)</input_port>
       <input_port name="y"
-                  type="double">Base Y offset (m)</input_port>
+                  type="double">//Base Y offset (m)</input_port>
       <input_port name="home_joint_positions"
                   type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
     </Action>

@@ -3,6 +3,8 @@ import time
 
 import rclpy
 from rwh_beyond_msgs.action import SegmentImage
+from rwh_beyond_msgs.msg import ErrorCode
+from rwh_beyond_model_utils.errors import ActionFailure
 from rwh_beyond_model_utils.rgb_converter import rgb_array
 from rwh_beyond_model_utils.zmq_client import ProtocolError, RequestCanceled, ServerError
 
@@ -45,19 +47,16 @@ def segment_via_action(client, rgb, depth, text='', box=(), point=(), policy='un
         accepted.add_done_callback(cancel_late)
         raise
     if not handle.accepted:
-        raise ServerError('SAM ROS Action rejected: bridge busy')
+        raise ActionFailure(ErrorCode.GOAL_REJECTED, 'transport', 'GOAL_REJECTED',
+                            '/segment_image', 'SAM ROS Action rejected: bridge busy')
     try:
         response = wait(handle.get_result_async())
     except Exception:
         handle.cancel_goal_async()
         raise
     result = response.result
-    if not result.success:
-        prefix, _, message = result.message.partition(':')
-        kind = {'TIMEOUT': TimeoutError, 'INVALID_INPUT': ValueError,
-                'INVALID_RESPONSE': ProtocolError, 'SERVER_ERROR': ServerError,
-                'CANCELED': RequestCanceled}.get(prefix, ServerError)
-        raise kind(message.strip() or result.message)
+    if not result.success or result.error_code != 0:
+        raise ActionFailure.from_result(result)
     if result.mock and not allow_mock:
         raise ProtocolError('Real SAM 3 segmentation required; no automatic fallback')
     if response.status != 4 or not result.message.startswith(('OK:', 'MOCK_ONLY:')):

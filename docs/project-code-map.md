@@ -8,7 +8,10 @@
 | rwh_beyond_navigator/src/xml_tree_filter.cpp | Groot 빈 속성 제거·include 정리·변경된 XML 재로드 |
 | rwh_beyond_bt/behavior_trees | 집기 2종·배치 XML |
 | rwh_beyond_bt/plugins/action/perception_actions.cpp | 촬영·SAM·점군·모델 직접 호출 |
-| rwh_beyond_bt/plugins/action/motion_actions.cpp | 각 모션 BT 단계의 입력·실행·출력·취소 |
+| rwh_beyond_bt/include/rwh_beyond_bt/plugins/action | 노드별 Action 선언과 공통 MotionAction 선언 |
+| rwh_beyond_bt/plugins/action | 노드별 Action 구현·등록과 공통 실행·취소 처리 |
+| rwh_beyond_bt/plugins/register_nodes.cpp | 전체 BT 라이브러리 로더 |
+| rwh_beyond_bt/src/diagnostics.cpp | Blackboard 실행 진단 및 오류 스냅샷 |
 | rwh_beyond_bt/src/motion_context.cpp | TCP·폭·형상·후보 선택, MoveIt/그리퍼 클라이언트·장면·피드백 |
 | rwh_beyond_grasp_pipeline | 모델 브릿지 launch, target_cloud_filter, physical_trajectory, feedback |
 | rwh_beyond_sam3_bridge | SegmentImage·SAM health |

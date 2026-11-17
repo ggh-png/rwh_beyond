@@ -46,6 +46,82 @@ flowchart LR
 MotionContext는 root Blackboard에 보관하며 별도 ROS 서버를 제공하지 않습니다.
 물리 전송과 점군 필터는 장치·센서 기능을 담당하는 별도 노드로 유지합니다.
 
+## 플러그인 디렉터리와 등록 { #plugin-structure }
+
+`rwh_beyond_bt/`에는 사용자 정의 Action 노드 **16종**이 있습니다. 현재 사용자 정의
+Condition 노드는 없으며 `plugins/condition/`은 향후 Condition을 위한 자리입니다.
+`CheckGraspReady`는 설정에 따라 기존 물체를 해제할 수 있으므로 Action입니다.
+`Sequence`는 BehaviorTree.CPP가 제공하는 제어 노드입니다.
+
+```text
+rwh_beyond_bt/
+├── include/rwh_beyond_bt/plugins/action/  # Action 선언
+│   ├── motion_action.hpp                 # 모션 노드 공통 기반
+│   └── move_home_action.hpp              # 예: 노드별 헤더
+├── plugins/
+│   ├── action/
+│   │   ├── motion_action.cpp             # 공통 실행·취소
+│   │   ├── motion_actions.cpp            # 모션 노드 11종 등록
+│   │   ├── move_home_action.cpp          # 예: 노드별 구현
+│   │   ├── perception_actions.cpp        # 인식 노드 4종 구현·등록
+│   │   └── clear_octomap_action.cpp      # 지도 초기화 구현·등록
+│   ├── condition/                        # 현재 사용자 정의 노드 없음
+│   └── register_nodes.cpp                # 전체 라이브러리 로더
+└── src/                                  # 진단·MotionContext 등 공통 코드
+```
+
+모션 Action은 아래 파일명에 `.hpp`를 붙이면 `include/rwh_beyond_bt/plugins/action/`의
+선언이고, `.cpp`를 붙이면 `plugins/action/`의 구현입니다.
+
+| BT 노드 | 파일명 | BT 노드 | 파일명 |
+|---|---|---|---|
+| `CheckGraspReady` | `check_grasp_ready_action` | `SelectFeasibleGrasp` | `select_feasible_grasp_action` |
+| `MoveToPregrasp` | `move_to_pregrasp_action` | `ApproachGrasp` | `approach_grasp_action` |
+| `AttachObject` | `attach_object_action` | `LiftObject` | `lift_object_action` |
+| `MoveHome` | `move_home_action` | `MoveObservation` | `move_observation_action` |
+| `MovePlace` | `move_place_action` | `OpenGripper` | `open_gripper_action` |
+| `ReleaseObject` | `release_object_action` | — | — |
+
+인식 노드 4종의 선언은 `include/rwh_beyond_bt/plugins/action/perception_actions.hpp`에
+함께 있으며, `ClearOctomap`은 별도 헤더·소스를 사용합니다.
+기존 `rwh_beyond_bt/perception_actions.hpp`는 호환 include입니다.
+전체 포트와 기능은 [플러그인별 기능·포트](bt-grasp-stages.md)를 참고하세요.
+
+```mermaid
+flowchart LR
+  YAML["bt_demo.yaml<br/>plugin_lib_names"] --> Loader["rwh_beyond_bt_nodes<br/>전체 로더"]
+  Loader --> P["perception_bt_nodes<br/>인식 4종"]
+  Loader --> M["motion_bt_nodes<br/>모션 11종"]
+  Loader --> O["clear_octomap_action_bt_node<br/>지도 1종"]
+  M --> Shared["rwh_beyond_bt_common<br/>진단 상태"]
+  P --> Shared
+  O --> Shared
+```
+
+모션 노드가 파일과 클래스로 분리되어도 `rwh_beyond_motion_bt_nodes` **하나의 공유
+라이브러리**로 빌드됩니다. 기존 `rwh_beyond_bt_nodes` 로더, XML 노드 이름·포트와
+Groot 모델은 유지합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
+같은 노드를 전체 로더와 개별 라이브러리로 중복 등록하지 않습니다.
+
+## 모션 공통 실행과 Blackboard { #motion-execution }
+
+각 모션 클래스의 `providedPorts()`는 XML 포트를 정의하고 `prepare()`는 BT 스레드에서
+입력을 읽습니다. `perform()`에는 해당 노드의 실제 동작이 있습니다.
+`SelectFeasibleGrasp`는 완료 후 선택된 계획·목표·폭을 출력 포트로 기록합니다.
+
+| 공통 처리 | 역할 |
+|---|---|
+| `MotionAction::onStart()` | 단계 진단 초기화, 입력 확인, 취소 토큰 생성, 비동기 작업 시작 |
+| `MotionContext::operation` | 동시 모션 작업을 거부해 두 분기가 같은 로봇을 동시에 명령하지 않도록 보호 |
+| `MotionAction::onRunning()` | 작업 완료 전 `RUNNING`, 완료 후 출력과 `SUCCESS` 또는 진단과 `FAILURE` |
+| `onHalted()`·소멸자 | 취소 요청 후 작업 종료를 기다림. 파생 노드도 소멸 전에 작업을 중지 |
+| `MotionContext` | Blackboard의 공유 객체로 MoveIt·그리퍼 클라이언트, 장면과 부착 상태 관리 |
+
+Blackboard는 관측·계획과 공유 객체를 전달하지만 비동기 실행이나 취소를 대신하지 않습니다.
+`execution_state`에는 mutex로 보호하는 최신 진단 상태가 있으며, Navigator가 이를 읽어
+ROS Feedback과 Result를 만듭니다. 과거 이력을 저장하는 큐는 아닙니다.
+[Feedback·오류 전달](bt-operation.md#feedback-result)에서 외부 필드를 확인하세요.
+
 ## XML 로드 전 처리
 
 Groot에서 저장한 기본·사용자 XML은 Navigator의 `XmlTreeFilter`를 거칩니다.

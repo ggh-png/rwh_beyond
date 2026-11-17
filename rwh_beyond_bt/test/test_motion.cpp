@@ -125,7 +125,9 @@ protected:
             }
           }
           auto result = std::make_shared<moveit_msgs::action::ExecuteTrajectory::Result>();
-          result->error_code.val = 1; handle->succeed(result);
+          result->error_code.val = execution_error;
+          result->error_code.message = "native execution detail";
+          if (execution_error == 1) {handle->succeed(result);} else {handle->abort(result);}
       });
     gripper = rclcpp_action::create_server<control_msgs::action::FollowJointTrajectory>(server,
       "gripper_controller/follow_joint_trajectory",
@@ -221,6 +223,7 @@ protected:
   moveit_msgs::msg::PlanningScene world;
   Constraints last_constraints;
   double fraction{1};
+  int32_t execution_error{1};
   bool wrong_goal{false}, hold_execution{false}, fail_close{false};
   std::atomic_bool canceled{false};
   std::atomic_int executions{0}, closes{0}, applies{0}, iks{0}, cartesians{0}, plans{0};
@@ -287,7 +290,7 @@ TEST_F(DirectMotion, PhysicalModeRefusesAnUnverifiedTransport)
     });
   EXPECT_EQ(run("<OpenGripper/>"), BT::NodeStatus::FAILURE);
   EXPECT_EQ(closes, 0);
-  EXPECT_NE(demo_feedback(board).error_msg.find("Physical transport"), std::string::npos);
+  EXPECT_NE(execution_diagnostic(board).error_msg.find("Physical transport"), std::string::npos);
 }
 TEST_F(DirectMotion, RejectedGoalAndPartialCartesianNeverExecute)
 {
@@ -334,11 +337,30 @@ TEST_F(DirectMotion, HaltCancelsTheMoveItExecutionGoal)
                                                                                }
   EXPECT_TRUE(canceled); EXPECT_FALSE(context->scene_active);
 }
+TEST_F(DirectMotion, DestroyingRunningMotionCancelsTheMoveItGoal)
+{
+  capture();
+  ASSERT_EQ(run(selection), BT::NodeStatus::SUCCESS);
+  hold_execution = true;
+  {
+    auto t = tree("<MoveToPregrasp plan=\"{plan}\"/>");
+    for (int i = 0; i < 400 && executions == 0; ++i) {
+      t.tickOnce();
+      std::this_thread::sleep_for(5ms);
+    }
+    ASSERT_EQ(executions, 1);
+  }
+  for (int i = 0; i < 100 && !canceled; ++i) {
+    std::this_thread::sleep_for(5ms);
+  }
+  EXPECT_TRUE(canceled);
+}
 TEST_F(DirectMotion, InvalidInsetFailsBeforePlanningWithClearMessage)
 {
   client->declare_parameter("bt_motion.grasp_width_closing_inset", .05); capture();
   EXPECT_EQ(run(selection), BT::NodeStatus::FAILURE);
-  EXPECT_NE(demo_feedback(board).error_msg.find("grasp_width_closing_inset"), std::string::npos);
+  EXPECT_NE(execution_diagnostic(board).error_msg.find("grasp_width_closing_inset"),
+    std::string::npos);
   EXPECT_EQ(iks, 0); EXPECT_EQ(plans, 0);
 }
 TEST(MotionGeometry, RejectsWristViolationAndWrongEndpoint)
@@ -354,4 +376,50 @@ TEST(MotionGeometry, RejectsWristViolationAndWrongEndpoint)
     wrist.joint_constraints = {c};
   t.joint_trajectory.points[0].positions[5] = .2;
   EXPECT_FALSE(trajectory_valid(t, wrist)); EXPECT_FALSE(trajectory_reaches(t, a));
+}
+
+TEST_F(DirectMotion, ObservationCanStartAwayFromHomeWithoutAnImplicitHomeMove)
+{
+  ASSERT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
+  // The first Cartesian moves joint6 in this mock, so the second starts away from home.
+  EXPECT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(plans, 0);
+  EXPECT_EQ(executions, 2);
+}
+TEST_F(DirectMotion, PlaceCanStartAfterLiftWithoutAHomeNode)
+{
+  capture();
+  EXPECT_EQ(run("<Sequence>" + selection +
+    "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
+    "<AttachObject plan=\"{plan}\"/><LiftObject plan=\"{plan}\"/>"
+    "<MovePlace x=\"0.20\" z=\"0.15\"/><ReleaseObject/>"
+    "</Sequence>"), BT::NodeStatus::SUCCESS);
+  EXPECT_FALSE(context->attached);
+}
+TEST_F(DirectMotion, NativeMoveItExecutionErrorSurvivesCleanup)
+{
+  capture();
+  ASSERT_EQ(run(selection), BT::NodeStatus::SUCCESS);
+  execution_error = -4;
+  EXPECT_EQ(run("<MoveToPregrasp plan=\"{plan}\"/>"), BT::NodeStatus::FAILURE);
+  auto error = execution_diagnostic(board);
+  EXPECT_EQ(error.error_code, -4);
+  EXPECT_EQ(error.error_domain, "moveit");
+  EXPECT_EQ(error.error_name, "CONTROL_FAILED");
+  EXPECT_EQ(error.error_source, "/execute_trajectory");
+  EXPECT_EQ(error.error_msg, "native execution detail");
+  EXPECT_FALSE(context->scene_active);
+}
+TEST(ExecutionDiagnostics, RootSnapshotAndStageResetDoNotStoreRosFeedback)
+{
+  auto root = BT::Blackboard::create();
+  auto child = BT::Blackboard::create(root);
+  rwh_beyond_bt::begin_stage(child, "approach", "approach_node");
+  rwh_beyond_bt::report_failure(child, -4, "CONTROL_FAILED", "/execute_trajectory", "original",
+    "moveit");
+  rwh_beyond_bt::report_failure(root, -1200, "CLEANUP_FAILED", "cleanup", "secondary");
+  EXPECT_EQ(execution_diagnostic(root).error_msg, "original");
+  rwh_beyond_bt::begin_stage(child, "fallback", "recovery");
+  EXPECT_EQ(execution_diagnostic(root).error_code, 0);
+  EXPECT_EQ(execution_diagnostic(root).current_node, "recovery");
 }
