@@ -16,7 +16,7 @@
         <link rel="prev" href="../graspgenx-model/">
       
       
-        <link rel="next" href="../bt-grasp-stages/">
+        <link rel="next" href="../bt-flows/">
       
       
         
@@ -1127,6 +1127,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BT와 실행 구조
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1144,6 +1162,130 @@
 
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        프로세스와 책임
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML 로드 전 처리
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        데이터 흐름과 보관 위치
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moveit-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MoveIt과 controller 호출 흐름
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        상태와 실패 처리
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        설정과 구현 위치
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bt-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        검증 범위
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-flows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    집기·배치 BT 흐름
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1163,7 +1305,7 @@
   <span class="md-ellipsis">
     
   
-    BT 단계·포트·Action
+    플러그인별 기능·포트
   
 
     
@@ -1286,6 +1428,91 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        프로세스와 책임
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#xml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        XML 로드 전 처리
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        데이터 흐름과 보관 위치
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moveit-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MoveIt과 controller 호출 흐름
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        상태와 실패 처리
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        설정과 구현 위치
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bt-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        검증 범위
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1305,60 +1532,234 @@
 
 
 <h1 id="bt">BT와 실행 구조<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
-<p><code>DemoNavigator</code>가 <code>/run_demo</code>를 제공하고 BT가 데이터와 작업 흐름을 소유합니다.
-별도 coordinator 프로세스와 단계 중계 액션은 없습니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>BT: RGB-D → SAM → 물체 점군 → 파지 추론 → TCP 변환·후보 선택
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    → 사전 접근 → 직선 접근 → 닫기·부착 → 리프트 → 복귀
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>                   ↓ 직접 호출
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>MoveIt: IK / FK / 경로·충돌 검사 / Planning Scene / ExecuteTrajectory
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Controller: FollowJointTrajectory
-</code></pre></div>
+<p><code>DemoNavigator</code>가 <code>/run_demo</code>를 제공하고 <strong>BT가 작업 순서·관측 데이터·목표·경로를 소유</strong>합니다.
+coordinator 프로세스와 단계별 중계 액션은 없습니다. BT 플러그인이 모델 브릿지·MoveIt·그리퍼를 직접 호출합니다.</p>
+<p><a href="../bt-flows/">집기·배치 흐름</a> → <a href="../bt-grasp-stages/">16개 플러그인 기능·포트</a> →
+<a href="../project-data/">데이터와 좌표계</a> 순서로 읽으면 실행과 구현을 연결할 수 있습니다.</p>
+<h2 id="_1">프로세스와 책임<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+  User["호출 측"] --&gt;|RunDemo| Navigator["BT Navigator"]
+  subgraph BT["BT 실행 영역"]
+    Navigator --&gt; XML["XML: 순서·조건"]
+    XML --&gt; Perception["인식 플러그인"]
+    XML --&gt; Motion["모션 플러그인"]
+    Perception &lt;--&gt;|촬영·마스크·점군·후보| BB["Blackboard"]
+    Motion &lt;--&gt;|GraspPlan·목표·폭| BB
+    Motion --&gt; Context["MotionContext&lt;br/&gt;공통 연산·클라이언트·장면 자원"]
+  end
+  Camera["RGB-D·관절 피드백"] --&gt; Perception
+  Camera --&gt; Context
+  Perception --&gt;|SegmentImage| SAM["SAM 브릿지 → 모델 서버"]
+  Perception --&gt;|InferGrasps| Grasp["GraspGenX 브릿지 → 모델 서버"]
+  Context --&gt;|IK·FK·계획·장면·실행| MoveIt["MoveIt move_group"]
+  Context --&gt;|FollowJointTrajectory| Gripper["그리퍼 controller/실물 전송"]
+  MoveIt --&gt; Arm["팔 controller/실물 전송"]
+  Context --&gt;|SetGraspRegion| Filter["계획용 점군 필터"]</code></pre>
 <table>
 <thead>
 <tr>
 <th>구성</th>
-<th>역할</th>
+<th>담당</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>Navigator</td>
-<td>트리 로딩, 요청별 대상, 결과·오류·취소</td>
+<td>요청별 트리·대상 선택, BT 실행, feedback/result, 취소, 실패 시 정리 연결</td>
 </tr>
 <tr>
 <td>BT XML</td>
-<td>단계 순서, 관측·접근·리프트 설정</td>
+<td>노드 순서·조건·포트 연결, 관측·접근·리프트 거리 지정</td>
 </tr>
 <tr>
-<td>BT 인식 노드</td>
-<td>촬영·SAM 호출·점군 생성·파지 브릿지 호출</td>
+<td>인식 플러그인</td>
+<td>새 RGB-D 수집, SAM 호출, 마스크·깊이 역투영, 파지 브릿지 호출</td>
 </tr>
 <tr>
-<td>BT 모션 노드</td>
-<td>TCP 변환·후보 선택·폭·목표 생성, MoveIt/그리퍼 직접 호출</td>
+<td>모션 플러그인</td>
+<td>입력 해석, 후보 선택·TCP 목표 생성, 모션·그리퍼·부착 동작, 완료 상태 갱신</td>
 </tr>
 <tr>
-<td>BT 공통 MotionContext</td>
-<td>클라이언트·TF·피드백·충돌 장면 자원 공유; 별도 ROS 서버 없음</td>
+<td>MotionContext</td>
+<td>TF·피드백·MoveIt/그리퍼 클라이언트·형상·공통 검증 공유. BT 내부 C++ 객체</td>
 </tr>
 <tr>
-<td>모델 브릿지</td>
-<td>모델 프로토콜·ROS 메시지 변환</td>
+<td>SAM·GraspGenX 브릿지</td>
+<td>모델 프로토콜 변환과 ROS 액션 결과 반환</td>
 </tr>
 <tr>
-<td>MoveIt/controller</td>
-<td>계획·충돌 검사·실행</td>
+<td>MoveIt</td>
+<td>IK·FK·충돌·경로 계획·Planning Scene·궤적 실행</td>
+</tr>
+<tr>
+<td>physical_trajectory</td>
+<td>실물 제어 명령 전달·피드백·취소 처리</td>
+</tr>
+<tr>
+<td>target_cloud_filter</td>
+<td>선택한 대상 영역을 계획용 점군에서 제외</td>
 </tr>
 </tbody>
 </table>
-<p>Blackboard는 촬영·마스크·점군·후보와 typed GraspPlan을 전달합니다.
-촬영 유효성, 단계 순서, 손목 회전 제한, 경로 목표 도달, 피드백 최신성 검사를 유지합니다.
-동시에 두 BT 분기가 같은 로봇을 명령하는 것은 거부합니다.</p>
-<p>실패·취소 시 실행 액션을 취소하고 미부착 물체·임시 충돌 허용·점군 제외 영역을 정리합니다.
-닫기 중단으로 잡힘 여부가 불명확하거나 이미 부착된 물체는 자동으로 놓지 않습니다.
-심·실물은 같은 XML과 BT 코드를 쓰며 실물은 전송 준비·URDF 시작 한계·실측 도달을 확인합니다.
-물체의 실제 잡힘은 판정하지 않습니다.</p>
-<p><a href="../bt-grasp-stages/">포트와 직접 호출</a> · <a href="../real-bt/">공통 설정</a></p>
+<p>MotionContext는 root Blackboard에 보관하며 별도 ROS 서버를 제공하지 않습니다.
+물리 전송과 점군 필터는 장치·센서 기능을 담당하는 별도 노드로 유지합니다.</p>
+<h2 id="xml">XML 로드 전 처리<a class="headerlink" href="#xml" title="Permanent link">&para;</a></h2>
+<p>Groot에서 저장한 기본·사용자 XML은 Navigator의 <code>XmlTreeFilter</code>를 거칩니다.
+빈 문자열 속성을 제거한 임시 실행 사본을 Nav2에 전달하며 상대 include도 함께 처리합니다.
+원본 편집 파일은 유지하고, 변경된 파일은 다음 요청에서 새 사본으로 로드합니다.
+세부 동작은 <a href="../bt-operation/#groot-xml-filter">Groot XML 자동 정리</a>를 참고하세요.</p>
+<h2 id="_2">데이터 흐름과 보관 위치<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart LR
+  Capture["CaptureRgbd"] --&gt;|capture| SAM["SegmentObject"]
+  Capture --&gt;|capture| Cloud["BuildObjectCloud"]
+  SAM --&gt;|mask| Cloud
+  Cloud --&gt;|cloud| Model["InferGrasps"]
+  Model --&gt;|candidates| Select["SelectFeasibleGrasp"]
+  Capture --&gt;|capture| Select
+  SAM --&gt;|mask| Select
+  Cloud --&gt;|cloud| Select
+  Select --&gt;|selected_plan| Plan["grasp_plan: GraspPlan"]
+  Plan --&gt; Pre["MoveToPregrasp"]
+  Plan --&gt; Approach["ApproachGrasp"]
+  Plan --&gt; Attach["AttachObject"]
+  Plan --&gt; Lift["LiftObject"]</code></pre>
+<table>
+<thead>
+<tr>
+<th>Blackboard 값</th>
+<th>타입·내용</th>
+<th>소비 노드</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>capture</code></td>
+<td>불변 Observation: RGB·Depth·CameraInfo·촬영 관절값·ID</td>
+<td>SegmentObject, BuildObjectCloud, SelectFeasibleGrasp</td>
+</tr>
+<tr>
+<td><code>object_mask</code></td>
+<td>원본 영상에 대응하는 Image</td>
+<td>BuildObjectCloud, SelectFeasibleGrasp</td>
+</tr>
+<tr>
+<td><code>object_cloud</code></td>
+<td>카메라 좌표계 XYZ PointCloud2</td>
+<td>InferGrasps, SelectFeasibleGrasp</td>
+</tr>
+<tr>
+<td><code>grasps</code></td>
+<td>모델 GraspCandidate 배열</td>
+<td>SelectFeasibleGrasp</td>
+</tr>
+<tr>
+<td><code>grasp_plan</code></td>
+<td>GraspPlan 포인터: 촬영·TCP 목표·사전 접근 궤적·손목 제한·폭·리프트 거리·진행 상태</td>
+<td>사전 접근·접근·부착·리프트</td>
+</tr>
+<tr>
+<td><code>pregrasp</code>, <code>grasp_pose</code></td>
+<td>base 좌표계 TcpPose</td>
+<td>사용자 트리·목표 확인</td>
+</tr>
+<tr>
+<td><code>grasp_width</code>, <code>close_width</code></td>
+<td>관측 전체 폭·명령 전체 간격(m)</td>
+<td>사용자 트리·진단; 실행은 계획에 저장한 폭 사용</td>
+</tr>
+</tbody>
+</table>
+<p>키 이름은 기본 XML의 연결 이름입니다. 사용자 XML에서 같은 타입의 다른 키로 바꿀 수 있습니다.
+마지막 결과를 보여 주는 RViz 토픽은 데이터 전달 경로가 아닙니다.</p>
+<h2 id="moveit-controller">MoveIt과 controller 호출 흐름<a class="headerlink" href="#moveit-controller" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>sequenceDiagram
+  participant BT as BT 플러그인
+  participant Model as 모델 브릿지
+  participant MG as MoveIt move_group
+  participant GC as 그리퍼 controller
+  BT-&gt;&gt;Model: SegmentImage(RGB·대상)
+  Model--&gt;&gt;BT: mask
+  Note over BT: 마스크·Depth → 물체 XYZ
+  BT-&gt;&gt;Model: InferGrasps(XYZ)
+  Model--&gt;&gt;BT: 후보 Pose·점수
+  Note over BT: 촬영 TF·TCP 보정·후보 필터
+  BT-&gt;&gt;MG: GetPlanningScene / ApplyPlanningScene
+  loop 후보·180도 대칭 자세 검사
+    BT-&gt;&gt;MG: GetPositionIK(사전 접근)
+    BT-&gt;&gt;MG: GetCartesianPath(접근·리프트)
+    BT-&gt;&gt;MG: GetMotionPlan(사전 접근)
+    MG--&gt;&gt;BT: 계획 결과
+  end
+  Note over BT: 첫 통과 후보를 GraspPlan에 저장
+  BT-&gt;&gt;MG: ExecuteTrajectory(저장된 사전 접근)
+  BT-&gt;&gt;MG: GetCartesianPath → ExecuteTrajectory(접근)
+  BT-&gt;&gt;GC: FollowJointTrajectory(닫기)
+  GC--&gt;&gt;BT: 실행 결과
+  BT-&gt;&gt;MG: ApplyPlanningScene(대상 부착)
+  BT-&gt;&gt;MG: GetPositionFK → GetCartesianPath → ExecuteTrajectory(리프트)</code></pre>
+<p>위 후보 루프는 앞 단계가 통과한 후보만 다음 검사를 수행합니다.
+MoveIt이 계산한 결과를 BT가 다시 검사하며 불완전한 Cartesian 경로, 손목 제한 위반,
+잘못된 사전 접근 목표를 실행하지 않습니다. 후보 선택 자체는 로봇을 움직이지 않습니다.</p>
+<h2 id="_3">상태와 실패 처리<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>stateDiagram-v2
+  [*] --&gt; SELECTED: SelectFeasibleGrasp
+  SELECTED --&gt; PREGRASP: MoveToPregrasp 성공
+  PREGRASP --&gt; APPROACHED: ApproachGrasp 성공
+  APPROACHED --&gt; ATTACHED: AttachObject 성공
+  ATTACHED --&gt; LIFTED: LiftObject 성공</code></pre>
+<p>이 상태는 GraspPlan의 단계 순서를 확인합니다. 별도로 MotionContext가 대상 부착과
+배치 완료(<code>release_ready</code>)를 관리합니다. 단계 건너뛰기·중복 실행·다른 계획 사용은 거부합니다.
+동시에 두 모션 BT 분기가 같은 로봇을 명령하는 것도 거부합니다.</p>
+<p>작업 중에는 BT가 <code>RUNNING</code>을 반환합니다. halt는 작업의 취소 토큰을 설정하고
+진행 중인 MoveIt·그리퍼 액션의 취소를 요청합니다. 결과 수신이나 요청 응답을 무한정 기다리지 않습니다.
+이미 전송한 일반 ROS 서비스에는 액션과 같은 취소 기능이 없으므로 후속 실행을 중단하고 장면을 정리합니다.</p>
+<p>미부착 실패는 임시 대상 형상·손가락 충돌 허용·점군 제외를 정리합니다.
+닫기 시작 이후 또는 부착 후 실패는 물체를 자동으로 놓거나 형상을 지우지 않습니다.
+닫기 중단 후 실제 장면 부착이 없는 불확실한 상태는 자동 이동 대신 상태 확인을 요구합니다.</p>
+<h2 id="_4">설정과 구현 위치<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<ul>
+<li>인식: <code>bt_navigator.ros__parameters.bt_perception</code>.</li>
+<li>모션: <code>bt_navigator.ros__parameters.bt_motion</code>.</li>
+<li>MoveIt OMPL·실행 감시: 같은 YAML의 <code>move_group.ros__parameters</code>.</li>
+<li>실행 파일·공통 자료형: <a href="../project-code-map/">코드를 따라 읽기</a>.</li>
+<li>실행 시 모드·요청·오류: <a href="../bt-operation/">RunDemo</a>.</li>
+</ul>
+<p>공통 파일은 <code>rwh_beyond_bringup/config/bt_demo.yaml</code>입니다.
+XML에서 명시한 값이 해당 노드 호출에 우선하며, 생략한 값은 YAML 또는 코드 기본값을 사용합니다.</p>
+<h2 id="bt-validation">검증 범위<a class="headerlink" href="#bt-validation" title="Permanent link">&para;</a></h2>
+<p>coordinator 제거와 직접 호출 구조의 기준 커밋은 <code>15d07eb</code>입니다.
+2026-11-17 사용자 확인으로 실행 검증 완료를 기록했습니다.</p>
+<table>
+<thead>
+<tr>
+<th>검증 계층</th>
+<th>확인 내용</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BT 모의 서버</td>
+<td>촬영·모델 브릿지·로컬 점군, 직접 IK/Cartesian/OMPL·실행·닫기·부착·리프트·배치·해제</td>
+</tr>
+<tr>
+<td>거부·취소 검사</td>
+<td>부분 경로·목표 불일치·촬영 후 관절 이동·잘못된 단계·잘못된 inset·전송 준비·액션 취소</td>
+</tr>
+<tr>
+<td>Navigator 통합</td>
+<td>실제 navigator와 모의 controller의 오류·성공 초기화·요청별 대상·Groot</td>
+</tr>
+<tr>
+<td>Python·launch</td>
+<td>장치 전송·점군 필터·모델 브릿지·실물 launch·공통 설정</td>
+</tr>
+<tr>
+<td>사용자 실행 검증</td>
+<td>변경된 BT 중심 구조의 실행 검증 완료 확인</td>
+</tr>
+</tbody>
+</table>
+<p>실행 성공은 시퀀스 완료를 의미합니다. 실제 물체 잡힘을 센서로 판정하는 별도 기능은 현재 포함하지 않습니다.</p>
 
 
 
@@ -1411,13 +1812,13 @@
         
         
           
-          <a href="../bt-grasp-stages/" class="md-footer__link md-footer__link--next" aria-label="다음: BT 단계·포트·Action">
+          <a href="../bt-flows/" class="md-footer__link md-footer__link--next" aria-label="다음: 집기·배치 BT 흐름">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 다음
               </span>
               <div class="md-ellipsis">
-                BT 단계·포트·Action
+                집기·배치 BT 흐름
               </div>
             </div>
             <div class="md-footer__button md-icon">
