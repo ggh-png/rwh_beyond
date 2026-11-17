@@ -17,6 +17,42 @@
 | `rwh_beyond_robot_20261117.tar.gz` | `docker.io/rwh_beyond/robot:20261117` | `rwh_beyond_robot` |
 | `rwh_beyond_models_20261117.tar.gz` | `docker.io/rwh_beyond/sam3:20261117`, `docker.io/rwh_beyond/graspgenx:20261117` | `rwh_beyond_sam3`, `rwh_beyond_graspgenx` |
 
+### 로봇·서버 컨테이너 생성 한 줄 명령 { #container-one-liners }
+
+이미지를 `load`한 뒤 **각 역할을 실행할 호스트에서** 아래 명령을 복사합니다.
+배포 폴더가 다른 위치라면 `/home/ggh/RWH/beyond`를 바꿉니다.
+두 호스트가 같은 PC여도 로봇용·서버용 명령을 각각 실행합니다.
+
+**로봇 컨테이너 — GPU·GUI·장치 연결 포함**
+
+```bash
+# 현재 개발 호스트: Podman + NVIDIA CDI
+cd /home/ggh/RWH/beyond && RWH_GPU=1 CONTAINER_ENGINE=podman ./scripts/robot.sh start
+```
+
+```bash
+# Docker Engine을 사용하는 로봇 PC에서는 위 명령 대신
+cd /home/ggh/RWH/beyond && RWH_GPU=1 CONTAINER_ENGINE=docker ./scripts/robot.sh start
+```
+
+**GPU 추론 서버 — GraspGenX·SAM 3 컨테이너 두 개 생성**
+
+```bash
+# Docker Engine을 사용하는 GPU 서버
+cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=docker ./scripts/models.sh start
+```
+
+```bash
+# Podman + NVIDIA CDI 서버에서는 위 명령 대신
+cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=podman ./scripts/models.sh start
+```
+
+로봇 명령은 `rwh_beyond_robot`을 생성해 대기시키며, 서버 명령은
+`rwh_beyond_graspgenx`(5566)·`rwh_beyond_sam3`(5567)를 생성해 모델을 시작합니다.
+helper는 기존 컨테이너가 있으면 재시작하므로 생성 옵션을 바꾸지는 않습니다.
+로봇은 host network, 모델 서버는 loopback 포트 매핑을 사용합니다.
+서버의 [직접 `docker run` 한 줄 명령](inference-server-operation.md#model-docker-run)은 별도로 제공합니다.
+
 ### 1. 이미지 파일 불러오기
 
 Docker를 사용하는 호스트:
@@ -47,7 +83,7 @@ Docker에서도 `CONTAINER_ENGINE=docker ./scripts/load-images.sh`로 같은 작
 
 ```bash
 cd /home/ggh/RWH/beyond
-CONTAINER_ENGINE=podman ./scripts/robot.sh start
+RWH_GPU=1 CONTAINER_ENGINE=podman ./scripts/robot.sh start
 CONTAINER_ENGINE=podman ./scripts/robot.sh status
 CONTAINER_ENGINE=podman ./scripts/robot.sh shell
 ```
@@ -56,7 +92,7 @@ Docker를 사용하는 호스트에서는 대신:
 
 ```bash
 cd /home/ggh/RWH/beyond
-CONTAINER_ENGINE=docker ./scripts/robot.sh start
+RWH_GPU=1 CONTAINER_ENGINE=docker ./scripts/robot.sh start
 CONTAINER_ENGINE=docker ./scripts/robot.sh shell
 ```
 
@@ -75,15 +111,9 @@ CONTAINER_ENGINE=docker ./scripts/robot.sh shell
 | Podman 그룹 | `--group-add keep-groups` |
 | NVIDIA GPU | `RWH_GPU=1`일 때 Podman은 `--device nvidia.com/gpu=all`, Docker는 `--gpus all`과 `NVIDIA_DRIVER_CAPABILITIES=all` |
 
-GPU를 사용하는 시뮬레이션·화면 구성이 필요하면 **최초 생성 시** 다음을 사용합니다.
+위 로봇 생성 명령은 `RWH_GPU=1`로 NVIDIA GPU 연결을 활성화합니다.
 NVIDIA driver와 Docker GPU runtime 또는 Podman CDI가 호스트에 준비되어 있어야 합니다.
-
-```bash
-# Podman
-RWH_GPU=1 CONTAINER_ENGINE=podman ./scripts/robot.sh start
-# Docker에서는 위 명령 대신:
-# RWH_GPU=1 CONTAINER_ENGINE=docker ./scripts/robot.sh start
-```
+GPU를 사용하지 않는 로봇 PC에서는 `RWH_GPU=1`을 생략합니다.
 
 기존 컨테이너의 `start`는 생성 옵션을 바꾸지 않습니다.
 GPU·장치·마운트 옵션을 바꾸려면 기존 생성 설정과 컨테이너 내부 변경분을 확인한 뒤 재생성합니다.

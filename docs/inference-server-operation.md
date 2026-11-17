@@ -11,6 +11,22 @@ SAM 3와 GraspGenX는 ROS 컨테이너와 분리한 GPU 프로세스로 실행�
 다른 GPU 호스트에 복사했다면 `cd` 경로를 실제 배포 폴더로 바꿉니다.
 `compose.models.yaml`과 `scripts/models.sh`는 이 배포 폴더에 포함된 파일입니다.
 
+**서버용 한 줄 생성 명령** — 모델 이미지가 이미 로드돼 있으면 다음을 실행합니다.
+GraspGenX·SAM 3 두 컨테이너를 함께 생성·시작합니다.
+
+```bash
+# Docker Engine
+cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=docker ./scripts/models.sh start
+```
+
+```bash
+# Podman + NVIDIA CDI 환경에서는 위 명령 대신
+cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=podman ./scripts/models.sh start
+```
+
+로봇 컨테이너는 [로봇용 한 줄 생성 명령](project-containers.md#container-one-liners)을 사용합니다.
+다음은 이미지 로드부터 Compose로 시작하는 대안 절차입니다.
+
 ```bash
 cd /home/ggh/RWH/beyond
 # GPU 서버에 아직 모델 이미지를 불러오지 않은 경우
@@ -23,24 +39,20 @@ docker compose -f compose.models.yaml ps -a
 docker compose -f compose.models.yaml logs --tail 100 sam3 graspgenx
 ```
 
-위 Compose 대신 **직접 Docker 명령으로 생성**하려면 다음을 사용합니다.
+### 직접 docker run으로 생성 { #model-docker-run }
+
+위 helper 또는 Compose 대신 **직접 Docker 명령으로 생성**하려면 모델별로 아래 한 줄을 실행합니다.
 이는 배포본 `scripts/models.sh`의 Docker 생성 옵션과 같습니다.
 같은 이름의 컨테이너를 두 방식으로 중복 생성하지 않습니다.
 
 ```bash
-docker run -d --name rwh_beyond_graspgenx \
-  --restart unless-stopped --shm-size 256m --gpus all \
-  -p 127.0.0.1:5566:5566 \
-  -v rwh_beyond_graspgenx_cache:/data/cache \
-  -v rwh_beyond_graspgenx_logs:/data/logs \
-  docker.io/rwh_beyond/graspgenx:20261117
+# GraspGenX
+docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs docker.io/rwh_beyond/graspgenx:20261117
+```
 
-docker run -d --name rwh_beyond_sam3 \
-  --restart unless-stopped --shm-size 256m --gpus all \
-  -p 127.0.0.1:5567:5567 \
-  -v rwh_beyond_sam3_cache:/data/cache \
-  -v rwh_beyond_sam3_logs:/data/logs \
-  docker.io/rwh_beyond/sam3:20261117
+```bash
+# SAM 3
+docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs docker.io/rwh_beyond/sam3:20261117
 ```
 
 Podman에서는 GPU CDI를 준비한 뒤 배포 helper를 사용합니다.
