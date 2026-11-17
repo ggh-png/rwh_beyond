@@ -1446,17 +1446,17 @@
 <h1 id="_1">시스템 구성<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
 <p>BEYOND Grasp는 물체 인식, 파지 후보 생성, 로봇 경로 계획과 실행을 연결합니다.</p>
 <pre class="mermaid"><code>flowchart LR
-  D[D405 RGB-D] --&gt; P[로봇 PC: RGB-D·TF]
-  A[RunDemo: target_text] --&gt; B[로봇 PC: BT Navigator]
-  B --&gt; C[로봇 PC: Grasp Coordinator]
-  P --&gt; C
-  C --&gt; S[로봇 PC: SAM ROS Bridge]
+  D[RGB-D·관절 피드백] --&gt; BT[BT Navigator / Blackboard]
+  A[RunDemo: target_text] --&gt; BT
+  BT --&gt; S[SAM ROS Bridge]
   S &lt;--&gt;|RGB·텍스트 / 마스크| SG[GPU 서버: SAM 3]
-  S --&gt; X[로봇 PC: 물체 XYZ 점군]
-  X --&gt; G[로봇 PC: GraspGenX ROS Bridge]
+  S --&gt; BT
+  BT --&gt;|물체 XYZ| G[GraspGenX ROS Bridge]
   G &lt;--&gt;|XYZ / 파지 후보| GG[GPU 서버: GraspGenX]
-  G --&gt; M[로봇 PC: MoveIt 2]
+  G --&gt; BT
+  BT --&gt;|TCP 변환·후보 선택 후 직접 요청| M[MoveIt 2]
   M --&gt; T[Trajectory·CAN Driver]
+  BT --&gt;|그리퍼 액션| T
   T &lt;--&gt; R[PiPER·그리퍼]</code></pre>
 <h2 id="_2">실행 경계<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
@@ -1488,12 +1488,12 @@
 SAM 분할 → 물체 점군 → 파지 추론·선택 → 사전 접근 → 최종 접근 → 닫기·계획용 부착 →
 리프트 → 관측 자세 복귀 → home 복귀.</p>
 <p>심·실물의 차이는 backend와 시간 설정입니다. 시나리오·home/관측 목표 계산·계획용 부착·리프트는 공유합니다.
-실물 닫기는 4초 명령 완료로 처리하며 물체를 잡았는지는 확인하지 않습니다.
+BT의 닫기 시간은 현재 2초이며 실제 잡힘 여부를 별도로 판정하지 않습니다.
 계획용 부착은 물체를 들고 있다고 가정한 충돌 모델입니다.</p>
 <h2 id="_4">현재 범위<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <ul>
 <li>대상은 Action의 <code>target_text</code>로 지정합니다.</li>
-<li>실제 잡힘 여부 확인, 자동 놓기, Place, Navigation 연동은 포함하지 않습니다.</li>
+<li>mode 2로 배치·해제를 수행합니다. 실제 잡힘 판정과 Navigation 자동 연동은 포함하지 않습니다.</li>
 <li>카메라 장착 TF는 명목값이며 hand-eye 실측 보정이 필요합니다.</li>
 <li>물체 인식 성공과 로봇의 도달·파지 성공은 별개입니다.</li>
 </ul>
