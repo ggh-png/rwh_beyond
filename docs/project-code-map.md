@@ -20,3 +20,11 @@ coordinator와 전용 Python 모션 모듈·호환 alias·중계 액션은 제�
 물리 전송과 점군 필터는 장치·센서 기능이므로 별도 노드로 유지합니다.
 
 [구조](bt-architecture.md) · [데이터](project-data.md)
+
+## 코드 정리 이후의 위치
+
+- 모델 브릿지 단위·프로토콜·CLI 검사는 `rwh_beyond_graspgenx_bridge/test/`에 있습니다.
+- 실제 SAM·MuJoCo 수동 검사는 `tests/integration/`에 있습니다.
+- `grasp_pipeline.launch.py`는 두 모델 브릿지만 실행하며, 각 `*_params_file`과 endpoint를 받습니다.
+  대상 텍스트는 `/run_demo.target_text` 또는 BT navigator의 설정으로 전달합니다.
+- 구형 import·CLI 별칭 패키지와 사용하지 않는 lifecycle 상태 조회 서버·전용 메시지는 제거했습니다.

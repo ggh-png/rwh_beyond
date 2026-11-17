@@ -1,6 +1,5 @@
 """Private-domain runner -> BT -> real SAM 3 / GraspGenX -> physical MuJoCo pick test."""
 import json,os,signal,subprocess,time
-os.environ["RWH_SEGMENTATION_BACKEND"]="sam3"
 os.environ["RWH_GRASP_TARGET_TEXT"]="red box"
 from pathlib import Path
 import yaml

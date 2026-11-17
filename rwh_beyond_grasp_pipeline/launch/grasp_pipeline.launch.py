@@ -1,8 +1,7 @@
-"""Compose independent SAM, GraspGenX and robot orchestration ROS nodes."""
+"""Start the SAM and GraspGenX bridges used directly by the BT."""
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.conditions import IfCondition
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, PythonExpression
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
@@ -15,17 +14,12 @@ def config(package, filename):
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('use_sim_time', default_value='true'),
-        DeclareLaunchArgument('mode', default_value='sim', choices=['sim', 'real']),
-        DeclareLaunchArgument('params_file', default_value=config(
-            'rwh_beyond_grasp_pipeline', 'grasp_pipeline.yaml')),
         DeclareLaunchArgument('sam3_params_file', default_value=config(
             'rwh_beyond_sam3_bridge', 'bridge.yaml')),
         DeclareLaunchArgument('graspgenx_params_file', default_value=config(
             'rwh_beyond_graspgenx_bridge', 'bridge.yaml')),
         DeclareLaunchArgument('segmentation_endpoint', default_value=''),
         DeclareLaunchArgument('endpoint', default_value=''),
-        DeclareLaunchArgument('segmentation_backend', default_value=''),
-        DeclareLaunchArgument('target_text', default_value=''),
         OpaqueFunction(function=pipeline_nodes),
     ])
 

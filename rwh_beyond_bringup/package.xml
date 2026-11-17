@@ -5,7 +5,6 @@
   <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_python</buildtool_depend>
-  <depend>rwh_beyond</depend>
   <depend>rwh_beyond_msgs</depend>
   <depend>rclpy</depend>
   <depend>ament_index_python</depend>

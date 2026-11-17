@@ -8,8 +8,8 @@ from sensor_msgs.msg import Image, CameraInfo
 from std_msgs.msg import Header
 from rclpy.parameter import Parameter
 from rwh_beyond_msgs.action import InferGrasps
-from rwh_beyond_grasp_bridge.segmentation_client import rgb_array
-from rwh_beyond_grasp_bridge.depth_converter import depth_xyz
+from rwh_beyond_sam3_bridge.segmentation_client import rgb_array
+from rwh_beyond_model_utils.depth_converter import depth_xyz
 from test_bridge import MockServer, mock, bridge, run
 
 

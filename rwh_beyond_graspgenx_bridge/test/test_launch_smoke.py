@@ -15,14 +15,14 @@ def test_launch_cloud_and_depth_cli(tmp_path):
     np.save(tmp_path/'mask.npy', np.ones((12,12),np.uint8))
     environment = dict(os.environ, ROS_DOMAIN_ID='94')
     with (tmp_path/'launch.log').open('w+') as log:
-        process = subprocess.Popen(['ros2','launch','rwh_beyond_grasp_bridge','inference.launch.py',
+        process = subprocess.Popen(['ros2','launch','rwh_beyond_graspgenx_bridge','inference.launch.py',
             'mock:=true',f'endpoint:={endpoint}'], env=environment,
             stdout=log, stderr=subprocess.STDOUT, start_new_session=True)
         try:
             for command in [
-                ['ros2','run','rwh_beyond_grasp_bridge','infer_cloud',str(tmp_path/'cloud.npy'),
+                ['ros2','run','rwh_beyond_graspgenx_bridge','infer_cloud',str(tmp_path/'cloud.npy'),
                  '--frame','camera_depth_optical_frame'],
-                ['ros2','run','rwh_beyond_grasp_bridge','infer_depth',str(tmp_path/'depth.npy'),str(tmp_path/'mask.npy'),
+                ['ros2','run','rwh_beyond_graspgenx_bridge','infer_depth',str(tmp_path/'depth.npy'),str(tmp_path/'mask.npy'),
                  '--frame','camera_depth_optical_frame','--fx','100','--fy','100','--cx','6','--cy','6']]:
                 result = subprocess.run(command, env=environment, stdout=subprocess.PIPE,
                     stderr=subprocess.STDOUT, text=True, timeout=20)

@@ -15,3 +15,8 @@ ros2 launch rwh_beyond_graspgenx_bridge bridge.launch.py endpoint:=tcp://127.0.0
 - `inference.launch.py`는 편의를 위해 SAM ROS bridge도 함께 시작하며 로봇 이동은 시작하지 않습니다.
 
 [전체 패키지/API 안내](../docs/model-bridges.md)
+
+## 검증
+
+프로토콜·RGB-D·모의 ROS 액션·설치된 CLI 검사는 `test/`에서 실제 구현을 직접 import합니다.
+`sam3_action_integration.py`는 저장된 RGB-D와 실제 모델 서버를 사용하는 수동 검사입니다.

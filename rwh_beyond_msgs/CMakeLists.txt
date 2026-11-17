@@ -11,7 +11,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "action/SegmentImage.action"
   "action/InferGrasps.action"
   "action/RunDemo.action"
-  "srv/GetStatus.srv"
   DEPENDENCIES geometry_msgs sensor_msgs)
 ament_export_dependencies(rosidl_default_runtime)
 ament_package()

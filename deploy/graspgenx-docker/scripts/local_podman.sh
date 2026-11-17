@@ -42,7 +42,7 @@ from pathlib import Path
 for p in Path("/proc").glob("[0-9]*/cmdline"):
     try: command=p.read_bytes()
     except (FileNotFoundError, PermissionError, ProcessLookupError): continue
-    if any(arg.endswith((b"/rwh_beyond_grasp_bridge/inference_action_server", b"/rwh_beyond_graspgenx_bridge/inference_action_server")) for arg in command.split(bytes([0]))):
+    if any(arg.endswith(b"/rwh_beyond_graspgenx_bridge/inference_action_server") for arg in command.split(bytes([0]))):
         raise SystemExit(0)
 raise SystemExit(1)
 '; then
@@ -56,11 +56,11 @@ try:
     command=Path("/proc/"+p.read_text().strip()+"/cmdline").read_bytes()
 except (FileNotFoundError, ProcessLookupError):
     raise SystemExit(1)
-raise SystemExit(0 if b"ros2\0launch\0rwh_beyond_grasp_bridge" in command else 1)
+raise SystemExit(0 if b"ros2\0launch\0rwh_beyond_graspgenx_bridge" in command else 1)
 '; then
       echo 'Tracked GraspGenX ROS bridge is already running'
     else
-      podman exec -d "$robot" bash -lc 'source /root/ros2_ws/install/setup.bash; echo $$ > /tmp/rwh-graspgenx-bridge.pid; exec ros2 launch rwh_beyond_grasp_bridge inference.launch.py endpoint:=tcp://127.0.0.1:5566 > /tmp/rwh-graspgenx-bridge.log 2>&1'
+      podman exec -d "$robot" bash -lc 'source /root/ros2_ws/install/setup.bash; echo $$ > /tmp/rwh-graspgenx-bridge.pid; exec ros2 launch rwh_beyond_graspgenx_bridge inference.launch.py endpoint:=tcp://127.0.0.1:5566 > /tmp/rwh-graspgenx-bridge.log 2>&1'
     fi
     ;;
   bridge-stop)
@@ -74,7 +74,7 @@ try:
 except (FileNotFoundError, ProcessLookupError):
     print("Tracked bridge is not running")
     raise SystemExit(0)
-if b"ros2\0launch\0rwh_beyond_grasp_bridge" not in command:
+if b"ros2\0launch\0rwh_beyond_graspgenx_bridge" not in command:
     raise SystemExit("PID does not belong to the tracked bridge; refusing to signal")
 os.kill(pid, signal.SIGINT)
 print("Sent SIGINT to tracked GraspGenX ROS bridge")

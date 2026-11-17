@@ -16,10 +16,10 @@ from sensor_msgs_py.point_cloud2 import create_cloud_xyz32
 from std_msgs.msg import Header
 from rwh_beyond_sam3_bridge.action_server import SegmentationActionServer
 from rwh_beyond_msgs.action import InferGrasps
-from rwh_beyond_grasp_bridge.inference_action_server import InferenceActionServer
-from rwh_beyond_grasp_bridge.cloud_converter import cloud_xyz
-from rwh_beyond_grasp_bridge.pose_converter import quaternion_xyzw
-from rwh_beyond_grasp_bridge.zmq_client import request, ProtocolError
+from rwh_beyond_graspgenx_bridge.inference_action_server import InferenceActionServer
+from rwh_beyond_model_utils.cloud_converter import cloud_xyz
+from rwh_beyond_model_utils.pose_converter import quaternion_xyzw
+from rwh_beyond_model_utils.zmq_client import request, ProtocolError
 
 class MockServer:
     def __init__(self):
@@ -204,7 +204,7 @@ def test_non_map_response_rejected(mock):
 
 
 def test_object_dtype_decode_is_rejected():
-    from rwh_beyond_grasp_bridge.zmq_client import decode_numpy
+    from rwh_beyond_model_utils.zmq_client import decode_numpy
     with pytest.raises(ValueError):
         decode_numpy({b'nd':True,b'type':'O',b'shape':(1,),b'data':b'not-a-pickle'})
 
@@ -263,7 +263,7 @@ def test_invalid_depth_rejected_before_zmq(bridge,mock,kind):
 
 def test_depth_padded_big_endian_downsample_and_invalid_pixels():
     import struct
-    from rwh_beyond_grasp_bridge.depth_converter import depth_xyz
+    from rwh_beyond_model_utils.depth_converter import depth_xyz
     value=depth_goal()
     row=struct.pack('>12H', *([1000]*12))+b'xx'
     value.depth_image.is_bigendian=1

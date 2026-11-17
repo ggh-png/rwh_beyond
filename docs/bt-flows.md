@@ -4,6 +4,14 @@
 외부에서는 `/run_demo`를 호출하고, BT 내부 데이터는 Blackboard로 전달합니다.
 각 노드의 세부 입력은 [플러그인별 기능과 포트](bt-grasp-stages.md)를 참고하세요.
 
+## 전체 흐름 한눈에 보기 { #bt-workflow-image }
+
+[![PiPER BT 전체 흐름: 준비·관측, 촬영·인식, 계획 선택, 집기·리프트·복귀, 별도 배치 요청과 해제](assets/images/piper-bt-workflow.png)](assets/images/piper-bt-workflow.png)
+
+이미지를 클릭하면 원본 크기로 볼 수 있습니다. **집기와 배치는 별도 요청**입니다.
+집기 완료 후 부착을 유지하며, `mode: 2`를 요청해야 배치·해제합니다.
+아래 Mermaid는 각 XML의 세부 순서와 조건을 설명합니다.
+
 ## 트리 선택
 
 | 요청 | 실행 XML | 동작 |

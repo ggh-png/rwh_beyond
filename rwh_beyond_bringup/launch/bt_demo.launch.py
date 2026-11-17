@@ -86,10 +86,6 @@ def generate_launch_description():
                 'RWH_SEGMENTATION_ENDPOINT', default_value=''),
             description='SAM segmentation server endpoint'),
         DeclareLaunchArgument(
-            'segmentation_backend',
-            default_value=EnvironmentVariable('RWH_SEGMENTATION_BACKEND', default_value=''),
-            description='Segmentation backend'),
-        DeclareLaunchArgument(
             'target_text',
             default_value=EnvironmentVariable('RWH_GRASP_TARGET_TEXT', default_value=''),
             description='Target object description'),
@@ -103,15 +99,11 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(PathJoinSubstitution([
                 FindPackageShare('rwh_beyond_grasp_pipeline'), 'launch', 'grasp_pipeline.launch.py'])),
             launch_arguments={
-                'params_file': LaunchConfiguration('params_file'),
                 'sam3_params_file': LaunchConfiguration('params_file'),
                 'graspgenx_params_file': LaunchConfiguration('params_file'),
                 'segmentation_endpoint': LaunchConfiguration('segmentation_endpoint'),
-                'segmentation_backend': LaunchConfiguration('segmentation_backend'),
-                'target_text': LaunchConfiguration('target_text'),
                 'endpoint': LaunchConfiguration('endpoint'),
                 'use_sim_time': simulation,
-                'mode': LaunchConfiguration('mode'),
             }.items())]),
         # RViz belongs to this BT launch, not the simulator dependency.
         # The included launch starts only RViz using the same MoveIt robot parameters.

@@ -33,7 +33,7 @@ class BtDemoLaunchTest(unittest.TestCase):
         self.assertEqual(
             set(argument_map),
             {'params_file', 'rviz', 'rviz_config', 'tcp_offset', 'segmentation_endpoint',
-             'segmentation_backend', 'target_text', 'endpoint', 'mode', 'start_sensors', 'enable_lidar',
+             'target_text', 'endpoint', 'mode', 'start_sensors', 'enable_lidar',
              'enable_d405', 'd405_serial', 'd405_profile', 'sensor_params_file',
              'camera_type', 'enable_d435', 'd435_serial', 'd435_depth_profile', 'd435_color_profile',
              'd435_mount_parent', 'd435_mount_xyz', 'd435_mount_rpy',
@@ -49,15 +49,14 @@ class BtDemoLaunchTest(unittest.TestCase):
         self.assertIn("FindPackageShare(pkg='rwh_beyond_bringup')",
                       rviz.launch_description_source.location)
         self.assertIn('moveit_rviz.launch.py', rviz.launch_description_source.location)
-        names = ('segmentation_endpoint', 'segmentation_backend', 'target_text', 'endpoint')
+        names = ('segmentation_endpoint', 'endpoint')
         context.launch_configurations.update({name: f'test_{name}' for name in names})
         context.launch_configurations['params_file'] = '/tmp/bt.yaml'
         self.assertEqual(
             {name: value.perform(context) if hasattr(value, 'perform') else value for name, value in pipeline.launch_arguments},
-            {**{name: f'test_{name}' for name in names}, 'params_file': '/tmp/bt.yaml', 'sam3_params_file': '/tmp/bt.yaml', 'graspgenx_params_file': '/tmp/bt.yaml', 'use_sim_time': 'True', 'mode': 'sim'})
+            {**{name: f'test_{name}' for name in names}, 'sam3_params_file': '/tmp/bt.yaml', 'graspgenx_params_file': '/tmp/bt.yaml', 'use_sim_time': 'True'})
         env_vars = {
             'segmentation_endpoint': ('RWH_SEGMENTATION_ENDPOINT', ''),
-            'segmentation_backend': ('RWH_SEGMENTATION_BACKEND', ''),
             'target_text': ('RWH_GRASP_TARGET_TEXT', ''),
             'endpoint': ('RWH_GRASP_ENDPOINT', ''),
         }
@@ -92,7 +91,7 @@ class BtDemoLaunchTest(unittest.TestCase):
             'mode': 'sim',
             'params_file': '/tmp/navigator.yaml',
             'segmentation_endpoint': 'tcp://127.0.0.1:5567',
-            'segmentation_backend': 'sam3', 'target_text': 'red box',
+            'target_text': 'red box',
             'endpoint': 'tcp://127.0.0.1:5566',
         })
         for action in group.execute(context):
@@ -122,7 +121,7 @@ class BtDemoLaunchTest(unittest.TestCase):
         args = {name: value.perform(context) if hasattr(value, 'perform') else value for name, value in include.launch_arguments}
         self.assertEqual(args['use_sim_time'], 'False')
         self.assertNotIn('start_coordinator', args)
-        self.assertEqual(args['mode'], 'real')
+        self.assertNotIn('mode', args)
         rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription)
                     and 'moveit_rviz.launch.py' in entity.launch_description_source.location)
         context.launch_configurations['rviz'] = 'true'

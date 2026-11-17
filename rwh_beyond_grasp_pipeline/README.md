@@ -12,3 +12,6 @@ rwh_beyond_bt가 직접 수행하며 MoveIt 서비스·액션과 controller 액�
 설정은 rwh_beyond_bringup/config/bt_demo.yaml의 bt_navigator.ros__parameters.bt_motion입니다.
 
 [구조](../docs/bt-architecture.md) · [포트](../docs/bt-grasp-stages.md)
+
+브릿지 launch 입력은 `sam3_params_file`, `graspgenx_params_file`, `segmentation_endpoint`,
+`endpoint`, `use_sim_time`입니다. 대상 텍스트는 `/run_demo` 또는 BT navigator에 지정합니다.

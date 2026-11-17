@@ -6,6 +6,8 @@ coordinator 프로세스와 단계별 중계 액션은 없습니다. BT 플러�
 [집기·배치 흐름](bt-flows.md) → [16개 플러그인 기능·포트](bt-grasp-stages.md) →
 [데이터와 좌표계](project-data.md) 순서로 읽으면 실행과 구현을 연결할 수 있습니다.
 
+전체 그림은 [BT 전체 흐름 이미지](bt-flows.md#bt-workflow-image)를 참고하세요.
+
 ## 프로세스와 책임
 
 ```mermaid
