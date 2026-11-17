@@ -1489,11 +1489,11 @@ coordinator는 관측·계획·장면 상태를 보관하고 모델 추론과 Mo
 </tr>
 <tr>
 <td>BT 플러그인</td>
-<td>포트 데이터와 ROS Action 변환, 오류 전달</td>
+<td>RGB-D 획득, 점군 생성, 브릿지 직접 호출, 포트 데이터, 오류 전달</td>
 </tr>
 <tr>
-<td>Coordinator</td>
-<td>관측·계획 ID·장면·backend·취소 상태 관리</td>
+<td>모션 backend</td>
+<td>전달받은 관측 검증, 후보 선택·MoveIt 계획, 충돌 장면·부착·실물 실행</td>
 </tr>
 <tr>
 <td>모델 bridge</td>
@@ -1509,11 +1509,14 @@ coordinator는 관측·계획·장면 상태를 보관하고 모델 추론과 Mo
 <code>/grasp/move_home</code>, <code>/grasp/open_gripper</code>, <code>/grasp/move_observation</code> Action을 호출합니다.
 세 플러그인은 Nav2 <code>BtActionNode</code>를 상속하며 입력 변환·결과·취소 처리를 담당합니다.
 실제 동작은 coordinator에서 심·실물 공통 구현을 사용합니다.
-분할부터 리프트까지는 목적별 플러그인과 <code>/grasp/*</code> endpoint를 사용합니다.
-닫기는 <code>AttachObject</code> 내부에서 수행하므로 기본 트리에 별도 <code>CloseGripper</code>를 추가하지 않습니다.</p>
+분할은 <code>/segment_image</code>, 추론은 <code>/infer_grasps</code> 브릿지에 BT가 직접 요청합니다.
+<code>CaptureRgbd</code>와 <code>BuildObjectCloud</code>는 BT 내부에서 수행합니다.
+모션 선택·접근·부착·리프트만 <code>/grasp/*</code> endpoint를 사용합니다.
+닫기는 <code>AttachObject</code> 내부에서 수행합니다. 별도의 독립 닫기 플러그인은 제공하지 않습니다.</p>
 <h2 id="_2">데이터와 상태<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>BT Blackboard는 마스크 Image, PointCloud2, GraspCandidate 배열, 계획 ID와 pregrasp를 전달합니다.
-coordinator는 같은 관측에서 생성한 데이터인지 ID와 내용을 검사합니다.</p>
+BT가 하나의 불변 촬영 묶음과 마스크·점군·후보를 포트로 연결합니다.
+모션 backend는 frame·stamp·관측 나이·촬영 후 관절 이동 여부를 검사합니다.</p>
 <p>계획 단계 순서는 <code>selected → pregrasp → approached → attached → lifted</code>입니다.
 계획 ID 불일치·단계 생략·중복 실행은 거부합니다.</p>
 <h2 id="backend">공통 backend 경계<a class="headerlink" href="#backend" title="Permanent link">&para;</a></h2>

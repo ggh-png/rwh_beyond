@@ -1216,6 +1216,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#bt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BT 인식 설정
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1351,6 +1362,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#bt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BT 인식 설정
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1409,17 +1431,17 @@
 </tr>
 <tr>
 <td><code>SegmentObject</code></td>
-<td><code>/grasp/segment_object</code></td>
+<td><code>/segment_image</code> (SAM 브릿지 직접 호출)</td>
 <td>대상 텍스트 → observation_id, mask</td>
 </tr>
 <tr>
 <td><code>BuildObjectCloud</code></td>
-<td><code>/grasp/build_object_cloud</code></td>
+<td>BT 내부 연산</td>
 <td>observation_id, mask → cloud</td>
 </tr>
 <tr>
 <td><code>InferGrasps</code></td>
-<td><code>/grasp/infer_grasps</code></td>
+<td><code>/infer_grasps</code> (그래스핑 브릿지 직접 호출)</td>
 <td>observation_id, cloud → candidates</td>
 </tr>
 <tr>
@@ -1450,24 +1472,31 @@
 </tbody>
 </table>
 <p><code>MoveHome</code>, <code>OpenGripper</code>, <code>MoveObservation</code>의 Action 타입은 <code>RunGraspStep</code>,
-나머지 <code>/grasp/*</code> 단계는 <code>RunGraspStage</code>입니다. 시나리오 endpoint는 수행할 동작이 고정되어 있으며
+<code>SegmentObject</code>는 <code>SegmentImage</code>, <code>InferGrasps</code>는 <code>InferGrasps</code> Action을 사용합니다.
+<code>CaptureRgbd</code>와 <code>BuildObjectCloud</code>는 ROS Action 서버를 거치지 않습니다.
+선택·접근·부착·리프트의 <code>/grasp/*</code> 단계는 <code>RunGraspStage</code>입니다. 시나리오 endpoint는 수행할 동작이 고정되어 있으며
 요청의 <code>command</code> 값으로 다른 동작을 선택하지 않습니다. 이전 <code>GraspStep</code> 플러그인과 <code>/grasp_step</code> endpoint는 제거했습니다.
 <code>SegmentObject</code>는 선택적 <code>target_text</code> 입력 포트도 지원하며 <code>/run_demo</code>의 요청별 텍스트가 우선합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;SegmentObject</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span><span class="w"> </span><span class="na">mask=</span><span class="s">"{object_mask}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">&lt;BuildObjectCloud</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span><span class="w"> </span><span class="na">mask=</span><span class="s">"{object_mask}"</span><span class="w"> </span><span class="na">cloud=</span><span class="s">"{object_cloud}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">&lt;InferGrasps</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span><span class="w"> </span><span class="na">cloud=</span><span class="s">"{object_cloud}"</span><span class="w"> </span><span class="na">candidates=</span><span class="s">"{grasps}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">&lt;SelectFeasibleGrasp</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span><span class="w"> </span><span class="na">cloud=</span><span class="s">"{object_cloud}"</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">                     </span><span class="na">candidates=</span><span class="s">"{grasps}"</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="w"> </span><span class="na">pregrasp=</span><span class="s">"{pregrasp}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="nt">&lt;MoveToPregrasp</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="nt">&lt;ApproachGrasp</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="nt">&lt;AttachObject</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">&lt;LiftObject</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">&lt;CaptureRgbd</span><span class="w"> </span><span class="na">capture=</span><span class="s">"{capture}"</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">&lt;SegmentObject</span><span class="w"> </span><span class="na">capture=</span><span class="s">"{capture}"</span><span class="w"> </span><span class="na">mask=</span><span class="s">"{object_mask}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">&lt;BuildObjectCloud</span><span class="w"> </span><span class="na">capture=</span><span class="s">"{capture}"</span><span class="w"> </span><span class="na">mask=</span><span class="s">"{object_mask}"</span><span class="w"> </span><span class="na">cloud=</span><span class="s">"{object_cloud}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">&lt;InferGrasps</span><span class="w"> </span><span class="na">cloud=</span><span class="s">"{object_cloud}"</span><span class="w"> </span><span class="na">candidates=</span><span class="s">"{grasps}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">&lt;SelectFeasibleGrasp</span><span class="w"> </span><span class="na">capture=</span><span class="s">"{capture}"</span><span class="w"> </span><span class="na">mask=</span><span class="s">"{object_mask}"</span><span class="w"> </span><span class="na">observation_id=</span><span class="s">"{observation}"</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">                     </span><span class="na">cloud=</span><span class="s">"{object_cloud}"</span><span class="w"> </span><span class="na">candidates=</span><span class="s">"{grasps}"</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">                     </span><span class="na">pregrasp_distance=</span><span class="s">"0.10"</span><span class="w"> </span><span class="na">lift_distance=</span><span class="s">"0.08"</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">                     </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="w"> </span><span class="na">pregrasp=</span><span class="s">"{pregrasp}"</span><span class="w"> </span><span class="na">grasp_pose=</span><span class="s">"{grasp_pose}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="nt">&lt;MoveToPregrasp</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="nt">&lt;ApproachGrasp</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="nt">&lt;AttachObject</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="nt">&lt;LiftObject</span><span class="w"> </span><span class="na">plan_id=</span><span class="s">"{grasp_plan}"</span><span class="nt">/&gt;</span>
 </code></pre></div>
-<p><code>observation_id</code>는 한 번의 촬영, <code>plan_id</code>는 coordinator에 보관한 실행 경로를 참조합니다.
+<p><code>capture</code>는 BT가 소유하는 불변 RGB-D·CameraInfo·관절값 묶음이고, 마스크·점군·후보는 Blackboard 포트로 전달합니다.
+<code>observation_id</code>는 이 촬영 묶음, <code>plan_id</code>는 모션 backend에 보관한 실행 경로를 참조합니다.
 마스크·점군·후보를 임의로 교체하는 무상태 API가 아닙니다.
 촬영 후 30초가 지났거나 관절이 0.02 rad 넘게 바뀌면 재관측을 요구합니다.</p>
 <p><code>server_timeout="1000"</code>은 Nav2 Action 요청 응답 대기 시간(ms)이며 전체 모델 추론 제한 시간이 아닙니다.
-별도 <code>MoveTcp</code>, <code>MakeTcpPose</code>, <code>SetGripper</code> 등 범용 플러그인의 포트는 노드 모델 XML에서 확인합니다.
+현재 배포 트리가 사용하는 16개 Action 노드만 제공합니다. 범용 TCP 이동·자세 생성·독립 그리퍼 닫기는 제거했습니다.
+노드 모델은 <code>node_models/rwh_beyond_tree_nodes.xml</code> 한 곳에서 관리합니다.
 <code>MoveObservation</code>은 coordinator를 호출하며 고정된 심 전용 관절 자세를 사용하지 않습니다.
 <code>x</code>, <code>y</code>, <code>z</code>, <code>tilt_deg</code>는 각각 독립적으로 지정할 수 있습니다.
 좌표는 절대 위치가 아니라 home TCP 기준 base 축 방향 이동량이며, Z=0이나 음수도 지원합니다.
@@ -1475,7 +1504,8 @@
 <h2 id="xml">XML에서 동작 조정<a class="headerlink" href="#xml" title="Permanent link">&para;</a></h2>
 <p>단계 순서·반복·조건 분기는 XML에서 조합합니다. 각 Action 노드의 입력은 리터럴 또는
 <code>{blackboard_key}</code>로 전달할 수 있습니다. <code>server_name</code>으로 endpoint를 교체할 수도 있습니다.
-기본 트리는 심·실물이 공유하며, 실제 처리와 충돌 검사는 coordinator에서 수행합니다.</p>
+기본 트리는 심·실물이 공유하며, RGB-D 획득·물체 점군 투영·브릿지 호출은 BT에서 수행합니다.
+모션 backend는 전달된 관측의 유효성 확인, 후보 선택·MoveIt 계획·충돌 장면·부착·실물 실행을 담당합니다.</p>
 <table>
 <thead>
 <tr>
@@ -1549,6 +1579,26 @@ XML에서 Nav2의 <code>SubTree</code>, <code>Fallback</code>, 반복·조건 �
 <p><code>RunGraspStep</code> Goal 형식이 확장되었으므로 호출 측과 ROS 노드는 같은 버전의 <code>rwh_beyond_msgs</code>로
 빌드한 뒤 재시작해야 합니다. 외부 <code>/run_demo</code> Goal 형식은 유지됩니다.</p>
 <p><a href="../project-code-map/">코드 안내</a> · <a href="../bt-operation/">RunDemo</a></p>
+<h2 id="bt">BT 인식 설정<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h2>
+<p><code>bt_demo.yaml</code>의 <code>bt_navigator.ros__parameters.bt_perception</code>에서 대상·SAM 프롬프트와
+<code>num_grasps</code>, <code>top_k</code>를 설정합니다. 이 설정은 navigator의 BT 클라이언트 노드로 전달됩니다.
+<code>/run_demo.target_text</code>가 있으면 XML·YAML 기본 대상보다 우선합니다.
+기존 coordinator의 같은 이름 설정은 인식 경로에서 사용하지 않습니다.</p>
+<p><code>CaptureRgbd</code>는 시작 이후 같은 타임스탬프의 RGB·정렬 깊이·CameraInfo와 최신 관절값을 기다립니다.
+<code>BuildObjectCloud</code>는 마스크·깊이·보정의 좌표계·시각·크기를 검사하며 16UC1(mm), 32FC1(m),
+패딩·엔디언·plumb_bob 왜곡을 처리합니다. 최소 100개 유효 점을 요구하고 최대 200000개로 제한합니다.
+실패하면 뒤의 모델 호출을 실행하지 않습니다.</p>
+<p>SAM 출력은 표시용 잘린 이미지가 아니라 원본 RGB에 대응하는 이진 마스크입니다.
+그래스핑 브릿지는 물체 점군에서 후보 Pose·점수를 반환합니다.
+<code>grasp_pose</code>는 도달·충돌 검사 후 선택된 base-frame TCP 목표이며,
+<code>pregrasp</code>는 사전 접근 목표입니다. 두 자세와 실행 순서는 모델이 생성한 궤적이 아닙니다.</p>
+<p>접근 거리·리프트 거리는 <code>SelectFeasibleGrasp</code>의 XML 포트에서 선택합니다.
+생략 시 모션 YAML 값, 지정 시 각각 0.02~0.20m와 0.065~0.20m를 허용합니다.
+선택 시 검증한 리프트 거리는 해당 계획에 묶어 실제 리프트에서도 그대로 사용합니다.</p>
+<p>이 변경은 <code>RunGraspStage</code> 메시지를 확장하고 XML 포트를 변경합니다.
+메시지와 BT·navigator·모션 패키지를 함께 빌드하고 관련 노드를 모두 재시작해야 합니다.
+<code>grasp/segment_object</code>, <code>grasp/build_object_cloud</code>, <code>grasp/infer_grasps</code> 중계 서버는 제거했습니다.
+모션 선택·실행 backend는 아직 별도 노드이며, MoveIt 호출 전체가 BT로 이전된 것은 아닙니다.</p>
 
 
 

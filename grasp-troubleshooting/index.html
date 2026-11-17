@@ -1453,8 +1453,8 @@
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">grasp_width_closing_inset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.004</span>
 </code></pre></div>
 <p>이 예시는 4mm이며, <code>0.05</code>는 50mm로 허용 상한 5mm를 초과합니다.
-문서 갱신 시 저장한 YAML에는 사용자 조정값 <code>0.05</code>가 남아 있습니다.
-이 값은 유효한 실행 예시가 아닙니다. 실행 전에 허용 범위로 수정하고 <code>bt_demo</code>를 재시작합니다.
+현재 YAML은 <code>0.005</code>m로 설정되어 있습니다. <code>0.05</code>처럼 허용 범위를 넘는 값으로
+바꾸면 후보가 모두 탈락하므로 단위를 확인하고, 변경 후 <code>bt_demo</code>를 재시작합니다.
 현재 코드에서는 이 값의 범위 검사를 후보별 폭 추정에서 수행하기 때문에
 노드가 시작됐더라도 모든 후보가 같은 오류로 탈락할 수 있습니다.</p>
 <p>설정이 유효한데 계속 실패하면 아래 입력 조건을 확인합니다.</p>

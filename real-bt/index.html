@@ -1538,7 +1538,9 @@ GraspGenX → 후보 선택 → pregrasp → 접근 → 닫기·계획용 부착
 home은 <code>home_joint_positions</code>에 정의한 6개 관절 목표입니다. 이미 home 허용 오차 안이면 이동을 생략합니다.</p>
 <h2 id="yaml">공통 YAML<a class="headerlink" href="#yaml" title="Permanent link">&para;</a></h2>
 <p><code>rwh_beyond_bringup/config/bt_demo.yaml</code>을 navigator·lifecycle manager·SAM bridge·
-GraspGenX bridge·coordinator가 함께 읽습니다.</p>
+GraspGenX bridge·모션 backend가 함께 읽습니다.
+대상·모델 요청 개수는 <code>bt_navigator.ros__parameters.bt_perception</code>,
+모션·충돌 설정은 기존 <code>grasp_coordinator.ros__parameters</code>에 있습니다.</p>
 <table>
 <thead>
 <tr>
@@ -1565,7 +1567,7 @@ GraspGenX bridge·coordinator가 함께 읽습니다.</p>
 </tr>
 <tr>
 <td><code>grasp_width_closing_inset</code></td>
-<td>0.05 m(유효하지 않음)</td>
+<td>0.005 m</td>
 <td>추정 폭 보정, 허용 범위 0~0.005 m</td>
 </tr>
 <tr>
