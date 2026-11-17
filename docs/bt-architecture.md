@@ -10,41 +10,95 @@ BT 플러그인이 모델 브릿지·MoveIt·그리퍼를 직접 호출합니다
 
 ## 프로세스와 책임
 
+`bt_demo.launch.py`가 실행하는 ROS 노드는 Nav2의 **`bt_navigator`**입니다.
+`DemoNavigator`는 이 노드에 로드되는 `BehaviorTreeNavigator<RunDemo>` 플러그인이며,
+별도의 실행 파일이나 ROS 노드가 아닙니다. Nav2의 BT Action Server가 트리를 로드하고 tick하며,
+`DemoNavigator`는 요청별 XML·대상 선택과 feedback/result·실패 정리를 연결합니다.
+
+아래 첫 그림은 **같은 프로세스 안의 C++ 객체 관계**입니다.
+화살표는 호출·참조·포트 데이터 전달이며 ROS 통신을 뜻하지 않습니다.
+
 ```mermaid
-flowchart LR
-  User["호출 측"] -->|RunDemo| Navigator["BT Navigator"]
-  subgraph BT["BT 실행 영역"]
-    Navigator --> XML["XML: 순서·조건"]
-    XML --> Perception["인식 플러그인"]
-    XML --> Motion["모션 플러그인"]
-    Perception <-->|촬영·마스크·점군·후보| BB["Blackboard"]
-    Motion <-->|GraspPlan·목표·폭| BB
-    Motion --> Context["MotionContext<br/>공통 연산·클라이언트·장면 자원"]
+flowchart TD
+  subgraph Process["bt_navigator 프로세스"]
+    direction TB
+    Nav["DemoNavigator · Nav2 navigator 플러그인"]
+    Server["Nav2 BT Action Server / BehaviorTreeEngine"]
+    Tree["XML로 생성한 BT · Sequence와 Action 인스턴스"]
+    Perception["인식 Action 4종"]
+    Motion["모션 Action 11종 · MotionAction 기반"]
+    Clear["ClearOctomap Action 1종"]
+    BB["root Blackboard · 관측·계획·진단·공유 객체"]
+    Ctx["MotionContext · 공유 C++ 객체<br/>후보 선택·MoveIt·그리퍼·장면"]
+    Nav -->|트리 선택·진단 조회| Server
+    Server -->|생성·tick·halt| Tree
+    Tree --> Perception
+    Tree --> Motion
+    Tree --> Clear
+    Perception <-->|capture / mask / cloud / candidates| BB
+    Motion <-->|GraspPlan / 목표 / 폭| BB
+    Motion -->|prepare / perform에서 사용| Ctx
+    BB -->|bt_motion_context| Ctx
   end
-  Camera["RGB-D·관절 피드백"] --> Perception
-  Camera --> Context
-  Perception -->|SegmentImage| SAM["SAM 브릿지 → 모델 서버"]
-  Perception -->|InferGrasps| Grasp["GraspGenX 브릿지 → 모델 서버"]
-  Context -->|IK·FK·계획·장면·실행| MoveIt["MoveIt move_group"]
-  Context -->|FollowJointTrajectory| Gripper["그리퍼 controller/실물 전송"]
-  MoveIt --> Arm["팔 controller/실물 전송"]
-  Context -->|SetGraspRegion| Filter["계획용 점군 필터"]
 ```
 
-| 구성 | 담당 |
-|---|---|
-| Navigator | 요청별 트리·대상 선택, BT 실행, feedback/result, 취소, 실패 시 정리 연결 |
-| BT XML | 노드 순서·조건·포트 연결, 관측·접근·리프트 거리 지정 |
-| 인식 플러그인 | 새 RGB-D 수집, SAM 호출, 마스크·깊이 역투영, 파지 브릿지 호출 |
-| 모션 플러그인 | 입력 해석, 후보 선택·TCP 목표 생성, 모션·그리퍼·부착 동작, 완료 상태 갱신 |
-| MotionContext | TF·피드백·MoveIt/그리퍼 클라이언트·형상·공통 검증 공유. BT 내부 C++ 객체 |
-| SAM·GraspGenX 브릿지 | 모델 프로토콜 변환과 ROS 액션 결과 반환 |
-| MoveIt | IK·FK·충돌·경로 계획·Planning Scene·궤적 실행 |
-| physical_trajectory | 실물 제어 명령 전달·피드백·취소 처리 |
-| target_cloud_filter | 선택한 대상 영역을 계획용 점군에서 제외 |
+다음은 **외부 ROS 인터페이스**입니다. 인식 Action은 모델 Action을 직접 호출하고,
+모션 Action은 `MotionContext`를 통해 MoveIt·그리퍼·장면을 다룹니다.
+`ClearOctomap`은 자체 클라이언트·구독을 가진 별도 BT Action입니다.
 
-MotionContext는 root Blackboard에 보관하며 별도 ROS 서버를 제공하지 않습니다.
-물리 전송과 점군 필터는 장치·센서 기능을 담당하는 별도 노드로 유지합니다.
+**요청·인식 경로**
+
+```mermaid
+flowchart TD
+  User["호출 측"] -->|/run_demo · RunDemo| Nav["bt_navigator / DemoNavigator"]
+  Nav -->|BT 실행| Perception["인식 Action 4종"]
+  Camera["RGB-D · CameraInfo<br/>관절 피드백"] --> Perception
+  Perception -->|/segment_image · SegmentImage| SAM["sam3_bridge<br/>→ SAM 모델 서버"]
+  Perception -->|/infer_grasps · InferGrasps| Model["graspgenx_bridge<br/>→ GraspGenX 모델 서버"]
+```
+
+**모션·장면 경로**
+
+```mermaid
+flowchart TD
+  Feedback["feedback/joint_states · TF<br/>camera/depth/filtered_points"] --> Ctx["모션 Action → MotionContext"]
+  Ctx -->|IK · FK · OMPL · Cartesian<br/>Planning Scene · ExecuteTrajectory| MG["MoveIt move_group"]
+  Ctx -->|FollowJointTrajectory| Grip["gripper_controller<br/>trajectory 서버"]
+  MG -->|FollowJointTrajectory| Arm["arm_controller<br/>trajectory 서버"]
+  Ctx -->|SetGraspRegion<br/>Octomap 사용 시| Filter["심: simulation/set_grasp_region<br/>실물: grasp/set_grasp_region"]
+  Clear["ClearOctomap Action<br/>filtered_points 구독"] -->|clear_octomap<br/>get_planning_scene| MG
+```
+
+두 trajectory Action의 이름은 각각 `gripper_controller/follow_joint_trajectory`,
+`arm_controller/follow_joint_trajectory`입니다.
+
+| 구성 | 실제 담당·구현 |
+|---|---|
+| `bt_navigator` / Nav2 BT Action Server | `/run_demo` 서버, 트리 로드·tick·halt 등 실행 기반 |
+| `DemoNavigator` | 요청의 mode·XML·대상 해석, XML 전처리, 진단을 feedback/result로 변환, 실패 정리 콜백 호출 |
+| BT XML | 노드 순서·조건·포트 연결, 관측·접근·리프트 거리 지정 |
+| 인식 Action 4종 | 새 RGB-D 수집, SAM 호출, 마스크·깊이 역투영, 파지 브릿지 호출 |
+| 모션 Action 11종 | 포트 입력 검증, 비동기 작업·취소, 단계별 동작 연결과 GraspPlan 상태·출력 갱신 |
+| `MotionContext` | TF·피드백·클라이언트 공유,후보 선택의 기하·IK·경로 검사, 모션·그리퍼 실행·장면·부착 관리 |
+| `ClearOctomap` | 지도 초기화, 새 점군·Octomap 확인; 비활성화 시 성공으로 생략 |
+| SAM·GraspGenX 브릿지 | 모델 프로토콜 변환과 ROS Action 결과 반환 |
+| MoveIt | IK·FK·충돌·경로 계획·Planning Scene·궤적 실행 관리 |
+| trajectory 서버 | 심에서는 시뮬레이션 측 서버, 실물에서는 `piper_physical_trajectory`가 팔·그리퍼 두 Action을 제공 |
+| 점군 제외 서비스 | 심/실물 백엔드가 선택한 대상 영역을 계획용 점군에서 제외 |
+
+`MotionContext`는 root Blackboard의 `bt_motion_context`에 보관하며 별도 ROS 서버를
+제공하지 않습니다. BT 플러그인은 Blackboard의 `node`를 사용해 클라이언트·구독을 만듭니다.
+이 공유 객체는 pick 성공 후 부착 상태를 유지하고 다음 place 요청에서도 사용됩니다.
+
+`bt_demo.launch.py`는 센서(옵션), 두 모델 브릿지, Navigator·lifecycle manager, RViz(옵션)를
+시작합니다. MoveIt과 심/실물 제어·점군 백엔드는 별도 bringup이 필요합니다.
+실물의 `piper_physical_trajectory`는 `FollowJointTrajectory`를 받아
+`control/joint_states`로 전달하고 `feedback/joint_states`를 확인합니다.
+
+구현 근거는 `rwh_beyond_navigator/src/demo_navigator.cpp`,
+`rwh_beyond_bt/plugins/action/motion_action.cpp`, `rwh_beyond_bt/src/motion_context.cpp`,
+`rwh_beyond_grasp_pipeline/launch/grasp_pipeline.launch.py`와
+`rwh_beyond_bringup/launch/bt_demo.launch.py`입니다.
 
 ## 플러그인 디렉터리와 등록 { #plugin-structure }
 

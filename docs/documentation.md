@@ -21,6 +21,9 @@ git diff --check
 
 메뉴와 테마는 `mkdocs.yml`, 버전은 `requirements-docs.txt`, 스타일은
 `docs/assets/stylesheets/docs.css`에서 관리합니다. Mermaid fenced block으로 구조도를 작성합니다.
+수식은 `pymdownx.arithmatex`와 MathJax로 렌더링하며 `$...$`는 인라인,
+별도 줄의 `$$...$$`는 블록 수식입니다. MathJax 설정은
+`docs/assets/javascripts/mathjax.js`, 로딩 버전은 `mkdocs.yml`에서 관리합니다.
 
 `main`의 문서 변경은 GitHub Actions에서 strict 빌드 후 `gh-pages`로 배포합니다.
 소스는 `docs/`에서 수정하며 생성된 `site/`와 `gh-pages` 파일을 직접 편집하지 않습니다.

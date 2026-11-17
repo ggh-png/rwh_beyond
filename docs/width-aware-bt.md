@@ -26,6 +26,9 @@ close_width = min(grasp_width - grasp_width_closing_inset, gripper_open_width)
 선택 로그에는 `close_width`가 출력됩니다. 부분 깊이 관측은 가려진 형상을 놓칠 수 있으며,
 이 추정과 시간 기반 닫기는 힘 제어나 잡힘 검출이 아닙니다.
 
+백분위수 보간·대칭 전체 폭의 수식과 수치 예시는
+[BT 흐름의 폭 계산](bt-flows.md#grasp-width-equations)에서 확인할 수 있습니다.
+
 ## 닫기 보정값
 
 `rwh_beyond_bringup/config/bt_demo.yaml`에서 설정합니다.

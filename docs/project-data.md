@@ -33,8 +33,10 @@ base_T_tcp = base_T_camera × camera_T_model_grasp × model_T_tcp
 `model_to_tcp_rpy=[0,0,-pi/2]` rad를 사용합니다.
 이 값은 flange에서 TCP까지의 URDF `tcp_offset`과 다른 변환입니다.
 
-선택기는 후보 점수뿐 아니라 하향 접근 조건·TCP 보정·IK·충돌·Cartesian 접근/리프트·
-사전 접근 경로를 검사합니다. 모든 후보가 탈락하면 실행하지 않습니다.
+브릿지는 점수 내림차순으로 후보를 반환합니다. BT는 기본 설정에서 원본·180° 대칭 후보를
+현재 TCP와의 회전 차이 오름차순으로 다시 정렬하고, 하향 접근 조건·TCP 보정·IK·충돌·
+Cartesian 접근/리프트·사전 접근 경로를 통과한 첫 후보를 선택합니다.
+모든 후보가 탈락하면 실행하지 않습니다. [계산식과 정렬 조건](bt-flows.md#bt-equations)을 참고하세요.
 
 ## 관측 기반 충돌 장면
 
