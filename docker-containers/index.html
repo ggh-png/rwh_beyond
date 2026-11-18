@@ -2318,7 +2318,7 @@ Docker Engine에서는 <code>CONTAINER_ENGINE=docker</code>로 바꿉니다.
 <tbody>
 <tr>
 <td><strong>BEYOND Robot</strong></td>
-<td><code># GPU·장치·지도 데이터를 연결해 로봇 대기 컨테이너 생성</code><br/><code>docker run -d --name rwh_beyond_robot --gpus all --network host --ipc host --init --privileged --restart unless-stopped -e DISPLAY="$DISPLAY" -e NVIDIA_DRIVER_CAPABILITIES=all -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" -v "$HOME/wsyoon_data:/root/wsyoon_data" -v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro" -v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro" -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /run/udev:/run/udev:ro rwh_beyond_robot:20261117</code></td>
+<td><code># GPU·장치·지도 데이터를 연결해 로봇 대기 컨테이너 생성</code><br/><code>docker run -d --name rwh_beyond_robot --gpus all --network host --ipc host --init --privileged --restart unless-stopped -e DISPLAY="$DISPLAY" -e NVIDIA_DRIVER_CAPABILITIES=all -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" -v "$HOME/wsyoon_data:/root/wsyoon_data" -v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro" -v "$PWD/config/robot_common.yaml:/opt/rwh_beyond/config/robot_common.yaml:ro" -v "$PWD/config/robot_real.yaml:/opt/rwh_beyond/config/robot_real.yaml:ro" -v "$PWD/config/robot_sim.yaml:/opt/rwh_beyond/config/robot_sim.yaml:ro" -v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro" -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /run/udev:/run/udev:ro rwh_beyond_robot:20261117</code></td>
 </tr>
 <tr>
 <td><strong>GraspGenX 서버</strong></td>
@@ -2578,7 +2578,7 @@ helper로 생성한 뒤에도 <a href="#persistent-data">마운트·지도 파�
 이 배포 컨테이너 이름 <code>rwh_beyond_robot</code>은 기존 개발 컨테이너
 <code>moma_mj_lab_1.1.2_hostcan</code>과 다릅니다. 새 컨테이너에도 <code>/root/ros2_ws</code>가 들어 있으며
 기존 호스트의 <code>/work</code> bind mount는 필요하지 않습니다.
-배포 runner는 <code>config/runners.yaml</code>을 사용하므로 모델 주소·카메라·CAN을 장비에 맞춥니다.
+배포 runner는 <code>config/runners.yaml</code>과 함께 세 <code>robot_*.yaml</code> 프로필도 같은 디렉터리에 마운트해야 합니다. 모델 주소는 runner YAML에서, 카메라·CAN은 실물 프로필에서 장비에 맞춥니다.
 실행 절차는 <a href="../grasp-pipeline-guide/">빠른 시작</a>을 참고하세요.</p>
 <h3 id="_3">모델 서버 컨테이너<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <p>두 모델 이미지와 가중치가 포함된 아카이브를 GPU 호스트에 불러온 뒤 실행합니다.

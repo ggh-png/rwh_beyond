@@ -1140,6 +1140,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        속도 조정 제안
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1151,7 +1162,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
         실패 조건과 적용 범위
@@ -2024,6 +2035,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        속도 조정 제안
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#xml" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2035,7 +2057,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#_7" class="md-nav__link">
+  <a href="#_8" class="md-nav__link">
     <span class="md-ellipsis">
       
         실패 조건과 적용 범위
@@ -2194,14 +2216,66 @@ front 관절 자세를 거쳐 home으로 이동합니다. 모든 집기 시도�
 <p>base 좌표계 디버그 점군은 <code>/grasp/fused_object_cloud</code>에서 확인합니다.
 GraspGenX에는 마지막 카메라 좌표계 점군을 전달하므로 모델의 기존 입력·출력 규약과
 Action 메시지는 그대로 사용합니다. 지지면은 마지막 촬영의 배경 깊이로 추정합니다.</p>
-<p>ICP는 PCL point-to-point 방식이며 각 정렬에 최대 10,000개 voxel 점을 사용합니다.
-대응 거리는 15mm, 최대 반복은 40회입니다. 수렴하고 대응점 50개 이상, source 겹침
+<p>ICP는 PCL point-to-point 방식이며 기본적으로 각 정렬에 최대 10,000개 voxel 점을
+사용합니다. 대응 거리는 15mm, 최대 반복은 40회입니다. 수렴하고 대응점 50개 이상, source 겹침
 35% 이상, RMSE 4mm 이하, 물체 중심 보정 10mm 이하 및 회전 5도 이하일 때만 적용합니다.
 조건을 만족하지 못하면 해당 관측은 원래 TF를 사용하며 경고 로그에 사유와 지표를
 남깁니다. 첫 관측이 기준이므로 ICP는 공통 TF 오차를 보정하지 못하고, 평면이나
 대칭 물체에서 잘못 정렬될 수 있습니다. 실물 적용 전 시각화와 저속 검증이 필요합니다.
-<code>ResetObjectCloudFusion</code>의 <code>use_icp="false"</code>로 ICP를 끌 수 있습니다. TSDF·통계적
-outlier 제거·FPS는 포함하지 않습니다.</p>
+<code>bt_demo.yaml</code>의 <code>bt_motion.icp_*</code>에서 위 기준과 점·반복 수를 바꿀 수 있습니다.
+<code>icp_enabled</code>로 ICP를 켜고 끄며, XML의 <code>ResetObjectCloudFusion use_icp</code>가 명시되면
+XML이 우선합니다. 설정은 새 fusion을 시작할 때 읽습니다. 유효 범위를 벗어나거나
+RMSE 한도가 대응 거리보다 크면 해당 단계에서 실패합니다. TSDF·통계적 outlier
+제거·FPS는 포함하지 않습니다.</p>
+<h3 id="_7">속도 조정 제안<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<p><code>rwh_beyond_bringup/config/bt_demo.yaml</code>에서 기본값은 그대로 유지했습니다.
+아래는 측정 후 하나씩 시험할 시작점이며 성공률이나 안전을 보장하지 않습니다.</p>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th style="text-align: right;">현재값</th>
+<th>시험할 값과 영향</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bt_perception.top_k</code>, <code>bt_motion.max_candidates</code></td>
+<td style="text-align: right;">500, 1000</td>
+<td>각각 200으로 시작. 후보 검사 횟수는 줄지만 가능한 파지를 놓칠 수 있습니다.</td>
+</tr>
+<tr>
+<td><code>bt_motion.moveit_candidate_planning_time</code></td>
+<td style="text-align: right;">4초</td>
+<td>2초부터 시험. 실패 후보의 시간 상한이며 모든 계획이 빨라지는 것은 아닙니다.</td>
+</tr>
+<tr>
+<td><code>bt_motion.moveit_pregrasp_num_planning_attempts</code></td>
+<td style="text-align: right;">3</td>
+<td>1~2부터 시험. 계획 성공률이 떨어지면 복원합니다.</td>
+</tr>
+<tr>
+<td><code>bt_motion.moveit_observation_planning_time</code> / <code>moveit_observation_num_planning_attempts</code></td>
+<td style="text-align: right;">10초 / 5</td>
+<td>5초 / 2~3부터 시험. <code>MoveJointPose</code>의 OMPL 관측 계획에 적용되며 도달하기 어려우면 실패가 늘 수 있습니다.</td>
+</tr>
+<tr>
+<td><code>bt_motion.joint_pose_settle_time</code></td>
+<td style="text-align: right;">1초</td>
+<td>0.7초부터 시험. 흔들림·깊이 영상과 분할 품질을 확인합니다. XML의 <code>settle_time</code>이 우선합니다.</td>
+</tr>
+<tr>
+<td><code>bt_motion.icp_max_points</code> / <code>icp_max_iterations</code></td>
+<td style="text-align: right;">10000 / 40</td>
+<td>각각 5000 / 30부터 시험. 정렬 시간이 줄 수 있지만 겹침·정확도·수렴률을 확인합니다.</td>
+</tr>
+</tbody>
+</table>
+<p><code>moveit_velocity_scaling_factor</code>와 <code>moveit_acceleration_scaling_factor</code>는 일반 관절 계획,
+<code>moveit_cartesian_velocity_scaling_factor</code>와 <code>moveit_cartesian_acceleration_scaling_factor</code>는
+접근·리프트 등 Cartesian 경로에 적용됩니다. 모두 현재 0.5이며 실제 속도는 관절 한계,
+시간 파라미터화와 하드웨어 컨트롤러에도 좌우됩니다. 무작정 높이지 말고 시뮬레이션과
+저속 실물 시험으로 여유·충돌·진동을 확인하세요. 충돌 검사와 손목 제한은 끄지 않습니다.</p>
 <h3 id="xml">선택할 XML<a class="headerlink" href="#xml" title="Permanent link">&para;</a></h3>
 <p>두 파일 모두 <code>rwh_beyond_bt/behavior_trees/</code>에 설치됩니다.</p>
 <ul>
@@ -2214,7 +2288,7 @@ outlier 제거·FPS는 포함하지 않습니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>/root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/scan_multiview.xml
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>/root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/demo_multiview.xml
 </code></pre></div>
-<h3 id="_7">실패 조건과 적용 범위<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<h3 id="_8">실패 조건과 적용 범위<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
 <p>한 번에 3개 시점을 요구하며 최대 8개까지 지원합니다. 전체 스캔은 180초 안에 끝나야
 하고 중복되거나 역행하는 촬영 시각, 다른 frame/stamp의 마스크, 잘못된 TF는 거부합니다.
 각 관측은 누적 당시 팔 관절과 일치해야 하고 최신 촬영은 후보 선택 시에도 30초 이내여야

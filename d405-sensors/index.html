@@ -2011,7 +2011,7 @@
 재생성된 Octomap을 확인합니다. 현재 지도 비활성 설정에서는 이 대기를 생략합니다.</p>
 <h2 id="_1">장착 설정<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
 <p>기본 모델은 <code>moma-mj-lab/config/cameras/d405.yaml</code>에 있습니다.
-실물 runner는 <code>ros_runner/config/runners.yaml</code>의 <code>d405.mount</code>로 장착 변환을 덮어씁니다.
+실물 runner는 <code>ros_runner/config/robot_real.yaml</code>의 <code>d405.mount</code>로 장착 변환을 덮어씁니다.
 <a href="../d405-runner-mount/">실물 장착값 수정</a></p>
 <table>
 <thead>
@@ -2069,7 +2069,7 @@
 <p>실물 URDF는 내부 optical TF를 중복 발행하지 않습니다.
 로봇 모델 없이 센서만 실행할 때만 <code>publish_d405_mount_tf:=true</code>로 mount TF를 별도 발행합니다.</p>
 <h2 id="_2">센서 실행<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
-<p><code>ros_runner/config/runners.yaml</code>의 <code>realsense</code>에서 enabled·serial·profile을 지정합니다.
+<p><code>ros_runner/config/robot_real.yaml</code>의 <code>realsense</code>에서 enabled·serial·profile을 지정합니다.
 PiPER에 포함한 D405와 <code>d405</code> 단독 runner가 같은 설정을 읽습니다. <a href="../runner-device-settings/">Runner 장치 설정</a>을 참고하세요.</p>
 <p>실물 <code>piper_moveit</code>은 <code>realsense.model: d405</code>일 때 D405를 포함합니다. 별도 카메라 driver와 중복 실행하지 않습니다.
 센서만 실행할 때는 다음을 사용합니다.</p>
