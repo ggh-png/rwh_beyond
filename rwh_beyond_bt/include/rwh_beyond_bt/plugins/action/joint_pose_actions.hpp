@@ -47,6 +47,10 @@ public:
 private:
   void prepare() override;
   void perform() override;
+  double default_settle() override
+  {
+    return context_->number("joint_pose_settle_time", MotionAction::default_settle(), 0, 30);
+  }
   std::string pose_name_;
   std::vector<double> target_;
 };

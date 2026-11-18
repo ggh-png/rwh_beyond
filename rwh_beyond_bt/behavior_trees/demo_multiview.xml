@@ -15,8 +15,7 @@
       <MoveHome home_joint_positions=""/>
       <OpenGripper opening=""
                    duration=""/>
-      <MoveJointPose settle_time="1.0"
-                     poses_file=""
+      <MoveJointPose poses_file=""
                      pose_name="front"/>
       <CaptureRgbd observation_id="{observation}"
                    capture="{capture}"
@@ -81,8 +80,7 @@
       <ApproachGrasp plan="{grasp_plan}"/>
       <AttachObject plan="{grasp_plan}"/>
       <LiftObject plan="{grasp_plan}"/>
-      <MoveJointPose settle_time="1.0"
-                     poses_file=""
+      <MoveJointPose poses_file=""
                      pose_name="front"/>
       <MoveHome home_joint_positions=""/>
     </Sequence>
@@ -102,12 +100,10 @@
       <OpenGripper opening=""
                    duration=""/>
       <ResetObjectCloudFusion fusion="{fusion}"
-                              use_icp="true"
                               max_centroid_distance="0.08"
                               voxel_size="0.003"/>
       <Sequence name="LeftViewFacingRight">
-        <MoveJointPose settle_time="1.0"
-                       poses_file=""
+        <MoveJointPose poses_file=""
                        pose_name="left"/>
         <CaptureRgbd observation_id="{observation}"
                      capture="{capture}"
@@ -122,8 +118,7 @@
                                capture="{capture}"/>
       </Sequence>
       <Sequence name="RightViewFacingLeft">
-        <MoveJointPose settle_time="1.0"
-                       poses_file=""
+        <MoveJointPose poses_file=""
                        pose_name="right"/>
         <CaptureRgbd observation_id="{observation}"
                      capture="{capture}"
@@ -290,8 +285,7 @@
     </Control>
     <Action ID="ResetObjectCloudFusion">
       <input_port name="use_icp"
-                  default="true"
-                  type="bool">Refine overlapping views with bounded ICP</input_port>
+                  type="bool">Override bt_motion.icp_enabled</input_port>
       <output_port name="fusion"
                    type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
       <input_port name="max_centroid_distance"

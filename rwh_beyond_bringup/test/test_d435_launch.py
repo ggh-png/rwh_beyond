@@ -69,3 +69,19 @@ def test_pipeline_mode_aliases_aligned_rgbd_and_keeps_sdk_tf_frames():
     assert remaps['~/depth/image_rect_raw']=='/camera/depth/image_raw'
     params=evaluate_parameters(ctx,node._Node__parameters)[0]
     assert params['camera_name']=='d435' and params['publish_tf'] is True
+
+
+def test_d435_reads_camera_parameters_and_preserves_launch_overrides(tmp_path):
+    data = yaml.safe_load((ROOT / 'config/bt_demo.yaml').read_text())
+    data['/camera/d435']['ros__parameters']['pointcloud.enable'] = False
+    data['/camera/d435']['ros__parameters']['serial_no'] = 'ignored'
+    path = tmp_path / 'camera.yaml'
+    path.write_text(yaml.safe_dump(data))
+    ctx = context(camera_params_file=str(path), serial_no='123456789012', rviz='false')
+    node, = module.camera_nodes(ctx)
+    params = evaluate_parameters(ctx, node._Node__parameters)[0]
+    assert params['pointcloud.enable'] is False
+    assert params['serial_no'] == '123456789012'
+    path.write_text('{}')
+    with pytest.raises(ValueError, match='camera node'):
+        module.camera_nodes(ctx)

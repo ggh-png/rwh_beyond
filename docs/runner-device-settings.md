@@ -1,10 +1,14 @@
 # Runner의 PiPER·RealSense 설정
 
-장치 실행 설정은 **`ros_runner/config/runners.yaml`**에서 관리합니다.
-`inference_connection`은 외부 모델 서버, `piper`·`realsense`·`simulation`은 장치 실행 설정입니다.
+장치 실행 설정은 **`ros_runner/config/robot_common.yaml`**, **`robot_real.yaml`**,
+**`robot_sim.yaml`**에서 관리합니다. 각 값은 `robot_settings.ros__parameters` 아래에 있습니다.
+`runners.yaml`의 `robot_profiles`에 세 파일의 경로를 지정하며 상대 경로는 `runners.yaml` 기준입니다.
+`inference_connection`은 계속 `runners.yaml`에 있습니다.
 수동 `export` 없이 각 runner를 활성화할 때 YAML을 읽습니다.
 
 ## PiPER
+
+`robot_real.yaml`의 `robot_settings.ros__parameters.piper`:
 
 ```yaml
 piper:
@@ -14,7 +18,6 @@ piper:
   speed_percent: 30
   auto_control_gate: true
   fw_version: ""
-  tcp_offset: [0.0, 0.0, 0.1425, 0.0, 0.0, 0.0]
   execution_transport: feedback
   camera_model: true
   start_sensors: true
@@ -28,6 +31,10 @@ piper:
 | `effector_type` | `agx_gripper` 또는 `none`. 집기 BT는 그리퍼가 필요 |
 | `auto_enable` | driver 시작 시 모터 자동 활성화. 현재 false |
 | `speed_percent` | driver 속도 설정, 정수 1~100 |
+| `fast_mode` | driver fast mode, 기본 false |
+| `pub_rate` | driver 피드백 발행 주기(Hz), 기본 200 |
+| `enable_timeout` | 모터 활성화 서비스 시간 제한(초), 기본 5 |
+| `gripper_default_effort` | 그리퍼 기본 노력 값, 기본 1 |
 | `auto_control_gate` | 공식 transport의 제어 gate 관리 |
 | `fw_version` | 필요한 경우 firmware profile 지정. 빈 값은 launch 기본 동작 |
 | `tcp_offset` | flange → TCP의 XYZ(m)·RPY(rad), 6개 값 |
@@ -38,10 +45,12 @@ piper:
 | `use_rviz` | 실물 `bt_demo` 활성화 시 통합 RViz 사용 여부 |
 
 `piper_moveit`과 동일 backend 별칭은 같은 설정을 사용합니다.
-`tcp_offset`은 `piper_sim`·`bt_demo_sim`·`bt_demo`에도 전달해 로봇 모델과 BT 화면의 TCP를 맞춥니다.
+`tcp_offset`은 `robot_common.yaml`에 있으며 `piper_sim`·`bt_demo_sim`·`bt_demo`에도 전달해 로봇 모델과 BT 화면의 TCP를 맞춥니다.
 모터 자동 활성화와 움직임은 설정값에 영향을 받습니다. 현재 기본값은 자동 활성화 false를 유지합니다.
 
 ## RealSense 모델 선택과 D405
+
+`robot_real.yaml`의 `robot_settings.ros__parameters.realsense`:
 
 ```yaml
 realsense:
@@ -65,9 +74,15 @@ realsense:
 PiPER와 함께 실행하면 robot_state_publisher가 mount TF를 담당하므로 단독 TF 설정은 사용하지 않습니다.
 
 정렬 Depth·CameraInfo·공통 토픽·SDK 내부 TF는 파지 pipeline의 입력 규약을 유지합니다.
-노출·필터 등 이 표에 없는 SDK 옵션은 현재 runner 설정 항목으로 추가하지 않았습니다.
+공통 `rwh_beyond_bringup/config/bt_demo.yaml`의 `d405`와 `/camera/d435` 노드 섹션에서
+동기화·깊이 정렬·점군·QoS 등 SDK 파라미터를 설정할 수 있습니다.
+시리얼·해상도는 `robot_real.yaml` 및 명시적 launch 인자가 우선합니다.
+이 설정을 바꾸면 인식 입력이나 TF가 사라질 수 있으므로 변경 전 장치 지원 여부를 확인합니다.
+노출·필터 등 여기에 없는 SDK 옵션은 카메라 SDK가 지원하는 ROS 파라미터로 추가할 수 있습니다.
 
 ## 심 실행
+
+`robot_sim.yaml`의 `robot_settings.ros__parameters.simulation`:
 
 ```yaml
 simulation:
@@ -84,7 +99,7 @@ simulation:
 
 ## 변경 반영
 
-1. `runners.yaml`의 해당 값을 수정합니다.
+1. 해당 공통·실물·시뮬레이션 프로필의 값을 수정합니다.
 2. 관련 BT와 장치 runner를 비활성화합니다.
 3. 장치와 BT를 재활성화합니다.
 
@@ -92,17 +107,20 @@ simulation:
 예를 들어 실물 카메라 profile·TCP·CAN 변경은 `bt_demo`와 `piper_moveit`을 중지한 뒤 다시 활성화합니다.
 심 TCP·카메라 주기 변경은 `bt_demo_sim`과 `piper_sim`을 다시 시작합니다.
 단독 카메라 설정은 `d405` runner를 다시 시작합니다.
-YAML 값만 바꾸면 재빌드는 필요 없습니다.
+현재 개발 환경의 symlink 설치에서는 YAML 값만 바꾸면 재빌드는 필요 없습니다.
+일반 설치에서는 설치된 설정을 수정하거나 변경 후 해당 패키지를 다시 빌드합니다.
 
 설정은 상속된 `RWH_PIPER_*`, `RWH_D405_*` 환경변수보다 우선합니다.
-커스텀 `config_yaml`로 runner를 실행하면 장치 설정도 같은 파일에서 읽습니다.
+커스텀 `config_yaml`을 쓰면 그 파일의 `robot_profiles`가 가리키는 프로필을 읽습니다.
+공통과 모드 프로필에 같은 항목을 중복 지정하면 실행이 거부됩니다.
 
 ## 실행 설정과 보정값의 경계
 
 | 설정 | 원본 |
 |---|---|
-| PiPER·카메라 runtime, TCP, 심 GUI/주기 | `ros_runner/config/runners.yaml` |
-| 외부 모델 SSH·포트 | 같은 파일의 `inference_connection` |
+| PiPER·카메라 runtime | `ros_runner/config/robot_real.yaml` |
+| 공통 TCP / 심 GUI·주기 및 MoveIt 실행 감시 | `robot_common.yaml` / `robot_sim.yaml` |
+| 외부 모델 SSH·포트 | `runners.yaml`의 `inference_connection` |
 | 관측 높이·기울임 | 선택한 XML의 두 `MoveObservation`; 기본 `demo_width.xml` |
 | 그리퍼 폭·닫기 시간·후보 수 | `rwh_beyond_bringup/config/bt_demo.yaml` |
 | 접근·리프트 거리 | XML 명시값 우선, 생략 시 `bt_motion` YAML |

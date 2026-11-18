@@ -6,7 +6,9 @@ from ament_index_python.packages import get_package_share_directory
 from launch.actions import LogInfo
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
 from .camera_mount import mount_mappings
+from .camera_parameters import camera_parameters
 
 
 def camera_mount():
@@ -21,15 +23,10 @@ def d405_nodes(context):
         return []
     profile = value('d405_profile')
     # D405 produces RGB from its depth module, rather than a separate RGB sensor.
-    params = {'use_sim_time': False, 'camera_name': 'd405',
-              'device_type': 'd405', 'serial_no': value('d405_serial'),
-              'enable_depth': True, 'enable_color': True, 'enable_sync': True,
-              'enable_infra1': False, 'enable_infra2': False,
+    params = camera_parameters(value('camera_params_file'), 'd405')
+    params.update({'use_sim_time': False, 'serial_no': ParameterValue(value('d405_serial'), value_type=str),
               'depth_module.depth_profile': profile,
-              'depth_module.color_profile': profile,
-              'align_depth.enable': True, 'pointcloud.enable': True,
-              'publish_tf': True, 'base_frame_id': 'link',
-              'depth_qos': 'SENSOR_DATA', 'color_qos': 'SENSOR_DATA'}
+              'depth_module.color_profile': profile})
     topics = {
         'color/image_raw': 'color/image_raw', 'color/camera_info': 'color/camera_info',
         'depth/image_rect_raw': 'depth/image_raw',

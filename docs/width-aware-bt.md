@@ -141,14 +141,37 @@ base 좌표계 디버그 점군은 `/grasp/fused_object_cloud`에서 확인합�
 GraspGenX에는 마지막 카메라 좌표계 점군을 전달하므로 모델의 기존 입력·출력 규약과
 Action 메시지는 그대로 사용합니다. 지지면은 마지막 촬영의 배경 깊이로 추정합니다.
 
-ICP는 PCL point-to-point 방식이며 각 정렬에 최대 10,000개 voxel 점을 사용합니다.
-대응 거리는 15mm, 최대 반복은 40회입니다. 수렴하고 대응점 50개 이상, source 겹침
+ICP는 PCL point-to-point 방식이며 기본적으로 각 정렬에 최대 10,000개 voxel 점을
+사용합니다. 대응 거리는 15mm, 최대 반복은 40회입니다. 수렴하고 대응점 50개 이상, source 겹침
 35% 이상, RMSE 4mm 이하, 물체 중심 보정 10mm 이하 및 회전 5도 이하일 때만 적용합니다.
 조건을 만족하지 못하면 해당 관측은 원래 TF를 사용하며 경고 로그에 사유와 지표를
 남깁니다. 첫 관측이 기준이므로 ICP는 공통 TF 오차를 보정하지 못하고, 평면이나
 대칭 물체에서 잘못 정렬될 수 있습니다. 실물 적용 전 시각화와 저속 검증이 필요합니다.
-`ResetObjectCloudFusion`의 `use_icp="false"`로 ICP를 끌 수 있습니다. TSDF·통계적
-outlier 제거·FPS는 포함하지 않습니다.
+`bt_demo.yaml`의 `bt_motion.icp_*`에서 위 기준과 점·반복 수를 바꿀 수 있습니다.
+`icp_enabled`로 ICP를 켜고 끄며, XML의 `ResetObjectCloudFusion use_icp`가 명시되면
+XML이 우선합니다. 설정은 새 fusion을 시작할 때 읽습니다. 유효 범위를 벗어나거나
+RMSE 한도가 대응 거리보다 크면 해당 단계에서 실패합니다. TSDF·통계적 outlier
+제거·FPS는 포함하지 않습니다.
+
+### 속도 조정 제안
+
+`rwh_beyond_bringup/config/bt_demo.yaml`에서 기본값은 그대로 유지했습니다.
+아래는 측정 후 하나씩 시험할 시작점이며 성공률이나 안전을 보장하지 않습니다.
+
+| 항목 | 현재값 | 시험할 값과 영향 |
+|---|---:|---|
+| `bt_perception.top_k`, `bt_motion.max_candidates` | 500, 1000 | 각각 200으로 시작. 후보 검사 횟수는 줄지만 가능한 파지를 놓칠 수 있습니다. |
+| `bt_motion.moveit_candidate_planning_time` | 4초 | 2초부터 시험. 실패 후보의 시간 상한이며 모든 계획이 빨라지는 것은 아닙니다. |
+| `bt_motion.moveit_pregrasp_num_planning_attempts` | 3 | 1~2부터 시험. 계획 성공률이 떨어지면 복원합니다. |
+| `bt_motion.moveit_observation_planning_time` / `moveit_observation_num_planning_attempts` | 10초 / 5 | 5초 / 2~3부터 시험. `MoveJointPose`의 OMPL 관측 계획에 적용되며 도달하기 어려우면 실패가 늘 수 있습니다. |
+| `bt_motion.joint_pose_settle_time` | 1초 | 0.7초부터 시험. 흔들림·깊이 영상과 분할 품질을 확인합니다. XML의 `settle_time`이 우선합니다. |
+| `bt_motion.icp_max_points` / `icp_max_iterations` | 10000 / 40 | 각각 5000 / 30부터 시험. 정렬 시간이 줄 수 있지만 겹침·정확도·수렴률을 확인합니다. |
+
+`moveit_velocity_scaling_factor`와 `moveit_acceleration_scaling_factor`는 일반 관절 계획,
+`moveit_cartesian_velocity_scaling_factor`와 `moveit_cartesian_acceleration_scaling_factor`는
+접근·리프트 등 Cartesian 경로에 적용됩니다. 모두 현재 0.5이며 실제 속도는 관절 한계,
+시간 파라미터화와 하드웨어 컨트롤러에도 좌우됩니다. 무작정 높이지 말고 시뮬레이션과
+저속 실물 시험으로 여유·충돌·진동을 확인하세요. 충돌 검사와 손목 제한은 끄지 않습니다.
 
 ### 선택할 XML
 

@@ -18,7 +18,7 @@ BT는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니다.
 ## 장착 설정
 
 기본 모델은 `moma-mj-lab/config/cameras/d405.yaml`에 있습니다.
-실물 runner는 `ros_runner/config/runners.yaml`의 `d405.mount`로 장착 변환을 덮어씁니다.
+실물 runner는 `ros_runner/config/robot_real.yaml`의 `d405.mount`로 장착 변환을 덮어씁니다.
 [실물 장착값 수정](d405-runner-mount.md)
 
 | 설정 | 현재 명목값 |
@@ -42,7 +42,7 @@ BT는 정렬 RGB·Depth·CameraInfo와 촬영 시각 TF를 요구합니다.
 
 ## 센서 실행
 
-`ros_runner/config/runners.yaml`의 `realsense`에서 enabled·serial·profile을 지정합니다.
+`ros_runner/config/robot_real.yaml`의 `realsense`에서 enabled·serial·profile을 지정합니다.
 PiPER에 포함한 D405와 `d405` 단독 runner가 같은 설정을 읽습니다. [Runner 장치 설정](runner-device-settings.md)을 참고하세요.
 
 실물 `piper_moveit`은 `realsense.model: d405`일 때 D405를 포함합니다. 별도 카메라 driver와 중복 실행하지 않습니다.

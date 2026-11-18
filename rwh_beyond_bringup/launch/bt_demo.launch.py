@@ -32,12 +32,22 @@ def generate_launch_description():
             FindPackageShare('rwh_beyond_bringup'), 'params', 'nav2_params.yaml'])),
         DeclareLaunchArgument('d405_serial', default_value=''),
         DeclareLaunchArgument('d405_profile', default_value='640x480x15'),
+        DeclareLaunchArgument(
+            'params_file',
+            default_value=PathJoinSubstitution([
+                FindPackageShare('rwh_beyond_bringup'),
+                'config',
+                'bt_demo.yaml',
+            ]),
+            description='Shared BT, camera and bridge parameter YAML',
+        ),
         GroupAction(scoped=True, condition=IfCondition(LaunchConfiguration('start_sensors')),
             actions=[IncludeLaunchDescription(PythonLaunchDescriptionSource(PathJoinSubstitution([
                 FindPackageShare('rwh_beyond_bringup'), 'launch', 'sensor.launch.py'])),
                 launch_arguments={
                     'mode': LaunchConfiguration('mode'), 'namespace': '',
                     'params_file': LaunchConfiguration('sensor_params_file'),
+                    'camera_params_file': LaunchConfiguration('params_file'),
                     'use_sim_time': simulation,
                     'enable_lidar': LaunchConfiguration('enable_lidar'),
                     'enable_d405': PythonExpression(["'false' if '", LaunchConfiguration('camera_type'), "' == 'd435' else '", LaunchConfiguration('enable_d405'), "'"]),
@@ -59,6 +69,7 @@ def generate_launch_description():
                 'serial_no': LaunchConfiguration('d435_serial'),
                 'depth_profile': LaunchConfiguration('d435_depth_profile'),
                 'color_profile': LaunchConfiguration('d435_color_profile'),
+                'camera_params_file': LaunchConfiguration('params_file'),
                 'pipeline_topics': 'true', 'rviz': 'false',
             }.items())]),
         DeclareLaunchArgument(
@@ -71,15 +82,6 @@ def generate_launch_description():
         DeclareLaunchArgument(
             'tcp_offset', default_value='[0.0,0.0,0.1425,0.0,0.0,0.0]',
             description='Flange-to-TCP XYZ/RPY; match the running simulator'),
-        DeclareLaunchArgument(
-            'params_file',
-            default_value=PathJoinSubstitution([
-                FindPackageShare('rwh_beyond_bringup'),
-                'config',
-                'bt_demo.yaml',
-            ]),
-            description='Shared BT and bridge parameter YAML',
-        ),
         DeclareLaunchArgument(
             'segmentation_endpoint',
             default_value=EnvironmentVariable(

@@ -134,6 +134,7 @@ class PhysicalTrajectory(Node):
     def execute(self, handle, expected):
         result = FollowJointTrajectory.Result()
         opened = False
+        start = None
         try:
             values = self.values()
             trajectory = handle.request.trajectory
@@ -157,8 +158,13 @@ class PhysicalTrajectory(Node):
             # Publish a measured starting command before opening the gate.
             self.publisher.publish(JointState(name=names, position=[values[n] for n in names]))
             opened = True
+            gate_started = time.monotonic()
             self.set_gate(True)
             start = time.monotonic()
+            gate_duration = start - gate_started
+            last_stamp = trajectory.points[-1].time_from_start
+            planned_duration = last_stamp.sec + last_stamp.nanosec * 1e-9
+            prefix_duration = float(times[-1]) - planned_duration
             deadline = start + float(times[-1]) + 30
             stable_since = None
             while rclpy.ok():
@@ -169,6 +175,8 @@ class PhysicalTrajectory(Node):
                     )
                     self.set_gate(False)
                     opened = False
+                    self.get_logger().info(
+                        f'TIMING piper outcome=canceled elapsed_s={time.monotonic() - start:.3f}')
                     handle.canceled()
                     return result
                 values = self.values()
@@ -186,6 +194,11 @@ class PhysicalTrajectory(Node):
                         result.error_code = result.SUCCESSFUL
                         self.set_gate(False)
                         opened = False
+                        self.get_logger().info(
+                            f'TIMING piper outcome=success controller=gripper mode=timed_close '
+                            f'planned_s={planned_duration:.3f} prefix_s={prefix_duration:.3f} '
+                            f'gate_s={gate_duration:.3f} target_s={close_duration:.3f} '
+                            f'elapsed_s={elapsed:.3f}')
                         handle.succeed()
                         return result
                     time.sleep(0.02)
@@ -201,6 +214,13 @@ class PhysicalTrajectory(Node):
                         result.error_code = result.SUCCESSFUL
                         self.set_gate(False)
                         opened = False
+                        self.get_logger().info(
+                            f'TIMING piper outcome=success '
+                            f'controller={"gripper" if names == ["gripper"] else "arm"} '
+                            f'mode=trajectory planned_s={planned_duration:.3f} '
+                            f'prefix_s={prefix_duration:.3f} gate_s={gate_duration:.3f} '
+                            f'elapsed_s={elapsed:.3f} '
+                            f'endpoint_wait_s={max(0.0, elapsed - float(times[-1])):.3f}')
                         handle.succeed()
                         return result
                 else:
@@ -226,6 +246,9 @@ class PhysicalTrajectory(Node):
                     opened = False
                 except Exception as stop_error:
                     self.get_logger().error("Physical gate close failed: " + str(stop_error))
+            if start is not None:
+                self.get_logger().info(
+                    f'TIMING piper outcome=failed elapsed_s={time.monotonic() - start:.3f}')
             handle.abort()
             return result
         finally:

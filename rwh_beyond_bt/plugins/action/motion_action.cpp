@@ -83,7 +83,7 @@ BT::NodeStatus MotionAction::onStart()
     }
     tilt_[1] = scalar("tilt_deg", tilt_[1], -90, 90);
     yaw_ = scalar("yaw_deg", 0, -180, 180);
-    settle_ = scalar("settle_time", context_->number("observation_settle_time", .5, 0, 30), 0, 30);
+    settle_ = scalar("settle_time", default_settle(), 0, 30);
     opening_ = scalar("opening", context_->number("gripper_open_width", .10, 0, .10), 0, .10);
     duration_ = scalar("duration", 3, .001, 30);
     cancel_ = std::make_shared<std::atomic_bool>(false);

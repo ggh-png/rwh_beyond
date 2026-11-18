@@ -50,7 +50,7 @@ Eigen::Vector3d centroid(const Points & points)
 }
 
 using PclCloud = pcl::PointCloud<pcl::PointXYZ>;
-PclCloud::Ptr registration_cloud(const Points & points, double voxel_size)
+PclCloud::Ptr registration_cloud(const Points & points, double voxel_size, size_t max_points)
 {
   auto raw = PclCloud::Ptr(new PclCloud);
   raw->reserve(points.size());
@@ -63,11 +63,11 @@ PclCloud::Ptr registration_cloud(const Points & points, double voxel_size)
   filter.setLeafSize(leaf, leaf, leaf);
   filter.setInputCloud(raw);
   filter.filter(*filtered);
-  if (filtered->size() <= 10000) {return filtered;}
+  if (filtered->size() <= max_points) {return filtered;}
   auto sampled = PclCloud::Ptr(new PclCloud);
-  sampled->reserve(10000);
-  for (size_t i = 0; i < 10000; ++i) {
-    sampled->push_back((*filtered)[i * filtered->size() / 10000]);
+  sampled->reserve(max_points);
+  for (size_t i = 0; i < max_points; ++i) {
+    sampled->push_back((*filtered)[i * filtered->size() / max_points]);
   }
   return sampled;
 }
@@ -81,17 +81,18 @@ void align_view(FusionView & view, const Points & points, const CloudFusion & fu
       accumulated.push_back(previous.correction * point);
     }
   }
-  auto source = registration_cloud(points, fusion.voxel_size);
-  auto target = registration_cloud(accumulated, fusion.voxel_size);
+  const auto & settings = fusion.icp;
+  auto source = registration_cloud(points, fusion.voxel_size, settings.max_points);
+  auto target = registration_cloud(accumulated, fusion.voxel_size, settings.max_points);
   view.icp_status = "insufficient points";
-  if (source->size() < 50 || target->size() < 50) {return;}
+  if (source->size() < static_cast<size_t>(settings.min_correspondences) ||
+    target->size() < static_cast<size_t>(settings.min_correspondences)) {return;}
 
-  constexpr double max_correspondence = .015;
   pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
   icp.setInputSource(source);
   icp.setInputTarget(target);
-  icp.setMaxCorrespondenceDistance(max_correspondence);
-  icp.setMaximumIterations(40);
+  icp.setMaxCorrespondenceDistance(settings.max_correspondence_distance);
+  icp.setMaximumIterations(settings.max_iterations);
   icp.setTransformationEpsilon(1e-8);
   icp.setEuclideanFitnessEpsilon(1e-8);
   icp.getConvergeCriteria()->setFailureAfterMaximumIterations(true);
@@ -111,7 +112,8 @@ void align_view(FusionView & view, const Points & points, const CloudFusion & fu
   const double displacement = (correction * centroid(points) - centroid(points)).norm();
   const double rotation = Eigen::AngleAxisd(correction.linear()).angle();
   view.icp_status = "correction exceeds safety limit";
-  if (displacement > .01 || rotation > .0872665) {return;}
+  if (displacement > settings.max_translation ||
+    rotation > settings.max_rotation_deg * M_PI / 180) {return;}
 
   pcl::KdTreeFLANN<pcl::PointXYZ> tree;
   tree.setInputCloud(target);
@@ -121,7 +123,7 @@ void align_view(FusionView & view, const Points & points, const CloudFusion & fu
   std::vector<float> distances(1);
   for (const auto & point : aligned) {
     if (tree.nearestKSearch(point, 1, indices, distances) == 1 &&
-      distances[0] <= max_correspondence * max_correspondence)
+      distances[0] <= settings.max_correspondence_distance * settings.max_correspondence_distance)
     {
       ++matches;
       squared_error += distances[0];
@@ -131,7 +133,8 @@ void align_view(FusionView & view, const Points & points, const CloudFusion & fu
   view.icp_rmse = matches ? std::sqrt(squared_error / matches) :
     std::numeric_limits<double>::infinity();
   view.icp_status = "insufficient overlap or high RMSE";
-  if (matches < 50 || view.icp_overlap < .35 || view.icp_rmse > .004) {return;}
+  if (matches < static_cast<size_t>(settings.min_correspondences) ||
+    view.icp_overlap < settings.min_overlap || view.icp_rmse > settings.max_rmse) {return;}
   view.correction = correction;
   view.icp_accepted = true;
   view.icp_status = "accepted";
@@ -140,6 +143,21 @@ void align_view(FusionView & view, const Points & points, const CloudFusion & fu
 
 void validate_fusion(const CloudFusion & fusion)
 {
+  const auto & icp = fusion.icp;
+  if (icp.max_iterations < 1 || icp.max_iterations > 200 ||
+    icp.max_points < 100 || icp.max_points > 50000 ||
+    icp.min_correspondences < 10 || icp.min_correspondences > icp.max_points ||
+    !std::isfinite(icp.max_correspondence_distance) || icp.max_correspondence_distance < .001 ||
+    icp.max_correspondence_distance > .1 ||
+    !std::isfinite(icp.min_overlap) || icp.min_overlap < .1 || icp.min_overlap > 1 ||
+    !std::isfinite(icp.max_rmse) || icp.max_rmse < .0001 ||
+    icp.max_rmse > icp.max_correspondence_distance ||
+    !std::isfinite(icp.max_translation) || icp.max_translation <= 0 ||
+    icp.max_translation > .03 || !std::isfinite(icp.max_rotation_deg) ||
+    icp.max_rotation_deg <= 0 || icp.max_rotation_deg > 15)
+  {
+    throw std::invalid_argument("Invalid ICP settings; check bt_motion.icp_* parameters");
+  }
   if (fusion.base_frame.empty() || !std::isfinite(fusion.voxel_size) ||
     fusion.voxel_size < .001 || fusion.voxel_size > .02 ||
     !std::isfinite(fusion.max_centroid_distance) || fusion.max_centroid_distance <= 0 ||
@@ -188,7 +206,10 @@ Fusion append_fusion(
           "Target centroid changed across views; object moved or SAM switched target");
     }
     if (next->use_icp) {
+      const auto started = std::chrono::steady_clock::now();
       align_view(next->views.back(), points, *next);
+      next->views.back().icp_seconds = std::chrono::duration<double>(
+        std::chrono::steady_clock::now() - started).count();
     } else {
       next->views.back().icp_status = "disabled";
     }

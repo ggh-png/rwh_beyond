@@ -167,6 +167,65 @@ def test_execution_and_physical_start_tolerance_share_coordinator_setting():
     assert evaluate_parameters(context,move_group._Node__parameters)[0]['trajectory_execution.allowed_start_tolerance']==expected
 
 
+def test_custom_motion_yaml_reaches_moveit_and_feedback(tmp_path):
+    import yaml
+    data = yaml.safe_load((Path(get_package_share_directory('rwh_beyond_bringup')) /
+                           'config/bt_demo.yaml').read_text())
+    motion = data['bt_navigator']['ros__parameters']['bt_motion']
+    motion['planning_start_bounds_tolerance_deg'] = 7.0
+    motion['gripper_close_duration'] = 2.75
+    data['move_group']['ros__parameters']['trajectory_execution']['allowed_goal_duration_margin'] = 21.0
+    path = tmp_path / 'custom.yaml'
+    path.write_text(yaml.safe_dump(data))
+    module = load(Path(__file__).resolve().parents[1] / 'launch/piper_moveit.launch.py', 'custom_motion')
+    context = defaults(module)
+    context.launch_configurations.update(execution_transport='feedback', params_file=str(path))
+    _, group, sensor, *_ = hardware_nodes(context)
+    included = next(action for action in sensor.get_sub_entities()
+                    if isinstance(action, IncludeLaunchDescription))
+    assert dict(included.launch_arguments)['camera_params_file'] == str(path)
+    nodes = [node for node in group.get_sub_entities() if hasattr(node, 'node_executable')]
+    transport = next(node for node in nodes if node.node_executable == 'physical_trajectory')
+    move_group = next(node for node in nodes if node.node_executable == 'move_group')
+    feedback = evaluate_parameters(context, transport._Node__parameters)[0]
+    moveit = evaluate_parameters(context, move_group._Node__parameters)[0]
+    assert feedback['initial_position_tolerance'] == pytest.approx(math.radians(7.0))
+    assert feedback['gripper_close_duration'] == 2.75
+    assert moveit['trajectory_execution.allowed_start_tolerance'] == pytest.approx(math.radians(7.0))
+    assert moveit['trajectory_execution.allowed_goal_duration_margin'] == 21.0
+
+
+def test_piper_driver_receives_tunable_parameters():
+    module = load(Path(__file__).resolve().parents[1] / 'launch/piper_moveit.launch.py', 'driver_tuning')
+    context = defaults(module)
+    values = dict(fast_mode='true', pub_rate='150', enable_timeout='8.0',
+                  gripper_default_effort='0.5')
+    context.launch_configurations.update(values)
+    driver, *_ = hardware_nodes(context)
+    args = dict(driver.launch_arguments)
+    assert {key: args[key].perform(context) for key in values} == values
+
+
+def test_simulation_move_group_accepts_profile_override(tmp_path):
+    from rclpy.parameter import parameter_dict_from_yaml_file
+    path = tmp_path / 'simulation.yaml'
+    path.write_text('move_group:\n  ros__parameters:\n    trajectory_execution:\n'
+                    '      allowed_goal_duration_margin: 4.0\n')
+    simulator = load(Path(get_package_share_directory('moma_bringup')) /
+                     'launch/simulation.launch.py', 'profile_sim')
+    context = defaults(simulator)
+    context.launch_configurations.update(moveit='true', gui='false', rviz='false',
+                                         moveit_params_file=str(path))
+    node = next(n for n in simulator.nodes(context) if n.node_executable == 'move_group')
+    parameters = evaluate_parameters(context, node._Node__parameters)
+    assert str(parameters[1]) == str(path)
+    overrides = parameter_dict_from_yaml_file(str(parameters[1]), target_nodes=['move_group'])
+    assert overrides['trajectory_execution.allowed_goal_duration_margin'].value.double_value == 4.0
+    context.launch_configurations['moveit_params_file'] = str(tmp_path / 'missing.yaml')
+    with pytest.raises(ValueError, match='moveit_params_file'):
+        simulator.nodes(context)
+
+
 @pytest.mark.parametrize('degrees', [5.0, 10.0, 15.0, 0.0, -1.0, float('nan'), 181.0])
 def test_start_tolerance_reads_degrees_from_yaml(monkeypatch, tmp_path, degrees):
     import yaml

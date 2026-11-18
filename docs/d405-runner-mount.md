@@ -1,6 +1,6 @@
 # D405 장착 TF를 runner에서 설정
 
-`ros_runner/config/runners.yaml`에서 D405를 선택하고 `d405.mount`를 수정합니다.
+`ros_runner/config/robot_real.yaml`에서 D405를 선택하고 `d405.mount`를 수정합니다.
 
 ```yaml
 realsense:

@@ -7,6 +7,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #include "rwh_beyond_bt/motion_context.hpp"
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <set>
 #include <stdexcept>
@@ -23,6 +24,57 @@ using PC = moveit_msgs::msg::PlanningSceneComponents;
 using Object = moveit_msgs::msg::CollisionObject;
 namespace
 {
+using SteadyClock = std::chrono::steady_clock;
+double elapsed_seconds(SteadyClock::time_point start)
+{
+  return std::chrono::duration<double>(SteadyClock::now() - start).count();
+}
+struct ScopedSeconds
+{
+  double & total;
+  SteadyClock::time_point start{SteadyClock::now()};
+  ~ScopedSeconds() {total += elapsed_seconds(start);}
+};
+template<class Function>
+auto timed_call(double & total, size_t & count, Function && function)
+{
+  ++count;
+  ScopedSeconds timer{total};
+  return function();
+}
+struct SelectionTiming
+{
+  rclcpp::Logger logger;
+  SteadyClock::time_point start{SteadyClock::now()};
+  double ik{0}, cartesian{0}, planning{0};
+  size_t variants{0}, ik_calls{0}, cartesian_calls{0}, planning_calls{0};
+  bool selected{false};
+  ~SelectionTiming()
+  {
+    RCLCPP_INFO(logger,
+      "TIMING selection outcome=%s total_s=%.3f variants=%zu "
+      "ik_s=%.3f ik_calls=%zu cartesian_s=%.3f cartesian_calls=%zu "
+      "planning_s=%.3f planning_calls=%zu",
+      selected ? "selected" : "not_selected", elapsed_seconds(start), variants,
+      ik, ik_calls, cartesian, cartesian_calls, planning, planning_calls);
+  }
+};
+struct ExecutionTiming
+{
+  rclcpp::Logger logger;
+  double planned;
+  SteadyClock::time_point action_start{SteadyClock::now()}, feedback_start;
+  double action_seconds{0};
+  bool action_done{false}, success{false};
+  ~ExecutionTiming()
+  {
+    const double action = action_done ? action_seconds : elapsed_seconds(action_start);
+    const double feedback = action_done ? elapsed_seconds(feedback_start) : 0;
+    RCLCPP_INFO(logger,
+      "TIMING moveit_execution outcome=%s planned_s=%.3f action_s=%.3f feedback_s=%.3f",
+      success ? "success" : "not_completed", planned, action, feedback);
+  }
+};
 std::string moveit_name(int32_t code)
 {
   switch (code) {
@@ -518,9 +570,16 @@ Trajectory MotionContext::plan(
     target.joint_constraints.push_back(c);
   }
   r.goal_constraints = {target};
+  const auto planning_started = SteadyClock::now();
   auto response = call<moveit_msgs::srv::GetMotionPlan>(plan_, request, cancel,
       r.allowed_planning_time + 10);
   auto & result = response->motion_plan_response;
+  if (!candidate) {
+    RCLCPP_INFO(node->get_logger(),
+      "TIMING moveit_plan profile=%s wall_s=%.3f moveit_s=%.3f code=%d",
+      observation ? "observation" : "general", elapsed_seconds(planning_started),
+      result.planning_time, result.error_code.val);
+  }
   if (result.error_code.val != 1) {
     auto error = moveit_failure(result.error_code, "/plan_kinematic_path");
     if (!candidate) {throw error;}
@@ -652,8 +711,13 @@ void MotionContext::execute(const Trajectory & trajectory, const Cancel & cancel
   }
   moveit_msgs::action::ExecuteTrajectory::Goal goal;
   goal.trajectory = trajectory;
+  ExecutionTiming timing{
+    node->get_logger(), rclcpp::Duration(j.points.back().time_from_start).seconds()};
   run_action<moveit_msgs::action::ExecuteTrajectory>(execute_, goal, *this, cancel, 120,
     [](const auto & result) {return result.error_code.val == 1;});
+  timing.action_seconds = elapsed_seconds(timing.action_start);
+  timing.feedback_start = SteadyClock::now();
+  timing.action_done = true;
   double tolerance = number("physical_position_tolerance", .03, .001, .20);
   wait(
     [&]() {
@@ -667,12 +731,16 @@ void MotionContext::execute(const Trajectory & trajectory, const Cancel & cancel
       }
       return true;
   }, 20, cancel);
+  timing.success = true;
 }
 void MotionContext::execute_cartesian(
   const geometry_msgs::msg::Pose & pose,
   const Constraints & wrist, const Cancel & cancel)
 {
+  const auto cartesian_started = SteadyClock::now();
   auto result = cartesian(pose, state(cancel), cancel);
+  RCLCPP_INFO(node->get_logger(), "TIMING moveit_cartesian wall_s=%.3f fraction=%.3f code=%d",
+    elapsed_seconds(cartesian_started), result->fraction, result->error_code.val);
   if (result->error_code.val != 1) {
     throw moveit_failure(result->error_code, "/compute_cartesian_path");
   }
@@ -928,6 +996,7 @@ Plan MotionContext::select(
   bool estimated_width, double pre_distance, double lift_distance, const Cancel & cancel,
   const Fusion & fusion)
 {
+  SelectionTiming timing{node->get_logger()};
   candidate_error.reset();
   if (attached || scene_active) {throw std::runtime_error("Previous target still active");}
   selected.reset();
@@ -1178,6 +1247,7 @@ Plan MotionContext::select(
   }
   std::map<std::string, int> rejected;
   for (auto & variant : variants) {
+    ++timing.variants;
     if (cancel->load()) {throw std::runtime_error("Selection canceled");}
     auto g = variant.grasp;
     auto model = base_camera * pose_matrix(candidates[variant.index].pose.pose);
@@ -1208,7 +1278,8 @@ Plan MotionContext::select(
       }
     }
     Eigen::Isometry3d pre = tcp_goal; pre.translation() -= g.linear().col(2) * pre_distance;
-    auto goal = ik(matrix_pose(pre), start, cancel, true);
+    auto goal = timed_call(timing.ik, timing.ik_calls,
+        [&]() {return ik(matrix_pose(pre), start, cancel, true);});
     if (goal.joint_state.name.empty()) {++rejected["pre_ik"]; continue;}
     auto positions = joint_values(goal.joint_state);
     bool wrist_ok = true;
@@ -1217,7 +1288,8 @@ Plan MotionContext::select(
       wrist_ok &= q >= c.position - c.tolerance_below && q <= c.position + c.tolerance_above;
     }
     if (!wrist_ok) {++rejected["wrist_goal"]; continue;}
-    auto approach = cartesian(matrix_pose(tcp_goal), goal, cancel);
+    auto approach = timed_call(timing.cartesian, timing.cartesian_calls,
+        [&]() {return cartesian(matrix_pose(tcp_goal), goal, cancel);});
     if (approach->error_code.val != 1 || !std::isfinite(approach->fraction) ||
       approach->fraction < .999 || !trajectory_valid(approach->solution, wrist))
     {
@@ -1238,7 +1310,8 @@ Plan MotionContext::select(
       }
     }
     auto lift_pose = matrix_pose(tcp_goal); lift_pose.position.z += lift_distance;
-    auto lift = cartesian(lift_pose, grasp_state, cancel);
+    auto lift = timed_call(timing.cartesian, timing.cartesian_calls,
+        [&]() {return cartesian(lift_pose, grasp_state, cancel);});
     if (lift->error_code.val != 1 || !std::isfinite(lift->fraction) || lift->fraction < .999 ||
       !trajectory_valid(lift->solution, wrist))
     {
@@ -1247,7 +1320,8 @@ Plan MotionContext::select(
       }
       ++rejected["lift_path"]; continue;
     }
-    auto trajectory = plan(start, goal, wrist, cancel, true);
+    auto trajectory = timed_call(timing.planning, timing.planning_calls,
+        [&]() {return plan(start, goal, wrist, cancel, true);});
     if (!trajectory_valid(trajectory, wrist)) {++rejected["pre_plan"]; continue;}
     selected = std::make_shared<GraspPlan>();
     selected->capture = capture; selected->grasp = matrix_pose(tcp_goal);
@@ -1258,6 +1332,7 @@ Plan MotionContext::select(
     RCLCPP_INFO(node->get_logger(),
         "BT selected candidate=%zu flipped=%d rotation_deg=%.1f close_width=%.4f", variant.index,
         variant.flipped, variant.angle * 180 / M_PI, close);
+    timing.selected = true;
     return selected;
   }
   std::string reasons;

@@ -108,6 +108,35 @@ TEST(MultiView, IcpRejectsExcessivePoseCorrection)
   EXPECT_EQ(fusion->views.back().icp_status, "correction exceeds safety limit");
   EXPECT_TRUE(fusion->views.back().correction.matrix().isIdentity());
 }
+TEST(MultiView, ConfiguredCorrectionLimitChangesAcceptance)
+{
+  const auto first = exposure(1), second = exposure(2);
+  auto session = std::make_shared<CloudFusion>();
+  session->base_frame = "base_link";
+  session->icp.max_translation = .02;
+  auto fusion = append_fusion(session, first, mask_for(first), Eigen::Isometry3d::Identity());
+  auto transform = Eigen::Isometry3d::Identity();
+  transform.translation().z() = .013;
+  fusion = append_fusion(fusion, second, mask_for(second), transform);
+  ASSERT_TRUE(fusion->views.back().icp_accepted) << fusion->views.back().icp_status;
+  EXPECT_NEAR(fusion->views.back().correction.translation().z(), -.013, 1e-4);
+}
+TEST(MultiView, RejectsInvalidIcpSettings)
+{
+  CloudFusion session;
+  session.base_frame = "base_link";
+  session.icp.max_iterations = 0;
+  EXPECT_THROW(validate_fusion(session), std::invalid_argument);
+  session.icp.max_iterations = 40;
+  session.icp.max_rmse = .02;
+  EXPECT_THROW(validate_fusion(session), std::invalid_argument);
+  session.icp.max_rmse = .004;
+  session.icp.min_overlap = std::numeric_limits<double>::quiet_NaN();
+  EXPECT_THROW(validate_fusion(session), std::invalid_argument);
+  session.icp.min_overlap = .35;
+  session.icp.min_correspondences = session.icp.max_points + 1;
+  EXPECT_THROW(validate_fusion(session), std::invalid_argument);
+}
 TEST(MultiView, IcpCanBeDisabled)
 {
   const auto first = exposure(1), second = exposure(2);

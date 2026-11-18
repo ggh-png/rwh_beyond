@@ -5,7 +5,7 @@ BT에 연결하려면 [D435 BT 연결](d435-bt-demo.md)을 따릅니다.
 
 ## 장치 설정과 실행
 
-`ros_runner/config/runners.yaml`의 `d435`에서 시리얼·깊이/컬러 프로파일·RViz를 설정합니다.
+`ros_runner/config/robot_real.yaml`의 `d435`에서 시리얼·깊이/컬러 프로파일·RViz를 설정합니다.
 현재 설정은 깊이 `480x270x6`, 컬러 `424x240x6`입니다. 시리얼은 사용할 장치에 맞춥니다.
 직접 launch의 기본 프로파일은 `640x480x15`로 runner 설정과 다릅니다.
 

@@ -92,7 +92,7 @@
             <input_port name="allow_empty" type="bool" default="false">Open successfully when no payload is attached</input_port>
         </Action>
         <Action ID="ResetObjectCloudFusion">
-            <input_port name="use_icp" type="bool" default="true">Refine overlapping views with bounded ICP</input_port>
+            <input_port name="use_icp" type="bool">Override bt_motion.icp_enabled</input_port>
             <output_port name="fusion" type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
             <input_port name="max_centroid_distance" type="double" default="0.080000">Maximum target centroid drift in meters</input_port>
             <input_port name="voxel_size" type="double" default="0.003000">Voxel edge length in meters</input_port>

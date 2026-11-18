@@ -76,6 +76,8 @@ def generate_launch_description():
         DeclareLaunchArgument('enable_d405', default_value='false', choices=boolean_choices),
         DeclareLaunchArgument('d405_serial', default_value=''),
         DeclareLaunchArgument('d405_profile', default_value='640x480x15'),
+        DeclareLaunchArgument('camera_params_file', default_value=os.path.join(
+            bringup_dir, 'config', 'bt_demo.yaml')),
         DeclareLaunchArgument('publish_d405_mount_tf', default_value='false', choices=boolean_choices,
                               description='Standalone only; false when robot_state_publisher owns d405_link'),
         DeclareLaunchArgument('namespace', default_value='a200_0724', description='Sensor and TF namespace'),

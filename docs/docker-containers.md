@@ -98,7 +98,7 @@ export RWH_XAUTH_FILE="${XAUTHORITY:-$HOME/.Xauthority}"
 
 | 이미지 이름 | 명령어 |
 |---|---|
-| **BEYOND Robot** | `# GPU·장치·지도 데이터를 연결해 로봇 대기 컨테이너 생성`<br/>`docker run -d --name rwh_beyond_robot --gpus all --network host --ipc host --init --privileged --restart unless-stopped -e DISPLAY="$DISPLAY" -e NVIDIA_DRIVER_CAPABILITIES=all -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" -v "$HOME/wsyoon_data:/root/wsyoon_data" -v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro" -v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro" -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /run/udev:/run/udev:ro rwh_beyond_robot:20261117` |
+| **BEYOND Robot** | `# GPU·장치·지도 데이터를 연결해 로봇 대기 컨테이너 생성`<br/>`docker run -d --name rwh_beyond_robot --gpus all --network host --ipc host --init --privileged --restart unless-stopped -e DISPLAY="$DISPLAY" -e NVIDIA_DRIVER_CAPABILITIES=all -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" -v "$HOME/wsyoon_data:/root/wsyoon_data" -v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro" -v "$PWD/config/robot_common.yaml:/opt/rwh_beyond/config/robot_common.yaml:ro" -v "$PWD/config/robot_real.yaml:/opt/rwh_beyond/config/robot_real.yaml:ro" -v "$PWD/config/robot_sim.yaml:/opt/rwh_beyond/config/robot_sim.yaml:ro" -v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro" -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /run/udev:/run/udev:ro rwh_beyond_robot:20261117` |
 | **GraspGenX 서버** | `# GPU·5566 포트를 연결해 GraspGenX 서버 생성·실행`<br/>`docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs rwh_beyond_graspgenx:20261117` |
 | **SAM 3 서버** | `# GPU·5567 포트를 연결해 SAM 3 서버 생성·실행`<br/>`docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs rwh_beyond_sam3:20261117` |
 
@@ -317,7 +317,7 @@ Docker에서는 `CONTAINER_ENGINE=docker`로 바꿉니다.
 이 배포 컨테이너 이름 `rwh_beyond_robot`은 기존 개발 컨테이너
 `moma_mj_lab_1.1.2_hostcan`과 다릅니다. 새 컨테이너에도 `/root/ros2_ws`가 들어 있으며
 기존 호스트의 `/work` bind mount는 필요하지 않습니다.
-배포 runner는 `config/runners.yaml`을 사용하므로 모델 주소·카메라·CAN을 장비에 맞춥니다.
+배포 runner는 `config/runners.yaml`과 함께 세 `robot_*.yaml` 프로필도 같은 디렉터리에 마운트해야 합니다. 모델 주소는 runner YAML에서, 카메라·CAN은 실물 프로필에서 장비에 맞춥니다.
 실행 절차는 [빠른 시작](grasp-pipeline-guide.md)을 참고하세요.
 
 ### 모델 서버 컨테이너

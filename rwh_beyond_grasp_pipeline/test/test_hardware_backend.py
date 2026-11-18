@@ -61,12 +61,14 @@ def test_feedback_transport_completes_from_measured_positions_and_closes_gate(mo
     def publish(msg):
         published.append(list(msg.position))
         values.update(zip(msg.name,msg.position))
+    logger=NS(error=Mock(), info=Mock())
     state=NS(lock=threading.Lock(),values=lambda:values.copy(),
         publisher=NS(publish=publish),set_gate=gate.append,
         get_parameter=lambda name:NS(value=.05),
-        get_logger=lambda:NS(error=lambda msg:None))
+        get_logger=lambda:logger)
     state.lock.acquire()
     handle=NS(request=NS(trajectory=JointTrajectory(joint_names=list(values),points=[
+        JointTrajectoryPoint(positions=[.11]*6,time_from_start=Duration(sec=0)),
         JointTrajectoryPoint(positions=[.2]*6,time_from_start=Duration(sec=1))])),
         is_cancel_requested=False,succeed=Mock(),abort=Mock(),canceled=Mock())
     result=module.PhysicalTrajectory.execute(state,handle,list(values))
@@ -74,6 +76,9 @@ def test_feedback_transport_completes_from_measured_positions_and_closes_gate(mo
     np.testing.assert_allclose(published[0],[.1]*6)
     np.testing.assert_allclose(published[-1],[.2]*6)
     handle.succeed.assert_called_once();handle.abort.assert_not_called()
+    message = logger.info.call_args.args[0]
+    assert 'controller=arm' in message and 'planned_s=1.000' in message
+    assert 'prefix_s=0.500' in message and 'endpoint_wait_s=' in message
     assert not state.lock.locked()
 
 
@@ -85,7 +90,7 @@ def test_feedback_loss_aborts_and_closes_gate(monkeypatch):
     gate=[]
     state=NS(lock=threading.Lock(),values=Mock(side_effect=[current,RuntimeError('stale'),RuntimeError('stale')]),
         publisher=NS(publish=Mock()),set_gate=gate.append,
-        get_parameter=lambda name:NS(value=.05),get_logger=lambda:NS(error=lambda msg:None))
+        get_parameter=lambda name:NS(value=.05),get_logger=lambda:NS(error=Mock(), info=Mock()))
     state.lock.acquire()
     handle=NS(request=NS(trajectory=JointTrajectory(joint_names=list(current),points=[
         JointTrajectoryPoint(positions=[.2]*6,time_from_start=Duration(sec=1))])),
@@ -161,7 +166,7 @@ def test_fully_closed_gripper_completion_uses_position_without_force(monkeypatch
     def publish(msg):current.update(zip(msg.name,msg.position))
     state=NS(lock=threading.Lock(),values=lambda:current.copy(),
         publisher=NS(publish=publish),set_gate=gate.append,
-        get_parameter=lambda name:NS(value=.05),get_logger=lambda:NS(error=Mock()))
+        get_parameter=lambda name:NS(value=.05),get_logger=lambda:NS(error=Mock(), info=Mock()))
     state.lock.acquire()
     handle=NS(request=NS(trajectory=JointTrajectory(joint_names=['gripper'],points=[
         JointTrajectoryPoint(positions=[0.],time_from_start=Duration(sec=1))])),
@@ -196,10 +201,11 @@ def test_timed_close_uses_four_seconds_and_keeps_cancel_and_feedback_checks(monk
         if mode=='stale_feedback' and clock.now>=1.:raise RuntimeError('stale physical feedback')
         return {'gripper':.08}  # Stays far from target, and no force reading exists.
     params={'initial_position_tolerance':.05,'gripper_close_width':.04,'gripper_close_duration':4.}
+    logger=NS(error=Mock(), info=Mock())
     state=NS(lock=threading.Lock(),values=feedback,
         publisher=NS(publish=lambda msg:published.append((clock.now,msg.position[0]))),
         set_gate=gate.append,get_parameter=lambda name:NS(value=params[name]),
-        get_logger=lambda:NS(error=Mock()))
+        get_logger=lambda:logger)
     state.lock.acquire()
     result=module.PhysicalTrajectory.execute(state,handle,['gripper'])
     assert gate==[True,False]
@@ -209,11 +215,15 @@ def test_timed_close_uses_four_seconds_and_keeps_cancel_and_feedback_checks(monk
         handle.succeed.assert_called_once()
         assert 4. <= clock.now < 4.03
         assert all(value==target for _,value in published[1:])
+        assert 'mode=timed_close' in logger.info.call_args.args[0]
+        assert 'target_s=4.000' in logger.info.call_args.args[0]
     elif mode=='cancel':
         handle.canceled.assert_called_once()
         handle.succeed.assert_not_called()
         assert clock.now<4.
+        assert 'outcome=canceled' in logger.info.call_args.args[0]
     else:
         handle.abort.assert_called_once()
         handle.succeed.assert_not_called()
         assert result.error_code!=0
+        assert 'outcome=failed' in logger.info.call_args.args[0]

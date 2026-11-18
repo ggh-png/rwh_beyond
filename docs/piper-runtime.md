@@ -84,8 +84,9 @@ ros2 service call /graspgenx/health std_srvs/srv/Trigger '{}'
 
 ## PiPER·RealSense·심 실행 설정
 
-CAN·속도·TCP·센서 serial/profile·GUI 설정도 같은 `runners.yaml`에서 관리합니다.
-각각 `piper`, `realsense`, `simulation` 섹션을 사용합니다.
+CAN·속도·카메라 설정은 `robot_real.yaml`, TCP는 `robot_common.yaml`,
+심 GUI·주기 설정은 `robot_sim.yaml`에서 관리합니다. 이 파일들은 `runners.yaml`의
+`robot_profiles`에서 지정합니다.
 항목과 재시작 범위는 [Runner 장치 설정](runner-device-settings.md)을 참고하세요.
 
 장치 설정값은 활성화할 때 다시 읽습니다. runner 정의 자체를 바꾸거나 새 설정 로더를 처음 적용할 때는 runner를 재시작합니다.

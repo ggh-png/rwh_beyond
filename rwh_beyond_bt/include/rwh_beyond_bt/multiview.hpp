@@ -28,13 +28,21 @@ struct FusionView
   bool icp_accepted{false};
   double icp_overlap{0.0};
   double icp_rmse{std::numeric_limits<double>::quiet_NaN()};
+  double icp_seconds{0.0};
   std::string icp_status{"anchor"};
+};
+struct IcpSettings
+{
+  int max_iterations{40}, max_points{10000}, min_correspondences{50};
+  double max_correspondence_distance{.015}, min_overlap{.35}, max_rmse{.004};
+  double max_translation{.01}, max_rotation_deg{5.0};
 };
 struct CloudFusion
 {
   std::string base_frame;
   double voxel_size{.003}, max_centroid_distance{.08};
   bool use_icp{true};
+  IcpSettings icp;
   std::chrono::steady_clock::time_point started{std::chrono::steady_clock::now()};
   std::vector<FusionView> views;
 };

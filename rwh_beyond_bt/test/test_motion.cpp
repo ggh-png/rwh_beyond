@@ -510,6 +510,34 @@ TEST_F(DirectMotion, FusionNodesResetAndAccumulateWithoutRobotExecution)
   EXPECT_EQ(executions, 0);
   EXPECT_EQ(closes, 0);
 }
+TEST_F(DirectMotion, FusionResetReadsIcpParametersAndHonorsExplicitOverride)
+{
+  client->declare_parameter("bt_motion.icp_enabled", false);
+  client->declare_parameter("bt_motion.icp_max_iterations", 25);
+  client->declare_parameter("bt_motion.icp_max_points", 5000);
+  client->declare_parameter("bt_motion.icp_min_correspondences", 60);
+  client->declare_parameter("bt_motion.icp_max_correspondence_distance_m", .02);
+  client->declare_parameter("bt_motion.icp_min_overlap", .4);
+  client->declare_parameter("bt_motion.icp_max_rmse_m", .003);
+  client->declare_parameter("bt_motion.icp_max_translation_m", .008);
+  client->declare_parameter("bt_motion.icp_max_rotation_deg", 4.0);
+  ASSERT_EQ(run("<ResetObjectCloudFusion fusion=\"{fusion}\"/>"), BT::NodeStatus::SUCCESS);
+  auto fusion = board->get<Fusion>("fusion");
+  EXPECT_FALSE(fusion->use_icp);
+  EXPECT_EQ(fusion->icp.max_iterations, 25);
+  EXPECT_EQ(fusion->icp.max_points, 5000);
+  EXPECT_EQ(fusion->icp.min_correspondences, 60);
+  EXPECT_DOUBLE_EQ(fusion->icp.max_correspondence_distance, .02);
+  EXPECT_DOUBLE_EQ(fusion->icp.min_overlap, .4);
+  EXPECT_DOUBLE_EQ(fusion->icp.max_rmse, .003);
+  EXPECT_DOUBLE_EQ(fusion->icp.max_translation, .008);
+  EXPECT_DOUBLE_EQ(fusion->icp.max_rotation_deg, 4.0);
+  ASSERT_EQ(run("<ResetObjectCloudFusion fusion=\"{fusion}\" use_icp=\"true\"/>"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(board->get<Fusion>("fusion")->use_icp);
+  client->set_parameter(rclcpp::Parameter("bt_motion.icp_max_iterations", 0));
+  EXPECT_EQ(run("<ResetObjectCloudFusion fusion=\"{fusion}\"/>"), BT::NodeStatus::FAILURE);
+}
 
 TEST_F(DirectMotion, ObservationUsesConfiguredOmplEvenWhenCartesianWouldFail)
 {
@@ -597,6 +625,15 @@ TEST_F(DirectMotion, AlreadyAtSavedJointPoseDoesNotSendExecution)
   save_joint_pose(pose_file, "front", std::vector<double>(6, 0.));
   EXPECT_EQ(run("<MoveJointPose pose_name=\"front\" settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
   EXPECT_EQ(plans, 0); EXPECT_EQ(executions, 0); EXPECT_EQ(closes, 0);
+}
+TEST_F(DirectMotion, JointPoseUsesConfiguredSettleTime)
+{
+  save_joint_pose(pose_file, "front", std::vector<double>(6, 0.));
+  client->declare_parameter("bt_motion.joint_pose_settle_time", .1);
+  const auto start = std::chrono::steady_clock::now();
+  EXPECT_EQ(run("<MoveJointPose pose_name=\"front\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_GE(std::chrono::steady_clock::now() - start, 100ms);
+  EXPECT_EQ(plans, 0); EXPECT_EQ(executions, 0);
 }
 TEST_F(DirectMotion, SavedJointPoseStillRejectsPlannerEndpointMismatch)
 {

@@ -28,7 +28,8 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
                       point_cloud_topic='/camera/depth/color/points', octomap=True,
                       nominal_camera_tf=True, camera_type='d405',
                       d435_mount_parent='', d435_mount_xyz='', d435_mount_rpy='',
-                      d405_mount_parent='', d405_mount_xyz='', d405_mount_rpy=''):
+                      d405_mount_parent='', d405_mount_xyz='', d405_mount_rpy='',
+                      params_file=None):
     """Match simulation planning parameters, using physical time and feedback."""
     offset = ast.literal_eval(tcp_offset)
     if (not isinstance(offset, (list, tuple)) or len(offset) != 6 or
@@ -72,7 +73,8 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
               .to_moveit_configs())
     if mount:
         validate_mount_parent(config.to_dict()['robot_description'], mount, camera_type)
-    tolerance_path = Path(get_package_share_directory('rwh_beyond_bringup')) / 'config/bt_demo.yaml'
+    tolerance_path = (Path(params_file) if params_file else
+                      Path(get_package_share_directory('rwh_beyond_bringup')) / 'config/bt_demo.yaml')
     shared_settings = yaml.safe_load(tolerance_path.read_text())
     bt_settings = shared_settings['bt_navigator']['ros__parameters']['bt_motion']
     octomap_enabled = shared_settings.get('/**', {}).get('ros__parameters', {}).get(
@@ -171,7 +173,8 @@ def hardware_nodes(context):
         d405_mount_parent=value('d405_mount_parent'),
         d405_mount_xyz=value('d405_mount_xyz'), d405_mount_rpy=value('d405_mount_rpy'),
         d435_mount_parent=value('d435_mount_parent'),
-        d435_mount_xyz=value('d435_mount_xyz'), d435_mount_rpy=value('d435_mount_rpy'))
+        d435_mount_xyz=value('d435_mount_xyz'), d435_mount_rpy=value('d435_mount_rpy'),
+        params_file=value('params_file'))
     description = ParameterValue(params['robot_description'], value_type=str)
     params['robot_description'] = description
     params['robot_description_semantic'] = ParameterValue(
@@ -183,6 +186,7 @@ def hardware_nodes(context):
         controllers_file = config_file.name
     driver_args = {name: LaunchConfiguration(name) for name in (
         'namespace', 'can_port', 'effector_type', 'auto_enable', 'speed_percent',
+        'fast_mode', 'pub_rate', 'enable_timeout', 'gripper_default_effort',
         'log_level', 'fw_version', 'tcp_offset')}
     driver_args.update(arm_type='piper', control_enabled=(
         'false' if transport == 'feedback' or value('auto_control_gate') == 'true' else 'true'))
@@ -204,8 +208,8 @@ def hardware_nodes(context):
         actions.append(Node(package='rwh_beyond_grasp_pipeline', executable='target_cloud_filter',
                             parameters=[{'use_sim_time': False}], output='screen'))
     if transport == 'feedback':
-        settings = yaml.safe_load((Path(get_package_share_directory('rwh_beyond_bringup')) /
-            'config/bt_demo.yaml').read_text())['bt_navigator']['ros__parameters']['bt_motion']
+        settings = yaml.safe_load(Path(value('params_file')).read_text())[
+            'bt_navigator']['ros__parameters']['bt_motion']
         actions.append(Node(package='rwh_beyond_grasp_pipeline', executable='physical_trajectory',
                             parameters=[{'use_sim_time': False, 'initial_position_tolerance':
                                 params['trajectory_execution']['allowed_start_tolerance'],
@@ -241,6 +245,7 @@ def hardware_nodes(context):
             launch_arguments={
                 'mode': 'real', 'namespace': namespace,
                 'params_file': value('sensor_params_file'), 'use_sim_time': 'false',
+                'camera_params_file': value('params_file'),
                 'enable_lidar': value('enable_lidar'),
                 'enable_d405': value('enable_d405') if value('camera_type') == 'd405' else 'false',
                 'd405_mount_parent': value('d405_mount_parent'),
@@ -255,6 +260,7 @@ def hardware_nodes(context):
             launch_arguments={
                 'serial_no': value('d435_serial'), 'depth_profile': value('d435_depth_profile'),
                 'color_profile': value('d435_color_profile'), 'pipeline_topics': 'true',
+                'camera_params_file': value('params_file'),
                 'rviz': 'false',
             }.items())]))
     return result

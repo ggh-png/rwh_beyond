@@ -3,6 +3,7 @@ import importlib.util
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
+import yaml
 from launch import LaunchContext
 from launch.actions import DeclareLaunchArgument
 from launch_ros.actions import Node
@@ -42,6 +43,20 @@ def test_d405_only_uses_aligned_rgbd_and_real_time_without_lidar():
     assert params['depth_module.depth_profile'] == params['depth_module.color_profile']
     assert params['enable_infra1'] is params['enable_infra2'] is False
     assert params['publish_tf'] is True
+
+
+def test_d405_reads_shared_camera_parameters(tmp_path):
+    path = Path(__file__).resolve().parents[1] / 'config/bt_demo.yaml'
+    data = yaml.safe_load(path.read_text())
+    data['d405']['ros__parameters']['pointcloud.enable'] = False
+    custom = tmp_path / 'camera.yaml'
+    custom.write_text(yaml.safe_dump(data))
+    context = sensor_context(mode='real', enable_lidar='false', enable_d405='true',
+                             camera_params_file=str(custom), d405_serial='123456789012')
+    camera = next(node for node in d405_nodes(context) if isinstance(node, Node))
+    params = evaluate_parameters(context, camera._Node__parameters)[0]
+    assert params['pointcloud.enable'] is False
+    assert params['serial_no'] == '123456789012'
 
 
 def test_all_sensors_can_be_disabled():

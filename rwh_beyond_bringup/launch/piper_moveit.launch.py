@@ -12,6 +12,8 @@ def generate_launch_description():
     defaults = (
         ('namespace', ''), ('can_port', 'can0'), ('effector_type', 'agx_gripper'),
         ('auto_enable', 'false'), ('speed_percent', '10'), ('auto_control_gate', 'true'),
+        ('fast_mode', 'false'), ('pub_rate', '200'), ('enable_timeout', '5.0'),
+        ('gripper_default_effort', '1.0'),
         ('log_level', 'info'), ('fw_version', ''), ('tcp_offset', DEFAULT_TCP),
         ('use_rviz', 'true'), ('camera_model', 'true'), ('octomap', 'true'),
         ('start_sensors', 'true'), ('enable_d405', 'true'), ('enable_lidar', 'false'),
@@ -23,6 +25,8 @@ def generate_launch_description():
         ('d405_serial', ''), ('d405_profile', '640x480x15'),
         ('sensor_params_file', str(Path(get_package_share_directory('rwh_beyond_bringup')) /
                                  'params/nav2_params.yaml')),
+        ('params_file', str(Path(get_package_share_directory('rwh_beyond_bringup')) /
+                            'config/bt_demo.yaml')),
         ('execution_transport', 'official'),
         ('feedback_topic', 'feedback/joint_states'),
         ('point_cloud_topic', '/camera/depth/planning_points'),

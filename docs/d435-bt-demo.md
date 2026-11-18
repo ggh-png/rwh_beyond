@@ -1,6 +1,6 @@
 # D435 BT 연결·장착 설정
 
-실물 파지 카메라는 `ros_runner/config/runners.yaml`의 `realsense.model`로 선택합니다.
+실물 파지 카메라는 `ros_runner/config/robot_real.yaml`의 `realsense.model`로 선택합니다.
 현재 선택은 `d435`이며 시뮬레이션은 D405 구성을 사용합니다.
 
 ## 카메라와 프로파일

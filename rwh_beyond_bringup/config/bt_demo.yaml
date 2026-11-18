@@ -1,4 +1,4 @@
-# BT·인식·파지 동작의 공통 설정입니다. 값을 바꾼 뒤에는 bt_demo를 재시작하세요.
+# BT·인식·파지 및 카메라의 공통 설정입니다. 관련 runner를 재시작해야 적용됩니다.
 # 실물/시뮬레이션 시간과 백엔드 일부는 bt_demo.launch.py의 실행 모드로 결정됩니다.
 # 모든 노드에 공통 적용하는 설정입니다.
 /**:
@@ -6,6 +6,39 @@
   ros__parameters:
     # Octomap 장애물 지도와 관련 갱신·대기를 사용할지 지정합니다. false이면 지도 기반 장애물 처리를 끕니다.
     octomap_enabled: false
+# 카메라 시리얼·해상도는 runner의 실물 프로필이 우선합니다.
+d405:
+  ros__parameters:
+    camera_name: d405
+    device_type: d405
+    enable_depth: true
+    enable_color: true
+    enable_sync: true
+    enable_infra1: false
+    enable_infra2: false
+    align_depth.enable: true
+    pointcloud.enable: true
+    publish_tf: true
+    base_frame_id: link
+    depth_qos: SENSOR_DATA
+    color_qos: SENSOR_DATA
+/camera/d435:
+  ros__parameters:
+    camera_name: d435
+    device_type: d435
+    enable_depth: true
+    enable_color: true
+    enable_infra1: false
+    enable_infra2: false
+    enable_sync: true
+    align_depth.enable: true
+    pointcloud.enable: true
+    pointcloud.stream_filter: 2
+    pointcloud.stream_index_filter: 0
+    publish_tf: true
+    base_frame_id: link
+    depth_qos: SENSOR_DATA
+    color_qos: SENSOR_DATA
 # 집기·배치 행동 트리(BT)를 실행하는 노드입니다.
 bt_navigator:
   # 이 노드에 전달할 ROS 2 파라미터입니다.
@@ -20,6 +53,20 @@ bt_navigator:
       top_k: 500
     # MoveIt 직접 호출·파지 선택·그리퍼 설정은 BT navigator가 소유합니다.
     bt_motion:
+      # 멀티뷰 ICP: ResetObjectCloudFusion마다 읽습니다. XML use_icp가 명시되면 XML이 우선합니다.
+      icp_enabled: true
+      # ICP 반복 및 시점별 등록 점 수 상한 (각각 1~200, 100~50000).
+      icp_max_iterations: 40
+      icp_max_points: 10000
+      # 대응 거리(m, 0.001~0.1)와 최소 대응점(10~icp_max_points).
+      icp_max_correspondence_distance_m: 0.015
+      icp_min_correspondences: 50
+      # source의 최소 대응 비율(0.1~1)과 최대 RMSE(m, 0.0001~대응 거리).
+      icp_min_overlap: 0.35
+      icp_max_rmse_m: 0.004
+      # ICP 보정 한도: 물체 중심 이동(m, 0 초과~0.03), 회전(도, 0 초과~15).
+      icp_max_translation_m: 0.01
+      icp_max_rotation_deg: 5.0
       # 추정 폭에서 빼는 전체 그리퍼 간격입니다(m). 허용 범위: 0~0.005.
       grasp_width_closing_inset: 0.005
       # 파지 위치·높이를 계산할 기준 좌표계입니다.
@@ -71,6 +118,9 @@ bt_navigator:
       - 0.0
       # 관측 자세 도착 후 센서·기구가 안정되도록 기다리는 시간입니다(초).
       observation_settle_time: 0.5
+      # MoveJointPose 도착 후 안정화 대기(초, 0~30). XML의 settle_time이 우선합니다.
+      # 멀티뷰 기본값 1초를 유지합니다. 줄일 때는 진동과 RGB-D 품질을 확인하세요.
+      joint_pose_settle_time: 1.0
       # 홈 관절 목표 판정에 사용하는 각도 허용 오차입니다(rad).
       home_joint_tolerance: 0.01
       # 계획 시작 관절값의 경계 보정·검사와 실물 전송에 공유하는 허용 오차입니다(도). 실제 피드백과 URDF 한계는 바꾸지 않습니다.

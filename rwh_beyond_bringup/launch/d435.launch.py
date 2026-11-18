@@ -7,6 +7,8 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.parameter_descriptions import ParameterValue
+from rwh_beyond_bringup.camera_parameters import camera_parameters
 
 
 def camera_nodes(context):
@@ -23,21 +25,16 @@ def camera_nodes(context):
         'depth/color/points': 'depth/color/points',
     }
     remaps = [('~/' + source, '/camera/' + target) for source, target in topics.items()] if value('pipeline_topics') == 'true' else []
+    params = camera_parameters(value('camera_params_file'), '/camera/d435')
+    params.update({
+        'use_sim_time': False, 'serial_no': ParameterValue(value('serial_no'), value_type=str),
+        'depth_module.depth_profile': value('depth_profile'),
+        'rgb_camera.color_profile': value('color_profile'),
+    })
     nodes = [Node(
         package='realsense2_camera', executable='realsense2_camera_node',
         namespace='camera', name='d435', output='screen',
-        parameters=[{
-            'use_sim_time': False, 'camera_name': 'd435', 'device_type': 'd435',
-            'serial_no': value('serial_no'),
-            'enable_depth': True, 'enable_color': True,
-            'enable_infra1': False, 'enable_infra2': False, 'enable_sync': True,
-            'depth_module.depth_profile': value('depth_profile'),
-            'rgb_camera.color_profile': value('color_profile'),
-            'align_depth.enable': True, 'pointcloud.enable': True,
-            'pointcloud.stream_filter': 2, 'pointcloud.stream_index_filter': 0,
-            'publish_tf': True, 'base_frame_id': 'link',
-            'depth_qos': 'SENSOR_DATA', 'color_qos': 'SENSOR_DATA',
-        }], remappings=remaps, respawn=True, respawn_delay=3.0)]
+        parameters=[params], remappings=remaps, respawn=True, respawn_delay=3.0)]
     if value('rviz') == 'true':
         nodes.append(Node(package='rviz2', executable='rviz2', name='d435_rviz',
                           arguments=['-d', value('rviz_config')],
@@ -52,6 +49,8 @@ def generate_launch_description():
                               description='D435 serial; empty selects a matching device'),
         DeclareLaunchArgument('depth_profile', default_value='640x480x15'),
         DeclareLaunchArgument('color_profile', default_value='640x480x15'),
+        DeclareLaunchArgument('camera_params_file', default_value=str(
+            Path(get_package_share_directory('rwh_beyond_bringup')) / 'config/bt_demo.yaml')),
         DeclareLaunchArgument('rviz', default_value='true', choices=['true', 'false']),
         DeclareLaunchArgument('rviz_config', default_value=str(
             Path(get_package_share_directory('rwh_beyond_bringup')) / 'rviz/d435.rviz')),

@@ -37,6 +37,10 @@ protected:
   virtual void publish_outputs() {}
   virtual double default_z() {return 0;}
   virtual double minimum_z() {return -.3;}
+  virtual double default_settle()
+  {
+    return context_->number("observation_settle_time", .5, 0, 30);
+  }
   // Derived destructors must stop the worker before virtual dispatch becomes invalid.
   void stop();
   void prepare_plan();
