@@ -14,6 +14,8 @@ find_package(trajectory_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(urdf REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(yaml_cpp_vendor REQUIRED)
+find_package(yaml-cpp REQUIRED)
 find_package(shape_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(rcl_interfaces REQUIRED)
@@ -32,6 +34,20 @@ target_include_directories(${PROJECT_NAME}_common PUBLIC
 target_compile_features(${PROJECT_NAME}_common PUBLIC cxx_std_17)
 target_compile_options(${PROJECT_NAME}_common PRIVATE -Wall -Wextra -Wpedantic)
 ament_target_dependencies(${PROJECT_NAME}_common ${dependencies})
+
+add_library(rwh_beyond_joint_pose_store SHARED src/joint_pose_store.cpp)
+target_include_directories(rwh_beyond_joint_pose_store PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>)
+target_compile_features(rwh_beyond_joint_pose_store PUBLIC cxx_std_17)
+target_link_libraries(rwh_beyond_joint_pose_store yaml-cpp)
+ament_target_dependencies(rwh_beyond_joint_pose_store yaml_cpp_vendor)
+
+add_executable(capture_joint_pose src/capture_joint_pose.cpp)
+target_link_libraries(capture_joint_pose rwh_beyond_joint_pose_store)
+ament_target_dependencies(capture_joint_pose rclcpp sensor_msgs)
+target_compile_features(capture_joint_pose PRIVATE cxx_std_17)
+install(TARGETS capture_joint_pose DESTINATION lib/${PROJECT_NAME})
 
 set(plugin_libs)
 function(add_bt_action_plugin name)
@@ -68,8 +84,11 @@ add_library(rwh_beyond_motion_bt_nodes SHARED
   plugins/action/move_place_action.cpp
   plugins/action/open_gripper_action.cpp
   plugins/action/release_object_action.cpp
-  src/motion_context.cpp)
-target_link_libraries(rwh_beyond_motion_bt_nodes ${PROJECT_NAME}_common rwh_beyond_perception_bt_nodes Eigen3::Eigen)
+  src/motion_context.cpp
+  src/multiview.cpp
+  plugins/action/multiview_actions.cpp
+  plugins/action/joint_pose_actions.cpp)
+target_link_libraries(rwh_beyond_motion_bt_nodes rwh_beyond_joint_pose_store ${PROJECT_NAME}_common rwh_beyond_perception_bt_nodes Eigen3::Eigen)
 target_compile_features(rwh_beyond_motion_bt_nodes PUBLIC cxx_std_17)
 target_compile_definitions(rwh_beyond_motion_bt_nodes PRIVATE BT_PLUGIN_EXPORT)
 ament_target_dependencies(rwh_beyond_motion_bt_nodes ${dependencies})
@@ -82,7 +101,7 @@ target_compile_definitions(${PROJECT_NAME}_nodes PRIVATE BT_PLUGIN_EXPORT)
 ament_target_dependencies(${PROJECT_NAME}_nodes behaviortree_cpp)
 add_dependencies(${PROJECT_NAME}_nodes ${plugin_libs})
 
-install(TARGETS ${PROJECT_NAME}_common ${PROJECT_NAME}_nodes ${plugin_libs}
+install(TARGETS rwh_beyond_joint_pose_store ${PROJECT_NAME}_common ${PROJECT_NAME}_nodes ${plugin_libs}
   EXPORT export_${PROJECT_NAME}
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
@@ -108,9 +127,17 @@ if(BUILD_TESTING)
   target_compile_features(test_bt_actions PRIVATE cxx_std_17)
   target_compile_definitions(test_bt_actions PRIVATE
     BT_PLUGIN_PATH="$<TARGET_FILE:${PROJECT_NAME}_nodes>"
-    BT_PLUGIN_DIR="$<TARGET_FILE_DIR:${PROJECT_NAME}_nodes>")
+    BT_PLUGIN_DIR="$<TARGET_FILE_DIR:${PROJECT_NAME}_nodes>"
+    BT_TREE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/behavior_trees")
   add_dependencies(test_bt_actions ${PROJECT_NAME}_nodes)
   set_tests_properties(test_bt_actions PROPERTIES ENVIRONMENT "ROS_DOMAIN_ID=87")
+  ament_add_gtest(test_joint_pose_store test/test_joint_pose_store.cpp)
+  target_link_libraries(test_joint_pose_store rwh_beyond_joint_pose_store)
+  target_compile_features(test_joint_pose_store PRIVATE cxx_std_17)
+  ament_add_gtest(test_multiview test/test_multiview.cpp)
+  ament_target_dependencies(test_multiview ${dependencies})
+  target_link_libraries(test_multiview rwh_beyond_motion_bt_nodes Eigen3::Eigen)
+  target_compile_features(test_multiview PRIVATE cxx_std_17)
   ament_add_gtest(test_motion test/test_motion.cpp)
   ament_target_dependencies(test_motion ${dependencies})
   target_link_libraries(test_motion rwh_beyond_motion_bt_nodes Eigen3::Eigen)
@@ -130,5 +157,5 @@ endif()
 
 ament_export_include_directories(include)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${dependencies} Eigen3)
+ament_export_dependencies(${dependencies} Eigen3 yaml_cpp_vendor yaml-cpp)
 ament_package()

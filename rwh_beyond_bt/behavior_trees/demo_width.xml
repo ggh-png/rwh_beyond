@@ -73,11 +73,13 @@
           <MoveHome home_joint_positions=""/>
         </Sequence>
       </Sequence>
-      <Sequence>
-        <MoveHome home_joint_positions=""/>
-        <OpenGripper opening=""
-                     duration=""/>
-      </Sequence>
+      <ForceFailure>
+        <Sequence>
+          <MoveHome home_joint_positions=""/>
+          <OpenGripper opening=""
+                       duration=""/>
+        </Sequence>
+      </ForceFailure>
     </Fallback>
   </BehaviorTree>
 

@@ -35,7 +35,7 @@ home 관절값·관측 높이/각도/안정화 시간·그리퍼 열림 폭/시�
 공유 진단과 모션 클라이언트는 `src/`에 둡니다.
 
 - `rwh_beyond_perception_bt_nodes`: CaptureRgbd·SegmentObject·BuildObjectCloud·InferGrasps
-- `rwh_beyond_motion_bt_nodes`: 후보 선택·모션·그리퍼·부착 등 11개 노드
+- `rwh_beyond_motion_bt_nodes`: 후보 선택·모션·그리퍼·부착 등 17개 노드 (모션 11종·다중 시점 융합 3종·관절 자세 3종)
 - `rwh_beyond_clear_octomap_action_bt_node`: 지도 초기화
 - `rwh_beyond_bt_nodes`: 전체 노드 로더
 
@@ -61,4 +61,20 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
 실물 장치는 테스트에서 실행하지 않습니다.
 
 [구조](../docs/bt-architecture.md) · [집기·배치 흐름](../docs/bt-flows.md) ·
-[16개 플러그인 기능·포트](../docs/bt-grasp-stages.md) · [설정](../docs/real-bt.md)
+[22개 플러그인 기능·포트](../docs/bt-grasp-stages.md) · [설정](../docs/real-bt.md)
+
+## 다중 시점 관측
+
+`demo_multiview.xml`은 등록한 front·left·right 관절 자세에서 촬영해 3mm voxel 점군을
+융합하고 집기합니다. `scan_multiview.xml`은 관측과 후보 생성에서 멈춥니다.
+`MoveObservation`의 `yaw_deg`는 base Z축 기준 추가 방향 회전입니다.
+YAML 기본 트리 선택값은 변경하지 않습니다.
+[관측 자세·융합·선택할 XML·제한](../docs/width-aware-bt.md#multiview)을 참고하세요.
+
+## 관절 자세 등록
+
+팔을 원하는 관측 자세에 정지시킨 후 `ros2 run rwh_beyond_bt capture_joint_pose front`를
+실행합니다. left/right도 같은 방식으로 등록합니다. 기본 파일은
+`~/.ros/rwh_beyond/joint_poses.yaml`이며 `--list`로 확인하고 `--overwrite`로 재등록합니다.
+다중 시점 트리는 CheckJointPoses로 등록을 확인하고 MoveJointPose로 이동합니다.
+TCP IK를 사용하지 않으며, 실제 관절값을 임의로 채워 넣지 않습니다.

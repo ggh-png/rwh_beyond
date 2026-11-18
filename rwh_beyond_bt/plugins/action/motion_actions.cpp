@@ -6,6 +6,8 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #include "rwh_beyond_bt/plugins/action/check_grasp_ready_action.hpp"
+#include "rwh_beyond_bt/plugins/action/multiview_actions.hpp"
+#include "rwh_beyond_bt/plugins/action/joint_pose_actions.hpp"
 #include "rwh_beyond_bt/plugins/action/select_feasible_grasp_action.hpp"
 #include "rwh_beyond_bt/plugins/action/move_to_pregrasp_action.hpp"
 #include "rwh_beyond_bt/plugins/action/approach_grasp_action.hpp"
@@ -19,6 +21,12 @@
 
 BT_REGISTER_NODES(factory)
 {
+  factory.registerNodeType<rwh_beyond_bt::CaptureJointPoseAction>("CaptureJointPose");
+  factory.registerNodeType<rwh_beyond_bt::CheckJointPosesAction>("CheckJointPoses");
+  factory.registerNodeType<rwh_beyond_bt::MoveJointPoseAction>("MoveJointPose");
+  factory.registerNodeType<rwh_beyond_bt::ResetObjectCloudFusionAction>("ResetObjectCloudFusion");
+  factory.registerNodeType<rwh_beyond_bt::AccumulateObjectCloudAction>("AccumulateObjectCloud");
+  factory.registerNodeType<rwh_beyond_bt::BuildFusedObjectCloudAction>("BuildFusedObjectCloud");
   factory.registerNodeType<rwh_beyond_bt::CheckGraspReadyAction>("CheckGraspReady");
   factory.registerNodeType<rwh_beyond_bt::SelectFeasibleGraspAction>("SelectFeasibleGrasp");
   factory.registerNodeType<rwh_beyond_bt::MoveToPregraspAction>("MoveToPregrasp");

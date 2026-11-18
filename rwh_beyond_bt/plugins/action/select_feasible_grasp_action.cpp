@@ -13,7 +13,7 @@ SelectFeasibleGraspAction::~SelectFeasibleGraspAction() {stop();}
 
 BT::PortsList SelectFeasibleGraspAction::providedPorts()
 {
-  return motion_ports({"capture", "mask", "cloud", "candidates", "use_estimated_width",
+  return motion_ports({"fusion", "capture", "mask", "cloud", "candidates", "use_estimated_width",
              "pregrasp_distance", "lift_distance", "selected_plan", "pregrasp", "grasp_pose",
              "grasp_width", "close_width"});
 }
@@ -21,6 +21,8 @@ BT::PortsList SelectFeasibleGraspAction::providedPorts()
 void SelectFeasibleGraspAction::prepare()
 {
   selected_.reset();
+  fusion_.reset();
+  if (config().input_ports.count("fusion")) {fusion_ = required<Fusion>("fusion");}
   capture_ = required<Observation>("capture");
   mask_ = required<sensor_msgs::msg::Image>("mask");
   cloud_ = required<sensor_msgs::msg::PointCloud2>("cloud");
@@ -34,7 +36,7 @@ void SelectFeasibleGraspAction::prepare()
 void SelectFeasibleGraspAction::perform()
 {
   selected_ = context_->select(capture_, mask_, cloud_, candidates_, estimated_, pre_, lift_,
-      cancel_);
+      cancel_, fusion_);
 }
 
 void SelectFeasibleGraspAction::publish_outputs()

@@ -3,7 +3,7 @@
 `DemoNavigator`가 `/run_demo`를 제공하고 **BT가 작업 순서·관측 데이터·목표·경로를 소유**합니다.
 BT 플러그인이 모델 브릿지·MoveIt·그리퍼를 직접 호출합니다.
 
-[집기·배치 흐름](bt-flows.md) → [16개 플러그인 기능·포트](bt-grasp-stages.md) →
+[집기·배치 흐름](bt-flows.md) → [22개 플러그인 기능·포트](bt-grasp-stages.md) →
 [데이터와 좌표계](project-data.md) 순서로 읽으면 실행과 구현을 연결할 수 있습니다.
 
 전체 그림은 [BT 전체 흐름 이미지](bt-flows.md#bt-workflow-image)를 참고하세요.
@@ -102,7 +102,7 @@ flowchart TD
 
 ## 플러그인 디렉터리와 등록 { #plugin-structure }
 
-`rwh_beyond_bt/`에는 사용자 정의 Action 노드 **16종**이 있습니다. 현재 사용자 정의
+`rwh_beyond_bt/`에는 사용자 정의 Action 노드 **22종**이 있습니다. 현재 사용자 정의
 Condition 노드는 없으며 `plugins/condition/`은 향후 Condition을 위한 자리입니다.
 `CheckGraspReady`는 설정에 따라 기존 물체를 해제할 수 있으므로 Action입니다.
 `Sequence`는 BehaviorTree.CPP가 제공하는 제어 노드입니다.
@@ -115,7 +115,7 @@ rwh_beyond_bt/
 ├── plugins/
 │   ├── action/
 │   │   ├── motion_action.cpp             # 공통 실행·취소
-│   │   ├── motion_actions.cpp            # 모션 노드 11종 등록
+│   │   ├── motion_actions.cpp            # 모션·융합·관절 자세 노드 17종 등록
 │   │   ├── move_home_action.cpp          # 예: 노드별 구현
 │   │   ├── perception_actions.cpp        # 인식 노드 4종 구현·등록
 │   │   └── clear_octomap_action.cpp      # 지도 초기화 구현·등록
@@ -136,6 +136,13 @@ rwh_beyond_bt/
 | `MovePlace` | `move_place_action` | `OpenGripper` | `open_gripper_action` |
 | `ReleaseObject` | `release_object_action` | — | — |
 
+관절 자세 노드 3종은 `joint_pose_actions.hpp/.cpp`에 있으며 `src/joint_pose_store.cpp`가
+rad 단위 YAML 저장·조회, `src/capture_joint_pose.cpp`가 피드백 캡처 CLI를 제공합니다.
+
+다중 시점 노드 3종은 `multiview_actions.hpp/.cpp`에 있고 `src/multiview.cpp`에서
+좌표 변환·voxel 평균·관측 정합성을 검사합니다.
+[다중 시점 관측 흐름](width-aware-bt.md#multiview)을 참고하세요.
+
 인식 노드 4종의 선언은 `include/rwh_beyond_bt/plugins/action/perception_actions.hpp`에
 함께 있으며, `ClearOctomap`은 별도 헤더·소스를 사용합니다.
 전체 포트와 기능은 [플러그인별 기능·포트](bt-grasp-stages.md)를 참고하세요.
@@ -144,7 +151,7 @@ rwh_beyond_bt/
 flowchart LR
   YAML["bt_demo.yaml<br/>plugin_lib_names"] --> Loader["rwh_beyond_bt_nodes<br/>전체 로더"]
   Loader --> P["perception_bt_nodes<br/>인식 4종"]
-  Loader --> M["motion_bt_nodes<br/>모션 11종"]
+  Loader --> M["motion_bt_nodes<br/>모션·융합·관절 자세 17종"]
   Loader --> O["clear_octomap_action_bt_node<br/>지도 1종"]
   M --> Shared["rwh_beyond_bt_common<br/>진단 상태"]
   P --> Shared
@@ -152,7 +159,7 @@ flowchart LR
 ```
 
 모션 노드는 `rwh_beyond_motion_bt_nodes` **하나의 공유 라이브러리**로 빌드합니다.
-공통 YAML은 `rwh_beyond_bt_nodes` 로더로 16개 노드를 등록합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
+공통 YAML은 `rwh_beyond_bt_nodes` 로더로 22개 노드를 등록합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
 같은 노드를 전체 로더와 개별 라이브러리로 중복 등록하지 않습니다.
 
 ## 모션 공통 실행과 Blackboard { #motion-execution }

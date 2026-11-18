@@ -57,6 +57,8 @@ def test_hardware_matches_simulation_parameters_except_clock():
     assert actual.pop('ompl.arm.enforce_joint_model_state_space') is True
     assert actual.pop('ompl.arm.longest_valid_segment_fraction') == .005
     assert actual.pop('ompl.arm.planner_configs') == ('RRTConnect', 'RRTstar')
+    assert actual.pop('ompl.arm.default_planner_config') == 'RRTConnect'
+    expected.pop('ompl.arm.default_planner_config', None)
     assert actual == expected
 
 
@@ -337,3 +339,31 @@ def test_custom_d405_mount_matches_moveit_rviz_and_robot_state_publisher():
     actual=evaluate_parameters(ctx,node._Node__parameters)[0]
     assert actual['robot_description']==params['robot_description']
     assert actual['robot_description_semantic']==params['robot_description_semantic']
+
+
+@pytest.mark.parametrize('range_value,default_planner,valid', [
+    (0.15, 'RRTstar', True), (0.0, 'RRTConnect', True),
+    (-0.1, 'RRTConnect', False), (float('nan'), 'RRTConnect', False),
+    (True, 'RRTConnect', False), (0.1, 'missing_planner', False),
+])
+def test_move_group_planner_overrides_are_applied_and_validated(
+        monkeypatch, tmp_path, range_value, default_planner, valid):
+    import yaml
+    import rwh_beyond_bringup.piper_hardware as hardware
+    original = hardware.get_package_share_directory
+    root = tmp_path/'share'
+    (root/'config').mkdir(parents=True)
+    settings = yaml.safe_load((Path(original('rwh_beyond_bringup'))/'config/bt_demo.yaml').read_text())
+    ompl = settings['move_group']['ros__parameters']['ompl']
+    ompl['planner_configs']['RRTConnect']['range'] = range_value
+    ompl['arm']['default_planner_config'] = default_planner
+    (root/'config/bt_demo.yaml').write_text(yaml.safe_dump(settings))
+    monkeypatch.setattr(hardware, 'get_package_share_directory',
+                        lambda name: str(root) if name == 'rwh_beyond_bringup' else original(name))
+    if not valid:
+        with pytest.raises(ValueError):
+            hardware.moveit_parameters(DEFAULT_TCP)
+    else:
+        params = hardware.moveit_parameters(DEFAULT_TCP)
+        assert params['ompl']['planner_configs']['RRTConnect']['range'] == range_value
+        assert params['ompl']['arm']['default_planner_config'] == default_planner

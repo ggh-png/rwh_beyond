@@ -454,13 +454,16 @@ geometry_msgs::msg::Pose MotionContext::fk(const State & start, const Cancel & c
 }
 State MotionContext::ik(
   const geometry_msgs::msg::Pose & pose, const State & start,
-  const Cancel & cancel, bool candidate)
+  const Cancel & cancel, bool candidate, PlanningProfile profile)
 {
   moveit_msgs::srv::GetPositionIK::Request request;
   auto & r = request.ik_request;
   r.group_name = "arm"; r.ik_link_name = tcp; r.robot_state = start; r.avoid_collisions = true;
   r.pose_stamped.header.frame_id = base; r.pose_stamped.pose = pose;
-  r.timeout = rclcpp::Duration::from_seconds(number("moveit_ik_timeout", .2, .001, 10));
+  const double timeout = profile == PlanningProfile::OBSERVATION ?
+    number("moveit_observation_ik_timeout", 1.0, .001, 10) :
+    number("moveit_ik_timeout", .2, .001, 10);
+  r.timeout = rclcpp::Duration::from_seconds(timeout);
   auto response = call<moveit_msgs::srv::GetPositionIK>(ik_, request, cancel);
   if (response->error_code.val != 1) {
     auto error = moveit_failure(response->error_code, "/compute_ik");
@@ -485,18 +488,24 @@ moveit_msgs::srv::GetCartesianPath::Response::SharedPtr MotionContext::cartesian
 }
 Trajectory MotionContext::plan(
   const State & start, const State & goal,
-  const Constraints & wrist, const Cancel & cancel, bool candidate)
+  const Constraints & wrist, const Cancel & cancel, bool candidate, PlanningProfile profile)
 {
   moveit_msgs::srv::GetMotionPlan::Request request;
   auto & r = request.motion_plan_request;
   r.group_name = "arm"; r.pipeline_id = "ompl";
-  r.planner_id = parameter<std::string>("moveit_pregrasp_planner_id", "RRTConnect");
-  r.num_planning_attempts = parameter<int>("moveit_pregrasp_num_planning_attempts", 3);
+  const bool observation = profile == PlanningProfile::OBSERVATION;
+  r.planner_id = parameter<std::string>(observation ? "moveit_observation_planner_id" :
+      "moveit_pregrasp_planner_id", "RRTConnect");
+  if (r.planner_id.empty()) {throw std::invalid_argument("MoveIt planner ID must not be empty");}
+  r.num_planning_attempts =
+    parameter<int>(observation ? "moveit_observation_num_planning_attempts" :
+      "moveit_pregrasp_num_planning_attempts", observation ? 5 : 3);
   if (r.num_planning_attempts < 1 || r.num_planning_attempts > 10) {
     throw std::invalid_argument("Planning attempts must be in [1,10]");
   }
-  r.allowed_planning_time = candidate ? number("moveit_candidate_planning_time", 4, .01,
-      60) : number("moveit_planning_time", 10, .01, 120);
+  r.allowed_planning_time = observation ? number("moveit_observation_planning_time", 10, .01, 120) :
+    (candidate ? number("moveit_candidate_planning_time", 4, .01, 60) :
+    number("moveit_planning_time", 10, .01, 120));
   r.max_velocity_scaling_factor = number("moveit_velocity_scaling_factor", .5, .001, 1);
   r.max_acceleration_scaling_factor = number("moveit_acceleration_scaling_factor", .5, .001, 1);
   r.start_state = start; r.path_constraints = wrist;
@@ -810,6 +819,18 @@ void MotionContext::release(double opening, double duration, bool repeat, const 
   attached = false; release_ready = false; scene_active = true;
   cleanup(cancel);
 }
+Eigen::Isometry3d MotionContext::camera_pose_at(const Observation & capture, const Cancel & cancel)
+{
+  if (!capture) {throw std::invalid_argument("Missing TF reference capture");}
+  auto stamp = rclcpp::Time(capture->depth.header.stamp, node->get_clock()->get_clock_type());
+  wait(
+    [&]() {return buffer_->canTransform(base, capture->depth.header.frame_id, stamp);}, 2, cancel);
+  auto transform = buffer_->lookupTransform(base, capture->depth.header.frame_id, stamp).transform;
+  geometry_msgs::msg::Pose camera;
+  camera.position.x = transform.translation.x; camera.position.y = transform.translation.y;
+  camera.position.z = transform.translation.z; camera.orientation = transform.rotation;
+  return pose_matrix(camera);
+}
 void MotionContext::validate_capture(const Observation & capture)
 {
   if (!capture || capture->id.empty()) {throw std::invalid_argument("Missing BT capture");}
@@ -904,7 +925,8 @@ Plan MotionContext::select(
   const Observation & capture, const sensor_msgs::msg::Image & mask,
   const sensor_msgs::msg::PointCloud2 & cloud,
   const std::vector<rwh_beyond_msgs::msg::GraspCandidate> & candidates,
-  bool estimated_width, double pre_distance, double lift_distance, const Cancel & cancel)
+  bool estimated_width, double pre_distance, double lift_distance, const Cancel & cancel,
+  const Fusion & fusion)
 {
   candidate_error.reset();
   if (attached || scene_active) {throw std::runtime_error("Previous target still active");}
@@ -921,7 +943,11 @@ Plan MotionContext::select(
   }
   auto xyz = cloud_points(cloud);
   // Also validate that the cloud is the masked capture, not a stale artifact.
-  auto projected = cloud_points(project_object_cloud(*capture, mask));
+  if (fusion && (fusion->views.size() < 2 || fusion->base_frame != base ||
+    fusion->views.back().capture != capture || fusion->views.back().mask != mask))
+  {throw std::invalid_argument("Fusion reference must match the current capture and mask");}
+  auto projected = cloud_points(fusion ? fuse_object_cloud(*fusion) :
+      project_object_cloud(*capture, mask));
   if (xyz.size() != projected.size()) {
     throw std::invalid_argument("Cloud does not match captured mask/depth");
   }
@@ -930,14 +956,10 @@ Plan MotionContext::select(
       throw std::invalid_argument("Cloud differs from masked RGB-D");
     }
   }
-  auto stamp = rclcpp::Time(capture->depth.header.stamp, node->get_clock()->get_clock_type());
-  wait(
-    [&]() {return buffer_->canTransform(base, cloud.header.frame_id, stamp);}, 2, cancel);
-  auto transform = buffer_->lookupTransform(base, cloud.header.frame_id, stamp).transform;
-  geometry_msgs::msg::Pose camera;
-  camera.position.x = transform.translation.x; camera.position.y = transform.translation.y;
-  camera.position.z = transform.translation.z; camera.orientation = transform.rotation;
-  auto base_camera = pose_matrix(camera);
+  auto base_camera = camera_pose_at(capture, cancel);
+  if (fusion && !base_camera.matrix().isApprox(fusion->views.back().base_camera.matrix(), 1e-5)) {
+    throw std::invalid_argument("Reference camera TF changed since fusion");
+  }
   auto display_header = cloud.header; display_header.frame_id = base;
   auto base_cloud = cloud; base_cloud.header = display_header;
   sensor_msgs::PointCloud2Iterator<float> bx(base_cloud, "x"), by(base_cloud, "y"),

@@ -1,15 +1,32 @@
 <root BTCPP_format="4">
     <TreeNodesModel>
+        <Action ID="AccumulateObjectCloud">
+            <inout_port name="fusion" type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
+            <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="capture" type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+        </Action>
         <Action ID="ApproachGrasp">
             <input_port name="plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
         </Action>
         <Action ID="AttachObject">
             <input_port name="plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
         </Action>
+        <Action ID="BuildFusedObjectCloud">
+            <output_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="min_views" type="int" default="3">Minimum view count</input_port>
+            <input_port name="fusion" type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
+        </Action>
         <Action ID="BuildObjectCloud">
             <output_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
             <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
             <input_port name="capture" type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+        </Action>
+        <Action ID="CaptureJointPose">
+            <input_port name="poses_file" type="std::string"/>
+            <output_port name="joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;"/>
+            <input_port name="timeout" type="double" default="5.000000">Fresh feedback wait in seconds</input_port>
+            <input_port name="overwrite" type="bool" default="false">Replace an explicitly named existing pose</input_port>
+            <input_port name="pose_name" type="std::string"/>
         </Action>
         <Action ID="CaptureRgbd">
             <output_port name="observation_id" type="std::string"/>
@@ -18,6 +35,10 @@
         </Action>
         <Action ID="CheckGraspReady">
             <input_port name="release_previous" type="bool" default="false">Explicitly release prior payload in place</input_port>
+        </Action>
+        <Action ID="CheckJointPoses">
+            <input_port name="poses_file" type="std::string"/>
+            <input_port name="pose_names" type="std::vector&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;, std::allocator&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &gt; &gt;"/>
         </Action>
         <Action ID="ClearOctomap">
             <input_port name="scene_service" type="std::string" default="/get_planning_scene">MoveIt planning scene service</input_port>
@@ -39,12 +60,18 @@
         <Action ID="MoveHome">
             <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
         </Action>
+        <Action ID="MoveJointPose">
+            <input_port name="settle_time" type="double">Settling time after verified joint arrival (seconds)</input_port>
+            <input_port name="poses_file" type="std::string"/>
+            <input_port name="pose_name" type="std::string"/>
+        </Action>
         <Action ID="MoveObservation">
             <input_port name="z" type="double">Base Z offset (m)</input_port>
+            <input_port name="y" type="double">Base Y offset (m)</input_port>
             <input_port name="tilt_deg" type="double">Home-local Y tilt (deg)</input_port>
             <input_port name="settle_time" type="double">Observation settling time (s)</input_port>
             <input_port name="x" type="double">Base X offset (m)</input_port>
-            <input_port name="y" type="double">Base Y offset (m)</input_port>
+            <input_port name="yaw_deg" type="double">Additional rotation about base Z (deg)</input_port>
             <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
         </Action>
         <Action ID="MovePlace">
@@ -62,6 +89,12 @@
         <Action ID="ReleaseObject">
             <input_port name="opening" type="double">Gripper total gap (m)</input_port>
             <input_port name="duration" type="double">Gripper duration (s)</input_port>
+            <input_port name="allow_empty" type="bool" default="false">Open successfully when no payload is attached</input_port>
+        </Action>
+        <Action ID="ResetObjectCloudFusion">
+            <output_port name="fusion" type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
+            <input_port name="max_centroid_distance" type="double" default="0.080000">Maximum target centroid drift in meters</input_port>
+            <input_port name="voxel_size" type="double" default="0.003000">Voxel edge length in meters</input_port>
         </Action>
         <Action ID="SegmentObject">
             <input_port name="capture" type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
@@ -74,14 +107,15 @@
             <output_port name="close_width" type="double"/>
             <output_port name="grasp_width" type="double"/>
             <output_port name="pregrasp" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
+            <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
             <output_port name="selected_plan" type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
             <input_port name="pregrasp_distance" type="double">Approach offset (m); omit for bt_motion YAML</input_port>
             <output_port name="grasp_pose" type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
             <input_port name="capture" type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+            <input_port name="fusion" type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
             <input_port name="cloud" type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
             <input_port name="candidates" type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
             <input_port name="use_estimated_width" type="bool" default="false">Estimate close width from point cloud</input_port>
-            <input_port name="mask" type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
             <input_port name="lift_distance" type="double">Lift distance (m); omit for bt_motion YAML</input_port>
         </Action>
     </TreeNodesModel>

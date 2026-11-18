@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4" main_tree_to_execute="PickWithRecovery">
+  <!-- Teach and capture front/left/right joint poses before running this tree.
+       MoveJointPose uses collision-checked joint planning, without TCP IK. -->
+  <BehaviorTree ID="FrontPick">
+    <Sequence name="FrontPickSequence">
+      <CheckJointPoses pose_names="front"/>
+      <CheckGraspReady release_previous="true"/>
+      <ClearOctomap once="false" timeout="30.0"/>
+      <MoveHome/>
+      <OpenGripper/>
+      <MoveJointPose pose_name="front" settle_time="1.0"/>
+      <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
+      <SegmentObject capture="{capture}" mask="{object_mask}"/>
+      <BuildObjectCloud capture="{capture}" mask="{object_mask}" cloud="{object_cloud}"/>
+      <ClearOctomap once="false" timeout="30.0"/>
+      <InferGrasps cloud="{object_cloud}" candidates="{grasps}"/>
+      <SelectFeasibleGrasp capture="{capture}" mask="{object_mask}"
+                           cloud="{object_cloud}" candidates="{grasps}"
+                           use_estimated_width="true" pregrasp_distance="0.10"
+                           lift_distance="0.08" selected_plan="{grasp_plan}"
+                           grasp_width="{grasp_width}" close_width="{close_width}"
+                           pregrasp="{pregrasp}" grasp_pose="{grasp_pose}"/>
+      <MoveToPregrasp plan="{grasp_plan}"/>
+      <ApproachGrasp plan="{grasp_plan}"/>
+      <AttachObject plan="{grasp_plan}"/>
+      <LiftObject plan="{grasp_plan}"/>
+      <MoveHome/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MultiViewScan">
+    <Sequence name="PrepareAndScanThreeViews">
+      <CheckJointPoses pose_names="front;left;right"/>
+      <CheckGraspReady release_previous="true"/>
+      <ClearOctomap once="false" timeout="30.0"/>
+      <MoveHome/>
+      <OpenGripper/>
+      <ResetObjectCloudFusion fusion="{fusion}" voxel_size="0.003"
+                              max_centroid_distance="0.08"/>
+      <Sequence name="LeftViewFacingRight">
+        <MoveJointPose pose_name="left" settle_time="1.0"/>
+        <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
+        <SegmentObject capture="{capture}" mask="{object_mask}"/>
+        <AccumulateObjectCloud capture="{capture}" mask="{object_mask}" fusion="{fusion}"/>
+      </Sequence>
+      <!-- <Sequence name="FrontView">
+        <MoveJointPose pose_name="front" settle_time="1.0"/>
+        <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
+        <SegmentObject capture="{capture}" mask="{object_mask}"/>
+        <AccumulateObjectCloud capture="{capture}" mask="{object_mask}" fusion="{fusion}"/>
+      </Sequence> -->
+      <Sequence name="RightViewFacingLeft">
+        <!-- Return through the center before crossing to the opposite side. -->
+        <!-- <MoveJointPose pose_name="front" settle_time="1.0"/> -->
+        <MoveJointPose pose_name="right" settle_time="1.0"/>
+        <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
+        <SegmentObject capture="{capture}" mask="{object_mask}"/>
+        <AccumulateObjectCloud capture="{capture}" mask="{object_mask}" fusion="{fusion}"/>
+      </Sequence>
+      <BuildFusedObjectCloud fusion="{fusion}" cloud="{object_cloud}" min_views="2"/>
+      <ClearOctomap once="false" timeout="30.0"/>
+      <InferGrasps cloud="{object_cloud}" candidates="{grasps}"/>
+    </Sequence>
+  </BehaviorTree>
+  <BehaviorTree ID="MultiViewPick">
+    <Sequence name="MultiViewGraspAndLift">
+      <SubTree ID="MultiViewScan" _autoremap="true"/>
+      <SelectFeasibleGrasp capture="{capture}" mask="{object_mask}"
+                           cloud="{object_cloud}" fusion="{fusion}" candidates="{grasps}"
+                           use_estimated_width="true" pregrasp_distance="0.10"
+                           lift_distance="0.08" selected_plan="{grasp_plan}"
+                           grasp_width="{grasp_width}" close_width="{close_width}"
+                           pregrasp="{pregrasp}" grasp_pose="{grasp_pose}"/>
+      <MoveToPregrasp plan="{grasp_plan}"/>
+      <ApproachGrasp plan="{grasp_plan}"/>
+      <AttachObject plan="{grasp_plan}"/>
+      <LiftObject plan="{grasp_plan}"/>
+      <MoveJointPose pose_name="front" settle_time="1.0"/>
+      <MoveHome/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="PickWithRecovery">
+    <RecoveryNode number_of_retries="0" name="PickRecovery">
+      <Fallback name="FrontThenMultiView">
+        <SubTree ID="FrontPick" _autoremap="true"/>
+        <SubTree ID="MultiViewPick" _autoremap="true"/>
+      </Fallback>
+      <Sequence name="FailureHome">
+        <MoveHome/>
+        <ForceFailure>
+          <OpenGripper/>
+        </ForceFailure>
+      </Sequence>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

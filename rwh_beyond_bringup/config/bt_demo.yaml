@@ -77,16 +77,33 @@ bt_navigator:
       planning_start_bounds_tolerance_deg: 10.0
       # 실물 관절 피드백의 최신 상태 판정에 사용하는 제한 시간입니다(초).
       hardware_feedback_timeout: 1.0
-      # 홈·사전 접근·배치 우회 등 일반 계획의 최대 속도 배율입니다(0 초과~1 이하).
+      # 관측·홈·사전 접근·배치 우회 등 일반 관절 계획의 최대 속도 배율입니다(0 초과~1 이하).
       moveit_velocity_scaling_factor: 0.5
       # 일반 계획의 최대 가속도 배율입니다(0 초과~1 이하).
       moveit_acceleration_scaling_factor: 0.5
-      # 관측·파지 접근·리프트·직선 배치의 Cartesian 경로 속도 배율입니다(0 초과~1 이하).
+      # 파지 접근·리프트·직선 배치의 Cartesian 경로 속도 배율입니다. 관측 이동에는 적용하지 않습니다(0 초과~1 이하).
       moveit_cartesian_velocity_scaling_factor: 0.5
       # Cartesian 경로의 가속도 배율입니다(0 초과~1 이하).
       moveit_cartesian_acceleration_scaling_factor: 0.5
       # 일반 MoveIt 경로 계획에 허용하는 최대 시간입니다(초). 고정 대기 시간이 아닙니다.
       moveit_planning_time: 10.0
+      # 관측 이동 방식입니다. ompl=목표 자세 IK 후 관절 경로, cartesian=TCP 직선 경로.
+      # cartesian은 완전한 경로만 실행하며, 실패 시 다른 방식으로 자동 전환하지 않습니다. 변경 후 bt_demo를 재시작합니다.
+      observation_motion_mode: cartesian
+      # MoveJointPose가 매 이동 시작 시 아래 YAML의 front/left/right 관절값을 읽습니다.
+      # CaptureJointPose/CLI로 다시 저장하면 다음 이동부터 반영됩니다. XML에 수치를 복사할 필요가 없습니다.
+      # 다른 저장 경로를 쓰면 CLI의 --file과 이 설정을 같은 경로로 맞춥니다.
+      joint_poses_file: /root/.ros/rwh_beyond/joint_poses.yaml
+      # OMPL 관측 목표의 IK 탐색 제한 시간입니다(초, 0.001~10). 기존 0.2초 대신 관측에는 1초를 사용합니다.
+      # OMPL 경로 계획 시간과 별개이며, 도달 불가·충돌 자세는 시간을 늘려도 풀리지 않을 수 있습니다.
+      moveit_observation_ik_timeout: 1.0
+      # MoveObservation 전용 OMPL 플래너입니다. 아래 move_group.ompl.arm.planner_configs에 등록된 ID를 사용합니다.
+      # 관측은 목표 TCP 자세의 IK를 구한 뒤 관절 경로를 계획하므로, TCP가 직선으로 이동하지 않을 수 있습니다.
+      moveit_observation_planner_id: RRTConnect
+      # 관측 자세 한 번의 관절 경로 계획 제한 시간입니다(초, 0.01~120). 실패 시 이동하지 않습니다.
+      moveit_observation_planning_time: 10.0
+      # 위 시간 예산 안에서 수행할 관측 계획 시도 횟수입니다(1~10). 횟수 × 시간만큼 기다리는 설정은 아닙니다.
+      moveit_observation_num_planning_attempts: 5
       # 파지 후보 하나의 이동 계획에 허용하는 최대 시간입니다(초).
       moveit_candidate_planning_time: 4.0
       # 역기구학(IK) 요청의 제한 시간입니다(초).
@@ -123,8 +140,8 @@ bt_navigator:
     bt_loop_duration: 10
     # BT 액션 취소 응답의 기본 대기 시간입니다(밀리초).
     default_cancel_timeout: 20
-    # 기본 집기 BT XML 경로입니다. 요청에서 별도 트리를 지정하면 해당 요청값을 사용합니다.
-    default_demo_bt_xml: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/demo_width.xml
+    # 기본 집기 BT XML 경로입니다. 요청에서 별도 트리를 지정하면 해당 요청값을 사용합니다. demo_multiview, demo_width
+    default_demo_bt_xml: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/demo_multiview.xml
     # 기본 배치 BT XML 경로입니다(mode: 2).
     default_place_bt_xml: /root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/place.xml
     # BT 액션·서비스 응답의 기본 대기 시간입니다(밀리초).
@@ -235,16 +252,27 @@ graspgenx_bridge:
     max_depth_pixels: 2073600
     # 센서 입력 타임스탬프 사이에 허용하는 시간 차이입니다(초).
     sensor_sync_tolerance: 0.1
-# 실물 MoveIt 경로 계획·실행 감시 설정입니다. piper_moveit을 재시작해야 적용됩니다.
+# 실물 move_group에 전달할 OMPL·실행 감시 설정입니다. piper_moveit을 재시작해야 적용됩니다.
+# 위 bt_motion은 BT 요청별 설정이며 bt_demo를 다시 시작해야 반영됩니다. XML 선택값은 별도로 유지합니다.
 move_group:
   # 이 설정은 실물 MoveIt launch가 읽어 move_group에 직접 전달합니다.
   ros__parameters:
     # OMPL 팔 계획 그룹 설정입니다. move_group에 직접 전달하며 piper_moveit 재시작 후 적용합니다.
     ompl:
+      # 플래너 알고리즘 내부 설정입니다. 기존 등록 플래너의 range만 여기에서 덮어씁니다.
+      planner_configs:
+        RRTConnect:
+          # 트리를 한 번 확장할 최대 거리(관절 상태 공간 단위)입니다. 0.0이면 OMPL이 자동 결정합니다.
+          range: 0.0
+        RRTstar:
+          # 자동 결정값부터 시작하고, 필요하면 작은 양수로 조절합니다. 경로 계획 시간은 bt_motion에서 설정합니다.
+          range: 0.0
       # 팔 관절 계획 그룹입니다.
       arm:
         # arm에 등록할 플래너 ID입니다. RRTConnect를 기본 사용하며 RRTstar도 비교할 수 있습니다.
         planner_configs: [RRTConnect, RRTstar]
+        # 요청에 planner_id가 없을 때 사용할 기본값입니다. BT의 observation/pregrasp planner_id 지정이 우선합니다.
+        default_planner_config: RRTConnect
         # 관절 공간에서 샘플링·보간하도록 강제합니다. 자세 공간의 IK 분기 전환을 피합니다.
         enforce_joint_model_state_space: true
         # 충돌 검사 구간의 최대 길이입니다(상태 공간 크기의 비율). 작을수록 촘촘하게 검사하며 계산량이 증가합니다.

@@ -3,7 +3,7 @@
   <BehaviorTree ID="Demo">
     <Sequence name="PickSequence">
       <Sequence name="PrepareAndObserve">
-        <CheckGraspReady/>
+        <CheckGraspReady release_previous="true"/>
         <ClearOctomap once="false" timeout="30.0" fresh_clouds="2"/>
         <!-- Optional home_joint_positions="0;0;0;0;0;0" overrides YAML for this node. -->
         <MoveHome/>

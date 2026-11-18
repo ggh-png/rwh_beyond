@@ -27,6 +27,7 @@ private:
   void publish_outputs() override;
   Plan selected_;
   Observation capture_;
+  Fusion fusion_;
   sensor_msgs::msg::Image mask_;
   sensor_msgs::msg::PointCloud2 cloud_;
   std::vector<rwh_beyond_msgs::msg::GraspCandidate> candidates_;

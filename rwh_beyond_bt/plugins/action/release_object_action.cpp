@@ -12,11 +12,18 @@ namespace rwh_beyond_bt
 ReleaseObjectAction::~ReleaseObjectAction() {stop();}
 
 BT::PortsList ReleaseObjectAction::providedPorts()
-{return motion_ports({"opening", "duration"});}
+{return motion_ports({"opening", "duration", "allow_empty"});}
+
+void ReleaseObjectAction::prepare()
+{allow_empty_ = required<bool>("allow_empty");}
 
 void ReleaseObjectAction::perform()
 {
   context_->prepare_motion(cancel_);
+  if (allow_empty_ && !context_->attached) {
+    context_->gripper(opening_, duration_, false, cancel_);
+    return;
+  }
   context_->release(opening_, duration_, false, cancel_);
 }
 }  // namespace rwh_beyond_bt

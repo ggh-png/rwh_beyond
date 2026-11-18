@@ -20,7 +20,7 @@ BT::PortsList motion_ports(std::initializer_list<const char *> names)
 {
   BT::PortsList ports = {
     BT::InputPort<Plan>("plan"), BT::OutputPort<Plan>("selected_plan"),
-    BT::InputPort<Observation>("capture"),
+    BT::InputPort<Observation>("capture"), BT::InputPort<Fusion>("fusion"),
     BT::InputPort<sensor_msgs::msg::Image>("mask"),
     BT::InputPort<sensor_msgs::msg::PointCloud2>("cloud"),
     BT::InputPort<std::vector<rwh_beyond_msgs::msg::GraspCandidate>>("candidates"),
@@ -33,9 +33,11 @@ BT::PortsList motion_ports(std::initializer_list<const char *> names)
     BT::InputPort<double>("y", "Base Y offset (m)"),
     BT::InputPort<double>("z", "Base Z offset (m)"),
     BT::InputPort<double>("tilt_deg", "Home-local Y tilt (deg)"),
+    BT::InputPort<double>("yaw_deg", "Additional rotation about base Z (deg)"),
     BT::InputPort<double>("settle_time", "Observation settling time (s)"),
     BT::InputPort<double>("opening", "Gripper total gap (m)"),
     BT::InputPort<double>("duration", "Gripper duration (s)"),
+    BT::InputPort<bool>("allow_empty", false, "Succeed by opening an empty gripper"),
     BT::OutputPort<TcpPose>("pregrasp"), BT::OutputPort<TcpPose>("grasp_pose"),
     BT::OutputPort<double>("grasp_width"), BT::OutputPort<double>("close_width")};
   for (auto it = ports.begin(); it != ports.end(); ) {
@@ -80,6 +82,7 @@ BT::NodeStatus MotionAction::onStart()
       }
     }
     tilt_[1] = scalar("tilt_deg", tilt_[1], -90, 90);
+    yaw_ = scalar("yaw_deg", 0, -180, 180);
     settle_ = scalar("settle_time", context_->number("observation_settle_time", .5, 0, 30), 0, 30);
     opening_ = scalar("opening", context_->number("gripper_open_width", .10, 0, .10), 0, .10);
     duration_ = scalar("duration", 3, .001, 30);

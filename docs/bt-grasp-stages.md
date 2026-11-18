@@ -1,6 +1,6 @@
 # BT 플러그인별 기능과 포트
 
-16개 노드의 **역할 → 처리 순서 → 입출력 → 호출·오류**를 찾아보는 참조 문서입니다.
+22개 노드의 **역할 → 처리 순서 → 입출력 → 호출·오류**를 찾아보는 참조 문서입니다.
 전체 실행 순서는 [BT 실행 흐름](bt-flows.md), 프로세스 관계는 [BT와 실행 구조](bt-architecture.md)를 참고하세요.
 
 <div class="bt-plugin-reference" markdown="1">
@@ -265,9 +265,10 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
 
     1. home 관절 상태의 FK로 기준 TCP를 구합니다.
 
-    2. 위치는 base 축 `(x,y,z)`를 더하고, 방향은 home 로컬 RPY를 합성합니다. `tilt_deg`는 Y 회전만 바꿉니다.
+    2. 위치는 base 축 `(x,y,z)`를 더하고, 방향은 home 로컬 RPY를 합성합니다. `tilt_deg`는 Y 회전만 바꿉니다. 이후 `yaw_deg`를 base Z축 방향 회전으로 합성합니다.
 
-    3. 현재 상태에서 목표까지 완전한 Cartesian 경로를 계획·실행합니다.
+    3. `observation_motion_mode=ompl`이면 목표 TCP의 충돌 회피 IK 후 OMPL 관절 경로를,
+       `cartesian`이면 완전한 TCP 직선 경로를 계획·실행합니다.
 
     4. 센서 안정화를 위해 `settle_time`을 기다립니다.
 
@@ -289,13 +290,14 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
     | 입력 | `x`, `y` | 각 0m | base 축 위치 오프셋; 각각 −0.30~0.30m |
     | 입력 | `z` | YAML; 현재 0.20m | base Z 오프셋; −0.30~0.30m |
     | 입력 | `tilt_deg` | YAML; 현재 30° | home 로컬 Y 기울기; −90~90° |
+    | 입력 | `yaw_deg` | 0° | 기울임 후 base Z축 기준 추가 방향 회전; −180~180° |
     | 입력 | `settle_time` | YAML; 현재 0.5초 | 이동 후 안정화 대기; 0~30초 |
 
     출력 포트는 없습니다.
 
 === "호출·상세 규칙"
 
-    - **직접 호출:** `/compute_fk` (`GetPositionFK`), `/compute_cartesian_path` (`GetCartesianPath`),
+    - **직접 호출:** `/compute_fk` (`GetPositionFK`), `/compute_ik` (`GetPositionIK`), `/plan_kinematic_path`,
       `/execute_trajectory`.
 
     - X·Y·Z 허용 범위는 각각 -0.30~0.30m, `tilt_deg`는 -90~90°이며 Y 기울임만 덮어씁니다.
@@ -304,9 +306,15 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
     - home 도착은 전제조건이 아닙니다. 부착 상태에서는 복귀용으로도 사용합니다.
       호출할 때마다 목표를 home 기준으로 계산하며 현재 위치에 오프셋을 누적하지 않습니다.
 
-    **실행과 완료.** 현재 관절 상태에서 이 목표로 완전한 Cartesian 경로를 계획·실행하고,
+    **실행과 완료.** 현재 관절 상태에서 목표 IK 관절값까지 OMPL 경로를 계획·실행하고,
     `settle_time`을 기다린 뒤 성공합니다. 같은 노드를 두 번 실행해도 오프셋을 두 번 더하지 않습니다.
-    Cartesian 경로가 불완전하면 실패하며, 이 노드 자체는 촬영하지 않습니다.
+    IK·계획·실행이 실패하면 중단하며, 이 노드 자체는 촬영하지 않습니다.
+    OMPL 모드에서는 TCP의 직선 이동이나 중간 경로의 방향 고정을 요구하지 않습니다.
+    목표 위치·tilt·yaw는 두 모드에 동일하게 적용하며, Cartesian 부분 경로는 실행하지 않습니다.
+    `bt_motion.observation_motion_mode`는 ompl/cartesian을 선택하고
+    `moveit_observation_ik_timeout`은 OMPL 관측 IK 시간을 설정합니다.
+    OMPL 전용 설정은 `bt_motion.moveit_observation_planner_id`, `moveit_observation_planning_time`,
+    `moveit_observation_num_planning_attempts`이며 속도·가속도는 일반 관절 계획 배율을 사용합니다.
 
 </div>
 
@@ -535,6 +543,7 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
     | 방향 | 포트 | 기본값·타입 | 의미·범위 |
     |---|---|---|---|
     | 입력 | `capture`, `mask`, `cloud`, `candidates` | 필수 | 동일 촬영의 관측·마스크·점군·모델 후보 |
+    | 입력 | `fusion` | 선택; 불변 CloudFusion | 다중 시점 원본·TF; 지정하면 융합 점군을 재계산해 검증 |
     | 입력 | `use_estimated_width` | false | true이면 점군 기반 폭 추정 |
     | 입력 | `pregrasp_distance` | YAML; 현재 0.10m | 사전 접근 거리; 0.02~0.20m |
     | 입력 | `lift_distance` | YAML; 현재 0.08m | 리프트 거리; 0.065~0.20m |
@@ -918,7 +927,8 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
     | StatefulActionNode | CaptureRgbd, ClearOctomap | 시작 시 수신·요청을 준비하고 다음 tick마다 완료를 확인 |
     | Nav2 BtActionNode | SegmentObject, InferGrasps | ROS 액션 goal 전송, 결과 대기, 실패·취소 전달 |
     | SyncActionNode | BuildObjectCloud | 한 번의 tick에서 점군 계산 후 성공 또는 실패 |
-    | 공통 MotionAction | 나머지 모션·장면 11개 | 시작 tick에서 입력을 읽고 비동기 작업 실행, 후속 tick에서 결과 확인 |
+    | SyncActionNode | ResetObjectCloudFusion·BuildFusedObjectCloud | 누적 초기화·voxel 점군 생성 |
+    | 공통 MotionAction | 모션·장면·누적·관절 이동 13개 | 시작 tick에서 입력을 읽고 비동기 작업 실행, 후속 tick에서 결과 확인 |
 
     `SUCCESS`는 각 노드의 완료 조건을 충족했다는 뜻입니다. 계획 성공은 팔 이동 완료와 다르고,
     장면 부착 성공은 실제 잡힘을 센서로 확인했다는 뜻과 다릅니다.
@@ -927,3 +937,32 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
 </div>
 
 [실행 흐름](bt-flows.md) · [구조와 호출 관계](bt-architecture.md) · [공통 설정](real-bt.md)
+
+## 다중 시점 점군 노드
+
+[관측 자세·전체 흐름·제한](width-aware-bt.md#multiview)을 참고하세요.
+
+| 노드 | 입력 | 출력 | 역할 |
+|---|---|---|---|
+| `ResetObjectCloudFusion` | voxel_size=0.003m, max_centroid_distance=0.08m | fusion | 매 실행마다 누적 초기화 |
+| `AccumulateObjectCloud` | capture, mask, fusion | fusion (양방향) | 촬영 시각 TF와 원본 관측을 새 불변 세션에 추가 |
+| `BuildFusedObjectCloud` | fusion, min_views=3 | cloud | base에서 voxel 평균 후 마지막 optical frame으로 반환 |
+
+선택 단계에 `fusion`을 전달하면 단일 마스크 일치 검사 대신 동일 세션에서 재생성한
+융합 점군과 일치하는지 검사합니다. 마지막 capture·mask·TF 일치와 촬영 후 팔 이동
+검사는 유지됩니다. 융합 세션을 전달하지 않는 기존 단일 시점 동작은 그대로입니다.
+
+## 관절 자세 캡처·이동 노드
+
+[등록 명령과 다중 시점 흐름](width-aware-bt.md#multiview)을 참고하세요.
+
+| 노드 | 입력 | 출력 | 역할 |
+|---|---|---|---|
+| `CaptureJointPose` | pose_name, poses_file(선택), overwrite=false, timeout=5초 | joint_positions | 신선한 joint1~6 피드백을 읽어 rad 단위로 원자적 저장; 이동하지 않음 |
+| `CheckJointPoses` | pose_names(세미콜론 구분), poses_file(선택) | 없음 | 등록 누락·잘못된 형식을 이동 전에 거부 |
+| `MoveJointPose` | pose_name, poses_file(선택), settle_time | 없음 | 저장한 관절 목표로 OMPL 계획·실행·실제 피드백 도착 확인; IK 없음 |
+
+파일 경로를 포트로 생략하면 `bt_motion.joint_poses_file`을 사용합니다. 파일·자세가
+없을 때 0 관절값으로 대체하지 않습니다. 저장 시 기존 이름은 명시적인 overwrite가
+필요합니다. 모션은 그리퍼를 제어하지 않으며, 계획·실행 실패와 halt는 기존 MotionAction
+진단·취소 처리를 따릅니다.

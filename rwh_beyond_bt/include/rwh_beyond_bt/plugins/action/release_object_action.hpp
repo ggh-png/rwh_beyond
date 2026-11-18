@@ -20,7 +20,9 @@ public:
   static BT::PortsList providedPorts();
 
 private:
+  void prepare() override;
   void perform() override;
+  bool allow_empty_{false};
 };
 }  // namespace rwh_beyond_bt
 #endif  // RWH_BEYOND_BT__PLUGINS__ACTION__RELEASE_OBJECT_ACTION_HPP_

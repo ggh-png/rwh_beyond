@@ -93,13 +93,28 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         raise ValueError('planning_start_bounds_tolerance_deg must be in (0, 180] degrees')
     start_tolerance = math.radians(start_tolerance)
     params = config.to_dict()
-    arm_ompl = shared_settings.get('move_group', {}).get('ros__parameters', {}).get(
-        'ompl', {}).get('arm', {})
+    ompl_settings = shared_settings.get('move_group', {}).get('ros__parameters', {}).get('ompl', {})
+    planner_overrides = ompl_settings.get('planner_configs', {})
+    if not isinstance(planner_overrides, dict):
+        raise ValueError('move_group.ompl.planner_configs must be a mapping')
+    for name, override in planner_overrides.items():
+        if name not in params['ompl']['planner_configs'] or not isinstance(override, dict):
+            raise ValueError('move_group.ompl.planner_configs must override registered planners')
+        if set(override) - {'range'}:
+            raise ValueError('Only planner range can be overridden in move_group.ompl.planner_configs')
+        value = override.get('range', 0.0)
+        if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+            raise ValueError('OMPL planner range must be finite and >= 0 (0 means automatic)')
+        params['ompl']['planner_configs'][name].update(range=float(value))
+    arm_ompl = ompl_settings.get('arm', {})
     if arm_ompl:
         planners = arm_ompl.get('planner_configs', [])
         if not isinstance(planners, list) or not planners or any(
                 name not in params['ompl']['planner_configs'] for name in planners):
             raise ValueError('move_group.ompl.arm.planner_configs must list registered planners')
+        default_planner = arm_ompl.get('default_planner_config')
+        if default_planner is not None and default_planner not in planners:
+            raise ValueError('default_planner_config must be listed in arm.planner_configs')
         if type(arm_ompl.get('enforce_joint_model_state_space')) is not bool:
             raise ValueError('enforce_joint_model_state_space must be a YAML boolean')
         fraction = arm_ompl.get('longest_valid_segment_fraction')

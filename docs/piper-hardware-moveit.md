@@ -77,3 +77,26 @@ transport는 실측 상태에서 계획 시작점까지 연결 구간을 만들�
 
 계획 오류와 실행 오류를 구분해 확인합니다. 부분 Cartesian 경로는 그대로 실행하지 않습니다. 배치 이동만 같은 목표의 IK·OMPL 우회를 시도합니다.
 팔·카메라의 충돌과 실제 장착 TF는 [카메라 문서](d405-sensors.md)를 참고하세요.
+
+
+## joint5 모델 범위와 저장 자세
+
+표준 PiPER의 joint5 모델·SDK·MuJoCo 범위를 ±75°(±1.308996938995747rad)로 맞췄습니다.
+[AgileX 제품 사양](https://global.agilex.ai/products/piper-6-dof-robotic-arm)은 ±75°를
+안내하지만, 가져온 upstream URDF와 pyAgxArm 기본값은 ±70°여서 로컬 소스를 수정했습니다.
+다른 PiPER 파생 모델의 범위와 컨트롤러 펌웨어 설정은 변경하지 않습니다.
+
+적용한 곳은 `agx_arm_ros`의 표준 PiPER URDF, `moma-mj-lab`의 대응 URDF·MuJoCo
+관절/구동 범위, `/root/robot_deps/pyAgxArm/pyAgxArm/api/constants.py`의 표준 PiPER
+rad/degree 기본값입니다. 컨테이너에 설치된 pyAgxArm에도 같은 값을 반영했습니다.
+SDK를 원본 upstream 버전으로 재설치하면 제한값이 되돌아갈 수 있으므로 이 소스 변경을
+함께 유지합니다. MoveIt의 공통 `joint_limits.yaml`은 속도·가속도만 설정하므로 위치
+범위는 이 URDF를 따릅니다.
+
+이미 실행 중인 노드는 이전 모델·SDK 값을 메모리에 보관합니다. 현재 BT 작업을 종료하고
+`piper_moveit` → `bt_demo` 순서로 재시작해야 새 제한이 적용됩니다. 실행 중인 MuJoCo도
+새 모델을 읽으려면 재시작합니다. 저장된 front/left/right 관절값은 자동으로 변경하지 않습니다.
+
+저장 자세가 모델 범위를 넘으면 MoveIt이 제한 경계에 도달하는 경로를 반환해 BT의
+목표 일치 검사에서 거부될 수 있습니다. 이 검사를 완화하거나 충돌 검사를 끄는 방식으로
+처리하지 않습니다.

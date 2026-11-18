@@ -61,3 +61,116 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 고정 폭이 필요하면 현재 지원되는 대체 트리 `demo.xml`을 `behavior_tree`에 지정합니다.
 이 트리는 `gripper_close_width=0.04m`를 사용하고, 기존 부착이 있으면 새 집기를 거부합니다.
 [트리 선택과 차이](bt-flows.md#fixed-width-pick) · [오류 진단](grasp-troubleshooting.md)
+
+## 다중 시점 점군으로 집기 { #multiview }
+
+`demo_multiview.xml`은 직접 등록한 정면·좌측·우측 관절 자세에서 같은 물체를 SAM 3로
+각각 분할하고, 촬영 시각 TF로 점군을 base 좌표계에 모읍니다. 관측 이동은
+`MoveJointPose`를 사용하므로 TCP 목표 IK를 계산하지 않습니다. 현재 위치에서 저장한
+관절 목표까지 충돌을 검사하는 OMPL 경로를 계획합니다. 그리퍼 목표는 변경하지 않습니다.
+
+### 관측 자세 등록
+
+실물 팔을 원하는 자세로 잡고 정지한 상태에서 각 이름으로 캡처합니다.
+아래 명령은 `feedback/joint_states`를 읽어 파일에 저장하며 이동 명령을 보내지 않습니다.
+실행 중인 로봇과 같은 ROS_DOMAIN_ID·RMW·DDS 환경을 사용합니다.
+
+```bash
+# 정면 관측 자세로 잡은 뒤
+ros2 run rwh_beyond_bt capture_joint_pose front
+# 좌측 관측 자세로 잡은 뒤
+ros2 run rwh_beyond_bt capture_joint_pose left
+# 우측 관측 자세로 잡은 뒤
+ros2 run rwh_beyond_bt capture_joint_pose right
+
+# 등록된 값 확인
+ros2 run rwh_beyond_bt capture_joint_pose --list
+# 특정 자세를 다시 등록할 때만 명시적으로 덮어쓰기
+ros2 run rwh_beyond_bt capture_joint_pose front --overwrite
+```
+
+기본 저장 파일은 `/root/.ros/rwh_beyond/joint_poses.yaml`입니다. `joint1~joint6`만 고정
+순서의 rad 단위로 저장하며 그리퍼는 제외합니다. `bt_motion.joint_poses_file`을 바꾸면
+CLI의 `--file /원하는/경로.yaml`도 같은 경로로 지정합니다. 파일을 백업하거나 호스트
+데이터 디렉터리에 연결하면 컨테이너 교체 후에도 보존할 수 있습니다.
+
+저장 형식은 다음과 같습니다. 아래 빈 목록은 초기 상태이며, 예시 관절값을 임의로
+등록하지 않습니다.
+
+```yaml
+version: 1
+units: radians
+joint_names: [joint1, joint2, joint3, joint4, joint5, joint6]
+poses: {}
+```
+
+`CaptureJointPose` BT 노드도 같은 파일에 저장합니다. 자세 등록용 트리에서만 사용하고,
+일반 집기 트리는 기존 자세를 덮어쓰지 않습니다.
+
+```xml
+<CaptureJointPose pose_name="front" timeout="5.0"/>
+<MoveJointPose pose_name="front" settle_time="1.0"/>
+```
+
+집기 XML의 첫 `CheckJointPoses pose_names="front;left;right"`는 세 자세가 모두 등록돼
+있는지 검사합니다. 하나라도 없거나 파일 형식이 잘못되면 home·그리퍼 이동 전에 실패합니다.
+이후 home·그리퍼 열기 → front 촬영 → left 촬영 → front 경유 → right 촬영 순서로
+진행합니다. 집기 후 복귀도 front 관절 자세를 거쳐 home으로 이동합니다.
+
+`MoveJointPose`는 관측용 `moveit_observation_planner_id`, 계획 시간·시도 횟수와 일반
+관절 계획의 속도·가속도 배율을 사용합니다. `observation_motion_mode`와 관측 IK 시간은
+이 노드에 적용되지 않습니다. 목표에 이미 도착했다면 실행 명령을 생략하고 안정화만
+기다립니다. 실행 후 실제 관절 피드백을 `joint_pose_tolerance`(기본 0.01rad)로 최대
+10초 확인합니다. 관절 한계·충돌은 MoveIt 계획에서, 반환 궤적과 목표 일치는 BT에서
+검사합니다. 등록된 자세도 현재 장면에서 이동 가능한 경로가 없으면 실패할 수 있습니다.
+
+### 점군 융합 흐름
+
+1. `ResetObjectCloudFusion`: 매 실행마다 이전 누적을 비우고 3mm voxel 설정으로 시작합니다.
+2. 각 `MoveJointPose` 도착·안정화 후 새로운 `CaptureRgbd`와 `SegmentObject`를 수행합니다.
+3. `AccumulateObjectCloud`: 불변 촬영 데이터·마스크·촬영 시각의 `base_T_camera`를 보관합니다.
+4. `BuildFusedObjectCloud`: base 좌표계에서 같은 voxel의 점을 평균내 중복을 줄입니다.
+5. 마지막 촬영의 optical 좌표계와 stamp로 변환해 기존 `InferGrasps`에 전달합니다.
+6. `SelectFeasibleGrasp fusion="{fusion}"`이 원본 관측으로 융합 결과를 재계산해 검증한 후,
+   기존 폭 추정·사전 접근·파지·부착·리프트 흐름을 실행합니다.
+
+base 좌표계 디버그 점군은 `/grasp/fused_object_cloud`에서 확인합니다.
+GraspGenX에는 마지막 카메라 좌표계 점군을 전달하므로 모델의 기존 입력·출력 규약과
+Action 메시지는 그대로 사용합니다. 지지면은 마지막 촬영의 배경 깊이로 추정합니다.
+
+첫 버전은 C++/Eigen에서 voxel centroid 샘플링을 수행하므로 Open3D 설치가 필요하지
+않습니다. 원리는 [voxel downsampling](https://www.open3d.org/docs/latest/tutorial/geometry/pointcloud.html#Voxel-downsampling)과 같으며,
+ICP·TSDF·통계적 outlier 제거·FPS는 이 버전에 포함하지 않습니다.
+
+### 선택할 XML
+
+두 파일 모두 `rwh_beyond_bt/behavior_trees/`에 설치됩니다.
+
+- `scan_multiview.xml`: 관측 이동·분할·융합·후보 생성까지 수행합니다. 파지·닫기·리프트는
+  수행하지 않지만, 시작 시 home 이동과 그리퍼 열기를 실행합니다.
+- `demo_multiview.xml`: 위 과정에 실행 가능한 후보 선택과 실제 집기·리프트·home 복귀를 더합니다.
+
+사용할 파일은 YAML의 `default_demo_bt_xml` 또는 RunDemo의 `behavior_tree`로 선택합니다.
+선택값은 자동으로 바꾸지 않습니다. 기본 install 경로는 다음과 같습니다.
+
+```text
+/root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/scan_multiview.xml
+/root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/demo_multiview.xml
+```
+
+### 실패 조건과 적용 범위
+
+한 번에 3개 시점을 요구하며 최대 8개까지 지원합니다. 전체 스캔은 180초 안에 끝나야
+하고 중복되거나 역행하는 촬영 시각, 다른 frame/stamp의 마스크, 잘못된 TF는 거부합니다.
+각 관측은 누적 당시 팔 관절과 일치해야 하고 최신 촬영은 후보 선택 시에도 30초 이내여야
+합니다. 융합 뒤에는 마지막 촬영 자세를 유지한 채 추론·후보 선택을 진행합니다.
+
+시점별 물체 중심이 첫 관측보다 8cm 넘게 달라지면 물체 이동이나 대상 전환으로 간주해
+중단합니다. 이는 같은 물체임을 완전히 보장하는 추적기는 아닙니다. 동일한 대상 설명을
+사용하고 물체·로봇 베이스·작업대를 스캔 중 움직이지 않아야 합니다. 시점마다 변하는
+마스크와 외부 캘리브레이션 오차는 형상 겹침·두께 증가를 만들 수 있습니다.
+
+최종 점이 100개 미만이거나 200,000개를 넘으면 실패합니다. 이 경우 XML의
+`voxel_size`(0.001~0.020m)를 조절합니다. 어느 시점에서도 보이지 않은 표면을 생성하거나
+후면을 완전히 복원하는 기능은 아닙니다. 실패하면 남은 집기 단계와 자동 복귀를 실행하지
+않으며, 다음 실행의 Reset에서 이전 누적을 버립니다.

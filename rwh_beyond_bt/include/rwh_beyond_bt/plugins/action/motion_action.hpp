@@ -56,7 +56,7 @@ protected:
   Cancel cancel_;
   Plan input_plan_;
   std::vector<double> home_, tilt_;
-  double x_{0}, y_{0}, z_{0}, settle_{.5}, opening_{.10}, duration_{3};
+  double x_{0}, y_{0}, z_{0}, yaw_{0}, settle_{.5}, opening_{.10}, duration_{3};
 
 private:
   BT::NodeStatus failure(const std::exception & error);

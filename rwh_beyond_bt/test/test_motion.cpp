@@ -8,6 +8,7 @@
 #include <atomic>
 #include <chrono>
 #include <cstring>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <thread>
@@ -15,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "behaviortree_cpp/bt_factory.h"
 #include "rwh_beyond_bt/motion_context.hpp"
+#include "rwh_beyond_bt/joint_pose_store.hpp"
 #include "rwh_beyond_bt/diagnostics.hpp"
 
 using namespace std::chrono_literals;
@@ -75,7 +77,10 @@ protected:
         moveit_msgs::srv::GetPositionIK::Response::SharedPtr response) {
           EXPECT_TRUE(request->ik_request.avoid_collisions);
           EXPECT_EQ(request->ik_request.ik_link_name, "tcp_link");
-          ++iks; response->error_code.val = 1; response->solution = request->ik_request.robot_state;
+          last_ik_goal = request->ik_request.pose_stamped.pose;
+          last_ik_timeout = rclcpp::Duration(request->ik_request.timeout).seconds();
+          ++iks; response->error_code.val = ik_error;
+          response->solution = request->ik_request.robot_state;
           response->solution.joint_state.position[5] = .2;
       });
     cart_server =
@@ -83,6 +88,7 @@ protected:
         [this](moveit_msgs::srv::GetCartesianPath::Request::SharedPtr request,
         moveit_msgs::srv::GetCartesianPath::Response::SharedPtr response) {
           ++cartesians; EXPECT_TRUE(request->avoid_collisions);
+          if (!request->waypoints.empty()) {last_cartesian_goal = request->waypoints.back();}
           EXPECT_DOUBLE_EQ(request->revolute_jump_threshold, .35);
           response->error_code.val = 1; response->fraction = fraction;
           auto end = request->start_state;
@@ -93,7 +99,9 @@ protected:
         [this](moveit_msgs::srv::GetMotionPlan::Request::SharedPtr request,
         moveit_msgs::srv::GetMotionPlan::Response::SharedPtr response) {
           ++plans;
-          EXPECT_EQ(request->motion_plan_request.planner_id, "RRTConnect");
+          EXPECT_EQ(request->motion_plan_request.planner_id, expected_planner);
+          last_attempts = request->motion_plan_request.num_planning_attempts;
+          last_planning_time = request->motion_plan_request.allowed_planning_time;
           last_constraints = request->motion_plan_request.path_constraints;
           auto goal = request->motion_plan_request.start_state;
           auto & constraints = request->motion_plan_request.goal_constraints[0].joint_constraints;
@@ -144,6 +152,10 @@ protected:
       });
     executor.add_node(server); spinner = std::thread([this]() {executor.spin();});
     context = MotionContext::get(board);
+    pose_directory = std::filesystem::temp_directory_path() / ("bt-joint-poses-" +
+      std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
+    pose_file = (pose_directory / "poses.yaml").string();
+    client->declare_parameter("bt_motion.joint_poses_file", pose_file);
     auto cancel = std::make_shared<std::atomic_bool>(false);
     context->wait([&]() {
         try {context->feedback(); return true;} catch (...) {
@@ -154,6 +166,7 @@ protected:
   void TearDown() override
   {
     board.reset(); context.reset(); executor.cancel(); spinner.join();
+    std::filesystem::remove_all(pose_directory);
   }
   static Trajectory trajectory(const State & start, const State & end)
   {
@@ -221,7 +234,13 @@ protected:
   std::shared_ptr<MotionContext> context;
   sensor_msgs::msg::JointState joints;
   moveit_msgs::msg::PlanningScene world;
+  std::filesystem::path pose_directory;
+  std::string pose_file;
   Constraints last_constraints;
+  geometry_msgs::msg::Pose last_cartesian_goal, last_ik_goal;
+  std::string expected_planner{"RRTConnect"};
+  int last_attempts{0}, ik_error{1};
+  double last_planning_time{0}, last_ik_timeout{0};
   double fraction{1};
   int32_t execution_error{1};
   bool wrong_goal{false}, hold_execution{false}, fail_close{false};
@@ -278,7 +297,7 @@ TEST_F(DirectMotion, ObservationUsesSignedHomeRelativeOffsets)
     "x=\"-.02\" y=\"-.01\" z=\"-.05\" tilt_deg=\"-20\" settle_time=\"0\"/>"
     "</Sequence>"), BT::NodeStatus::SUCCESS);
   EXPECT_EQ(executions, 2);
-  EXPECT_EQ(plans, 1);
+  EXPECT_EQ(plans, 2);
 }
 TEST_F(DirectMotion, PhysicalModeRefusesAnUnverifiedTransport)
 {
@@ -383,7 +402,8 @@ TEST_F(DirectMotion, ObservationCanStartAwayFromHomeWithoutAnImplicitHomeMove)
   ASSERT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
   // The first Cartesian moves joint6 in this mock, so the second starts away from home.
   EXPECT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(plans, 0);
+  EXPECT_EQ(plans, 2);
+  EXPECT_EQ(cartesians, 0);
   EXPECT_EQ(executions, 2);
 }
 TEST_F(DirectMotion, PlaceCanStartAfterLiftWithoutAHomeNode)
@@ -394,6 +414,12 @@ TEST_F(DirectMotion, PlaceCanStartAfterLiftWithoutAHomeNode)
     "<AttachObject plan=\"{plan}\"/><LiftObject plan=\"{plan}\"/>"
     "<MovePlace x=\"0.20\" z=\"0.15\"/><ReleaseObject/>"
     "</Sequence>"), BT::NodeStatus::SUCCESS);
+  EXPECT_FALSE(context->attached);
+}
+TEST_F(DirectMotion, ReleaseCanOpenAnEmptyGripperWhenAllowed)
+{
+  EXPECT_EQ(run("<ReleaseObject allow_empty=\"true\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(closes, 1);
   EXPECT_FALSE(context->attached);
 }
 TEST_F(DirectMotion, NativeMoveItExecutionErrorSurvivesCleanup)
@@ -422,4 +448,157 @@ TEST(ExecutionDiagnostics, RootSnapshotAndStageResetDoNotStoreRosFeedback)
   rwh_beyond_bt::begin_stage(child, "fallback", "recovery");
   EXPECT_EQ(execution_diagnostic(root).error_code, 0);
   EXPECT_EQ(execution_diagnostic(root).current_node, "recovery");
+}
+
+TEST_F(DirectMotion, SideObservationKeepsTiltAndRotatesOnlyOrientationAboutBaseZ)
+{
+  for (double side : {1., -1.}) {
+    const auto xml = "<MoveObservation y=\"" + std::to_string(side * .15) +
+      "\" z=\".10\" tilt_deg=\"40\" yaw_deg=\"" + std::to_string(-side * 30) +
+      "\" settle_time=\"0\"/>";
+    ASSERT_EQ(run(xml), BT::NodeStatus::SUCCESS);
+    const auto actual = pose_matrix(last_ik_goal);
+    Eigen::Matrix3d expected =
+      (Eigen::AngleAxisd(-side * M_PI / 6, Eigen::Vector3d::UnitZ()) *
+      Eigen::AngleAxisd(M_PI, Eigen::Vector3d::UnitX()) *
+      Eigen::AngleAxisd(40 * M_PI / 180, Eigen::Vector3d::UnitY())).toRotationMatrix();
+    EXPECT_TRUE(actual.linear().isApprox(expected, 1e-6));
+    EXPECT_NEAR(actual.translation().x(), 0, 1e-6);
+    EXPECT_NEAR(actual.translation().y(), side * .15, 1e-6);
+    EXPECT_NEAR(actual.translation().z(), .60, 1e-6);
+  }
+}
+TEST_F(DirectMotion, FusedCloudCanSelectAndExecuteUsingLatestCapture)
+{
+  capture();
+  const auto latest = board->get<Observation>("capture");
+  const auto mask = board->get<sensor_msgs::msg::Image>("mask");
+  auto earlier = std::make_shared<RgbdObservation>(*latest);
+  earlier->id = "earlier";
+  earlier->depth.header.stamp = rclcpp::Time(latest->depth.header.stamp) -
+    rclcpp::Duration::from_seconds(.01);
+  earlier->info.header = earlier->depth.header;
+  auto earlier_mask = mask; earlier_mask.header = earlier->depth.header;
+  auto empty = std::make_shared<CloudFusion>(); empty->base_frame = "base_link";
+  auto fusion = append_fusion(empty, earlier, earlier_mask, Eigen::Isometry3d::Identity());
+  fusion = append_fusion(fusion, latest, mask, Eigen::Isometry3d::Identity());
+  board->set("fusion", fusion);
+  ASSERT_EQ(run("<BuildFusedObjectCloud fusion=\"{fusion}\" cloud=\"{cloud}\" min_views=\"2\"/>"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(board->get<sensor_msgs::msg::PointCloud2>("cloud").header, latest->depth.header);
+  auto xml = selection;
+  xml.insert(xml.find("/>"), " fusion=\"{fusion}\"");
+  EXPECT_EQ(run("<Sequence>" + xml + "<MoveToPregrasp plan=\"{plan}\"/>" +
+    "<ApproachGrasp plan=\"{plan}\"/><AttachObject plan=\"{plan}\"/>" +
+    "<LiftObject plan=\"{plan}\"/></Sequence>"), BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(context->attached);
+}
+TEST_F(DirectMotion, FusionNodesResetAndAccumulateWithoutRobotExecution)
+{
+  capture();
+  ASSERT_EQ(run("<Sequence><ResetObjectCloudFusion fusion=\"{fusion}\"/>"
+    "<AccumulateObjectCloud fusion=\"{fusion}\" capture=\"{capture}\" mask=\"{mask}\"/>"
+    "</Sequence>"), BT::NodeStatus::SUCCESS);
+  ASSERT_EQ(board->get<Fusion>("fusion")->views.size(), 1u);
+  EXPECT_EQ(run("<BuildFusedObjectCloud fusion=\"{fusion}\" cloud=\"{cloud}\" min_views=\"2\"/>"),
+    BT::NodeStatus::FAILURE);
+  EXPECT_EQ(run("<ResetObjectCloudFusion fusion=\"{fusion}\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(board->get<Fusion>("fusion")->views.empty());
+  EXPECT_EQ(executions, 0);
+  EXPECT_EQ(closes, 0);
+}
+
+TEST_F(DirectMotion, ObservationUsesConfiguredOmplEvenWhenCartesianWouldFail)
+{
+  fraction = 0;
+  expected_planner = "RRTstar";
+  client->declare_parameter("bt_motion.moveit_observation_planner_id", "RRTstar");
+  client->declare_parameter("bt_motion.moveit_observation_num_planning_attempts", 7);
+  client->declare_parameter("bt_motion.moveit_observation_planning_time", 12.0);
+  client->declare_parameter("bt_motion.moveit_observation_ik_timeout", 2.5);
+  ASSERT_EQ(run(
+    "<MoveObservation y=\".15\" z=\".10\" tilt_deg=\"40\" yaw_deg=\"-30\" settle_time=\"0\"/>"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(iks, 1); EXPECT_EQ(plans, 1); EXPECT_EQ(cartesians, 0); EXPECT_EQ(executions, 1);
+  EXPECT_EQ(last_attempts, 7); EXPECT_DOUBLE_EQ(last_planning_time, 12);
+  EXPECT_DOUBLE_EQ(last_ik_timeout, 2.5);
+}
+TEST_F(DirectMotion, UnreachableObservationNeverPlansOrExecutes)
+{
+  ik_error = -31;
+  EXPECT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(plans, 0); EXPECT_EQ(cartesians, 0); EXPECT_EQ(executions, 0);
+  EXPECT_EQ(execution_diagnostic(board).error_source, "/compute_ik");
+}
+TEST_F(DirectMotion, InvalidObservationPlanningBudgetNeverExecutes)
+{
+  client->declare_parameter("bt_motion.moveit_observation_num_planning_attempts", 0);
+  EXPECT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(cartesians, 0); EXPECT_EQ(executions, 0);
+}
+
+TEST_F(DirectMotion, CartesianObservationDoesNotCallSeparateIkOrOmpl)
+{
+  client->declare_parameter("bt_motion.observation_motion_mode", "cartesian");
+  ik_error = -31;
+  ASSERT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(iks, 0); EXPECT_EQ(plans, 0); EXPECT_EQ(cartesians, 1); EXPECT_EQ(executions, 1);
+}
+TEST_F(DirectMotion, CartesianObservationStillRefusesPartialPathWithoutFallback)
+{
+  client->declare_parameter("bt_motion.observation_motion_mode", "cartesian");
+  fraction = 0;
+  EXPECT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(iks, 0); EXPECT_EQ(plans, 0); EXPECT_EQ(executions, 0);
+  EXPECT_EQ(execution_diagnostic(board).error_code, ErrorCode::PARTIAL_PATH);
+}
+TEST_F(DirectMotion, InvalidObservationModeIsRejectedBeforePlanning)
+{
+  client->declare_parameter("bt_motion.observation_motion_mode", "invalid");
+  EXPECT_EQ(run("<MoveObservation settle_time=\"0\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(iks, 0); EXPECT_EQ(plans, 0); EXPECT_EQ(cartesians, 0); EXPECT_EQ(executions, 0);
+}
+
+TEST_F(DirectMotion, JointPoseCaptureSavesFeedbackWithoutMotion)
+{
+  ASSERT_EQ(run("<CaptureJointPose pose_name=\"front\" joint_positions=\"{recorded}\"/>"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(load_joint_pose(pose_file, "front"), std::vector<double>(6, 0.));
+  EXPECT_EQ(board->get<std::vector<double>>("recorded").size(), 6u);
+  EXPECT_EQ(iks, 0); EXPECT_EQ(plans, 0); EXPECT_EQ(executions, 0); EXPECT_EQ(closes, 0);
+}
+TEST_F(DirectMotion, JointPoseMovePlansJointTargetWithoutIkOrCartesian)
+{
+  const std::vector<double> target{.1, .2, .3, .4, .5, .6};
+  save_joint_pose(pose_file, "left", target);
+  ASSERT_EQ(run("<MoveJointPose pose_name=\"left\" settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(iks, 0); EXPECT_EQ(cartesians, 0); EXPECT_EQ(plans, 1); EXPECT_EQ(executions, 1);
+  EXPECT_EQ(closes, 0);
+  const auto feedback = context->feedback();
+  for (int i = 1; i <= 6; ++i) {
+    const auto joint = "joint" + std::to_string(i);
+    EXPECT_NEAR(feedback.at(joint), target[i - 1], .001);
+  }
+}
+TEST_F(DirectMotion, JointPosePreflightStopsBeforeAnyMotionWhenMissing)
+{
+  save_joint_pose(pose_file, "front", std::vector<double>(6, .1));
+  EXPECT_EQ(run("<Sequence><CheckJointPoses pose_names=\"front;left;right\"/>"
+    "<MoveJointPose pose_name=\"front\" settle_time=\"0\"/></Sequence>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(plans, 0); EXPECT_EQ(executions, 0);
+  EXPECT_EQ(run("<MoveJointPose pose_name=\"missing\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(executions, 0);
+}
+TEST_F(DirectMotion, AlreadyAtSavedJointPoseDoesNotSendExecution)
+{
+  save_joint_pose(pose_file, "front", std::vector<double>(6, 0.));
+  EXPECT_EQ(run("<MoveJointPose pose_name=\"front\" settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(plans, 0); EXPECT_EQ(executions, 0); EXPECT_EQ(closes, 0);
+}
+TEST_F(DirectMotion, SavedJointPoseStillRejectsPlannerEndpointMismatch)
+{
+  save_joint_pose(pose_file, "left", std::vector<double>(6, .1));
+  wrong_goal = true;
+  EXPECT_EQ(run("<MoveJointPose pose_name=\"left\" settle_time=\"0\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_EQ(executions, 0); EXPECT_EQ(iks, 0);
 }

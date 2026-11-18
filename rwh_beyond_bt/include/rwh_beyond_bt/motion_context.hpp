@@ -22,6 +22,7 @@
 #include <utility>
 
 #include "rwh_beyond_bt/diagnostics.hpp"
+#include "rwh_beyond_bt/multiview.hpp"
 #include "Eigen/Geometry"
 #include "behaviortree_cpp/blackboard.h"
 #include "rclcpp/rclcpp.hpp"
@@ -51,6 +52,7 @@ using Constraints = moveit_msgs::msg::Constraints;
 using Joints = std::map<std::string, double>;
 using Points = std::vector<Eigen::Vector3d>;
 using Cancel = std::shared_ptr<std::atomic_bool>;
+enum class PlanningProfile {DEFAULT, OBSERVATION};
 struct GraspPlan
 {
   enum class Phase {SELECTED, PREGRASP, APPROACHED, ATTACHED, LIFTED};
@@ -133,12 +135,13 @@ public:
   geometry_msgs::msg::Pose fk(const State & state, const Cancel & cancel);
   State ik(
     const geometry_msgs::msg::Pose & pose, const State & start, const Cancel & cancel,
-    bool candidate = false);
+    bool candidate = false, PlanningProfile profile = PlanningProfile::DEFAULT);
   moveit_msgs::srv::GetCartesianPath::Response::SharedPtr cartesian(
     const geometry_msgs::msg::Pose & pose, const State & start, const Cancel & cancel);
   Trajectory plan(
     const State & start, const State & goal, const Constraints & wrist,
-    const Cancel & cancel, bool candidate = false);
+    const Cancel & cancel, bool candidate = false,
+    PlanningProfile profile = PlanningProfile::DEFAULT);
   void execute(const Trajectory & trajectory, const Cancel & cancel);
   void execute_cartesian(
     const geometry_msgs::msg::Pose & pose,
@@ -150,11 +153,13 @@ public:
   void prepare_motion(const Cancel & cancel);
   void release(double opening, double duration, bool repeat, const Cancel & cancel);
   void validate_capture(const Observation & capture);
+  Eigen::Isometry3d camera_pose_at(const Observation & capture, const Cancel & cancel);
   Plan select(
     const Observation & capture, const sensor_msgs::msg::Image & mask,
     const sensor_msgs::msg::PointCloud2 & cloud,
     const std::vector<rwh_beyond_msgs::msg::GraspCandidate> & candidates,
-    bool estimated_width, double pre_distance, double lift_distance, const Cancel & cancel);
+    bool estimated_width, double pre_distance, double lift_distance, const Cancel & cancel,
+    const Fusion & fusion = Fusion());
   void publish_selection(const Plan & plan);
 
 private:

@@ -31,6 +31,7 @@
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
+#include "nav2_behavior_tree/plugins/control/recovery_node.hpp"
 #include "rwh_beyond_msgs/action/run_demo.hpp"
 #include "rwh_beyond_msgs/msg/tcp_pose.hpp"
 
@@ -308,7 +309,8 @@ TEST(PluginRegistration, DirectMotionAndPerceptionRegistered)
   for (auto id : {"CheckGraspReady", "SelectFeasibleGrasp", "MoveToPregrasp", "ApproachGrasp",
       "AttachObject", "LiftObject", "MoveHome", "MoveObservation", "MovePlace", "OpenGripper",
       "ReleaseObject", "CaptureRgbd", "SegmentObject", "BuildObjectCloud", "InferGrasps",
-      "ClearOctomap"})
+      "ClearOctomap", "ResetObjectCloudFusion", "AccumulateObjectCloud", "BuildFusedObjectCloud",
+      "CaptureJointPose", "MoveJointPose", "CheckJointPoses"})
   {
     EXPECT_EQ(factory.manifests().count(id), 1u);
                                                 }
@@ -320,7 +322,17 @@ TEST(PluginRegistration, DirectMotionAndPerceptionRegistered)
     EXPECT_EQ(ports.count("plan"), 1u);
   }
   const auto & observation = factory.manifests().at("MoveObservation").ports;
-  EXPECT_EQ(observation.size(), 6u);
+  EXPECT_EQ(observation.size(), 7u);
   EXPECT_EQ(observation.count("tilt_deg"), 1u);
   EXPECT_EQ(observation.count("plan"), 0u);
+}
+
+TEST(PluginRegistration, MultiViewXmlAndIncludedScanTreeLoad)
+{
+  for (const auto * file : {"demo_multiview.xml", "scan_multiview.xml"}) {
+    BT::BehaviorTreeFactory factory;
+    factory.registerFromPlugin(BT_PLUGIN_PATH);
+    factory.registerNodeType<nav2_behavior_tree::RecoveryNode>("RecoveryNode");
+    EXPECT_NO_THROW(factory.registerBehaviorTreeFromFile(std::string(BT_TREE_DIR) + "/" + file));
+  }
 }
