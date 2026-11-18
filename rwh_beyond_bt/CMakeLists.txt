@@ -89,12 +89,12 @@ add_library(rwh_beyond_motion_bt_nodes SHARED
   src/multiview.cpp
   plugins/action/multiview_actions.cpp
   plugins/action/joint_pose_actions.cpp)
-target_link_libraries(rwh_beyond_motion_bt_nodes rwh_beyond_joint_pose_store ${PROJECT_NAME}_common rwh_beyond_perception_bt_nodes Eigen3::Eigen)
+target_link_libraries(rwh_beyond_motion_bt_nodes PUBLIC rwh_beyond_joint_pose_store ${PROJECT_NAME}_common rwh_beyond_perception_bt_nodes Eigen3::Eigen)
 target_include_directories(rwh_beyond_motion_bt_nodes SYSTEM PRIVATE ${PCL_INCLUDE_DIRS})
-target_link_libraries(rwh_beyond_motion_bt_nodes ${PCL_LIBRARIES})
+target_link_libraries(rwh_beyond_motion_bt_nodes PRIVATE ${PCL_LIBRARIES})
 target_compile_features(rwh_beyond_motion_bt_nodes PUBLIC cxx_std_17)
 target_compile_definitions(rwh_beyond_motion_bt_nodes PRIVATE BT_PLUGIN_EXPORT)
-ament_target_dependencies(rwh_beyond_motion_bt_nodes ${dependencies})
+ament_target_dependencies(rwh_beyond_motion_bt_nodes PUBLIC ${dependencies})
 list(APPEND plugin_libs rwh_beyond_motion_bt_nodes)
 
 # Compatibility loader; individual plugins can also be loaded directly by Nav2.
