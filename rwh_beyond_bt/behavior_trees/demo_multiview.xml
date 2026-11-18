@@ -1,98 +1,343 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<root BTCPP_format="4" main_tree_to_execute="PickWithRecovery">
-  <!-- Teach and capture front/left/right joint poses before running this tree.
-       MoveJointPose uses collision-checked joint planning, without TCP IK. -->
+<root BTCPP_format="4"
+      main_tree_to_execute="PickWithRecovery">
   <BehaviorTree ID="FrontPick">
     <Sequence name="FrontPickSequence">
-      <CheckJointPoses pose_names="front"/>
+      <CheckJointPoses poses_file=""
+                       pose_names="front"/>
       <CheckGraspReady release_previous="true"/>
-      <ClearOctomap once="false" timeout="30.0"/>
-      <MoveHome/>
-      <OpenGripper/>
-      <MoveJointPose pose_name="front" settle_time="1.0"/>
-      <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
-      <SegmentObject capture="{capture}" mask="{object_mask}"/>
-      <BuildObjectCloud capture="{capture}" mask="{object_mask}" cloud="{object_cloud}"/>
-      <ClearOctomap once="false" timeout="30.0"/>
-      <InferGrasps cloud="{object_cloud}" candidates="{grasps}"/>
-      <SelectFeasibleGrasp capture="{capture}" mask="{object_mask}"
-                           cloud="{object_cloud}" candidates="{grasps}"
-                           use_estimated_width="true" pregrasp_distance="0.10"
-                           lift_distance="0.08" selected_plan="{grasp_plan}"
-                           grasp_width="{grasp_width}" close_width="{close_width}"
-                           pregrasp="{pregrasp}" grasp_pose="{grasp_pose}"/>
+      <ClearOctomap scene_service="/get_planning_scene"
+                    cloud_topic="/camera/depth/filtered_points"
+                    service_name="/clear_octomap"
+                    fresh_clouds="2"
+                    timeout="30.0"
+                    once="false"/>
+      <MoveHome home_joint_positions=""/>
+      <OpenGripper opening=""
+                   duration=""/>
+      <MoveJointPose settle_time="1.0"
+                     poses_file=""
+                     pose_name="front"/>
+      <CaptureRgbd observation_id="{observation}"
+                   capture="{capture}"
+                   timeout="10.0"/>
+      <SegmentObject capture="{capture}"
+                     target_text=""
+                     server_timeout=""
+                     mask="{object_mask}"
+                     server_name=""/>
+      <BuildObjectCloud cloud="{object_cloud}"
+                        mask="{object_mask}"
+                        capture="{capture}"/>
+      <ClearOctomap scene_service="/get_planning_scene"
+                    cloud_topic="/camera/depth/filtered_points"
+                    service_name="/clear_octomap"
+                    fresh_clouds="2"
+                    timeout="30.0"
+                    once="false"/>
+      <InferGrasps cloud="{object_cloud}"
+                   candidates="{grasps}"
+                   server_timeout=""
+                   server_name=""/>
+      <SelectFeasibleGrasp close_width="{close_width}"
+                           grasp_width="{grasp_width}"
+                           pregrasp="{pregrasp}"
+                           mask="{object_mask}"
+                           selected_plan="{grasp_plan}"
+                           pregrasp_distance="0.10"
+                           grasp_pose="{grasp_pose}"
+                           capture="{capture}"
+                           fusion=""
+                           cloud="{object_cloud}"
+                           candidates="{grasps}"
+                           use_estimated_width="true"
+                           lift_distance="0.08"/>
       <MoveToPregrasp plan="{grasp_plan}"/>
       <ApproachGrasp plan="{grasp_plan}"/>
       <AttachObject plan="{grasp_plan}"/>
       <LiftObject plan="{grasp_plan}"/>
-      <MoveHome/>
+      <MoveHome home_joint_positions=""/>
+    </Sequence>
+  </BehaviorTree>
+
+  <BehaviorTree ID="MultiViewPick">
+    <Sequence name="MultiViewGraspAndLift">
+      <SubTree ID="MultiViewScan"
+               _autoremap="true"/>
+      <SelectFeasibleGrasp close_width="{close_width}"
+                           grasp_width="{grasp_width}"
+                           pregrasp="{pregrasp}"
+                           mask="{object_mask}"
+                           selected_plan="{grasp_plan}"
+                           pregrasp_distance="0.10"
+                           grasp_pose="{grasp_pose}"
+                           capture="{capture}"
+                           fusion="{fusion}"
+                           cloud="{object_cloud}"
+                           candidates="{grasps}"
+                           use_estimated_width="true"
+                           lift_distance="0.08"/>
+      <MoveToPregrasp plan="{grasp_plan}"/>
+      <ApproachGrasp plan="{grasp_plan}"/>
+      <AttachObject plan="{grasp_plan}"/>
+      <LiftObject plan="{grasp_plan}"/>
+      <MoveJointPose settle_time="1.0"
+                     poses_file=""
+                     pose_name="front"/>
+      <MoveHome home_joint_positions=""/>
     </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="MultiViewScan">
     <Sequence name="PrepareAndScanThreeViews">
-      <CheckJointPoses pose_names="front;left;right"/>
+      <CheckJointPoses poses_file=""
+                       pose_names="front;left;right"/>
       <CheckGraspReady release_previous="true"/>
-      <ClearOctomap once="false" timeout="30.0"/>
-      <MoveHome/>
-      <OpenGripper/>
-      <ResetObjectCloudFusion fusion="{fusion}" voxel_size="0.003"
-                              max_centroid_distance="0.08"/>
+      <ClearOctomap scene_service="/get_planning_scene"
+                    cloud_topic="/camera/depth/filtered_points"
+                    service_name="/clear_octomap"
+                    fresh_clouds="2"
+                    timeout="30.0"
+                    once="false"/>
+      <OpenGripper opening=""
+                   duration=""/>
+      <ResetObjectCloudFusion fusion="{fusion}"
+                              max_centroid_distance="0.08"
+                              voxel_size="0.003"/>
       <Sequence name="LeftViewFacingRight">
-        <MoveJointPose pose_name="left" settle_time="1.0"/>
-        <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
-        <SegmentObject capture="{capture}" mask="{object_mask}"/>
-        <AccumulateObjectCloud capture="{capture}" mask="{object_mask}" fusion="{fusion}"/>
+        <MoveJointPose settle_time="1.0"
+                       poses_file=""
+                       pose_name="left"/>
+        <CaptureRgbd observation_id="{observation}"
+                     capture="{capture}"
+                     timeout="10.0"/>
+        <SegmentObject capture="{capture}"
+                       target_text=""
+                       server_timeout=""
+                       mask="{object_mask}"
+                       server_name=""/>
+        <AccumulateObjectCloud fusion="{fusion}"
+                               mask="{object_mask}"
+                               capture="{capture}"/>
       </Sequence>
-      <!-- <Sequence name="FrontView">
-        <MoveJointPose pose_name="front" settle_time="1.0"/>
-        <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
-        <SegmentObject capture="{capture}" mask="{object_mask}"/>
-        <AccumulateObjectCloud capture="{capture}" mask="{object_mask}" fusion="{fusion}"/>
-      </Sequence> -->
       <Sequence name="RightViewFacingLeft">
-        <!-- Return through the center before crossing to the opposite side. -->
-        <!-- <MoveJointPose pose_name="front" settle_time="1.0"/> -->
-        <MoveJointPose pose_name="right" settle_time="1.0"/>
-        <CaptureRgbd capture="{capture}" observation_id="{observation}" timeout="10.0"/>
-        <SegmentObject capture="{capture}" mask="{object_mask}"/>
-        <AccumulateObjectCloud capture="{capture}" mask="{object_mask}" fusion="{fusion}"/>
+        <MoveJointPose settle_time="1.0"
+                       poses_file=""
+                       pose_name="right"/>
+        <CaptureRgbd observation_id="{observation}"
+                     capture="{capture}"
+                     timeout="10.0"/>
+        <SegmentObject capture="{capture}"
+                       target_text=""
+                       server_timeout=""
+                       mask="{object_mask}"
+                       server_name=""/>
+        <AccumulateObjectCloud fusion="{fusion}"
+                               mask="{object_mask}"
+                               capture="{capture}"/>
       </Sequence>
-      <BuildFusedObjectCloud fusion="{fusion}" cloud="{object_cloud}" min_views="2"/>
-      <ClearOctomap once="false" timeout="30.0"/>
-      <InferGrasps cloud="{object_cloud}" candidates="{grasps}"/>
-    </Sequence>
-  </BehaviorTree>
-  <BehaviorTree ID="MultiViewPick">
-    <Sequence name="MultiViewGraspAndLift">
-      <SubTree ID="MultiViewScan" _autoremap="true"/>
-      <SelectFeasibleGrasp capture="{capture}" mask="{object_mask}"
-                           cloud="{object_cloud}" fusion="{fusion}" candidates="{grasps}"
-                           use_estimated_width="true" pregrasp_distance="0.10"
-                           lift_distance="0.08" selected_plan="{grasp_plan}"
-                           grasp_width="{grasp_width}" close_width="{close_width}"
-                           pregrasp="{pregrasp}" grasp_pose="{grasp_pose}"/>
-      <MoveToPregrasp plan="{grasp_plan}"/>
-      <ApproachGrasp plan="{grasp_plan}"/>
-      <AttachObject plan="{grasp_plan}"/>
-      <LiftObject plan="{grasp_plan}"/>
-      <MoveJointPose pose_name="front" settle_time="1.0"/>
-      <MoveHome/>
+      <BuildFusedObjectCloud cloud="{object_cloud}"
+                             min_views="2"
+                             fusion="{fusion}"/>
+      <ClearOctomap scene_service="/get_planning_scene"
+                    cloud_topic="/camera/depth/filtered_points"
+                    service_name="/clear_octomap"
+                    fresh_clouds="2"
+                    timeout="30.0"
+                    once="false"/>
+      <InferGrasps cloud="{object_cloud}"
+                   candidates="{grasps}"
+                   server_timeout=""
+                   server_name=""/>
     </Sequence>
   </BehaviorTree>
 
   <BehaviorTree ID="PickWithRecovery">
-    <RecoveryNode number_of_retries="0" name="PickRecovery">
+    <RecoveryNode name="PickRecovery"
+                  number_of_retries="0">
       <Fallback name="FrontThenMultiView">
-        <SubTree ID="FrontPick" _autoremap="true"/>
-        <SubTree ID="MultiViewPick" _autoremap="true"/>
+        <SubTree ID="FrontPick"
+                 _autoremap="true"/>
+        <SubTree ID="MultiViewPick"
+                 _autoremap="true"/>
       </Fallback>
       <Sequence name="FailureHome">
-        <MoveHome/>
+        <MoveHome home_joint_positions=""/>
         <ForceFailure>
-          <OpenGripper/>
+          <OpenGripper opening=""
+                       duration=""/>
         </ForceFailure>
       </Sequence>
     </RecoveryNode>
   </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="AccumulateObjectCloud">
+      <inout_port name="fusion"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
+      <input_port name="mask"
+                  type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="capture"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+    </Action>
+    <Action ID="ApproachGrasp">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="AttachObject">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="BuildFusedObjectCloud">
+      <output_port name="cloud"
+                   type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="min_views"
+                  default="3"
+                  type="int">Minimum view count</input_port>
+      <input_port name="fusion"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
+    </Action>
+    <Action ID="BuildObjectCloud">
+      <output_port name="cloud"
+                   type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="mask"
+                  type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="capture"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+    </Action>
+    <Action ID="CaptureRgbd">
+      <output_port name="observation_id"
+                   type="std::string"/>
+      <output_port name="capture"
+                   type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+      <input_port name="timeout"
+                  default="10.000000"
+                  type="double">Fresh exposure wait in seconds</input_port>
+    </Action>
+    <Action ID="CheckGraspReady">
+      <input_port name="release_previous"
+                  default="false"
+                  type="bool">Explicitly release prior payload in place</input_port>
+    </Action>
+    <Action ID="CheckJointPoses">
+      <input_port name="poses_file"
+                  type="std::string"/>
+      <input_port name="pose_names"
+                  type="std::vector&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt;, std::allocator&lt;std::__cxx11::basic_string&lt;char, std::char_traits&lt;char&gt;, std::allocator&lt;char&gt; &gt; &gt; &gt;"/>
+    </Action>
+    <Action ID="ClearOctomap">
+      <input_port name="scene_service"
+                  default="/get_planning_scene"
+                  type="std::string">MoveIt planning scene service</input_port>
+      <input_port name="cloud_topic"
+                  default="/camera/depth/filtered_points"
+                  type="std::string">Robot-filtered depth XYZ</input_port>
+      <input_port name="service_name"
+                  default="/clear_octomap"
+                  type="std::string">MoveIt clear service</input_port>
+      <input_port name="fresh_clouds"
+                  default="2"
+                  type="int">Distinct nonempty depth clouds required after clear</input_port>
+      <input_port name="timeout"
+                  default="30.000000"
+                  type="double">Total wall-time limit in seconds</input_port>
+      <input_port name="once"
+                  default="true"
+                  type="bool">Skip after successful initialization for this node instance</input_port>
+    </Action>
+    <Action ID="InferGrasps">
+      <input_port name="cloud"
+                  type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <output_port name="candidates"
+                   type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+      <input_port name="server_timeout"
+                  type="std::chrono::milliseconds"/>
+      <input_port name="server_name"
+                  type="std::string">Action server name</input_port>
+    </Action>
+    <Action ID="LiftObject">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="MoveHome">
+      <input_port name="home_joint_positions"
+                  type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
+    </Action>
+    <Action ID="MoveJointPose">
+      <input_port name="settle_time"
+                  type="double">Settling time after verified joint arrival (seconds)</input_port>
+      <input_port name="poses_file"
+                  type="std::string"/>
+      <input_port name="pose_name"
+                  type="std::string"/>
+    </Action>
+    <Action ID="MoveToPregrasp">
+      <input_port name="plan"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+    </Action>
+    <Action ID="OpenGripper">
+      <input_port name="opening"
+                  type="double">Gripper total gap (m)</input_port>
+      <input_port name="duration"
+                  type="double">Gripper duration (s)</input_port>
+    </Action>
+    <Control ID="RecoveryNode">
+      <input_port name="number_of_retries"
+                  default="1"
+                  type="int">Number of retries</input_port>
+    </Control>
+    <Action ID="ResetObjectCloudFusion">
+      <output_port name="fusion"
+                   type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
+      <input_port name="max_centroid_distance"
+                  default="0.080000"
+                  type="double">Maximum target centroid drift in meters</input_port>
+      <input_port name="voxel_size"
+                  default="0.003000"
+                  type="double">Voxel edge length in meters</input_port>
+    </Action>
+    <Action ID="SegmentObject">
+      <input_port name="capture"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+      <input_port name="target_text"
+                  type="std::string">Optional target description</input_port>
+      <input_port name="server_timeout"
+                  type="std::chrono::milliseconds"/>
+      <output_port name="mask"
+                   type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="server_name"
+                  type="std::string">Action server name</input_port>
+    </Action>
+    <Action ID="SelectFeasibleGrasp">
+      <output_port name="close_width"
+                   type="double"/>
+      <output_port name="grasp_width"
+                   type="double"/>
+      <output_port name="pregrasp"
+                   type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="mask"
+                  type="sensor_msgs::msg::Image_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <output_port name="selected_plan"
+                   type="std::shared_ptr&lt;rwh_beyond_bt::GraspPlan&gt;"/>
+      <input_port name="pregrasp_distance"
+                  type="double">Approach offset (m); omit for bt_motion YAML</input_port>
+      <output_port name="grasp_pose"
+                   type="rwh_beyond_msgs::msg::TcpPose_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="capture"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
+      <input_port name="fusion"
+                  type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
+      <input_port name="cloud"
+                  type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
+      <input_port name="candidates"
+                  type="std::vector&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt;, std::allocator&lt;rwh_beyond_msgs::msg::GraspCandidate_&lt;std::allocator&lt;void&gt; &gt; &gt; &gt;"/>
+      <input_port name="use_estimated_width"
+                  default="false"
+                  type="bool">Estimate close width from point cloud</input_port>
+      <input_port name="lift_distance"
+                  type="double">Lift distance (m); omit for bt_motion YAML</input_port>
+    </Action>
+  </TreeNodesModel>
+
 </root>
