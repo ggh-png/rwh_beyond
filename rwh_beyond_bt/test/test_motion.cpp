@@ -422,6 +422,69 @@ TEST_F(DirectMotion, ReleaseCanOpenAnEmptyGripperWhenAllowed)
   EXPECT_EQ(closes, 1);
   EXPECT_FALSE(context->attached);
 }
+TEST_F(DirectMotion, SavedPlacementPosePermitsReleaseOnlyWhenExplicitlyEnabled)
+{
+  capture();
+  ASSERT_EQ(run("<Sequence>" + selection +
+    "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
+    "<AttachObject plan=\"{plan}\"/><LiftObject plan=\"{plan}\"/></Sequence>"),
+    BT::NodeStatus::SUCCESS);
+  save_joint_pose(pose_file, "place", std::vector<double>(6, .1));
+  ASSERT_EQ(run("<MoveJointPose pose_name=\"place\" settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_FALSE(context->release_ready);
+  EXPECT_EQ(run("<ReleaseObject opening=\"0.10\" allow_empty=\"true\"/>"),
+    BT::NodeStatus::FAILURE);
+  ASSERT_EQ(run("<MoveJointPose pose_name=\"place\" settle_time=\"0\""
+    " release_on_arrival=\"true\"/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_TRUE(context->release_ready);
+  EXPECT_EQ(run("<ReleaseObject opening=\"0.10\" allow_empty=\"true\"/>"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_FALSE(context->attached);
+}
+TEST_F(DirectMotion, FailedSavedPlacementPoseCannotAuthorizeRelease)
+{
+  capture();
+  ASSERT_EQ(run("<Sequence>" + selection +
+    "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
+    "<AttachObject plan=\"{plan}\"/><LiftObject plan=\"{plan}\"/></Sequence>"),
+    BT::NodeStatus::SUCCESS);
+  save_joint_pose(pose_file, "place", std::vector<double>(6, .1));
+  context->release_ready = true;
+  wrong_goal = true;
+  EXPECT_EQ(run("<MoveJointPose pose_name=\"place\" settle_time=\"0\""
+    " release_on_arrival=\"true\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_FALSE(context->release_ready);
+  EXPECT_EQ(run("<ReleaseObject allow_empty=\"true\"/>"), BT::NodeStatus::FAILURE);
+  EXPECT_TRUE(context->attached);
+}
+TEST_F(DirectMotion, InvalidSavedPlacementClearsPreviousReleasePermission)
+{
+  context->release_ready = true;
+  EXPECT_EQ(run("<MoveJointPose pose_name=\"missing\" release_on_arrival=\"true\"/>"),
+    BT::NodeStatus::FAILURE);
+  EXPECT_FALSE(context->release_ready);
+}
+TEST_F(DirectMotion, CanceledSavedPlacementCannotAuthorizeRelease)
+{
+  capture();
+  ASSERT_EQ(run("<Sequence>" + selection +
+    "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
+    "<AttachObject plan=\"{plan}\"/><LiftObject plan=\"{plan}\"/></Sequence>"),
+    BT::NodeStatus::SUCCESS);
+  save_joint_pose(pose_file, "place", std::vector<double>(6, .1));
+  const auto previous_executions = executions.load();
+  hold_execution = true;
+  auto t = tree("<MoveJointPose pose_name=\"place\" settle_time=\"0\""
+    " release_on_arrival=\"true\"/>");
+  for (int i = 0; i < 400 && executions == previous_executions; ++i) {
+    t.tickOnce();
+    std::this_thread::sleep_for(5ms);
+  }
+  ASSERT_GT(executions.load(), previous_executions);
+  t.haltTree();
+  EXPECT_FALSE(context->release_ready);
+  EXPECT_TRUE(context->attached);
+}
 TEST_F(DirectMotion, NativeMoveItExecutionErrorSurvivesCleanup)
 {
   capture();

@@ -53,6 +53,7 @@ private:
   }
   std::string pose_name_;
   std::vector<double> target_;
+  bool release_on_arrival_{false};
 };
 }  // namespace rwh_beyond_bt
 #endif  // RWH_BEYOND_BT__PLUGINS__ACTION__JOINT_POSE_ACTIONS_HPP_

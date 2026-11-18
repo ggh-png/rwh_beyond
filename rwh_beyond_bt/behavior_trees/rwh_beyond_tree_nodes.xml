@@ -61,6 +61,7 @@
             <input_port name="home_joint_positions" type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
         </Action>
         <Action ID="MoveJointPose">
+            <input_port name="release_on_arrival" type="bool" default="false">Permit release after confirmed placement pose arrival</input_port>
             <input_port name="settle_time" type="double">Settling time after verified joint arrival (seconds)</input_port>
             <input_port name="poses_file" type="std::string"/>
             <input_port name="pose_name" type="std::string"/>

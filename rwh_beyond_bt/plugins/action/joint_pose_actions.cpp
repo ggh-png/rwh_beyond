@@ -112,16 +112,26 @@ BT::NodeStatus CheckJointPosesAction::tick()
 BT::PortsList MoveJointPoseAction::providedPorts()
 {
   return {BT::InputPort<std::string>("pose_name"), BT::InputPort<std::string>("poses_file"),
-    BT::InputPort<double>("settle_time", "Settling time after verified joint arrival (seconds)")};
+    BT::InputPort<double>("settle_time", "Settling time after verified joint arrival (seconds)"),
+    BT::InputPort<bool>("release_on_arrival", false,
+      "Permit payload release after confirmed arrival at this placement pose")};
 }
 void MoveJointPoseAction::prepare()
 {
+  std::unique_lock<std::mutex> lock(context_->operation, std::try_to_lock);
+  if (!lock.owns_lock()) {
+    throw ActionFailure(ErrorCode::CONCURRENT_OPERATION, "bt", "CONCURRENT_OPERATION",
+            registrationName(), "Concurrent BT robot operation refused");
+  }
+  context_->release_ready = false;
+  release_on_arrival_ = required<bool>("release_on_arrival");
   pose_name_ = required<std::string>("pose_name");
   target_ = load_joint_pose(poses_file(*this, *context_), pose_name_);
 }
 void MoveJointPoseAction::perform()
 {
   auto & context = *context_;
+  context.release_ready = false;
   context.prepare_motion(cancel_);
   const auto start = context.state(cancel_);
   auto goal = start;
@@ -152,5 +162,8 @@ void MoveJointPoseAction::perform()
   context.wait(reached, 10, cancel_);
   const auto until = std::chrono::steady_clock::now() + std::chrono::duration<double>(settle_);
   context.wait([&]() {return std::chrono::steady_clock::now() >= until;}, settle_ + 1, cancel_);
+  if (release_on_arrival_ && context.attached) {
+    context.release_ready = true;
+  }
 }
 }  // namespace rwh_beyond_bt

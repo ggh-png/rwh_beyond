@@ -1,11 +1,44 @@
-<root BTCPP_format="4" main_tree_to_execute="Place">
+<?xml version="1.0" encoding="UTF-8"?>
+<root BTCPP_format="4"
+      main_tree_to_execute="Place">
   <BehaviorTree ID="Place">
     <Sequence name="PlaceSequence">
-      <MoveHome/>
-      <!-- Home TCP position + base-frame X 0.20 m and Z 0.15 m. -->
-      <MovePlace x="0.20" z="0.15"/>
-      <ReleaseObject allow_empty="true"/>
-      <MoveHome/>
+      <MoveHome home_joint_positions=""/>
+      <MoveJointPose settle_time=""
+                     poses_file=""
+                     pose_name="place"
+                     release_on_arrival="true"/>
+      <ReleaseObject opening="0.10"
+                     duration="3.0"
+                     allow_empty="true"/>
+      <MoveHome home_joint_positions=""/>
     </Sequence>
   </BehaviorTree>
+
+  <!-- Description of Node Models (used by Groot) -->
+  <TreeNodesModel>
+    <Action ID="MoveHome">
+      <input_port name="home_joint_positions"
+                  type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
+    </Action>
+    <Action ID="MoveJointPose">
+      <input_port name="release_on_arrival"
+                  type="bool" default="false">Permit release after confirmed placement pose arrival</input_port>
+      <input_port name="settle_time"
+                  type="double">Settling time after verified joint arrival (seconds)</input_port>
+      <input_port name="poses_file"
+                  type="std::string"/>
+      <input_port name="pose_name"
+                  type="std::string"/>
+    </Action>
+    <Action ID="ReleaseObject">
+      <input_port name="opening"
+                  type="double">Gripper total gap (m)</input_port>
+      <input_port name="duration"
+                  type="double">Gripper duration (s)</input_port>
+      <input_port name="allow_empty"
+                  type="bool" default="false">Open when no payload is attached</input_port>
+    </Action>
+  </TreeNodesModel>
+
 </root>
