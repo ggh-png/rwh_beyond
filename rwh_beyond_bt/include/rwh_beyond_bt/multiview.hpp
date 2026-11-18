@@ -9,6 +9,7 @@
 #define RWH_BEYOND_BT__MULTIVIEW_HPP_
 
 #include <chrono>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -23,11 +24,17 @@ struct FusionView
   Observation capture;
   sensor_msgs::msg::Image mask;
   Eigen::Isometry3d base_camera{Eigen::Isometry3d::Identity()};
+  Eigen::Isometry3d correction{Eigen::Isometry3d::Identity()};
+  bool icp_accepted{false};
+  double icp_overlap{0.0};
+  double icp_rmse{std::numeric_limits<double>::quiet_NaN()};
+  std::string icp_status{"anchor"};
 };
 struct CloudFusion
 {
   std::string base_frame;
   double voxel_size{.003}, max_centroid_distance{.08};
+  bool use_icp{true};
   std::chrono::steady_clock::time_point started{std::chrono::steady_clock::now()};
   std::vector<FusionView> views;
 };

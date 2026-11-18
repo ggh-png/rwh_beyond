@@ -33,6 +33,7 @@ BT::PortsList ResetObjectCloudFusionAction::providedPorts()
 {
   return {BT::InputPort<double>("voxel_size", .003, "Voxel edge length in meters"),
     BT::InputPort<double>("max_centroid_distance", .08, "Maximum target centroid drift in meters"),
+    BT::InputPort<bool>("use_icp", true, "Refine overlapping views with bounded ICP"),
     BT::OutputPort<Fusion>("fusion")};
 }
 BT::NodeStatus ResetObjectCloudFusionAction::tick()
@@ -43,6 +44,7 @@ BT::NodeStatus ResetObjectCloudFusionAction::tick()
     session->base_frame = MotionContext::get(config().blackboard)->base;
     session->voxel_size = input<double>(*this, "voxel_size");
     session->max_centroid_distance = input<double>(*this, "max_centroid_distance");
+    session->use_icp = input<bool>(*this, "use_icp");
     validate_fusion(*session);
     setOutput("fusion", Fusion(session));
     return BT::NodeStatus::SUCCESS;
@@ -70,6 +72,17 @@ void AccumulateObjectCloudAction::perform()
 {
   context_->validate_capture(capture_);
   result_ = append_fusion(previous_, capture_, mask_, context_->camera_pose_at(capture_, cancel_));
+  const auto & view = result_->views.back();
+  if (result_->views.size() > 1 && result_->use_icp) {
+    if (view.icp_accepted) {
+      RCLCPP_INFO(context_->node->get_logger(), "ICP view %s accepted: overlap=%.3f rmse=%.4fm",
+        capture_->id.c_str(), view.icp_overlap, view.icp_rmse);
+    } else {
+      RCLCPP_WARN(context_->node->get_logger(),
+        "ICP view %s rejected (%s): overlap=%.3f rmse=%.4fm; retaining TF",
+        capture_->id.c_str(), view.icp_status.c_str(), view.icp_overlap, view.icp_rmse);
+    }
+  }
 }
 void AccumulateObjectCloudAction::publish_outputs()
 {

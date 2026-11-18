@@ -102,6 +102,7 @@
       <OpenGripper opening=""
                    duration=""/>
       <ResetObjectCloudFusion fusion="{fusion}"
+                              use_icp="true"
                               max_centroid_distance="0.08"
                               voxel_size="0.003"/>
       <Sequence name="LeftViewFacingRight">
@@ -288,6 +289,9 @@
                   type="int">Number of retries</input_port>
     </Control>
     <Action ID="ResetObjectCloudFusion">
+      <input_port name="use_icp"
+                  default="true"
+                  type="bool">Refine overlapping views with bounded ICP</input_port>
       <output_port name="fusion"
                    type="std::shared_ptr&lt;rwh_beyond_bt::CloudFusion const&gt;"/>
       <input_port name="max_centroid_distance"

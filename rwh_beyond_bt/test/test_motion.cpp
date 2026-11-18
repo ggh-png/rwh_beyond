@@ -480,8 +480,11 @@ TEST_F(DirectMotion, FusedCloudCanSelectAndExecuteUsingLatestCapture)
   earlier->info.header = earlier->depth.header;
   auto earlier_mask = mask; earlier_mask.header = earlier->depth.header;
   auto empty = std::make_shared<CloudFusion>(); empty->base_frame = "base_link";
-  auto fusion = append_fusion(empty, earlier, earlier_mask, Eigen::Isometry3d::Identity());
+  auto earlier_pose = Eigen::Isometry3d::Identity();
+  earlier_pose.translation().z() = .004;
+  auto fusion = append_fusion(empty, earlier, earlier_mask, earlier_pose);
   fusion = append_fusion(fusion, latest, mask, Eigen::Isometry3d::Identity());
+  ASSERT_TRUE(fusion->views.back().icp_accepted) << fusion->views.back().icp_status;
   board->set("fusion", fusion);
   ASSERT_EQ(run("<BuildFusedObjectCloud fusion=\"{fusion}\" cloud=\"{cloud}\" min_views=\"2\"/>"),
     BT::NodeStatus::SUCCESS);

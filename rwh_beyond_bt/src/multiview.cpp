@@ -7,12 +7,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #include "rwh_beyond_bt/multiview.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
+#include <limits>
 #include <map>
 #include <stdexcept>
 #include <utility>
 
+#include "pcl/filters/voxel_grid.h"
+#include "pcl/kdtree/kdtree_flann.h"
+#include "pcl/registration/icp.h"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 
 namespace rwh_beyond_bt
@@ -43,6 +48,94 @@ Eigen::Vector3d centroid(const Points & points)
   }
   return sum / points.size();
 }
+
+using PclCloud = pcl::PointCloud<pcl::PointXYZ>;
+PclCloud::Ptr registration_cloud(const Points & points, double voxel_size)
+{
+  auto raw = PclCloud::Ptr(new PclCloud);
+  raw->reserve(points.size());
+  for (const auto & point : points) {
+    raw->push_back(pcl::PointXYZ(point.x(), point.y(), point.z()));
+  }
+  auto filtered = PclCloud::Ptr(new PclCloud);
+  pcl::VoxelGrid<pcl::PointXYZ> filter;
+  const float leaf = static_cast<float>(std::max(voxel_size, .003));
+  filter.setLeafSize(leaf, leaf, leaf);
+  filter.setInputCloud(raw);
+  filter.filter(*filtered);
+  if (filtered->size() <= 10000) {return filtered;}
+  auto sampled = PclCloud::Ptr(new PclCloud);
+  sampled->reserve(10000);
+  for (size_t i = 0; i < 10000; ++i) {
+    sampled->push_back((*filtered)[i * filtered->size() / 10000]);
+  }
+  return sampled;
+}
+
+void align_view(FusionView & view, const Points & points, const CloudFusion & fusion)
+{
+  Points accumulated;
+  for (size_t i = 0; i + 1 < fusion.views.size(); ++i) {
+    const auto & previous = fusion.views[i];
+    for (const auto & point : points_in_base(previous)) {
+      accumulated.push_back(previous.correction * point);
+    }
+  }
+  auto source = registration_cloud(points, fusion.voxel_size);
+  auto target = registration_cloud(accumulated, fusion.voxel_size);
+  view.icp_status = "insufficient points";
+  if (source->size() < 50 || target->size() < 50) {return;}
+
+  constexpr double max_correspondence = .015;
+  pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
+  icp.setInputSource(source);
+  icp.setInputTarget(target);
+  icp.setMaxCorrespondenceDistance(max_correspondence);
+  icp.setMaximumIterations(40);
+  icp.setTransformationEpsilon(1e-8);
+  icp.setEuclideanFitnessEpsilon(1e-8);
+  icp.getConvergeCriteria()->setFailureAfterMaximumIterations(true);
+  PclCloud aligned;
+  icp.align(aligned);
+  view.icp_status = "not converged";
+  if (!icp.hasConverged()) {return;}
+
+  const Eigen::Matrix4d matrix = icp.getFinalTransformation().cast<double>();
+  view.icp_status = "invalid transform";
+  if (!matrix.allFinite() ||
+    !matrix.block<3, 3>(0, 0).isUnitary(1e-4) ||
+    std::abs(matrix.block<3, 3>(0, 0).determinant() - 1) > 1e-4)
+  {return;}
+  Eigen::Isometry3d correction = Eigen::Isometry3d::Identity();
+  correction.matrix() = matrix;
+  const double displacement = (correction * centroid(points) - centroid(points)).norm();
+  const double rotation = Eigen::AngleAxisd(correction.linear()).angle();
+  view.icp_status = "correction exceeds safety limit";
+  if (displacement > .01 || rotation > .0872665) {return;}
+
+  pcl::KdTreeFLANN<pcl::PointXYZ> tree;
+  tree.setInputCloud(target);
+  size_t matches = 0;
+  double squared_error = 0;
+  std::vector<int> indices(1);
+  std::vector<float> distances(1);
+  for (const auto & point : aligned) {
+    if (tree.nearestKSearch(point, 1, indices, distances) == 1 &&
+      distances[0] <= max_correspondence * max_correspondence)
+    {
+      ++matches;
+      squared_error += distances[0];
+    }
+  }
+  view.icp_overlap = static_cast<double>(matches) / source->size();
+  view.icp_rmse = matches ? std::sqrt(squared_error / matches) :
+    std::numeric_limits<double>::infinity();
+  view.icp_status = "insufficient overlap or high RMSE";
+  if (matches < 50 || view.icp_overlap < .35 || view.icp_rmse > .004) {return;}
+  view.correction = correction;
+  view.icp_accepted = true;
+  view.icp_status = "accepted";
+}
 }  // namespace
 
 void validate_fusion(const CloudFusion & fusion)
@@ -64,7 +157,10 @@ void validate_fusion(const CloudFusion & fusion)
       view.mask.header != view.capture->depth.header ||
       !view.base_camera.matrix().allFinite() ||
       !view.base_camera.linear().isUnitary(1e-6) ||
-      std::abs(view.base_camera.linear().determinant() - 1) > 1e-6)
+      std::abs(view.base_camera.linear().determinant() - 1) > 1e-6 ||
+      !view.correction.matrix().allFinite() ||
+      !view.correction.linear().isUnitary(1e-4) ||
+      std::abs(view.correction.linear().determinant() - 1) > 1e-4)
     {throw std::invalid_argument("Invalid fusion exposure or camera transform");}
     const auto stamp = rclcpp::Time(view.capture->depth.header.stamp).nanoseconds();
     if (stamp <= previous_stamp) {
@@ -91,6 +187,11 @@ Fusion append_fusion(
       throw std::invalid_argument(
           "Target centroid changed across views; object moved or SAM switched target");
     }
+    if (next->use_icp) {
+      align_view(next->views.back(), points, *next);
+    } else {
+      next->views.back().icp_status = "disabled";
+    }
   }
   return next;
 }
@@ -111,7 +212,8 @@ sensor_msgs::msg::PointCloud2 fuse_object_cloud(const CloudFusion & fusion)
     if ((centroid(points) - anchor).norm() > fusion.max_centroid_distance) {
       throw std::invalid_argument("Fusion target centroid inconsistent");
     }
-    for (const auto & point : points) {
+    for (const auto & raw_point : points) {
+      const Eigen::Vector3d point = view.correction * raw_point;
       std::array<int64_t, 3> key;
       for (int axis = 0; axis < 3; ++axis) {
         key[axis] = static_cast<int64_t>(std::floor(point[axis] / fusion.voxel_size));

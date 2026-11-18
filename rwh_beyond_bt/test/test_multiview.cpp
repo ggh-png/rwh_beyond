@@ -66,6 +66,62 @@ TEST(MultiView, AlignsTranslatedViewsAndReturnsLastOpticalCoordinates)
   EXPECT_NEAR(lowest, -9.37 * .005 - .02, 1e-6);
   EXPECT_EQ(fusion->views.size(), 2u);
 }
+TEST(MultiView, IcpCorrectsSmallPoseErrorBeforeFusion)
+{
+  const auto first = exposure(1), second = exposure(2);
+  auto fusion = append_fusion(empty_session(), first, mask_for(first),
+    Eigen::Isometry3d::Identity());
+  auto transform = Eigen::Isometry3d::Identity();
+  transform.translation().z() = .004;
+  fusion = append_fusion(fusion, second, mask_for(second), transform);
+  ASSERT_TRUE(fusion->views.back().icp_accepted) << fusion->views.back().icp_status;
+  EXPECT_NEAR(fusion->views.back().correction.translation().z(), -.004, 1e-4);
+  EXPECT_GT(fusion->views.back().icp_overlap, .9);
+  const auto cloud = fuse_object_cloud(*fusion);
+  EXPECT_EQ(cloud.header, second->depth.header);
+  sensor_msgs::PointCloud2ConstIterator<float> z(cloud, "z");
+  for (; z != z.end(); ++z) {
+    EXPECT_NEAR(*z, .496, 1e-4);
+  }
+}
+TEST(MultiView, IcpFallbackRetainsTfWhenViewsDoNotOverlap)
+{
+  const auto first = exposure(1), second = exposure(2);
+  auto fusion = append_fusion(empty_session(), first, mask_for(first),
+    Eigen::Isometry3d::Identity());
+  auto transform = Eigen::Isometry3d::Identity();
+  transform.translation().z() = .04;
+  fusion = append_fusion(fusion, second, mask_for(second), transform);
+  EXPECT_FALSE(fusion->views.back().icp_accepted);
+  EXPECT_TRUE(fusion->views.back().correction.matrix().isIdentity());
+  EXPECT_GT(fuse_object_cloud(*fusion).width, 400u);
+}
+TEST(MultiView, IcpRejectsExcessivePoseCorrection)
+{
+  const auto first = exposure(1), second = exposure(2);
+  auto fusion = append_fusion(empty_session(), first, mask_for(first),
+    Eigen::Isometry3d::Identity());
+  auto transform = Eigen::Isometry3d::Identity();
+  transform.translation().z() = .013;
+  fusion = append_fusion(fusion, second, mask_for(second), transform);
+  EXPECT_FALSE(fusion->views.back().icp_accepted);
+  EXPECT_EQ(fusion->views.back().icp_status, "correction exceeds safety limit");
+  EXPECT_TRUE(fusion->views.back().correction.matrix().isIdentity());
+}
+TEST(MultiView, IcpCanBeDisabled)
+{
+  const auto first = exposure(1), second = exposure(2);
+  auto session = std::make_shared<CloudFusion>();
+  session->base_frame = "base_link";
+  session->use_icp = false;
+  auto fusion = append_fusion(session, first, mask_for(first), Eigen::Isometry3d::Identity());
+  auto transform = Eigen::Isometry3d::Identity();
+  transform.translation().z() = .004;
+  fusion = append_fusion(fusion, second, mask_for(second), transform);
+  EXPECT_EQ(fusion->views.back().icp_status, "disabled");
+  EXPECT_TRUE(fusion->views.back().correction.matrix().isIdentity());
+  EXPECT_GT(fuse_object_cloud(*fusion).width, 400u);
+}
 TEST(MultiView, RotatedCameraUsesAcquisitionPose)
 {
   const auto first = exposure(1), second = exposure(2);

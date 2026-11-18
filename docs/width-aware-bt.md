@@ -64,8 +64,9 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 
 ## 다중 시점 점군으로 집기 { #multiview }
 
-`demo_multiview.xml`은 직접 등록한 정면·좌측·우측 관절 자세에서 같은 물체를 SAM 3로
-각각 분할하고, 촬영 시각 TF로 점군을 base 좌표계에 모읍니다. 관측 이동은
+`demo_multiview.xml`은 먼저 정면에서 집기를 시도하고, 실패하면 좌측·우측 관측을
+융합해 다시 시도합니다. 각 시점의 물체를 SAM 3로 분할하고 촬영 시각 TF로 점군을
+base 좌표계에 모읍니다. 관측 이동은
 `MoveJointPose`를 사용하므로 TCP 목표 IK를 계산하지 않습니다. 현재 위치에서 저장한
 관절 목표까지 충돌을 검사하는 OMPL 경로를 계획합니다. 그리퍼 목표는 변경하지 않습니다.
 
@@ -114,8 +115,9 @@ poses: {}
 
 집기 XML의 첫 `CheckJointPoses pose_names="front;left;right"`는 세 자세가 모두 등록돼
 있는지 검사합니다. 하나라도 없거나 파일 형식이 잘못되면 home·그리퍼 이동 전에 실패합니다.
-이후 home·그리퍼 열기 → front 촬영 → left 촬영 → front 경유 → right 촬영 순서로
-진행합니다. 집기 후 복귀도 front 관절 자세를 거쳐 home으로 이동합니다.
+정면 집기 실패 시 그리퍼를 열고 left → right 순서로 촬영합니다. 멀티뷰 집기 후에는
+front 관절 자세를 거쳐 home으로 이동합니다. 모든 집기 시도가 실패하면 home 복귀를
+시도합니다.
 
 `MoveJointPose`는 관측용 `moveit_observation_planner_id`, 계획 시간·시도 횟수와 일반
 관절 계획의 속도·가속도 배율을 사용합니다. `observation_motion_mode`와 관측 IK 시간은
@@ -128,7 +130,8 @@ poses: {}
 
 1. `ResetObjectCloudFusion`: 매 실행마다 이전 누적을 비우고 3mm voxel 설정으로 시작합니다.
 2. 각 `MoveJointPose` 도착·안정화 후 새로운 `CaptureRgbd`와 `SegmentObject`를 수행합니다.
-3. `AccumulateObjectCloud`: 불변 촬영 데이터·마스크·촬영 시각의 `base_T_camera`를 보관합니다.
+3. `AccumulateObjectCloud`: 촬영 데이터·마스크·`base_T_camera`를 보관하고,
+   TF로 변환한 현재 점군을 이전 누적 점군에 ICP로 정렬합니다.
 4. `BuildFusedObjectCloud`: base 좌표계에서 같은 voxel의 점을 평균내 중복을 줄입니다.
 5. 마지막 촬영의 optical 좌표계와 stamp로 변환해 기존 `InferGrasps`에 전달합니다.
 6. `SelectFeasibleGrasp fusion="{fusion}"`이 원본 관측으로 융합 결과를 재계산해 검증한 후,
@@ -138,9 +141,14 @@ base 좌표계 디버그 점군은 `/grasp/fused_object_cloud`에서 확인합�
 GraspGenX에는 마지막 카메라 좌표계 점군을 전달하므로 모델의 기존 입력·출력 규약과
 Action 메시지는 그대로 사용합니다. 지지면은 마지막 촬영의 배경 깊이로 추정합니다.
 
-첫 버전은 C++/Eigen에서 voxel centroid 샘플링을 수행하므로 Open3D 설치가 필요하지
-않습니다. 원리는 [voxel downsampling](https://www.open3d.org/docs/latest/tutorial/geometry/pointcloud.html#Voxel-downsampling)과 같으며,
-ICP·TSDF·통계적 outlier 제거·FPS는 이 버전에 포함하지 않습니다.
+ICP는 PCL point-to-point 방식이며 각 정렬에 최대 10,000개 voxel 점을 사용합니다.
+대응 거리는 15mm, 최대 반복은 40회입니다. 수렴하고 대응점 50개 이상, source 겹침
+35% 이상, RMSE 4mm 이하, 물체 중심 보정 10mm 이하 및 회전 5도 이하일 때만 적용합니다.
+조건을 만족하지 못하면 해당 관측은 원래 TF를 사용하며 경고 로그에 사유와 지표를
+남깁니다. 첫 관측이 기준이므로 ICP는 공통 TF 오차를 보정하지 못하고, 평면이나
+대칭 물체에서 잘못 정렬될 수 있습니다. 실물 적용 전 시각화와 저속 검증이 필요합니다.
+`ResetObjectCloudFusion`의 `use_icp="false"`로 ICP를 끌 수 있습니다. TSDF·통계적
+outlier 제거·FPS는 포함하지 않습니다.
 
 ### 선택할 XML
 
