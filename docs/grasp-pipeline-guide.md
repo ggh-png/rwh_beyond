@@ -50,17 +50,20 @@ RGB·정렬 Depth·CameraInfo와 촬영 시각 TF가 필요합니다.
 
 ## 4. 대상 지정과 실행
 
+기본 집기에는 저장된 `front`가 필요하며, 재시도에는 `left`·`right`도 필요합니다.
+기본 자세가 아직 없다면 [관절 자세 저장](width-aware-bt.md#multiview)을 먼저 진행하세요.
+
 ```bash
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{target_text: "yellow block"}' --feedback
 ```
 
 `target_text`를 생략하면 공통 YAML의 기본 대상을 사용합니다.
-`behavior_tree`를 생략하면 심·실물 모두 `demo_width.xml`을 실행합니다.
+`behavior_tree`를 생략하면 심·실물 모두 `demo_multiview.xml`을 실행합니다.
 목표는 준비·home·관측 이동부터 시작합니다.
 
-현재 기본 관측은 home에서 base Z 방향 0.10 m 상승과 home 로컬 Y축 40° 기울임입니다.
-파지 후에는 같은 관측 자세를 거쳐 home으로 복귀하고 자동으로 그리퍼를 열지 않습니다.
+기본 트리는 저장된 `front` 관절 자세에서 먼저 집기를 시도합니다.
+실패하면 저장된 `left`·`right` 자세에서 촬영한 점군을 융합합니다.
 
 ## 5. 결과와 다음 실행
 
@@ -74,9 +77,8 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{mode: 2}' --feedback
 ```
 
-기본 `place.xml`은 home → home TCP + base X 0.20m·Z 0.15m → 개방·해제 → home 순서입니다.
-이 값은 배치 목표 오프셋이며 테이블 높이를 자동 인식한 값은 아닙니다.
-[트리와 배치 위치](bt-flows.md) · [문제 해결](troubleshooting.md)
+기본 `place.xml`은 home → 저장된 `place` 관절 자세 → 0.10m 개방·해제 → home 순서입니다.
+`place` 자세도 요청 전에 등록합니다. [배치 트리](bt-flows.md#place-tree)
 
 Action 취소는 [Action 인터페이스](bt-operation.md)를 참고하세요. ROS 프로세스 종료는 별도입니다.
 

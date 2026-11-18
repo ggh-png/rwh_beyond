@@ -54,7 +54,7 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
   /root/ros2_ws/src/rwh_beyond/rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml
 ```
 
-노드 모델은 참조 정의입니다. 실행 트리는 `behavior_trees/demo_width.xml`, `demo.xml`, `place.xml`입니다.
+노드 모델은 참조 정의입니다. 실행 트리는 `behavior_trees/demo_multiview.xml`, `demo_width.xml`, `demo.xml`, `place.xml`입니다.
 Groot에서 저장한 XML은 [자동 정리 규칙](bt-operation.md#groot-xml-filter)에 따라 로드합니다.
 
 ## 문서와 변경 검토

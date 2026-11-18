@@ -16,7 +16,7 @@
 
 | 요청 | 실행 XML | 동작 |
 |---|---|---|
-| `mode: 1` 또는 생략한 `mode: 0` | YAML의 `default_demo_bt_xml`: 현재 `demo_width.xml` | 점군 추정 폭으로 집기·리프트·복귀 |
+| `mode: 1` 또는 생략한 `mode: 0` | YAML의 `default_demo_bt_xml`: 현재 `demo_multiview.xml` | 점군 추정 폭으로 집기·리프트·복귀 |
 | `mode: 2` | YAML의 `default_place_bt_xml`: 현재 `place.xml` | 들고 있는 물체 배치·해제·복귀 |
 | `behavior_tree`에 경로 지정 | 지정 XML; mode보다 우선 | 사용자 지정 흐름, 예: 고정 폭 `demo.xml` |
 
@@ -70,7 +70,13 @@ flowchart LR
 후보가 모두 탈락했을 때 관측 자세를 바꿔 재시도하는 동작은 없습니다.
 후보 루프는 `SelectFeasibleGrasp` 내부 연산이며 트리 전체의 재시도와는 다릅니다.
 
-## 기본 집기: demo_width.xml
+## 기본 집기: demo_multiview.xml
+
+`PickWithRecovery`는 `front`의 단일 관측으로 먼저 집기를 시도합니다.
+실패하면 `left`·`right`의 분할 점군을 base 좌표계에서 융합해 다시 후보를 고릅니다.
+점군 융합과 관절 자세 설정은 [추정 폭·멀티뷰](width-aware-bt.md#multiview)를 참고하세요.
+
+## 단일 시점 집기: demo_width.xml
 
 ```mermaid
 flowchart TD
@@ -123,7 +129,7 @@ YAML 관측 기본값 Z=0.20m·Y=30°보다 XML의 값이 우선합니다.
 
 ## 고정 폭 집기: demo.xml { #fixed-width-pick }
 
-집기 순서와 관측·접근·리프트 거리는 기본 집기와 같습니다. 차이는 다음 두 가지입니다.
+관측·접근·리프트 거리는 단일 시점 `demo_width.xml`과 같습니다. 차이는 다음 두 가지입니다.
 
 | 항목 | demo_width.xml | demo.xml |
 |---|---|---|
@@ -138,25 +144,16 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{behavior_tree: "/root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/demo.xml", target_text: "yellow block"}' --feedback
 ```
 
-## 배치·해제: place.xml
+## 배치·해제 { #place-tree }
 
-```mermaid
-flowchart TD
-  Start["RunDemo: mode=2<br/>부착된 대상"] --> Home1["MoveHome<br/>물체 충돌 형상 유지"]
-  Home1 --> Place["MovePlace<br/>home TCP + base X 0.20m / Z 0.15m"]
-  Place --> Cartesian{"Cartesian 경로가<br/>완전한가?"}
-  Cartesian -->|예| Execute["경로 실행·도달 확인"]
-  Cartesian -->|부분 경로| Joint["동일 목표 IK + OMPL 계획"]
-  Joint -->|완전한 계획| Execute
-  Joint -->|실패| Stop["중단: 부착·닫힘 유지"]
-  Execute --> Release["ReleaseObject<br/>개방 확인 → 부착 해제 → 임시 장면 정리"]
-  Release --> Home2["MoveHome"] --> Done["성공: 미부착 상태"]
-```
+`place.xml`은 **home → 저장된 `place` 관절 자세 → 그리퍼 개방·해제 → home**을 실행합니다.
+`MoveJointPose release_on_arrival="true"`가 목표 도착을 확인하면 부착된 물체를 해제할 수 있습니다.
+이동 실패·취소 시 해제 노드로 진행하지 않습니다.
+`ReleaseObject`는 목표 0.10m, 3초로 열고 피드백을 확인한 뒤 계획 장면에서 부착을 제거합니다.
+기본 XML은 `allow_empty="true"`로 빈 그리퍼도 열 수 있게 합니다.
 
-`MovePlace`는 부착된 대상이 필요하며 현재 자세에서 목표로 계획합니다. home 도착은 전제조건이 아닙니다.
-XML의 X·Z는 home TCP 기준 **base 축** 오프셋이며, 절대 위치나 현재 자세에서 누적하는 이동량이 아닙니다.
-Cartesian 요청 자체가 오류이면 중단합니다. 정상 응답이지만 부분 경로이면 충돌 검사 IK·관절 경로를 시도합니다.
-`ReleaseObject`는 배치 이동이 성공해야 열 수 있습니다. 새로운 촬영·SAM·파지 추론은 하지 않습니다.
+`MovePlace`는 TCP 오프셋이 필요한 사용자 트리에서 쓸 수 있는 별도 노드입니다.
+[포트 참조](bt-grasp-stages.md#moveplace) · [저장 자세 설정](real-bt.md)
 
 ## 파지 선택 안의 흐름
 
@@ -395,7 +392,7 @@ $$
 
 구현 근거: `rwh_beyond_bt/src/motion_context.cpp`의 `select()`·`estimate_aperture()`·`quantile()`,
 `plugins/action/move_observation_action.cpp`, `move_place_action.cpp`, `lift_object_action.cpp`.
-현재 값은 `rwh_beyond_bringup/config/bt_demo.yaml`과 `behavior_trees/demo_width.xml`·`place.xml` 기준입니다.
+위 관측 예제는 `demo_width.xml` 기준이며, TCP 배치 식은 사용자 트리의 `MovePlace`에 해당합니다. 기본 배치는 저장된 관절 자세를 사용합니다.
 
 ## 플러그인 내부 처리의 연결
 
@@ -421,36 +418,6 @@ flowchart TD
   Attach -. 실패 .-> Keep
   Lift -. 실패 .-> Keep
 ```
-
-```mermaid
-sequenceDiagram
-  participant XML as PlaceSequence
-  participant Home as MoveHome
-  participant Place as MovePlace
-  participant Release as ReleaseObject
-  participant MG as MoveIt
-  participant Grip as 그리퍼
-  XML->>Home: 부착 형상 유지하며 home 복귀
-  Home->>MG: 관절 계획 / ExecuteTrajectory
-  Home-->>XML: home 도착 확인
-  XML->>Place: x=0.20, z=0.15
-  Place->>MG: home FK / Cartesian 계획
-  alt 완전한 Cartesian
-    Place->>MG: ExecuteTrajectory
-  else 정상 응답의 부분 경로
-    Place->>MG: IK / OMPL / ExecuteTrajectory
-  end
-  Place-->>XML: 도착 확인 / release_ready=true
-  XML->>Release: 개방·해제 요청
-  Release->>Grip: FollowJointTrajectory
-  Grip-->>Release: 성공 결과 + 개방 피드백
-  Release->>MG: 부착 해제 / 대상·충돌 허용 정리
-  Release-->>XML: 미부착 / release_ready=false
-  XML->>Home: home 복귀
-```
-
-배치 그림은 성공 경로를 나타냅니다. 어느 호출이든 실패하면 뒤의 XML 노드로 진행하지 않으며,
-개방 전 실패와 개방 후 장면 정리 실패의 물리 상태는 서로 다를 수 있습니다.
 
 ## 실패·취소·완료
 

@@ -1,113 +1,31 @@
-# 심·실물 공통 BT와 설정
+# 설정과 변경
 
-심 runner는 `bt_demo_sim`, 실물 runner는 `bt_demo`입니다.
-두 모드는 공통 YAML의 `default_demo_bt_xml`을 사용하며 현재 기본 집기 트리는 `demo_width.xml`입니다.
-고정 폭 `demo.xml`은 요청에서 명시해 선택할 수 있습니다. 배치·해제는 mode 2의 `place.xml`입니다.
+실행 중인 트리는 `/run_demo`의 `behavior_tree` 또는 `rwh_beyond_bringup/config/bt_demo.yaml`의 모드별 기본 경로로 결정됩니다.
+**트리 순서는 XML에서**, **공통 기본값은 YAML에서**, **장치별 값은 runner 프로필에서** 바꿉니다.
 
-| 항목 | sim | real |
-|---|---|---|
-| 모션 | BT → MoveIt 직접 호출 | BT → MoveIt 직접 호출 |
-| 시간 | `use_sim_time=true` | `use_sim_time=false` |
-| 피드백·controller | MuJoCo | PiPER CAN + physical transport |
-| 기본 집기 XML | `demo_width.xml` | `demo_width.xml` |
+| 바꾸려는 동작 | 파일과 설정 |
+|---|---|
+| 집기 트리를 바꾼다 | `bt_demo.yaml`의 `default_demo_bt_xml` 또는 요청의 `behavior_tree`. 기본은 `demo_multiview.xml`, 단일 시점 추정 폭은 `demo_width.xml`, 고정 폭은 `demo.xml`. |
+| 이동·촬영·복귀 순서를 바꾼다 | `rwh_beyond_bt/behavior_trees/`의 실행 XML. 노드 입력은 [포트 참조](bt-grasp-stages.md)에서 확인합니다. |
+| 기본 관측·배치 자세를 바꾼다 | `bt_motion.joint_poses_file`의 `front`, `left`, `right`, `place`. [관절 자세 저장](width-aware-bt.md#multiview) 참고. |
+| 기본 대상 또는 분할 방식을 바꾼다 | `bt_perception.target_text`, `selection_policy`. 한 번만 바꿀 때는 Goal의 `target_text`. |
+| 닫기 폭을 바꾼다 | 추정 모드는 `bt_motion.grasp_width_closing_inset`, 고정 모드는 `gripper_close_width`. 공통 열림 상한은 `gripper_open_width`. |
+| 배치 시 개방 폭·시간을 바꾼다 | `place.xml`의 `ReleaseObject` 포트 `opening`, `duration`. 현재 0.10m, 3초. |
+| 접근 거리와 리프트 높이를 바꾼다 | 우선 실행 XML의 `SelectFeasibleGrasp` 포트 `pregrasp_distance`, `lift_distance`를 확인합니다. 포트를 생략하면 `bt_motion`의 같은 이름 설정을 사용합니다. |
+| 관절·직선 경로 속도나 계획기를 바꾼다 | `bt_motion.moveit_*_scaling_factor`, `moveit_*_planner_id`와 `move_group` 설정. [속도 설정](moveit-speed-settings.md) · [후보와 계획](grasp-motion-tuning.md) 참고. |
+| 실물 카메라·장착 TF·CAN을 바꾼다 | [runner 장치 프로필](runner-device-settings.md)의 `robot_common.yaml`, `robot_real.yaml`. |
+| GPU 추론 서버 주소를 바꾼다 | runner 사용 시 `runners.yaml`의 `inference_connection`. 직접 실행 시 launch의 `segmentation_endpoint`, `endpoint`. |
 
-## 시나리오
+## 그리퍼 폭
 
-각 트리의 플로우 차트와 차이는 [집기·배치 BT 흐름](bt-flows.md),
-개별 노드의 기능·포트는 [플러그인별 안내](bt-grasp-stages.md)를 참고하세요.
+`grasp_width_closing_inset`은 추정된 **전체 손가락 간격**에서 빼는 값입니다. 허용 범위는 **0~0.02m**이며 공통 YAML에는 **0.02m**가 지정돼 있습니다. 예를 들어 추정 폭이 40mm면 최대 열림 폭 제한 적용 전 닫기 목표는 20mm입니다. [폭 계산 및 멀티뷰](width-aware-bt.md)
 
-준비 확인 → Octomap 갱신 → home → 열기 → 관측 → Octomap 갱신 → SAM → 점군 →
-GraspGenX → 후보 선택 → pregrasp → 접근 → 닫기·계획용 부착 → 리프트 → 관측 복귀 → home.
+## 변경 적용
 
-실패하면 후속 단계를 실행하지 않습니다. 이미 부착한 대상의 충돌 모델은 유지하며 자동 해제하지 않습니다.
-실제 잡힘 여부·폭·힘에 의한 파지 성공 판정은 수행하지 않습니다.
+| 수정 대상 | 반영 시점 |
+|---|---|
+| Navigator가 읽는 XML 또는 저장된 관절 자세 | XML은 다음 요청에서, 자세 파일은 다음 해당 이동에서 다시 읽습니다. 설치본과 편집 파일이 같은지 확인하세요. |
+| 공통 YAML, launch 또는 장치 프로필 | 해당 파일을 읽는 BT·카메라·MoveIt 등 관련 runner를 재시작합니다. |
+| C++ 또는 ROS 메시지 정의 | 관련 패키지와 호출 측을 다시 빌드한 뒤 재시작합니다. |
 
-## XML에서 관측 자세 조정
-
-실제로 선택한 XML(`demo_width.xml` 또는 `demo.xml`)의 두 `MoveObservation` 호출을 수정합니다. 최초 관측과 복귀 값을 같게 유지하려면
-두 위치에 동일한 값을 지정합니다.
-
-```xml
-<MoveObservation x="0.0" y="0.0" z="0.10" tilt_deg="40.0"/>
-```
-
-- `x`, `y`, `z`: home TCP 기준 base 축 방향 이동량(m). 양수·0·음수 모두 가능합니다.
-- 절대 좌표나 현재 위치에서 누적하는 이동량이 아니며, 매번 home을 기준으로 계산합니다.
-- `tilt_deg`: home TCP 로컬 Y축 상대 회전(도).
-- 위치와 회전은 하나의 Cartesian 경로로 계산합니다.
-- 부분 경로·충돌·계획 실패는 실행하지 않습니다.
-- XML 값은 YAML의 관측 기본값보다 우선합니다. 각 입력은 독립적이며 생략한 X·Y는 0, Z·기울임은 YAML을 사용합니다.
-
-XML만 수정하면 재빌드는 필요 없으며, 저장 후 다음 요청에서 변경 내용을 다시 읽습니다.
-실행 중인 트리는 바뀌지 않습니다. [XML 로드 규칙](bt-operation.md#groot-xml-filter)
-home은 `home_joint_positions`에 정의한 6개 관절 목표입니다. 이미 home 허용 오차 안이면 이동을 생략합니다.
-
-## 공통 YAML
-
-`rwh_beyond_bringup/config/bt_demo.yaml`을 navigator·lifecycle manager·SAM bridge·
-GraspGenX bridge가 함께 읽습니다.
-대상·모델 요청 개수는 `bt_navigator.ros__parameters.bt_perception`,
-모션·충돌 설정은 `bt_navigator.ros__parameters.bt_motion`에 있습니다.
-
-| 설정 | 현재 값 | 의미 |
-|---|---|---|
-| `target_text` | `yellow block` | Action에 대상이 없을 때의 기본값 |
-| `gripper_open_width` | 0.10 m | 열기 목표 |
-| `gripper_close_width` | 0.04 m | 고정 폭 트리의 닫기 목표 |
-| `grasp_width_closing_inset` | 0.005 m | 추정 폭 보정, 허용 범위 0~0.02 m |
-| `gripper_close_duration` | 2.0 s | 실물 닫기 완료 기준 시간 |
-| `grasp_top_down_max_angle_deg` | 55° | 수직 하향에서 허용하는 최대 파지 각도 |
-| `grasp_table_clearance_m` | 0.01 m | TCP의 지지면 위 최소 여유 높이 |
-| `grasp_target_margin_m` | 0.05 m | 물체 경계 바깥 접촉점 허용 여유 |
-| `lift_distance` | 0.08 m | TCP 리프트 거리 |
-| `home_joint_positions` | 6축 모두 0 rad | home 목표 |
-| `home_joint_tolerance` | 0.01 rad | home 도착 판정 |
-| `planning_start_bounds_tolerance_deg` | 10° | 계획·MoveIt·실물 궤적의 시작 상태 허용량(도) |
-
-실물 닫기는 목표 폭을 설정한 시간(현재 2초) 동안 명령하면 완료합니다. 열기·팔 이동은 위치 기반 확인을 유지합니다.
-심에서는 설정한 duration으로 controller Action을 요청하고 Action 완료 결과를 확인합니다.
-설정 변경 후 BT를 재시작합니다. 실물 전달기도 읽는 닫기 폭·시간이나 시작 오차 허용량을 변경하면
-`piper_moveit`도 재시작합니다.
-
-## 파지 후보 필터 조정
-
-세 필터는 공통 YAML의 `bt_navigator.ros__parameters.bt_motion`에서 관리하며 심·실물이 공유합니다.
-
-```yaml
-bt_navigator:
-  ros__parameters:
-    bt_motion:
-      grasp_top_down_max_angle_deg: 55.0
-      grasp_table_clearance_m: 0.01
-      grasp_target_margin_m: 0.05
-```
-
-- `not_top_down`: 허용각을 키우면 더 기울어진 파지 후보도 검사합니다. 범위는 0~180°입니다.
-- `table_clearance`: 여유 높이를 줄이면 지지면에 더 가까운 TCP도 검사합니다. 단위는 m입니다.
-- `off_target`: 여유를 키우면 물체 경계 바깥쪽 접촉점도 더 넓게 허용합니다. 단위는 m입니다.
-
-거리 여유는 0 이상의 유한한 값이어야 합니다. 필터를 통과해도 이후 IK·경로·충돌 검사는 수행합니다.
-YAML 수정 후 BT runner를 비활성화·재활성화하면 적용되며 YAML 값 변경만으로 재빌드할 필요는 없습니다.
-
-[실행](grasp-pipeline-guide.md) · [Action 대상 지정](bt-operation.md)
-
-## Octomap 장애물 회피 켜기·끄기
-
-`rwh_beyond_bringup/config/bt_demo.yaml`의 `/**.ros__parameters.octomap_enabled`로
-실물 Octomap 장애물 회피를 제어합니다. 현재 시험 설정은 `false`입니다.
-ROS 공통 파라미터가 BT navigator에 설정값을 전달합니다. 실물 MoveIt은 이 설정이 `false`이면
-점군 지도 updater를 시작하지 않으며, BT와 후보 선택 단계는 지도 갱신 대기를 건너뜁니다.
-카메라·SAM·GraspGenX, 로봇 자체 충돌 검사와 대상 물체 충돌 형상은 유지됩니다.
-주변 테이블·장애물은 Octomap 충돌 검사에서 제외됩니다.
-변경 후 실물 장치 runner(MoveIt)와 BT를 모두 중지·재활성화해야 기존 지도까지 제거됩니다.
-`true`로 복구할 때 runner의 `piper.octomap`도 `true`여야 합니다.
-이 스위치는 시뮬레이터의 MoveIt 지도 updater를 제어하지 않습니다.
-
-## 파지 튜닝 안내
-
-- [손목 회전·MoveIt 계획](grasp-motion-tuning.md): 방향 우선 선택, joint4·joint6 경로 제약, OMPL 설정
-- [추정 폭으로 닫기](width-aware-bt.md): 닫기 보정량과 가변 폭 동작
-- [후보 탈락 진단](grasp-troubleshooting.md): 폭 추정·높이·회전·계획 오류 구분
-
-`demo_width.xml`은 반복 집기 시작 시 이전 물체를 현재 위치에서 열어 해제하는 옵션이 있습니다.
-자세한 동작은 폭 추정 문서의 반복 집기 설명을 확인합니다.
+[환경과 빌드](project-containers.md) · [실행 순서](grasp-pipeline-guide.md) · [ROS 이름과 타입](ros-interfaces.md)
