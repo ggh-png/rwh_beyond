@@ -573,7 +573,29 @@
   <a href="#container-one-liners" class="md-nav__link">
     <span class="md-ellipsis">
       
-        로봇·서버 컨테이너 생성 한 줄 명령
+        컨테이너 생성 방법
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        컨테이너 실행·접속 방법
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistent-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wsyoon_data와 지도 파일
       
     </span>
   </a>
@@ -592,10 +614,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2" class="md-nav__link">
+  <a href="#robot-helper" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 로봇 컨테이너 생성·접속
+        2. 배포 helper로 로봇 컨테이너 생성·접속
       
     </span>
   </a>
@@ -1953,7 +1975,29 @@
   <a href="#container-one-liners" class="md-nav__link">
     <span class="md-ellipsis">
       
-        로봇·서버 컨테이너 생성 한 줄 명령
+        컨테이너 생성 방법
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-shell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        컨테이너 실행·접속 방법
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistent-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        wsyoon_data와 지도 파일
       
     </span>
   </a>
@@ -1972,10 +2016,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2" class="md-nav__link">
+  <a href="#robot-helper" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. 로봇 컨테이너 생성·접속
+        2. 배포 helper로 로봇 컨테이너 생성·접속
       
     </span>
   </a>
@@ -2099,56 +2143,131 @@
 </tr>
 </tbody>
 </table>
-<h3 id="container-one-liners">로봇·서버 컨테이너 생성 한 줄 명령<a class="headerlink" href="#container-one-liners" title="Permanent link">&para;</a></h3>
-<p>이미지를 <code>load</code>한 뒤 <strong>각 역할을 실행할 호스트에서</strong> 아래 명령을 복사합니다.
-배포 폴더가 다른 위치라면 <code>/home/ggh/RWH/beyond</code>를 바꿉니다.
-두 호스트가 같은 PC여도 로봇용·서버용 명령을 각각 실행합니다.</p>
-<p><strong>로봇 컨테이너 — GPU·GUI·장치 연결 포함</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 현재 개발 호스트: Podman + NVIDIA CDI</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">RWH_GPU</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>start
+<h3 id="container-one-liners">컨테이너 생성 방법<a class="headerlink" href="#container-one-liners" title="Permanent link">&para;</a></h3>
+<p>이미지를 불러온 뒤 아래 명령으로 컨테이너를 생성합니다.
+로봇용은 <strong>로봇 PC 호스트</strong>, 서버용은 <strong>GPU 서버 호스트</strong>에서 실행합니다.
+표는 NVIDIA Container Toolkit이 준비된 <strong>Docker Engine 기준</strong>입니다.
+현재 개발 PC처럼 Docker 명령이 Podman wrapper인 환경에서는
+<a href="#robot-helper">배포 helper 사용 방법</a>을 따릅니다.</p>
+<p>로봇 PC에서는 배포 폴더로 이동하고, 호스트 데이터 디렉터리와 X11 인증 파일을 준비합니다.
+<code>XAUTHORITY</code>가 없는 환경은 실제 X11 인증 파일을 <code>RWH_XAUTH_FILE</code>에 지정합니다.
+아래 파일 확인이 실패하면 GUI 인증 경로를 먼저 확인합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">cd</span><span class="w"> </span>~/RWH/beyond
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data"</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RWH_XAUTH_FILE</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">XAUTHORITY</span><span class="k">:-</span><span class="nv">$HOME</span><span class="p">/.Xauthority</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nb">test</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">"</span>
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Docker Engine을 사용하는 로봇 PC에서는 위 명령 대신</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">RWH_GPU</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>start
+<div class="container-command-table">
+<table>
+<thead>
+<tr>
+<th>이미지 이름</th>
+<th>명령어</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BEYOND Robot</strong></td>
+<td><code>docker run -d --name rwh_beyond_robot --gpus all --network host --ipc host --init --privileged --restart unless-stopped -e DISPLAY="$DISPLAY" -e NVIDIA_DRIVER_CAPABILITIES=all -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" -v "$HOME/wsyoon_data:/root/wsyoon_data" -v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro" -v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro" -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /run/udev:/run/udev:ro docker.io/rwh_beyond/robot:20261117</code></td>
+</tr>
+<tr>
+<td><strong>GraspGenX 서버</strong></td>
+<td><code>docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs docker.io/rwh_beyond/graspgenx:20261117</code></td>
+</tr>
+<tr>
+<td><strong>SAM 3 서버</strong></td>
+<td><code>docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs docker.io/rwh_beyond/sam3:20261117</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>로봇 예시는 <code>--privileged</code>로 실물 장치 접근을 허용합니다.
+장치를 개별 전달하는 구성은 아래 helper를 사용합니다.
+로봇은 host network이므로 <code>-p</code>를 추가하지 않으며, 모델 서버는 loopback 포트 매핑을 사용합니다.
+로봇 이미지의 기본 명령은 <code>sleep infinity</code>여서 생성만으로 runner·로봇 동작을 실행하지 않습니다.
+모델 이미지는 생성 시 모델 서버를 시작합니다.</p>
+<h3 id="container-shell">컨테이너 실행·접속 방법<a class="headerlink" href="#container-shell" title="Permanent link">&para;</a></h3>
+<p>생성한 로봇 컨테이너에 ROS 환경을 불러온 셸로 접속합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>rwh_beyond_robot<span class="w"> </span>/opt/rwh_beyond/entrypoint.sh<span class="w"> </span>bash<span class="w"> </span>--noprofile<span class="w"> </span>--norc
 </code></pre></div>
-<p><strong>GPU 추론 서버 — GraspGenX·SAM 3 컨테이너 두 개 생성</strong></p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Docker Engine을 사용하는 GPU 서버</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/models.sh<span class="w"> </span>start
+<p>컨테이너가 정지 상태면 먼저 시작합니다. <code>start</code>는 기존 생성 옵션을 그대로 사용합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>docker<span class="w"> </span>start<span class="w"> </span>rwh_beyond_robot
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Podman + NVIDIA CDI 서버에서는 위 명령 대신</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/models.sh<span class="w"> </span>start
+<p>서버 내부 셸이 필요하면 다음을 사용합니다. 모델 health 명령은
+<a href="../inference-server-operation/#model-docker-run">GPU 추론 서버 운영</a>을 참고하세요.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>rwh_beyond_graspgenx<span class="w"> </span>bash
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>rwh_beyond_sam3<span class="w"> </span>bash
 </code></pre></div>
-<p>로봇 명령은 <code>rwh_beyond_robot</code>을 생성해 대기시키며, 서버 명령은
-<code>rwh_beyond_graspgenx</code>(5566)·<code>rwh_beyond_sam3</code>(5567)를 생성해 모델을 시작합니다.
-helper는 기존 컨테이너가 있으면 재시작하므로 생성 옵션을 바꾸지는 않습니다.
-로봇은 host network, 모델 서버는 loopback 포트 매핑을 사용합니다.
-서버의 <a href="../inference-server-operation/#model-docker-run">직접 <code>docker run</code> 한 줄 명령</a>은 별도로 제공합니다.</p>
+<h3 id="persistent-data">wsyoon_data와 지도 파일<a class="headerlink" href="#persistent-data" title="Permanent link">&para;</a></h3>
+<p>로봇 생성 명령의 <code>-v "$HOME/wsyoon_data:/root/wsyoon_data"</code>는
+<strong>호스트의 데이터 디렉터리를 컨테이너에 읽기·쓰기 연결</strong>합니다.
+<code>$HOME</code>은 명령을 실행하는 호스트 사용자의 홈입니다. 예를 들어 호스트 사용자가 <code>ggh</code>이면:</p>
+<table>
+<thead>
+<tr>
+<th>호스트 경로</th>
+<th>컨테이너 경로</th>
+<th>용도</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/home/ggh/wsyoon_data/map/map.yaml</code></td>
+<td><code>/root/wsyoon_data/map/map.yaml</code></td>
+<td>navigation의 기본 지도 YAML</td>
+</tr>
+<tr>
+<td><code>/home/ggh/wsyoon_data/map/</code> 안의 지도 이미지</td>
+<td><code>/root/wsyoon_data/map/</code> 안의 지도 이미지</td>
+<td>YAML의 <code>image:</code>가 참조하는 파일</td>
+</tr>
+<tr>
+<td><code>/home/ggh/wsyoon_data/maps/</code></td>
+<td><code>/root/wsyoon_data/maps/</code></td>
+<td>map_save의 날짜별 저장 디렉터리</td>
+</tr>
+</tbody>
+</table>
+<p><code>mkdir -p</code>는 빈 디렉터리만 준비하며 지도 파일을 생성하지 않습니다.
+기존 지도 YAML과 해당 이미지 파일을 함께 준비하고, YAML의 <code>image:</code>가
+컨테이너에서 접근 가능한 경로인지 확인합니다. 다른 지도를 사용할 때는 runner의
+<code>RWH_MAP_FILE</code>도 실제 컨테이너 경로에 맞춰야 합니다.</p>
+<p>컨테이너 생성 후 파일이 보이는지 확인합니다. 아래 검사는 로봇을 움직이지 않습니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>docker<span class="w"> </span>inspect<span class="w"> </span>rwh_beyond_robot<span class="w"> </span>--format<span class="w"> </span><span class="s1">'{{json .Mounts}}'</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>docker<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>rwh_beyond_robot<span class="w"> </span>ls<span class="w"> </span>-l<span class="w"> </span>/root/wsyoon_data/map/map.yaml
+</code></pre></div>
+<p>기존 컨테이너 안에만 지도가 있다면 호스트의 <strong>기존 파일과 겹치지 않는 백업 경로</strong>로
+먼저 복사합니다. 새 bind mount는 이미지 안의 같은 경로를 가리므로 기존 내용을 자동 병합하지 않습니다.
+마운트 누락은 <code>docker start</code>나 <code>restart</code>로 추가되지 않습니다.
+내부 변경분·지도·생성 설정을 보존한 뒤 마운트를 포함해 재생성해야 합니다.
+이 문서의 명령은 현재 실행 중인 개발 컨테이너를 자동 변경하지 않습니다.</p>
 <h3 id="1">1. 이미지 파일 불러오기<a class="headerlink" href="#1" title="Permanent link">&para;</a></h3>
 <p>Docker를 사용하는 호스트:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>sha256sum<span class="w"> </span>--check<span class="w"> </span>SHA256SUMS
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>docker<span class="w"> </span>load<span class="w"> </span>--input<span class="w"> </span>rwh_beyond_robot_20261117.tar.gz
-<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>docker<span class="w"> </span>load<span class="w"> </span>--input<span class="w"> </span>rwh_beyond_models_20261117.tar.gz
-<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>docker<span class="w"> </span>image<span class="w"> </span>ls<span class="w"> </span>--filter<span class="w"> </span><span class="nv">reference</span><span class="o">=</span><span class="s1">'docker.io/rwh_beyond/*:20261117'</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>sha256sum<span class="w"> </span>--check<span class="w"> </span>SHA256SUMS
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>docker<span class="w"> </span>load<span class="w"> </span>--input<span class="w"> </span>rwh_beyond_robot_20261117.tar.gz
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>docker<span class="w"> </span>load<span class="w"> </span>--input<span class="w"> </span>rwh_beyond_models_20261117.tar.gz
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>docker<span class="w"> </span>image<span class="w"> </span>ls<span class="w"> </span>--filter<span class="w"> </span><span class="nv">reference</span><span class="o">=</span><span class="s1">'docker.io/rwh_beyond/*:20261117'</span>
 </code></pre></div>
 <p>현재 개발 호스트는 <code>docker</code> 명령이 Podman으로 연결되는 환경입니다.
 Podman을 명시해서 사용할 때는 다음 명령을 사용합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/load-images.sh
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/load-images.sh
 </code></pre></div>
 <p>이 스크립트는 체크섬 확인 → 두 아카이브 <code>load</code> → 세 이미지 ID 확인을 수행합니다.
 Docker에서도 <code>CONTAINER_ENGINE=docker ./scripts/load-images.sh</code>로 같은 작업을 할 수 있습니다.
 로봇 PC와 GPU 서버를 분리하면 각 호스트에 필요한 아카이브만 <code>load</code>합니다.</p>
-<h3 id="2">2. 로봇 컨테이너 생성·접속<a class="headerlink" href="#2" title="Permanent link">&para;</a></h3>
+<h3 id="robot-helper">2. 배포 helper로 로봇 컨테이너 생성·접속<a class="headerlink" href="#robot-helper" title="Permanent link">&para;</a></h3>
 <p>현재 호스트의 Podman에서는:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">RWH_GPU</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>start
-<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>status
-<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>shell
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">RWH_GPU</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>start
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>status
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>shell
 </code></pre></div>
 <p>Docker를 사용하는 호스트에서는 대신:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">RWH_GPU</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>start
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>shell
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">RWH_GPU</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>start
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>shell
 </code></pre></div>
 <p><strong><code>start</code>가 최초 호출이면 <code>run -d</code>로 생성하고, 같은 이름의 컨테이너가 있으면 <code>start</code>로 재시작합니다.</strong>
 로봇·runner는 자동 실행하지 않으며 이미지의 <code>sleep infinity</code>로 대기합니다.
@@ -2163,7 +2282,11 @@ Docker에서도 <code>CONTAINER_ENGINE=docker ./scripts/load-images.sh</code>로
 <tbody>
 <tr>
 <td>기본 실행</td>
-<td><code>run -d --name rwh_beyond_robot --network host --ipc host --init --security-opt label=disable</code></td>
+<td><code>run -d --name rwh_beyond_robot --network host --ipc host --init --cap-add NET_ADMIN --security-opt label=disable</code></td>
+</tr>
+<tr>
+<td>영구 데이터</td>
+<td><code>${RWH_DATA_DIR:-$HOME/wsyoon_data}</code> → <code>/root/wsyoon_data</code> 읽기·쓰기</td>
 </tr>
 <tr>
 <td>ROS domain</td>
@@ -2200,12 +2323,16 @@ NVIDIA driver와 Docker GPU runtime 또는 Podman CDI가 호스트에 준비되�
 GPU를 사용하지 않는 로봇 PC에서는 <code>RWH_GPU=1</code>을 생략합니다.</p>
 <p>기존 컨테이너의 <code>start</code>는 생성 옵션을 바꾸지 않습니다.
 GPU·장치·마운트 옵션을 바꾸려면 기존 생성 설정과 컨테이너 내부 변경분을 확인한 뒤 재생성합니다.
-전체 장치 옵션은 배포 폴더의 <code>scripts/robot.sh</code>가 기준입니다.</p>
+전체 장치 옵션은 배포 폴더의 <code>scripts/robot.sh</code>가 기준입니다.
+예전 배포 helper에는 <code>wsyoon_data</code> 마운트가 없을 수 있습니다. 최초 생성 전에
+<code>-v "$rwh_data_dir:/root/wsyoon_data"</code>가 포함돼 있는지 확인하고, 없으면 위 직접 생성 명령을 사용하거나
+helper에 데이터 경로를 추가합니다. 호스트 경로를 바꾸려면 수정된 helper의 <code>RWH_DATA_DIR</code>을 사용합니다.
+helper로 생성한 뒤에도 <a href="#persistent-data">마운트·지도 파일 확인</a>을 수행합니다.</p>
 <p>runner 실행과 종료도 호스트에서 별도로 요청합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># 별도 호스트 터미널에서 runner 실행</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>runner
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="c1"># 컨테이너 종료</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>stop
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># 별도 호스트 터미널에서 runner 실행</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>runner
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="c1"># 컨테이너 종료</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w"> </span>./scripts/robot.sh<span class="w"> </span>stop
 </code></pre></div>
 <p>Docker에서는 <code>CONTAINER_ENGINE=docker</code>로 바꿉니다.
 이 배포 컨테이너 이름 <code>rwh_beyond_robot</code>은 기존 개발 컨테이너
@@ -2216,18 +2343,18 @@ GPU·장치·마운트 옵션을 바꾸려면 기존 생성 설정과 컨테이�
 <h3 id="3">3. 모델 컨테이너 생성<a class="headerlink" href="#3" title="Permanent link">&para;</a></h3>
 <p>두 모델 이미지와 가중치가 포함된 아카이브를 GPU 호스트에 불러온 뒤 실행합니다.
 로봇 PC와 GPU 호스트가 같으면 같은 배포 폴더에서 이어서 실행합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/models.sh<span class="w"> </span>start
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/models.sh<span class="w"> </span>status
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># 가중치 로딩이 끝난 뒤</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/models.sh<span class="w"> </span>health
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/models.sh<span class="w"> </span>start
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/models.sh<span class="w"> </span>status
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># 가중치 로딩이 끝난 뒤</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>docker<span class="w"> </span>./scripts/models.sh<span class="w"> </span>health
 </code></pre></div>
 <p>Podman GPU 호스트에서는 위 명령에서 <code>CONTAINER_ENGINE=podman</code>을 사용합니다.
 Docker Compose로 생성하려면 <code>models.sh start</code> 대신 다음을 사용합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose.models.yaml<span class="w"> </span>config
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose.models.yaml<span class="w"> </span>up<span class="w"> </span>-d
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose.models.yaml<span class="w"> </span>ps<span class="w"> </span>-a
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="nb">cd</span><span class="w"> </span>/home/ggh/RWH/beyond
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose.models.yaml<span class="w"> </span>config
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose.models.yaml<span class="w"> </span>up<span class="w"> </span>-d
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>compose.models.yaml<span class="w"> </span>ps<span class="w"> </span>-a
 </code></pre></div>
 <p>배포 Compose는 로컬 이미지를 사용하고 자동으로 pull하지 않습니다.
 배포 이미지의 모델 공개 포트는 GraspGenX <strong>5566</strong>, SAM <strong>5567</strong>이며
@@ -2272,15 +2399,15 @@ ROS 2 Jazzy와 MoveIt 2를 사용합니다. <code>/root/ros2_ws</code>는 컨테
 </table>
 <p>의존 저장소는 <code>moma-mj-lab.repos</code>에서 관리합니다. 저장소별 인증·submodule과 모델 가중치는 별도로 준비합니다.
 아직 checkout이 없다면 ROS 컨테이너에서 프로젝트를 먼저 받습니다. 이미 있다면 clone을 반복하지 않습니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/root/ros2_ws/src
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ggh-png/rwh_beyond.git<span class="w"> </span>/root/ros2_ws/src/rwh_beyond
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>mkdir<span class="w"> </span>-p<span class="w"> </span>/root/ros2_ws/src
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/ggh-png/rwh_beyond.git<span class="w"> </span>/root/ros2_ws/src/rwh_beyond
 </code></pre></div>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
-<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>vcs<span class="w"> </span>import<span class="w"> </span>--recursive<span class="w"> </span>--skip-existing<span class="w"> </span>src<span class="w"> </span>&lt;<span class="w"> </span>src/rwh_beyond/moma-mj-lab.repos
-<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>rosdep<span class="w"> </span>install<span class="w"> </span>--from-paths<span class="w"> </span>src<span class="w"> </span>--ignore-src<span class="w"> </span>-r<span class="w"> </span>-y
-<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install
-<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>vcs<span class="w"> </span>import<span class="w"> </span>--recursive<span class="w"> </span>--skip-existing<span class="w"> </span>src<span class="w"> </span>&lt;<span class="w"> </span>src/rwh_beyond/moma-mj-lab.repos
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>rosdep<span class="w"> </span>install<span class="w"> </span>--from-paths<span class="w"> </span>src<span class="w"> </span>--ignore-src<span class="w"> </span>-r<span class="w"> </span>-y
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
 </code></pre></div>
 <p>기반 컨테이너, GPU runtime, RealSense SDK는 장비에 준비되어 있어야 합니다.
 이 저장소의 ROS 빌드만으로 GPU 모델 가중치와 장치 권한까지 구성되지는 않습니다.</p>
@@ -2308,18 +2435,18 @@ Action 정의나 C++ 플러그인을 변경하면 관련 패키지와 호출 측
 라이브러리를 이름만으로 링크하고 있지 않은지 확인합니다. BT 패키지는 설치된 CMake
 타깃 <code>rwh_beyond_bt::rwh_beyond_bt_common</code>을 내보내므로 navigator에서는 다음과 같이
 사용합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="nb">find_package</span><span class="p">(</span><span class="s">rwh_beyond_bt</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
-<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">rwh_beyond_bt::rwh_beyond_bt_common</span><span class="p">)</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">find_package</span><span class="p">(</span><span class="s">rwh_beyond_bt</span><span class="w"> </span><span class="s">REQUIRED</span><span class="p">)</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nb">target_link_libraries</span><span class="p">(</span><span class="o">${</span><span class="nv">PROJECT_NAME</span><span class="o">}</span><span class="w"> </span><span class="s">rwh_beyond_bt::rwh_beyond_bt_common</span><span class="p">)</span>
 </code></pre></div>
 <p>라이브러리의 런타임 검색 경로가 있어도 <code>-l</code>의 <strong>빌드 시</strong> 검색 경로가 자동으로
 추가되는 것은 아닙니다. 이름공간 타깃은 설치된 라이브러리 위치와 의존성을 전달합니다.
 소스 수정 후에는 의존 패키지부터 다시 빌드합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
-<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
-<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--packages-up-to<span class="w"> </span>rwh_beyond_navigator
-<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
-<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>colcon<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--packages-select<span class="w"> </span>rwh_beyond_navigator
-<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>colcon<span class="w"> </span>test-result<span class="w"> </span>--test-result-base<span class="w"> </span>build/rwh_beyond_navigator<span class="w"> </span>--verbose
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--packages-up-to<span class="w"> </span>rwh_beyond_navigator
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nb">source</span><span class="w"> </span>install/setup.bash
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>colcon<span class="w"> </span><span class="nb">test</span><span class="w"> </span>--packages-select<span class="w"> </span>rwh_beyond_navigator
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>colcon<span class="w"> </span>test-result<span class="w"> </span>--test-result-base<span class="w"> </span>build/rwh_beyond_navigator<span class="w"> </span>--verbose
 </code></pre></div>
 <p>이 명령은 navigator와 그 의존성만 빌드합니다. 나머지 패키지까지 필요하면 일반
 <code>colcon build</code>를 실행합니다. 실행 중인 ROS 노드는 재빌드 후 재시작해야 합니다.</p>
