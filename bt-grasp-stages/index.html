@@ -3405,7 +3405,7 @@ Octomap 사용 시 <code>/clear_octomap</code>과 sim의 <code>/simulation/set_g
 <p>최종 TCP는 <code>base_T_camera × camera_T_model_grasp × model_T_tcp</code>로 계산합니다.
 사전 접근은 모델 접근축 반대 방향으로 떨어진 위치이고, 리프트는 base +Z 방향입니다.
 추정 폭 모드의 닫기 폭은 관측 폭에서 <code>grasp_width_closing_inset</code>을 빼고 최대 열림 폭으로 제한합니다.
-inset 허용 범위는 0~0.005m, 현재 값은 0.005m입니다. 고정 폭 모드는 현재 <code>gripper_close_width=0.04m</code>를 사용합니다.</p>
+inset 허용 범위는 0~0.02m, 현재 값은 0.005m입니다. 고정 폭 모드는 현재 <code>gripper_close_width=0.04m</code>를 사용합니다.</p>
 <p><strong>계획 객체에 저장되는 것.</strong> 선택한 관측, 사전 접근·최종 TCP 자세, 실행할 사전 접근 궤적,
 손목 제약, 관측 폭·명령 폭, 리프트 거리를 하나의 <code>GraspPlan</code>에 담습니다.
 접근·리프트의 사전 검사 궤적은 실행 가능성 확인용이며, 실제 실행 노드에서는 현재 상태로 다시 계산합니다.
