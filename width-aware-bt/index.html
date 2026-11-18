@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://ggh-png.github.io/rwh_beyond/width-aware-bt/">
       
       
-        <link rel="prev" href="../d435-bt-demo/">
+        <link rel="prev" href="../d435-standalone/">
       
       
         <link rel="next" href="../grasp-motion-tuning/">
@@ -27,7 +27,7 @@
     
     
       
-        <title>점군 추정 폭으로 닫기 - BEYOND Grasp</title>
+        <title>추정 폭·멀티뷰 - BEYOND Grasp</title>
       
     
     
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              점군 추정 폭으로 닫기
+              추정 폭·멀티뷰
             
           </span>
         </div>
@@ -198,17 +198,18 @@
   
   
   
-    <li class="md-tabs__item">
-      <a href=".." class="md-tabs__link">
-        
-  
-  
     
+    
+      <li class="md-tabs__item">
+        <a href=".." class="md-tabs__link">
+          
   
-  홈
+  
+  시작하기
 
-      </a>
-    </li>
+        </a>
+      </li>
+    
   
 
       
@@ -220,11 +221,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../project-overview/" class="md-tabs__link">
+        <a href="../project-code-map/" class="md-tabs__link">
           
   
   
-  처음 사용하기
+  코드 구조
 
         </a>
       </li>
@@ -246,7 +247,7 @@
           
   
   
-  설정과 운영
+  설정과 변경
 
         </a>
       </li>
@@ -262,71 +263,11 @@
     
     
       <li class="md-tabs__item">
-        <a href="../troubleshooting/" class="md-tabs__link">
+        <a href="../ros-interfaces/" class="md-tabs__link">
           
   
   
-  문제 해결
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../bt-flows/" class="md-tabs__link">
-          
-  
-  
-  시스템 이해와 개발
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../bt-operation/" class="md-tabs__link">
-          
-  
-  
-  인터페이스 참조
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../documentation/" class="md-tabs__link">
-          
-  
-  
-  프로젝트 안내
+  ROS 인터페이스
 
         </a>
       </li>
@@ -385,6 +326,58 @@
   
   
   
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시작하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    시작하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
     <li class="md-nav__item">
       <a href=".." class="md-nav__link">
         
@@ -405,9 +398,38 @@
     </li>
   
 
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../grasp-pipeline-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
     
-      
-      
+  
+    빠른 시작
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
   
   
   
@@ -426,17 +448,17 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_3" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_3" id="__nav_1_3_label" tabindex="0">
             
   
   
   <span class="md-ellipsis">
     
   
-    처음 사용하기
+    환경 준비
   
 
     
@@ -447,12 +469,12 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_3">
             <span class="md-nav__icon md-icon"></span>
             
   
-    처음 사용하기
+    환경 준비
   
 
           </label>
@@ -500,7 +522,7 @@
   <span class="md-ellipsis">
     
   
-    도커 컨테이너 구성
+    컨테이너 생성
   
 
     
@@ -556,35 +578,7 @@
   <span class="md-ellipsis">
     
   
-    GPU 추론 서버 준비
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-pipeline-guide/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    빠른 시작
+    GPU 추론 서버
   
 
     
@@ -613,6 +607,241 @@
     
   
     실물 PiPER 준비
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드 구조
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    코드 구조
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-code-map/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드를 따라 읽기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-flows/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    집기·배치 BT 흐름
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bt-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    BT 내부 구조
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../project-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터와 좌표계
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    테스트와 개발
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upstream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    구성 요소와 출처
   
 
     
@@ -668,7 +897,7 @@
   <span class="md-ellipsis">
     
   
-    설정과 운영
+    설정과 변경
   
 
     
@@ -684,7 +913,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    설정과 운영
+    설정과 변경
   
 
           </label>
@@ -704,7 +933,7 @@
   <span class="md-ellipsis">
     
   
-    BT와 공통 설정
+    변경할 파일 찾기
   
 
     
@@ -717,6 +946,61 @@
   
 
               
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    장치·런타임
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    장치·런타임
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -773,61 +1057,6 @@
   
 
               
-            
-              
-                
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-          
-          
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_3_4" id="__nav_3_4_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    카메라
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3_4">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    카메라
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -892,14 +1121,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../d435-standalone/" class="md-nav__link">
+      <a href="../d435-bt-demo/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    D435 단독 점검
+    D435 연결·장착 설정
   
 
     
@@ -920,14 +1149,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../d435-bt-demo/" class="md-nav__link">
+      <a href="../d435-standalone/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    D435 BT 연결·장착 설정
+    D435 단독 실행
   
 
     
@@ -974,10 +1203,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_5" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_3_5" id="__nav_3_5_label" tabindex="">
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
             
   
   
@@ -995,8 +1224,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_5_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_3_5">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_3">
             <span class="md-nav__icon md-icon"></span>
             
   
@@ -1029,7 +1258,7 @@
   <span class="md-ellipsis">
     
   
-    점군 추정 폭으로 닫기
+    추정 폭·멀티뷰
   
 
     
@@ -1047,7 +1276,7 @@
   <span class="md-ellipsis">
     
   
-    점군 추정 폭으로 닫기
+    추정 폭·멀티뷰
   
 
     
@@ -1228,7 +1457,7 @@
   <span class="md-ellipsis">
     
   
-    최종 TCP 높이 필터
+    TCP 높이 필터
   
 
     
@@ -1315,7 +1544,7 @@
   <span class="md-ellipsis">
     
   
-    문제 해결
+    ROS 인터페이스
   
 
     
@@ -1331,7 +1560,7 @@
             <span class="md-nav__icon md-icon"></span>
             
   
-    문제 해결
+    ROS 인터페이스
   
 
           </label>
@@ -1344,14 +1573,14 @@
   
   
     <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
+      <a href="../ros-interfaces/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     
   
-    증상별 확인 순서
+    토픽·서비스·액션 목록
   
 
     
@@ -1364,376 +1593,6 @@
   
 
               
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-troubleshooting/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    파지 후보 탈락·오류
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../grasp-visualization/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    RViz 디버깅
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    시스템 이해와 개발
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    시스템 이해와 개발
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-flows/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    집기·배치 BT 흐름
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../bt-architecture/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    BT와 실행 구조
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-data/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    데이터와 좌표계
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../sam3-perception/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    SAM 3 객체 분할
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../graspgenx-model/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    GraspGenX 파지 후보
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../project-code-map/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    코드를 따라 읽기
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../development/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    테스트와 개발
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    인터페이스 참조
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    인터페이스 참조
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
             
               
                 
@@ -1777,7 +1636,63 @@
   <span class="md-ellipsis">
     
   
-    모델별 ROS 인터페이스
+    모델 브릿지
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sam3-perception/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAM 3 분할
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../graspgenx-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GraspGenX 후보 생성
   
 
     
@@ -1805,122 +1720,7 @@
   <span class="md-ellipsis">
     
   
-    BT 노드 기능·포트
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    프로젝트 안내
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    프로젝트 안내
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../documentation/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    문서 관리
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../upstream/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    구성 요소와 출처
+    BT 노드와 포트
   
 
     
@@ -2093,7 +1893,7 @@
 
 
 <h1 id="_1">점군 추정 폭으로 닫기<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
-<p>기본 집기 트리 <code>demo_width.xml</code>은 분할된 물체 점군에서 닫기 폭을 추정합니다.
+<p>기본 <code>demo_multiview.xml</code>과 단일 시점 <code>demo_width.xml</code>은 분할된 물체 점군에서 닫기 폭을 추정합니다.
 GraspGenX 응답은 자세와 점수이며 폭은 BT가 계산합니다.</p>
 <h2 id="_2">폭 계산과 출력<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>후보의 모델 로컬 X축(손가락 닫힘 방향)으로 점군을 변환하고 2·98백분위 범위를 구합니다.
@@ -2135,19 +1935,19 @@ GraspGenX 응답은 자세와 점수이며 폭은 BT가 계산합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">bt_navigator</span><span class="p">:</span>
 <a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">ros__parameters</span><span class="p">:</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="nt">bt_motion</span><span class="p">:</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">grasp_width_closing_inset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.005</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">      </span><span class="nt">grasp_width_closing_inset</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.02</span>
 <a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">      </span><span class="nt">gripper_open_width</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.10</span>
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">      </span><span class="nt">gripper_close_duration</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2.0</span>
 </code></pre></div>
 <p>inset은 전체 간격에서 빼는 양이며 허용 범위는 0~0.02m입니다.
-현재 실행 YAML은 0.005m, 코드의 생략 시 기본값은 0.002m입니다.
-추정 폭이 40mm라면 현재 설정의 명령 간격은 35mm입니다.
+공통 YAML 값은 0.02m, 코드의 생략 시 기본값은 0.002m입니다.
+추정 폭이 40mm라면 현재 설정의 명령 간격은 20mm입니다.
 범위를 벗어난 설정은 후보 검사 전에 실패합니다. 수정 후 BT를 재활성화합니다.</p>
 <h2 id="_4">실행과 반복 집기<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="s1">'{mode: 1, target_text: "yellow block"}'</span><span class="w"> </span>--feedback
 </code></pre></div>
-<p>기본 XML의 <code>CheckGraspReady release_previous="true"</code>는 남은 대상을 <strong>현재 위치에서</strong>
+<p>추정 폭 트리의 <code>CheckGraspReady release_previous="true"</code>는 남은 대상을 <strong>현재 위치에서</strong>
 개방하고, 개방 피드백 확인 후 부착을 해제합니다. 알 수 없는 부착 물체는 거부하며,
 개방 실패 시 새 집기를 중단합니다. 배치 위치로 이동하는 기능은 <code>mode: 2</code>를 사용합니다.</p>
 <p>고정 폭이 필요하면 현재 지원되는 대체 트리 <code>demo.xml</code>을 <code>behavior_tree</code>에 지정합니다.
@@ -2170,10 +1970,13 @@ base 좌표계에 모읍니다. 관측 이동은
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="c1"># 우측 관측 자세로 잡은 뒤</span>
 <a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>capture_joint_pose<span class="w"> </span>right
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># 등록된 값 확인</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>capture_joint_pose<span class="w"> </span>--list
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># 특정 자세를 다시 등록할 때만 명시적으로 덮어쓰기</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>capture_joint_pose<span class="w"> </span>front<span class="w"> </span>--overwrite
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="c1"># 배치 자세로 잡은 뒤</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>capture_joint_pose<span class="w"> </span>place
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># 등록된 값 확인</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>capture_joint_pose<span class="w"> </span>--list
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="c1"># 특정 자세를 다시 등록할 때만 명시적으로 덮어쓰기</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>ros2<span class="w"> </span>run<span class="w"> </span>rwh_beyond_bt<span class="w"> </span>capture_joint_pose<span class="w"> </span>front<span class="w"> </span>--overwrite
 </code></pre></div>
 <p>기본 저장 파일은 <code>/root/.ros/rwh_beyond/joint_poses.yaml</code>입니다. <code>joint1~joint6</code>만 고정
 순서의 rad 단위로 저장하며 그리퍼는 제외합니다. <code>bt_motion.joint_poses_file</code>을 바꾸면
@@ -2191,8 +1994,7 @@ CLI의 <code>--file /원하는/경로.yaml</code>도 같은 경로로 지정합�
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nt">&lt;CaptureJointPose</span><span class="w"> </span><span class="na">pose_name=</span><span class="s">"front"</span><span class="w"> </span><span class="na">timeout=</span><span class="s">"5.0"</span><span class="nt">/&gt;</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="nt">&lt;MoveJointPose</span><span class="w"> </span><span class="na">pose_name=</span><span class="s">"front"</span><span class="w"> </span><span class="na">settle_time=</span><span class="s">"1.0"</span><span class="nt">/&gt;</span>
 </code></pre></div>
-<p>집기 XML의 첫 <code>CheckJointPoses pose_names="front;left;right"</code>는 세 자세가 모두 등록돼
-있는지 검사합니다. 하나라도 없거나 파일 형식이 잘못되면 home·그리퍼 이동 전에 실패합니다.
+<p>첫 정면 집기는 <code>front</code>를 검사합니다. 재시도 분기는 <code>front</code>·<code>left</code>·<code>right</code>를 모두 검사한 후 측면 촬영을 시작합니다.
 정면 집기 실패 시 그리퍼를 열고 left → right 순서로 촬영합니다. 멀티뷰 집기 후에는
 front 관절 자세를 거쳐 home으로 이동합니다. 모든 집기 시도가 실패하면 home 복귀를
 시도합니다.</p>
@@ -2336,7 +2138,7 @@ RMSE 한도가 대응 거리보다 크면 해당 단계에서 실패합니다. T
       <nav class="md-footer__inner md-grid" aria-label="하단/푸터" >
         
           
-          <a href="../d435-bt-demo/" class="md-footer__link md-footer__link--prev" aria-label="이전: D435 BT 연결·장착 설정">
+          <a href="../d435-standalone/" class="md-footer__link md-footer__link--prev" aria-label="이전: D435 단독 실행">
             <div class="md-footer__button md-icon">
               
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
@@ -2346,7 +2148,7 @@ RMSE 한도가 대응 거리보다 크면 해당 단계에서 실패합니다. T
                 이전
               </span>
               <div class="md-ellipsis">
-                D435 BT 연결·장착 설정
+                D435 단독 실행
               </div>
             </div>
           </a>
