@@ -10,6 +10,33 @@
 | 자세, 그리퍼 폭, 동작 순서, 카메라를 변경하려면 | [설정과 변경](real-bt.md) |
 | 토픽·서비스·액션을 연동하거나 확인하려면 | [ROS 인터페이스](ros-interfaces.md) |
 
+## 데모 영상 { #demo-videos }
+
+<div class="demo-grid">
+  <div>
+    <div class="demo-video">
+      <iframe src="https://www.youtube-nocookie.com/embed/bAOhPEUKsSQ"
+              title="BEYOND Grasp 기존 데모"
+              loading="lazy"
+              allow="encrypted-media; picture-in-picture"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen></iframe>
+    </div>
+    <a href="https://www.youtube.com/watch?v=bAOhPEUKsSQ">기존 데모 · YouTube에서 보기</a>
+  </div>
+  <div>
+    <div class="demo-video">
+      <iframe src="https://www.youtube-nocookie.com/embed/mi5bHnUjrWM"
+              title="BEYOND Grasp 추가 데모"
+              loading="lazy"
+              allow="encrypted-media; picture-in-picture"
+              referrerpolicy="strict-origin-when-cross-origin"
+              allowfullscreen></iframe>
+    </div>
+    <a href="https://www.youtube.com/watch?v=mi5bHnUjrWM">추가 데모 · YouTube에서 보기</a>
+  </div>
+</div>
+
 ## 한 번의 집기 요청
 
 `/run_demo` → **Navigator가 BT 선택** → **RGB-D 촬영** → **SAM 3 분할** →

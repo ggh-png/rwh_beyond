@@ -10,7 +10,7 @@ PiPER 물체 인식·파지·리프트 프로젝트입니다.
 
 **[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** · [문서 소스](docs/index.md)
 
-[데모 영상 보기](https://www.youtube.com/watch?v=bAOhPEUKsSQ)
+[기존 데모](https://www.youtube.com/watch?v=bAOhPEUKsSQ) · [추가 데모](https://www.youtube.com/watch?v=mi5bHnUjrWM)
 
 ## 시작하기
 
