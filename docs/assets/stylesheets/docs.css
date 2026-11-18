@@ -92,3 +92,14 @@
 
 /* Long equations scroll within the article on narrow displays. */
 .md-typeset div.arithmatex { overflow-x: auto; overflow-y: hidden; padding-block: .3rem; }
+
+/* Copyable container commands wrap inside the two-column reference table. */
+.md-typeset .container-command-table table:not([class]) { width: 100%; table-layout: fixed; }
+.md-typeset .container-command-table th:first-child,
+.md-typeset .container-command-table td:first-child { width: 8.5rem; min-width: 0; }
+.md-typeset .container-command-table td:nth-child(2) { min-width: 0; }
+.md-typeset .container-command-table td code { white-space: normal; overflow-wrap: anywhere; }
+@media (max-width: 44.984375em) {
+  .md-typeset .container-command-table th:first-child,
+  .md-typeset .container-command-table td:first-child { width: 5.5rem; }
+}

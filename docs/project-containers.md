@@ -17,41 +17,92 @@
 | `rwh_beyond_robot_20261117.tar.gz` | `docker.io/rwh_beyond/robot:20261117` | `rwh_beyond_robot` |
 | `rwh_beyond_models_20261117.tar.gz` | `docker.io/rwh_beyond/sam3:20261117`, `docker.io/rwh_beyond/graspgenx:20261117` | `rwh_beyond_sam3`, `rwh_beyond_graspgenx` |
 
-### 로봇·서버 컨테이너 생성 한 줄 명령 { #container-one-liners }
+### 컨테이너 생성 방법 { #container-one-liners }
 
-이미지를 `load`한 뒤 **각 역할을 실행할 호스트에서** 아래 명령을 복사합니다.
-배포 폴더가 다른 위치라면 `/home/ggh/RWH/beyond`를 바꿉니다.
-두 호스트가 같은 PC여도 로봇용·서버용 명령을 각각 실행합니다.
+이미지를 불러온 뒤 아래 명령으로 컨테이너를 생성합니다.
+로봇용은 **로봇 PC 호스트**, 서버용은 **GPU 서버 호스트**에서 실행합니다.
+표는 NVIDIA Container Toolkit이 준비된 **Docker Engine 기준**입니다.
+현재 개발 PC처럼 Docker 명령이 Podman wrapper인 환경에서는
+[배포 helper 사용 방법](#robot-helper)을 따릅니다.
 
-**로봇 컨테이너 — GPU·GUI·장치 연결 포함**
-
-```bash
-# 현재 개발 호스트: Podman + NVIDIA CDI
-cd /home/ggh/RWH/beyond && RWH_GPU=1 CONTAINER_ENGINE=podman ./scripts/robot.sh start
-```
-
-```bash
-# Docker Engine을 사용하는 로봇 PC에서는 위 명령 대신
-cd /home/ggh/RWH/beyond && RWH_GPU=1 CONTAINER_ENGINE=docker ./scripts/robot.sh start
-```
-
-**GPU 추론 서버 — GraspGenX·SAM 3 컨테이너 두 개 생성**
+로봇 PC에서는 배포 폴더로 이동하고, 호스트 데이터 디렉터리와 X11 인증 파일을 준비합니다.
+`XAUTHORITY`가 없는 환경은 실제 X11 인증 파일을 `RWH_XAUTH_FILE`에 지정합니다.
+아래 파일 확인이 실패하면 GUI 인증 경로를 먼저 확인합니다.
 
 ```bash
-# Docker Engine을 사용하는 GPU 서버
-cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=docker ./scripts/models.sh start
+cd ~/RWH/beyond
+mkdir -p "$HOME/wsyoon_data"
+export RWH_XAUTH_FILE="${XAUTHORITY:-$HOME/.Xauthority}"
+test -f "$RWH_XAUTH_FILE"
 ```
+
+<div class="container-command-table" markdown="1">
+
+| 이미지 이름 | 명령어 |
+|---|---|
+| **BEYOND Robot** | `docker run -d --name rwh_beyond_robot --gpus all --network host --ipc host --init --privileged --restart unless-stopped -e DISPLAY="$DISPLAY" -e NVIDIA_DRIVER_CAPABILITIES=all -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" -v "$HOME/wsyoon_data:/root/wsyoon_data" -v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro" -v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro" -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /run/udev:/run/udev:ro docker.io/rwh_beyond/robot:20261117` |
+| **GraspGenX 서버** | `docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs docker.io/rwh_beyond/graspgenx:20261117` |
+| **SAM 3 서버** | `docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs docker.io/rwh_beyond/sam3:20261117` |
+
+</div>
+
+로봇 예시는 `--privileged`로 실물 장치 접근을 허용합니다.
+장치를 개별 전달하는 구성은 아래 helper를 사용합니다.
+로봇은 host network이므로 `-p`를 추가하지 않으며, 모델 서버는 loopback 포트 매핑을 사용합니다.
+로봇 이미지의 기본 명령은 `sleep infinity`여서 생성만으로 runner·로봇 동작을 실행하지 않습니다.
+모델 이미지는 생성 시 모델 서버를 시작합니다.
+
+### 컨테이너 실행·접속 방법 { #container-shell }
+
+생성한 로봇 컨테이너에 ROS 환경을 불러온 셸로 접속합니다.
 
 ```bash
-# Podman + NVIDIA CDI 서버에서는 위 명령 대신
-cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=podman ./scripts/models.sh start
+docker exec -it rwh_beyond_robot /opt/rwh_beyond/entrypoint.sh bash --noprofile --norc
 ```
 
-로봇 명령은 `rwh_beyond_robot`을 생성해 대기시키며, 서버 명령은
-`rwh_beyond_graspgenx`(5566)·`rwh_beyond_sam3`(5567)를 생성해 모델을 시작합니다.
-helper는 기존 컨테이너가 있으면 재시작하므로 생성 옵션을 바꾸지는 않습니다.
-로봇은 host network, 모델 서버는 loopback 포트 매핑을 사용합니다.
-서버의 [직접 `docker run` 한 줄 명령](inference-server-operation.md#model-docker-run)은 별도로 제공합니다.
+컨테이너가 정지 상태면 먼저 시작합니다. `start`는 기존 생성 옵션을 그대로 사용합니다.
+
+```bash
+docker start rwh_beyond_robot
+```
+
+서버 내부 셸이 필요하면 다음을 사용합니다. 모델 health 명령은
+[GPU 추론 서버 운영](inference-server-operation.md#model-docker-run)을 참고하세요.
+
+```bash
+docker exec -it rwh_beyond_graspgenx bash
+docker exec -it rwh_beyond_sam3 bash
+```
+
+### wsyoon_data와 지도 파일 { #persistent-data }
+
+로봇 생성 명령의 `-v "$HOME/wsyoon_data:/root/wsyoon_data"`는
+**호스트의 데이터 디렉터리를 컨테이너에 읽기·쓰기 연결**합니다.
+`$HOME`은 명령을 실행하는 호스트 사용자의 홈입니다. 예를 들어 호스트 사용자가 `ggh`이면:
+
+| 호스트 경로 | 컨테이너 경로 | 용도 |
+|---|---|---|
+| `/home/ggh/wsyoon_data/map/map.yaml` | `/root/wsyoon_data/map/map.yaml` | navigation의 기본 지도 YAML |
+| `/home/ggh/wsyoon_data/map/` 안의 지도 이미지 | `/root/wsyoon_data/map/` 안의 지도 이미지 | YAML의 `image:`가 참조하는 파일 |
+| `/home/ggh/wsyoon_data/maps/` | `/root/wsyoon_data/maps/` | map_save의 날짜별 저장 디렉터리 |
+
+`mkdir -p`는 빈 디렉터리만 준비하며 지도 파일을 생성하지 않습니다.
+기존 지도 YAML과 해당 이미지 파일을 함께 준비하고, YAML의 `image:`가
+컨테이너에서 접근 가능한 경로인지 확인합니다. 다른 지도를 사용할 때는 runner의
+`RWH_MAP_FILE`도 실제 컨테이너 경로에 맞춰야 합니다.
+
+컨테이너 생성 후 파일이 보이는지 확인합니다. 아래 검사는 로봇을 움직이지 않습니다.
+
+```bash
+docker inspect rwh_beyond_robot --format '{{json .Mounts}}'
+docker exec rwh_beyond_robot ls -l /root/wsyoon_data/map/map.yaml
+```
+
+기존 컨테이너 안에만 지도가 있다면 호스트의 **기존 파일과 겹치지 않는 백업 경로**로
+먼저 복사합니다. 새 bind mount는 이미지 안의 같은 경로를 가리므로 기존 내용을 자동 병합하지 않습니다.
+마운트 누락은 `docker start`나 `restart`로 추가되지 않습니다.
+내부 변경분·지도·생성 설정을 보존한 뒤 마운트를 포함해 재생성해야 합니다.
+이 문서의 명령은 현재 실행 중인 개발 컨테이너를 자동 변경하지 않습니다.
 
 ### 1. 이미지 파일 불러오기
 
@@ -77,7 +128,7 @@ CONTAINER_ENGINE=podman ./scripts/load-images.sh
 Docker에서도 `CONTAINER_ENGINE=docker ./scripts/load-images.sh`로 같은 작업을 할 수 있습니다.
 로봇 PC와 GPU 서버를 분리하면 각 호스트에 필요한 아카이브만 `load`합니다.
 
-### 2. 로봇 컨테이너 생성·접속
+### 2. 배포 helper로 로봇 컨테이너 생성·접속 { #robot-helper }
 
 현재 호스트의 Podman에서는:
 
@@ -102,7 +153,8 @@ CONTAINER_ENGINE=docker ./scripts/robot.sh shell
 
 | 생성 설정 | `robot.sh`가 적용하는 옵션·경로 |
 |---|---|
-| 기본 실행 | `run -d --name rwh_beyond_robot --network host --ipc host --init --security-opt label=disable` |
+| 기본 실행 | `run -d --name rwh_beyond_robot --network host --ipc host --init --cap-add NET_ADMIN --security-opt label=disable` |
+| 영구 데이터 | `${RWH_DATA_DIR:-$HOME/wsyoon_data}` → `/root/wsyoon_data` 읽기·쓰기 |
 | ROS domain | `ROS_DOMAIN_ID` 환경변수, 생략 시 0 |
 | runner 설정 | `config/runners.yaml` → `/opt/rwh_beyond/config/runners.yaml` 읽기 전용 |
 | BT 설정 | `config/bt_demo.yaml` → `/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml` 읽기 전용 |
@@ -118,6 +170,10 @@ GPU를 사용하지 않는 로봇 PC에서는 `RWH_GPU=1`을 생략합니다.
 기존 컨테이너의 `start`는 생성 옵션을 바꾸지 않습니다.
 GPU·장치·마운트 옵션을 바꾸려면 기존 생성 설정과 컨테이너 내부 변경분을 확인한 뒤 재생성합니다.
 전체 장치 옵션은 배포 폴더의 `scripts/robot.sh`가 기준입니다.
+예전 배포 helper에는 `wsyoon_data` 마운트가 없을 수 있습니다. 최초 생성 전에
+`-v "$rwh_data_dir:/root/wsyoon_data"`가 포함돼 있는지 확인하고, 없으면 위 직접 생성 명령을 사용하거나
+helper에 데이터 경로를 추가합니다. 호스트 경로를 바꾸려면 수정된 helper의 `RWH_DATA_DIR`을 사용합니다.
+helper로 생성한 뒤에도 [마운트·지도 파일 확인](#persistent-data)을 수행합니다.
 
 runner 실행과 종료도 호스트에서 별도로 요청합니다.
 

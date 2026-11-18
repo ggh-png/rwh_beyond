@@ -45,15 +45,19 @@ docker compose -f compose.models.yaml logs --tail 100 sam3 graspgenx
 이는 배포본 `scripts/models.sh`의 Docker 생성 옵션과 같습니다.
 같은 이름의 컨테이너를 두 방식으로 중복 생성하지 않습니다.
 
-```bash
-# GraspGenX
-docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs docker.io/rwh_beyond/graspgenx:20261117
-```
+<div class="container-command-table" markdown="1">
 
-```bash
-# SAM 3
-docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs docker.io/rwh_beyond/sam3:20261117
-```
+| 이미지 이름 | 명령어 |
+|---|---|
+| **GraspGenX 서버** | `docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs docker.io/rwh_beyond/graspgenx:20261117` |
+| **SAM 3 서버** | `docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs docker.io/rwh_beyond/sam3:20261117` |
+
+</div>
+
+로봇용 생성·접속 명령과 `wsyoon_data` 마운트는
+[컨테이너 생성 방법](project-containers.md#container-one-liners)을 참고하세요.
+서버 내부 셸은 `docker exec -it rwh_beyond_graspgenx bash` 또는
+`docker exec -it rwh_beyond_sam3 bash`로 접속합니다.
 
 Podman에서는 GPU CDI를 준비한 뒤 배포 helper를 사용합니다.
 
