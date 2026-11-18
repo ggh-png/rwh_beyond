@@ -572,7 +572,7 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
     최종 TCP는 `base_T_camera × camera_T_model_grasp × model_T_tcp`로 계산합니다.
     사전 접근은 모델 접근축 반대 방향으로 떨어진 위치이고, 리프트는 base +Z 방향입니다.
     추정 폭 모드의 닫기 폭은 관측 폭에서 `grasp_width_closing_inset`을 빼고 최대 열림 폭으로 제한합니다.
-    inset 허용 범위는 0~0.005m, 현재 값은 0.005m입니다. 고정 폭 모드는 현재 `gripper_close_width=0.04m`를 사용합니다.
+    inset 허용 범위는 0~0.02m, 현재 값은 0.005m입니다. 고정 폭 모드는 현재 `gripper_close_width=0.04m`를 사용합니다.
 
     **계획 객체에 저장되는 것.** 선택한 관측, 사전 접근·최종 TCP 자세, 실행할 사전 접근 궤적,
     손목 제약, 관측 폭·명령 폭, 리프트 거리를 하나의 `GraspPlan`에 담습니다.

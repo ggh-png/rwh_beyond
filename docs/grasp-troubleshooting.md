@@ -19,7 +19,7 @@ MoveIt이 반환한 후보별 오류가 있으면 원본 코드가 보고될 수
 bt_navigator:
   ros__parameters:
     bt_motion:
-      # 전체 손가락 간격에서 뺄 양(m), 허용 범위 0~0.005.
+      # 전체 손가락 간격에서 뺄 양(m), 허용 범위 0~0.02.
       grasp_width_closing_inset: 0.004
 ```
 

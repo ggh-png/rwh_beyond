@@ -374,9 +374,17 @@ TEST_F(DirectMotion, DestroyingRunningMotionCancelsTheMoveItGoal)
   }
   EXPECT_TRUE(canceled);
 }
+TEST_F(DirectMotion, MaximumInsetIsAcceptedAndAppliedToEstimatedWidth)
+{
+  client->declare_parameter("bt_motion.grasp_width_closing_inset", .02);
+  capture();
+  ASSERT_EQ(run(selection), BT::NodeStatus::SUCCESS);
+  auto plan = board->get<Plan>("plan");
+  EXPECT_NEAR(plan->observed_width - plan->close_width, .02, 1e-6);
+}
 TEST_F(DirectMotion, InvalidInsetFailsBeforePlanningWithClearMessage)
 {
-  client->declare_parameter("bt_motion.grasp_width_closing_inset", .05); capture();
+  client->declare_parameter("bt_motion.grasp_width_closing_inset", .020001); capture();
   EXPECT_EQ(run(selection), BT::NodeStatus::FAILURE);
   EXPECT_NE(execution_diagnostic(board).error_msg.find("grasp_width_closing_inset"),
     std::string::npos);
