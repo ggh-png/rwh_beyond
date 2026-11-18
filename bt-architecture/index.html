@@ -2075,7 +2075,7 @@
 <h1 id="bt">BT와 실행 구조<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
 <p><code>DemoNavigator</code>가 <code>/run_demo</code>를 제공하고 <strong>BT가 작업 순서·관측 데이터·목표·경로를 소유</strong>합니다.
 BT 플러그인이 모델 브릿지·MoveIt·그리퍼를 직접 호출합니다.</p>
-<p><a href="../bt-flows/">집기·배치 흐름</a> → <a href="../bt-grasp-stages/">16개 플러그인 기능·포트</a> →
+<p><a href="../bt-flows/">집기·배치 흐름</a> → <a href="../bt-grasp-stages/">22개 플러그인 기능·포트</a> →
 <a href="../project-data/">데이터와 좌표계</a> 순서로 읽으면 실행과 구현을 연결할 수 있습니다.</p>
 <p>전체 그림은 <a href="../bt-flows/#bt-workflow-image">BT 전체 흐름 이미지</a>를 참고하세요.</p>
 <h2 id="_1">프로세스와 책임<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
@@ -2192,7 +2192,7 @@ BT 플러그인이 모델 브릿지·MoveIt·그리퍼를 직접 호출합니다
 <code>rwh_beyond_grasp_pipeline/launch/grasp_pipeline.launch.py</code>와
 <code>rwh_beyond_bringup/launch/bt_demo.launch.py</code>입니다.</p>
 <h2 id="plugin-structure">플러그인 디렉터리와 등록<a class="headerlink" href="#plugin-structure" title="Permanent link">&para;</a></h2>
-<p><code>rwh_beyond_bt/</code>에는 사용자 정의 Action 노드 <strong>16종</strong>이 있습니다. 현재 사용자 정의
+<p><code>rwh_beyond_bt/</code>에는 사용자 정의 Action 노드 <strong>22종</strong>이 있습니다. 현재 사용자 정의
 Condition 노드는 없으며 <code>plugins/condition/</code>은 향후 Condition을 위한 자리입니다.
 <code>CheckGraspReady</code>는 설정에 따라 기존 물체를 해제할 수 있으므로 Action입니다.
 <code>Sequence</code>는 BehaviorTree.CPP가 제공하는 제어 노드입니다.</p>
@@ -2203,7 +2203,7 @@ Condition 노드는 없으며 <code>plugins/condition/</code>은 향후 Conditio
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── plugins/
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>│   ├── action/
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>│   │   ├── motion_action.cpp             # 공통 실행·취소
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   ├── motion_actions.cpp            # 모션 노드 11종 등록
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>│   │   ├── motion_actions.cpp            # 모션·융합·관절 자세 노드 17종 등록
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>│   │   ├── move_home_action.cpp          # 예: 노드별 구현
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>│   │   ├── perception_actions.cpp        # 인식 노드 4종 구현·등록
 <a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>│   │   └── clear_octomap_action.cpp      # 지도 초기화 구현·등록
@@ -2261,19 +2261,24 @@ Condition 노드는 없으며 <code>plugins/condition/</code>은 향후 Conditio
 </tr>
 </tbody>
 </table>
+<p>관절 자세 노드 3종은 <code>joint_pose_actions.hpp/.cpp</code>에 있으며 <code>src/joint_pose_store.cpp</code>가
+rad 단위 YAML 저장·조회, <code>src/capture_joint_pose.cpp</code>가 피드백 캡처 CLI를 제공합니다.</p>
+<p>다중 시점 노드 3종은 <code>multiview_actions.hpp/.cpp</code>에 있고 <code>src/multiview.cpp</code>에서
+좌표 변환·voxel 평균·관측 정합성을 검사합니다.
+<a href="../width-aware-bt/#multiview">다중 시점 관측 흐름</a>을 참고하세요.</p>
 <p>인식 노드 4종의 선언은 <code>include/rwh_beyond_bt/plugins/action/perception_actions.hpp</code>에
 함께 있으며, <code>ClearOctomap</code>은 별도 헤더·소스를 사용합니다.
 전체 포트와 기능은 <a href="../bt-grasp-stages/">플러그인별 기능·포트</a>를 참고하세요.</p>
 <pre class="mermaid"><code>flowchart LR
   YAML["bt_demo.yaml&lt;br/&gt;plugin_lib_names"] --&gt; Loader["rwh_beyond_bt_nodes&lt;br/&gt;전체 로더"]
   Loader --&gt; P["perception_bt_nodes&lt;br/&gt;인식 4종"]
-  Loader --&gt; M["motion_bt_nodes&lt;br/&gt;모션 11종"]
+  Loader --&gt; M["motion_bt_nodes&lt;br/&gt;모션·융합·관절 자세 17종"]
   Loader --&gt; O["clear_octomap_action_bt_node&lt;br/&gt;지도 1종"]
   M --&gt; Shared["rwh_beyond_bt_common&lt;br/&gt;진단 상태"]
   P --&gt; Shared
   O --&gt; Shared</code></pre>
 <p>모션 노드는 <code>rwh_beyond_motion_bt_nodes</code> <strong>하나의 공유 라이브러리</strong>로 빌드합니다.
-공통 YAML은 <code>rwh_beyond_bt_nodes</code> 로더로 16개 노드를 등록합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
+공통 YAML은 <code>rwh_beyond_bt_nodes</code> 로더로 22개 노드를 등록합니다. 세 노드 라이브러리를 직접 나열해 로드할 수도 있지만,
 같은 노드를 전체 로더와 개별 라이브러리로 중복 등록하지 않습니다.</p>
 <h2 id="motion-execution">모션 공통 실행과 Blackboard<a class="headerlink" href="#motion-execution" title="Permanent link">&para;</a></h2>
 <p>각 모션 클래스의 <code>providedPorts()</code>는 XML 포트를 정의하고 <code>prepare()</code>는 BT 스레드에서

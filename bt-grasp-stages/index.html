@@ -1985,6 +1985,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        다중 시점 점군 노드
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        관절 자세 캡처·이동 노드
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2430,6 +2452,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        다중 시점 점군 노드
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        관절 자세 캡처·이동 노드
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -2451,7 +2495,7 @@
 
 
 <h1 id="bt">BT 플러그인별 기능과 포트<a class="headerlink" href="#bt" title="Permanent link">&para;</a></h1>
-<p>16개 노드의 <strong>역할 → 처리 순서 → 입출력 → 호출·오류</strong>를 찾아보는 참조 문서입니다.
+<p>22개 노드의 <strong>역할 → 처리 순서 → 입출력 → 호출·오류</strong>를 찾아보는 참조 문서입니다.
 전체 실행 순서는 <a href="../bt-flows/">BT 실행 흐름</a>, 프로세스 관계는 <a href="../bt-architecture/">BT와 실행 구조</a>를 참고하세요.</p>
 <div class="bt-plugin-reference">
 <h2 id="_1">노드 바로 찾기<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
@@ -2829,10 +2873,11 @@
 <p>home 관절 상태의 FK로 기준 TCP를 구합니다.</p>
 </li>
 <li>
-<p>위치는 base 축 <code>(x,y,z)</code>를 더하고, 방향은 home 로컬 RPY를 합성합니다. <code>tilt_deg</code>는 Y 회전만 바꿉니다.</p>
+<p>위치는 base 축 <code>(x,y,z)</code>를 더하고, 방향은 home 로컬 RPY를 합성합니다. <code>tilt_deg</code>는 Y 회전만 바꿉니다. 이후 <code>yaw_deg</code>를 base Z축 방향 회전으로 합성합니다.</p>
 </li>
 <li>
-<p>현재 상태에서 목표까지 완전한 Cartesian 경로를 계획·실행합니다.</p>
+<p><code>observation_motion_mode=ompl</code>이면 목표 TCP의 충돌 회피 IK 후 OMPL 관절 경로를,
+   <code>cartesian</code>이면 완전한 TCP 직선 경로를 계획·실행합니다.</p>
 </li>
 <li>
 <p>센서 안정화를 위해 <code>settle_time</code>을 기다립니다.</p>
@@ -2881,6 +2926,12 @@
 </tr>
 <tr>
 <td>입력</td>
+<td><code>yaw_deg</code></td>
+<td>0°</td>
+<td>기울임 후 base Z축 기준 추가 방향 회전; −180~180°</td>
+</tr>
+<tr>
+<td>입력</td>
 <td><code>settle_time</code></td>
 <td>YAML; 현재 0.5초</td>
 <td>이동 후 안정화 대기; 0~30초</td>
@@ -2892,7 +2943,7 @@
 <div class="tabbed-block">
 <ul>
 <li>
-<p><strong>직접 호출:</strong> <code>/compute_fk</code> (<code>GetPositionFK</code>), <code>/compute_cartesian_path</code> (<code>GetCartesianPath</code>),
+<p><strong>직접 호출:</strong> <code>/compute_fk</code> (<code>GetPositionFK</code>), <code>/compute_ik</code> (<code>GetPositionIK</code>), <code>/plan_kinematic_path</code>,
   <code>/execute_trajectory</code>.</p>
 </li>
 <li>
@@ -2904,9 +2955,15 @@
   호출할 때마다 목표를 home 기준으로 계산하며 현재 위치에 오프셋을 누적하지 않습니다.</p>
 </li>
 </ul>
-<p><strong>실행과 완료.</strong> 현재 관절 상태에서 이 목표로 완전한 Cartesian 경로를 계획·실행하고,
+<p><strong>실행과 완료.</strong> 현재 관절 상태에서 목표 IK 관절값까지 OMPL 경로를 계획·실행하고,
 <code>settle_time</code>을 기다린 뒤 성공합니다. 같은 노드를 두 번 실행해도 오프셋을 두 번 더하지 않습니다.
-Cartesian 경로가 불완전하면 실패하며, 이 노드 자체는 촬영하지 않습니다.</p>
+IK·계획·실행이 실패하면 중단하며, 이 노드 자체는 촬영하지 않습니다.
+OMPL 모드에서는 TCP의 직선 이동이나 중간 경로의 방향 고정을 요구하지 않습니다.
+목표 위치·tilt·yaw는 두 모드에 동일하게 적용하며, Cartesian 부분 경로는 실행하지 않습니다.
+<code>bt_motion.observation_motion_mode</code>는 ompl/cartesian을 선택하고
+<code>moveit_observation_ik_timeout</code>은 OMPL 관측 IK 시간을 설정합니다.
+OMPL 전용 설정은 <code>bt_motion.moveit_observation_planner_id</code>, <code>moveit_observation_planning_time</code>,
+<code>moveit_observation_num_planning_attempts</code>이며 속도·가속도는 일반 관절 계획 배율을 사용합니다.</p>
 </div>
 </div>
 </div>
@@ -3282,6 +3339,12 @@ BT는 이 단계에서 후보 하나를 확정하지 않으며, 최종 선택은
 <td><code>capture</code>, <code>mask</code>, <code>cloud</code>, <code>candidates</code></td>
 <td>필수</td>
 <td>동일 촬영의 관측·마스크·점군·모델 후보</td>
+</tr>
+<tr>
+<td>입력</td>
+<td><code>fusion</code></td>
+<td>선택; 불변 CloudFusion</td>
+<td>다중 시점 원본·TF; 지정하면 융합 점군을 재계산해 검증</td>
 </tr>
 <tr>
 <td>입력</td>
@@ -3857,8 +3920,13 @@ BehaviorTree.CPP의 제어 노드입니다. 한 자식이 성공해야 다음 �
 <td>한 번의 tick에서 점군 계산 후 성공 또는 실패</td>
 </tr>
 <tr>
+<td>SyncActionNode</td>
+<td>ResetObjectCloudFusion·BuildFusedObjectCloud</td>
+<td>누적 초기화·voxel 점군 생성</td>
+</tr>
+<tr>
 <td>공통 MotionAction</td>
-<td>나머지 모션·장면 11개</td>
+<td>모션·장면·누적·관절 이동 13개</td>
 <td>시작 tick에서 입력을 읽고 비동기 작업 실행, 후속 tick에서 결과 확인</td>
 </tr>
 </tbody>
@@ -3869,6 +3937,77 @@ BehaviorTree.CPP의 제어 노드입니다. 한 자식이 성공해야 다음 �
 </details>
 </div>
 <p><a href="../bt-flows/">실행 흐름</a> · <a href="../bt-architecture/">구조와 호출 관계</a> · <a href="../real-bt/">공통 설정</a></p>
+<h2 id="_7">다중 시점 점군 노드<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<p><a href="../width-aware-bt/#multiview">관측 자세·전체 흐름·제한</a>을 참고하세요.</p>
+<table>
+<thead>
+<tr>
+<th>노드</th>
+<th>입력</th>
+<th>출력</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ResetObjectCloudFusion</code></td>
+<td>voxel_size=0.003m, max_centroid_distance=0.08m</td>
+<td>fusion</td>
+<td>매 실행마다 누적 초기화</td>
+</tr>
+<tr>
+<td><code>AccumulateObjectCloud</code></td>
+<td>capture, mask, fusion</td>
+<td>fusion (양방향)</td>
+<td>촬영 시각 TF와 원본 관측을 새 불변 세션에 추가</td>
+</tr>
+<tr>
+<td><code>BuildFusedObjectCloud</code></td>
+<td>fusion, min_views=3</td>
+<td>cloud</td>
+<td>base에서 voxel 평균 후 마지막 optical frame으로 반환</td>
+</tr>
+</tbody>
+</table>
+<p>선택 단계에 <code>fusion</code>을 전달하면 단일 마스크 일치 검사 대신 동일 세션에서 재생성한
+융합 점군과 일치하는지 검사합니다. 마지막 capture·mask·TF 일치와 촬영 후 팔 이동
+검사는 유지됩니다. 융합 세션을 전달하지 않는 기존 단일 시점 동작은 그대로입니다.</p>
+<h2 id="_8">관절 자세 캡처·이동 노드<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<p><a href="../width-aware-bt/#multiview">등록 명령과 다중 시점 흐름</a>을 참고하세요.</p>
+<table>
+<thead>
+<tr>
+<th>노드</th>
+<th>입력</th>
+<th>출력</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CaptureJointPose</code></td>
+<td>pose_name, poses_file(선택), overwrite=false, timeout=5초</td>
+<td>joint_positions</td>
+<td>신선한 joint1~6 피드백을 읽어 rad 단위로 원자적 저장; 이동하지 않음</td>
+</tr>
+<tr>
+<td><code>CheckJointPoses</code></td>
+<td>pose_names(세미콜론 구분), poses_file(선택)</td>
+<td>없음</td>
+<td>등록 누락·잘못된 형식을 이동 전에 거부</td>
+</tr>
+<tr>
+<td><code>MoveJointPose</code></td>
+<td>pose_name, poses_file(선택), settle_time</td>
+<td>없음</td>
+<td>저장한 관절 목표로 OMPL 계획·실행·실제 피드백 도착 확인; IK 없음</td>
+</tr>
+</tbody>
+</table>
+<p>파일 경로를 포트로 생략하면 <code>bt_motion.joint_poses_file</code>을 사용합니다. 파일·자세가
+없을 때 0 관절값으로 대체하지 않습니다. 저장 시 기존 이름은 명시적인 overwrite가
+필요합니다. 모션은 그리퍼를 제어하지 않으며, 계획·실행 실패와 halt는 기존 MotionAction
+진단·취소 처리를 따릅니다.</p>
 
 
 

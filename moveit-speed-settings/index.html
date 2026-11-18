@@ -1189,6 +1189,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#move_group-ompl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        move_group의 OMPL 설정
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        관측 이동 모드 전환과 IK 실패
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1928,6 +1950,28 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#move_group-ompl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        move_group의 OMPL 설정
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ik" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        관측 이동 모드 전환과 IK 실패
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1965,7 +2009,7 @@
 <tr>
 <td><code>moveit_velocity_scaling_factor</code></td>
 <td style="text-align: right;">0.5</td>
-<td>home·사전 접근·배치 OMPL, 0.001~1</td>
+<td>관측·home·사전 접근·배치 OMPL, 0.001~1</td>
 </tr>
 <tr>
 <td><code>moveit_acceleration_scaling_factor</code></td>
@@ -1975,7 +2019,7 @@
 <tr>
 <td><code>moveit_cartesian_velocity_scaling_factor</code></td>
 <td style="text-align: right;">0.5</td>
-<td>관측·접근·리프트·직선 배치, 0.001~1</td>
+<td>접근·리프트·직선 배치, 0.001~1</td>
 </tr>
 <tr>
 <td><code>moveit_cartesian_acceleration_scaling_factor</code></td>
@@ -1986,6 +2030,31 @@
 <td><code>moveit_planning_time</code></td>
 <td style="text-align: right;">10초</td>
 <td>일반 관절 경로 계획, 0.01~120초</td>
+</tr>
+<tr>
+<td><code>observation_motion_mode</code></td>
+<td style="text-align: right;">ompl</td>
+<td>관측 이동 방식: ompl / cartesian</td>
+</tr>
+<tr>
+<td><code>moveit_observation_ik_timeout</code></td>
+<td style="text-align: right;">1초</td>
+<td>OMPL 관측 목표 IK 탐색, 0.001~10초</td>
+</tr>
+<tr>
+<td><code>moveit_observation_planner_id</code></td>
+<td style="text-align: right;">RRTConnect</td>
+<td>관측 전용 OMPL 플래너 ID</td>
+</tr>
+<tr>
+<td><code>moveit_observation_planning_time</code></td>
+<td style="text-align: right;">10초</td>
+<td>관측 관절 경로 계획, 0.01~120초</td>
+</tr>
+<tr>
+<td><code>moveit_observation_num_planning_attempts</code></td>
+<td style="text-align: right;">5</td>
+<td>관측 계획 시도 횟수, 1~10</td>
 </tr>
 <tr>
 <td><code>moveit_candidate_planning_time</code></td>
@@ -2021,6 +2090,72 @@
 자체 시간 제한도 갖습니다. MoveIt 감시 시간만 늘려도 모든 timeout이 해결되지는 않습니다.</p>
 <p>변경 후 <code>bt_demo</code>와 <code>piper_moveit</code>을 중지하고 <code>piper_moveit</code> → <code>bt_demo</code> 순으로 재활성화합니다.
 실행 실패 시 <a href="../troubleshooting/">문제 해결</a>에서 오류 발생 계통과 피드백을 먼저 확인합니다.</p>
+<h2 id="move_group-ompl">move_group의 OMPL 설정<a class="headerlink" href="#move_group-ompl" title="Permanent link">&para;</a></h2>
+<p><code>MoveObservation</code>은 기본 <code>observation_motion_mode: ompl</code>에서 목표 TCP 자세의 IK를 구하고 관절 경로로 이동합니다. TCP 직선 이동은
+요구하지 않으므로 <code>/compute_cartesian_path</code>의 fraction=0 때문에 관측 이동이 실패하지는
+않습니다. 대신 목표 자체가 도달 불가이거나 충돌 상태이면 <code>/compute_ik</code> 또는
+<code>/plan_kinematic_path</code>에서 실패할 수 있습니다. 파지 접근·리프트는 Cartesian 검사를 유지합니다.</p>
+<p>같은 <code>bt_demo.yaml</code>의 <code>move_group.ros__parameters.ompl</code>에서 다음을 조절합니다.</p>
+<table>
+<thead>
+<tr>
+<th>설정</th>
+<th>초기값</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planner_configs.RRTConnect.range</code></td>
+<td>0.0</td>
+<td>상태 공간의 트리 확장 거리; 0은 자동</td>
+</tr>
+<tr>
+<td><code>planner_configs.RRTstar.range</code></td>
+<td>0.0</td>
+<td>동일한 확장 거리 설정</td>
+</tr>
+<tr>
+<td><code>arm.planner_configs</code></td>
+<td>RRTConnect, RRTstar</td>
+<td>사용할 등록 플래너 목록</td>
+</tr>
+<tr>
+<td><code>arm.default_planner_config</code></td>
+<td>RRTConnect</td>
+<td>요청에 planner_id가 없을 때 기본값</td>
+</tr>
+<tr>
+<td><code>arm.enforce_joint_model_state_space</code></td>
+<td>true</td>
+<td>관절 상태 공간에서 계획</td>
+</tr>
+<tr>
+<td><code>arm.longest_valid_segment_fraction</code></td>
+<td>0.005</td>
+<td>경로 충돌 검사 분해능; 작으면 촘촘하게 검사</td>
+</tr>
+</tbody>
+</table>
+<p>BT는 관측·사전 접근의 planner_id를 명시하므로 <code>arm.default_planner_config</code>보다 BT 설정이
+우선합니다. <code>range</code>는 속도나 미터 단위 TCP 이동 거리가 아닙니다. 등록되지 않은 플래너,
+음수·비유한 range, 잘못된 기본 플래너는 launch 단계에서 거부합니다.</p>
+<p><code>bt_motion</code>만 바꾸면 <code>bt_demo</code>를 재시작합니다. <code>move_group</code> 설정을 바꾸면 기존 BT 작업을
+종료한 뒤 <code>piper_moveit</code>과 <code>bt_demo</code>를 다시 시작합니다. 이 변경은 XML 선택값을 바꾸지 않습니다.</p>
+<h2 id="ik">관측 이동 모드 전환과 IK 실패<a class="headerlink" href="#ik" title="Permanent link">&para;</a></h2>
+<p>같은 YAML의 <code>bt_navigator.ros__parameters.bt_motion</code>에서 변경합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nt">observation_motion_mode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ompl</span><span class="w">  </span><span class="c1"># ompl 또는 cartesian</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">moveit_observation_ik_timeout</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span><span class="w">  </span><span class="c1"># OMPL 관측 목표 IK 제한 시간(초)</span>
+</code></pre></div>
+<p><code>cartesian</code>은 별도의 목표 IK·OMPL 요청 없이 <code>/compute_cartesian_path</code>를 사용하고,
+경로 fraction이 0.999 미만이면 실행하지 않습니다. 다른 방식으로 자동 전환하지 않습니다.
+모드·관측 IK 시간만 변경하면 <code>bt_demo</code>를 재시작합니다.</p>
+<p><code>NO_IK_SOLUTION</code>은 OMPL 경로 탐색 이전의 목표 IK 실패입니다. 도달 범위, 관절 한계,
+목표 방향 또는 충돌이 원인일 수 있고 오류 코드만으로 구분할 수 없습니다. 관측 IK 시간은
+일반 파지 IK의 0.2초와 분리해 기본 1초로 두었습니다. 시간을 늘려도 불가능한 자세가
+가능해지는 것은 아닙니다. 모드 변경도 물리적으로 불가능한 목표를 해결하지는 않습니다.</p>
+<p>관측 시작 로그에 선택한 모드, base 기준 target XYZ·quaternion, XML의 offset·tilt·yaw가
+나옵니다. 마지막으로 출력된 관측 목표를 확인해 어느 시점에서 실패했는지 구분할 수 있습니다.</p>
 
 
 
