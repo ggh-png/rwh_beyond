@@ -31,6 +31,7 @@ nav:
   - 홈: index.md
   - 처음 사용하기:
       - 시스템 구성: project-overview.md
+      - 도커 컨테이너 구성: docker-containers.md
       - 환경과 빌드: project-containers.md
       - GPU 추론 서버 준비: inference-server-operation.md
       - 빠른 시작: grasp-pipeline-guide.md

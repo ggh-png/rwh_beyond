@@ -28,8 +28,9 @@ Behavior Tree가 MoveIt 2와 그리퍼를 호출해 작업을 실행합니다.
 
 - **처음 실행하고 싶다**
 
-    [환경과 빌드](project-containers.md) → [GPU 서버 준비](inference-server-operation.md) →
+    [도커 컨테이너 구성](docker-containers.md) → [GPU 서버 준비](inference-server-operation.md) →
     [빠른 시작](grasp-pipeline-guide.md) 순서로 준비하고 첫 집기를 실행합니다.
+    소스 수정과 재빌드는 [환경과 빌드](project-containers.md)를 참고하세요.
 
 - **장치와 동작을 바꾸고 싶다**
 

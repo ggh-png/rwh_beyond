@@ -7,7 +7,7 @@ SAM 3와 GraspGenX는 ROS 컨테이너와 분리한 GPU 프로세스로 실행�
 ## 배포 모델 컨테이너 생성 { #deployment-model-containers }
 
 `/home/ggh/RWH/beyond`의 **20261117 배포 아카이브**를 받은 경우 이 절을 사용합니다.
-[이미지 불러오기](project-containers.md#deployment-containers)를 먼저 수행합니다.
+[이미지 불러오기](docker-containers.md#load-images)를 먼저 수행합니다.
 다른 GPU 호스트에 복사했다면 `cd` 경로를 실제 배포 폴더로 바꿉니다.
 `compose.models.yaml`과 `scripts/models.sh`는 이 배포 폴더에 포함된 파일입니다.
 
@@ -15,27 +15,34 @@ SAM 3와 GraspGenX는 ROS 컨테이너와 분리한 GPU 프로세스로 실행�
 GraspGenX·SAM 3 두 컨테이너를 함께 생성·시작합니다.
 
 ```bash
-# Docker Engine
+# 배포 파일과 설정이 있는 디렉터리로 이동
 cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=docker ./scripts/models.sh start
 ```
 
 ```bash
-# Podman + NVIDIA CDI 환경에서는 위 명령 대신
+# 배포 파일과 설정이 있는 디렉터리로 이동
 cd /home/ggh/RWH/beyond && CONTAINER_ENGINE=podman ./scripts/models.sh start
 ```
 
-로봇 컨테이너는 [로봇용 한 줄 생성 명령](project-containers.md#container-one-liners)을 사용합니다.
+로봇 컨테이너는 [로봇용 한 줄 생성 명령](docker-containers.md#container-one-liners)을 사용합니다.
 다음은 이미지 로드부터 Compose로 시작하는 대안 절차입니다.
 
 ```bash
+# 배포 파일과 설정이 있는 디렉터리로 이동
 cd /home/ggh/RWH/beyond
-# GPU 서버에 아직 모델 이미지를 불러오지 않은 경우
+# GraspGenX·SAM 3 이미지 아카이브를 로컬에 불러오기
 docker load --input rwh_beyond_models_20261117.tar.gz
-# 컨테이너 생성·시작
+# GraspGenX 이미지에 프로젝트 고정 이름 등록
+docker tag docker.io/rwh_beyond/graspgenx:20261117 rwh_beyond_graspgenx:20261117
+# SAM 3 이미지에 프로젝트 고정 이름 등록
+docker tag docker.io/rwh_beyond/sam3:20261117 rwh_beyond_sam3:20261117
+# Compose 설정과 환경변수가 올바르게 적용되는지 확인
 docker compose -f compose.models.yaml config
+# 지정한 모델 컨테이너를 생성하고 백그라운드 실행
 docker compose -f compose.models.yaml up -d
-# 상태와 로그
+# 모델 서비스의 실행·정지 상태 확인
 docker compose -f compose.models.yaml ps -a
+# 지정한 모델 서비스의 최근 로그 확인
 docker compose -f compose.models.yaml logs --tail 100 sam3 graspgenx
 ```
 
@@ -49,21 +56,24 @@ docker compose -f compose.models.yaml logs --tail 100 sam3 graspgenx
 
 | 이미지 이름 | 명령어 |
 |---|---|
-| **GraspGenX 서버** | `docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs docker.io/rwh_beyond/graspgenx:20261117` |
-| **SAM 3 서버** | `docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs docker.io/rwh_beyond/sam3:20261117` |
+| **GraspGenX 서버** | `# GPU·5566 포트를 연결해 GraspGenX 서버 생성·실행`<br/>`docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs rwh_beyond_graspgenx:20261117` |
+| **SAM 3 서버** | `# GPU·5567 포트를 연결해 SAM 3 서버 생성·실행`<br/>`docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs rwh_beyond_sam3:20261117` |
 
 </div>
 
 로봇용 생성·접속 명령과 `wsyoon_data` 마운트는
-[컨테이너 생성 방법](project-containers.md#container-one-liners)을 참고하세요.
+[컨테이너 생성 방법](docker-containers.md#container-one-liners)을 참고하세요.
 서버 내부 셸은 `docker exec -it rwh_beyond_graspgenx bash` 또는
 `docker exec -it rwh_beyond_sam3 bash`로 접속합니다.
 
 Podman에서는 GPU CDI를 준비한 뒤 배포 helper를 사용합니다.
 
 ```bash
+# 배포 파일과 설정이 있는 디렉터리로 이동
 cd /home/ggh/RWH/beyond
+# GraspGenX·SAM 3 컨테이너를 함께 생성·시작
 CONTAINER_ENGINE=podman ./scripts/models.sh start
+# 두 모델 컨테이너 실행 상태 확인
 CONTAINER_ENGINE=podman ./scripts/models.sh status
 ```
 
@@ -71,8 +81,10 @@ CONTAINER_ENGINE=podman ./scripts/models.sh status
 컨테이너 생성 시 이미지의 기본 서버 명령이 실행됩니다. 가중치 로딩 후 다음으로 확인합니다.
 
 ```bash
+# GraspGenX 서버에 실제 health 요청 전송
 docker exec rwh_beyond_graspgenx python /opt/deploy/scripts/health_check.py \
   --endpoint tcp://127.0.0.1:5566
+# SAM 3 서버에 실제 health 요청 전송
 docker exec rwh_beyond_sam3 python -c \
   "from wire import request; print(request('tcp://127.0.0.1:5567', {'action': 'health'}, timeout=5))"
 ```
@@ -82,7 +94,9 @@ Podman이면 `docker exec`를 `podman exec`로 바꿉니다. 배포 helper의
 재시작·종료는 기존 컨테이너를 대상으로 수행합니다.
 
 ```bash
+# 생성돼 있는 정지 컨테이너 시작
 docker start rwh_beyond_graspgenx rwh_beyond_sam3
+# 실행 중인 모델 컨테이너 종료
 docker stop rwh_beyond_graspgenx rwh_beyond_sam3
 ```
 
@@ -106,15 +120,15 @@ GPU runtime·모델 체크포인트·그리퍼 assets를 준비합니다.
 두 모델은 서로 다른 디렉터리에서 각각 빌드·실행합니다.
 
 ```bash
-# 해당 모델의 deploy 디렉터리에서
+# 장비별 빌드·실행 설정 파일의 편집용 사본 생성
 cp .env.example .env
-# .env를 실제 장비 설정으로 편집한 뒤
-# 모델 파일·캐시 볼륨 경로도 준비합니다.
+# Compose 설정과 환경변수가 올바르게 적용되는지 확인
 docker compose config
+# 해당 모델의 소스로 Docker 이미지 빌드
 docker compose build
-# SAM 디렉터리에서는:
+# 지정한 모델 컨테이너를 생성하고 백그라운드 실행
 docker compose up -d segmentation
-# GraspGenX 디렉터리에서는 대신:
+# GraspGenX 디렉터리에서는 위 SAM 명령 대신 사용
 # docker compose up -d inference
 ```
 
@@ -137,10 +151,15 @@ docker compose up -d segmentation
 GraspGenX에는 `segmentation` 대신 `inference`를 사용합니다.
 
 ```bash
+# 모델 서비스의 실행·정지 상태 확인
 docker compose ps -a
+# 지정한 모델 서비스의 최근 로그 확인
 docker compose logs --tail 100 segmentation
+# 기존 모델 서비스 시작
 docker compose start segmentation
+# 모델 서비스 종료
 docker compose stop segmentation
+# 모델 서비스 재시작
 docker compose restart segmentation
 ```
 
@@ -157,10 +176,10 @@ Compose 외부에서 생성한 컨테이너는 실제 이름으로 `docker ps -a
 서버 호스트의 각 Compose 디렉터리에서 확인합니다.
 
 ```bash
-# SAM 디렉터리
+# SAM 3 서버에 컨테이너 내부 주소로 health 요청 전송
 docker compose exec -T segmentation python -c \
   "from wire import request; print(request('tcp://127.0.0.1:5567', {'action': 'health'}, timeout=5))"
-# GraspGenX 디렉터리: 템플릿 포트는 5556
+# GraspGenX 서버에 컨테이너 내부 주소로 health 요청 전송
 docker compose exec -T inference python /opt/deploy/scripts/health_check.py \
   --endpoint tcp://127.0.0.1:5556
 ```
@@ -176,7 +195,9 @@ runner가 실행한 bridge의 최종 endpoint는 시작 로그에서 확인합�
 ROS 컨테이너에서는 다음을 사용합니다.
 
 ```bash
+# SAM 3 ROS 브리지를 통해 모델 health 확인
 ros2 service call /sam3/health std_srvs/srv/Trigger '{}'
+# GraspGenX ROS 브리지를 통해 모델 health 확인
 ros2 service call /graspgenx/health std_srvs/srv/Trigger '{}'
 ```
 
@@ -195,6 +216,8 @@ ros2 service call /graspgenx/health std_srvs/srv/Trigger '{}'
 
 `restart`는 기존 이미지와 생성 설정을 재사용합니다.
 체크포인트·캐시·로그 볼륨은 컨테이너와 분리해 관리합니다.
+컨테이너 안에서 변경한 내용을 이미지·tar.gz로 저장하려면
+[컨테이너를 다시 이미지로 저장](docker-containers.md#container-to-image)을 참고하세요.
 운영 장애는 컨테이너 상태 → 모델 로그 → 서버 health → 터널 → ROS health 순서로 좁힙니다.
 
 [빠른 시작](grasp-pipeline-guide.md) · [모델별 ROS 인터페이스](model-bridges.md)

@@ -2,76 +2,83 @@
 <root BTCPP_format="4"
       main_tree_to_execute="WidthDemo">
   <BehaviorTree ID="WidthDemo">
-    <Sequence name="PickSequence">
-      <Sequence name="PrepareAndObserve">
-        <CheckGraspReady release_previous="true"/>
-        <ClearOctomap scene_service="/get_planning_scene"
-                      cloud_topic="/camera/depth/filtered_points"
-                      service_name="/clear_octomap"
-                      fresh_clouds="2"
-                      timeout="30.0"
-                      once="false"/>
+    <Fallback>
+      <Sequence name="PickSequence">
+        <Sequence name="PrepareAndObserve">
+          <CheckGraspReady release_previous="true"/>
+          <ClearOctomap scene_service="/get_planning_scene"
+                        cloud_topic="/camera/depth/filtered_points"
+                        service_name="/clear_octomap"
+                        fresh_clouds="2"
+                        timeout="30.0"
+                        once="false"/>
+          <MoveHome home_joint_positions=""/>
+          <OpenGripper opening=""
+                       duration=""/>
+          <MoveObservation z="0.10"
+                           tilt_deg="40.0"
+                           settle_time=""
+                           x="0.0"
+                           y="0.0"
+                           home_joint_positions=""/>
+          <ClearOctomap scene_service="/get_planning_scene"
+                        cloud_topic="/camera/depth/filtered_points"
+                        service_name="/clear_octomap"
+                        fresh_clouds="2"
+                        timeout="30.0"
+                        once="false"/>
+        </Sequence>
+        <Sequence name="PerceiveAndPlan">
+          <CaptureRgbd observation_id="{observation}"
+                       capture="{capture}"
+                       timeout="10.000000"/>
+          <SegmentObject capture="{capture}"
+                         target_text=""
+                         server_timeout="1000"
+                         mask="{object_mask}"
+                         server_name=""/>
+          <BuildObjectCloud cloud="{object_cloud}"
+                            mask="{object_mask}"
+                            capture="{capture}"/>
+          <InferGrasps cloud="{object_cloud}"
+                       candidates="{grasps}"
+                       server_timeout="1000"
+                       server_name=""/>
+          <SelectFeasibleGrasp close_width="{close_width}"
+                               grasp_width="{grasp_width}"
+                               pregrasp="{pregrasp}"
+                               selected_plan="{grasp_plan}"
+                               pregrasp_distance="0.10"
+                               grasp_pose="{grasp_pose}"
+                               capture="{capture}"
+                               cloud="{object_cloud}"
+                               candidates="{grasps}"
+                               use_estimated_width="true"
+                               mask="{object_mask}"
+                               lift_distance="0.08"/>
+        </Sequence>
+        <Sequence name="GraspAndLift">
+          <MoveToPregrasp plan="{grasp_plan}"/>
+          <ApproachGrasp plan="{grasp_plan}"/>
+          <AttachObject plan="{grasp_plan}"/>
+          <LiftObject plan="{grasp_plan}"/>
+        </Sequence>
+        <Sequence name="ReturnHome">
+          <MoveObservation z="0.10"
+                           tilt_deg="40.0"
+                           settle_time=""
+                           x="0.0"
+                           y="0.0"
+                           home_joint_positions=""/>
+          <MoveHome home_joint_positions=""/>
+        </Sequence>
+      </Sequence>
+      <Sequence>
         <MoveHome home_joint_positions=""/>
         <OpenGripper opening=""
                      duration=""/>
-        <MoveObservation z="0.10"
-                         tilt_deg="40.0"
-                         settle_time=""
-                         x="0.0"
-                         y="0.0"
-                         home_joint_positions=""/>
-        <ClearOctomap scene_service="/get_planning_scene"
-                      cloud_topic="/camera/depth/filtered_points"
-                      service_name="/clear_octomap"
-                      fresh_clouds="2"
-                      timeout="30.0"
-                      once="false"/>
       </Sequence>
-      <Sequence name="PerceiveAndPlan">
-        <CaptureRgbd observation_id="{observation}"
-                     capture="{capture}"
-                     timeout="10.000000"/>
-        <SegmentObject capture="{capture}"
-                       target_text=""
-                       server_timeout="1000"
-                       mask="{object_mask}"
-                       server_name=""/>
-        <BuildObjectCloud cloud="{object_cloud}"
-                          mask="{object_mask}"
-                          capture="{capture}"/>
-        <InferGrasps cloud="{object_cloud}"
-                     candidates="{grasps}"
-                     server_timeout="1000"
-                     server_name=""/>
-        <SelectFeasibleGrasp close_width="{close_width}"
-                             grasp_width="{grasp_width}"
-                             pregrasp="{pregrasp}"
-                             selected_plan="{grasp_plan}"
-                             pregrasp_distance="0.10"
-                             grasp_pose="{grasp_pose}"
-                             capture="{capture}"
-                             cloud="{object_cloud}"
-                             candidates="{grasps}"
-                             use_estimated_width="true"
-                             mask="{object_mask}"
-                             lift_distance="0.08"/>
-      </Sequence>
-      <Sequence name="GraspAndLift">
-        <MoveToPregrasp plan="{grasp_plan}"/>
-        <ApproachGrasp plan="{grasp_plan}"/>
-        <AttachObject plan="{grasp_plan}"/>
-        <LiftObject plan="{grasp_plan}"/>
-      </Sequence>
-      <Sequence name="ReturnHome">
-        <MoveObservation z="0.10"
-                         tilt_deg="40.0"
-                         settle_time=""
-                         x="0.0"
-                         y="0.0"
-                         home_joint_positions=""/>
-        <MoveHome home_joint_positions=""/>
-      </Sequence>
-    </Sequence>
+    </Fallback>
   </BehaviorTree>
 
   <!-- Description of Node Models (used by Groot) -->
@@ -154,7 +161,7 @@
       <input_port name="x"
                   type="double">Base X offset (m)</input_port>
       <input_port name="y"
-                  type="double">//Base Y offset (m)</input_port>
+                  type="double">Base Y offset (m)</input_port>
       <input_port name="home_joint_positions"
                   type="std::vector&lt;double, std::allocator&lt;double&gt; &gt;">Six joint angles (rad)</input_port>
     </Action>
