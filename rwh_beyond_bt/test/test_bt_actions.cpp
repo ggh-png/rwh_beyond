@@ -119,7 +119,7 @@ rwh_beyond_bt::RgbdObservation sample_capture()
   observation.info.header = observation.depth.header;
   observation.info.width = 12;
   observation.info.height = 12;
-  observation.info.k = {100., 0., 6., 0., 100., 6., 0., 0., 1.};
+  observation.info.k = {125., 0., 6., 0., 125., 6., 0., 0., 1.};
   observation.joints.name = {"joint1", "joint2", "joint3", "joint4", "joint5", "joint6", "gripper"};
   observation.joints.position.assign(7, 0.);
   return observation;
@@ -190,7 +190,7 @@ TEST_F(BtActions, LocalProjectionHandlesUnitsAndRejectsWrongExposure)
   auto mask = sample_mask();
   const auto cloud = rwh_beyond_bt::project_object_cloud(observation, mask);
   sensor_msgs::PointCloud2ConstIterator<float> x(cloud, "x"), z(cloud, "z");
-  EXPECT_NEAR(*x, -.06, 1e-6);
+  EXPECT_NEAR(*x, -.048, 1e-6);
   EXPECT_FLOAT_EQ(*z, 1.);
   observation.depth.is_bigendian = true;
   for (size_t i = 0; i < 144; ++i) {

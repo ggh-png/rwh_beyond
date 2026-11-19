@@ -1016,7 +1016,7 @@ Plan MotionContext::select(
     fusion->views.back().capture != capture || fusion->views.back().mask != mask))
   {throw std::invalid_argument("Fusion reference must match the current capture and mask");}
   auto projected = cloud_points(fusion ? fuse_object_cloud(*fusion) :
-      project_object_cloud(*capture, mask));
+      largest_object_cluster(project_object_cloud(*capture, mask)));
   if (xyz.size() != projected.size()) {
     throw std::invalid_argument("Cloud does not match captured mask/depth");
   }

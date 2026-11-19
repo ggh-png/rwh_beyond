@@ -15,7 +15,7 @@ find_package(trajectory_msgs REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(urdf REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(PCL REQUIRED COMPONENTS common filters kdtree registration)
+find_package(PCL REQUIRED COMPONENTS common filters kdtree registration segmentation)
 find_package(yaml_cpp_vendor REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(shape_msgs REQUIRED)
@@ -77,10 +77,12 @@ endfunction()
 add_bt_action_plugin(clear_octomap)
 
 add_library(rwh_beyond_perception_bt_nodes SHARED plugins/action/perception_actions.cpp)
-target_link_libraries(rwh_beyond_perception_bt_nodes ${PROJECT_NAME}_common)
+target_include_directories(rwh_beyond_perception_bt_nodes SYSTEM PRIVATE ${PCL_INCLUDE_DIRS})
+target_link_libraries(rwh_beyond_perception_bt_nodes PUBLIC ${PROJECT_NAME}_common
+  PRIVATE pcl_segmentation)
 target_compile_features(rwh_beyond_perception_bt_nodes PUBLIC cxx_std_17)
 target_compile_definitions(rwh_beyond_perception_bt_nodes PRIVATE BT_PLUGIN_EXPORT)
-ament_target_dependencies(rwh_beyond_perception_bt_nodes ${dependencies})
+ament_target_dependencies(rwh_beyond_perception_bt_nodes PUBLIC ${dependencies})
 list(APPEND plugin_libs rwh_beyond_perception_bt_nodes)
 
 add_library(rwh_beyond_motion_bt_nodes SHARED

@@ -25,6 +25,8 @@
 #include <vector>
 
 #include "behaviortree_cpp/bt_factory.h"
+#include "pcl/search/kdtree.h"
+#include "pcl/segmentation/extract_clusters.h"
 #include "rwh_beyond_bt/diagnostics.hpp"
 #include "sensor_msgs/point_cloud2_iterator.hpp"
 
@@ -286,6 +288,43 @@ BT::NodeStatus CaptureRgbdAction::onRunning()
 }
 void CaptureRgbdAction::onHalted() {state_->frames.clear();}
 
+sensor_msgs::msg::PointCloud2 largest_object_cluster(sensor_msgs::msg::PointCloud2 cloud)
+{
+  constexpr double tolerance_m = 0.01;
+  constexpr int min_points = 100;
+  auto points = pcl::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
+  points->reserve(cloud.width);
+  sensor_msgs::PointCloud2ConstIterator<float> x(cloud, "x"), y(cloud, "y"), z(cloud, "z");
+  for (; x != x.end(); ++x, ++y, ++z) {
+    points->push_back(pcl::PointXYZ(*x, *y, *z));
+  }
+  pcl::EuclideanClusterExtraction<pcl::PointXYZ> extraction;
+  extraction.setInputCloud(points);
+  extraction.setSearchMethod(pcl::make_shared<pcl::search::KdTree<pcl::PointXYZ>>(false));
+  extraction.setClusterTolerance(tolerance_m);
+  extraction.setMinClusterSize(min_points);
+  std::vector<pcl::PointIndices> clusters;
+  extraction.extract(clusters);
+  if (clusters.empty()) {
+    throw std::invalid_argument("No connected object cluster with at least 100 points at 1 cm");
+  }
+  const auto largest = std::max_element(clusters.begin(), clusters.end(),
+      [](const auto & a, const auto & b) {
+        if (a.indices.size() != b.indices.size()) {return a.indices.size() < b.indices.size();}
+        return a.indices.front() > b.indices.front();
+    });
+  const auto & indices = largest->indices;  // PCL returns each cluster in input index order.
+  for (size_t i = 0; i < indices.size(); ++i) {
+    const auto source = static_cast<size_t>(indices[i]);
+    if (source != i) {
+      std::copy_n(cloud.data.data() + source * cloud.point_step, cloud.point_step,
+        cloud.data.data() + i * cloud.point_step);
+    }
+  }
+  sensor_msgs::PointCloud2Modifier(cloud).resize(indices.size());
+  return cloud;
+}
+
 BuildObjectCloudAction::BuildObjectCloudAction(
   const std::string & name,
   const BT::NodeConfiguration & config)
@@ -306,8 +345,8 @@ BT::NodeStatus BuildObjectCloudAction::tick()
   try {
     const auto capture = required<Observation>(*this, "capture");
     if (!capture) {throw std::invalid_argument("Empty RGB-D capture");}
-    const auto cloud = project_object_cloud(*capture,
-        required<sensor_msgs::msg::Image>(*this, "mask"));
+    const auto cloud = largest_object_cluster(project_object_cloud(*capture,
+        required<sensor_msgs::msg::Image>(*this, "mask")));
     setOutput("cloud", cloud);
     publisher_->publish(cloud);
     return BT::NodeStatus::SUCCESS;

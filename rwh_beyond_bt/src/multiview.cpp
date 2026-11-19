@@ -259,6 +259,6 @@ sensor_msgs::msg::PointCloud2 fuse_object_cloud(const CloudFusion & fusion)
     const Eigen::Vector3d point = reference_base * (voxel.sum / voxel.count);
     *x = point.x(); *y = point.y(); *z = point.z(); ++x; ++y; ++z;
   }
-  return cloud;
+  return largest_object_cluster(std::move(cloud));
 }
 }  // namespace rwh_beyond_bt

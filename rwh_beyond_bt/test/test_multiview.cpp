@@ -84,7 +84,7 @@ TEST(MultiView, IcpCorrectsSmallPoseErrorBeforeFusion)
     EXPECT_NEAR(*z, .496, 1e-4);
   }
 }
-TEST(MultiView, IcpFallbackRetainsTfWhenViewsDoNotOverlap)
+TEST(MultiView, RemovesDetachedGhostClusterWhenIcpFallsBackToTf)
 {
   const auto first = exposure(1), second = exposure(2);
   auto fusion = append_fusion(empty_session(), first, mask_for(first),
@@ -94,7 +94,9 @@ TEST(MultiView, IcpFallbackRetainsTfWhenViewsDoNotOverlap)
   fusion = append_fusion(fusion, second, mask_for(second), transform);
   EXPECT_FALSE(fusion->views.back().icp_accepted);
   EXPECT_TRUE(fusion->views.back().correction.matrix().isIdentity());
-  EXPECT_GT(fuse_object_cloud(*fusion).width, 400u);
+  const auto cloud = fuse_object_cloud(*fusion);
+  EXPECT_EQ(cloud.header, second->depth.header);
+  EXPECT_EQ(cloud.width, 400u);
 }
 TEST(MultiView, IcpRejectsExcessivePoseCorrection)
 {

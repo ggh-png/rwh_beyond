@@ -42,6 +42,9 @@ using Observation = std::shared_ptr<const RgbdObservation>;
 sensor_msgs::msg::PointCloud2 project_object_cloud(
   const RgbdObservation & observation, const sensor_msgs::msg::Image & mask);
 
+// Keep the largest Euclidean component of an XYZ object cloud at 1 cm connectivity.
+sensor_msgs::msg::PointCloud2 largest_object_cluster(sensor_msgs::msg::PointCloud2 cloud);
+
 class CaptureRgbdAction : public BT::StatefulActionNode
 {
 public:
