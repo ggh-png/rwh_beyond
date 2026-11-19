@@ -3,8 +3,45 @@
 **tar.gz 파일 받기 → 이미지 로드 → 컨테이너 생성 → 시작·접속 → 데이터 확인** 순서로 진행합니다.
 아래 명령은 컨테이너 밖의 **호스트 터미널**에서 실행합니다.
 로봇 PC와 GPU 서버를 분리하면 각 역할에 해당하는 파일과 명령만 사용합니다.
-이 페이지는 20261117 배포 이미지를 기준으로 하며, 소스 수정·재빌드는
+로봇용 20261119 이미지와 20261117 GPU 모델 아카이브를 다룹니다. 소스 수정·재빌드는
 [환경과 빌드](project-containers.md)에서 설명합니다.
+
+
+## 로봇 이미지 20261119에서 Runner와 화면 연결 { #robot-runner-20261119 }
+
+아카이브를 받은 폴더에서 `docker load -i rwh_beyond_robot_20261119.tar.gz`를 실행합니다.
+이 아카이브의 태그는 `localhost/rwh_beyond_robot:20261119`입니다.
+그래픽 데스크톱 터미널에서 아래 명령을 실행하면 화면을 연결하고 Runner를 시작합니다.
+
+```bash
+RWH_XAUTH_FILE="${RWH_XAUTH_FILE:-${XAUTHORITY:-$HOME/.Xauthority}}"
+mkdir -p "$HOME/wsyoon_data"
+
+test -n "${DISPLAY:-}" && test -r "$RWH_XAUTH_FILE" && \
+docker run -d --name rwh_beyond_robot \
+  --network host --ipc host --init --privileged \
+  --restart unless-stopped \
+  -e DISPLAY="$DISPLAY" \
+  -e XAUTHORITY=/tmp/rwh_beyond.Xauthority \
+  -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" \
+  -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+  -v "$HOME/wsyoon_data:/root/wsyoon_data" \
+  -v /run/udev:/run/udev:ro \
+  localhost/rwh_beyond_robot:20261119 \
+  ros2 launch ros_runner runner.launch.py \
+    config_yaml:=/root/ros2_ws/src/ros_runner/config/runners.yaml \
+    auto_start:=false
+```
+
+`auto_start:=false`로 Runner만 준비합니다. RViz와 실물 BT는 해당 프로필을 활성화할 때 시작됩니다.
+이미지 내장 `bt_demo.yaml`에 멀티뷰 기본 트리와 0.02m 보정값이 들어 있습니다.
+이전 배포 폴더의 YAML을 마운트할 경우 현재 이미지 설정에 맞는지 먼저 확인하세요.
+
+컨테이너를 교체할 때는 `docker stop rwh_beyond_robot`와 `docker rm rwh_beyond_robot`를 순서대로 실행합니다.
+기존 컨테이너에 저장한 관절 자세나 설정을 계속 쓰려면 교체 전에 호스트에 복사하세요.
+
+아래 설치 예시는 20261117 배포를 다시 구성할 때 참고할 수 있습니다.
 
 ## 1. tar 파일 받기 { #deployment-containers }
 

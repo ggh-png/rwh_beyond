@@ -189,7 +189,7 @@
     |---|---|---|---|
     | 입력 | `home_joint_positions` | YAML | joint1~6 순서의 유한한 rad 6개 |
 
-    출력 포트는 없습니다.
+    빈 그리퍼는 `allow_empty=true`일 때 개방할 수 있습니다. 출력 포트는 없습니다.
 
 === "호출·상세 규칙"
 
@@ -572,7 +572,7 @@ home 기준 TCP에 위치·기울기 오프셋을 적용해 관측 자세로 이
     최종 TCP는 `base_T_camera × camera_T_model_grasp × model_T_tcp`로 계산합니다.
     사전 접근은 모델 접근축 반대 방향으로 떨어진 위치이고, 리프트는 base +Z 방향입니다.
     추정 폭 모드의 닫기 폭은 관측 폭에서 `grasp_width_closing_inset`을 빼고 최대 열림 폭으로 제한합니다.
-    inset 허용 범위는 0~0.02m, 현재 값은 0.005m입니다. 고정 폭 모드는 현재 `gripper_close_width=0.04m`를 사용합니다.
+    inset 허용 범위는 0~0.02m, 공통 YAML 값은 0.02m입니다. 고정 폭 모드는 현재 `gripper_close_width=0.04m`를 사용합니다.
 
     **계획 객체에 저장되는 것.** 선택한 관측, 사전 접근·최종 TCP 자세, 실행할 사전 접근 궤적,
     손목 제약, 관측 폭·명령 폭, 리프트 거리를 하나의 `GraspPlan`에 담습니다.
@@ -807,7 +807,7 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
     | 입력 | `x` | 0m | home TCP + base X; 0~0.30m |
     | 입력 | `z` | 0m | home TCP + base Z; 0~0.30m |
 
-    출력 포트는 없습니다.
+    빈 그리퍼는 `allow_empty=true`일 때 개방할 수 있습니다. 출력 포트는 없습니다.
 
 === "호출·상세 규칙"
 
@@ -838,7 +838,7 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
 
 === "처리 흐름"
 
-    1. 실제 부착 상태와 성공한 `MovePlace`의 `release_ready`를 확인합니다.
+    1. 실제 부착 상태와 배치 이동의 `release_ready`를 확인합니다. 기본 트리에서는 `MoveJointPose release_on_arrival="true"`가 설정합니다.
 
     2. 그리퍼를 열고 액션 결과와 실제 개방 간격을 확인합니다.
 
@@ -856,6 +856,7 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
     |---|---|---|---|
     | 입력 | `opening` | YAML; 현재 0.10m | 전체 개방 간격 0~0.10m |
     | 입력 | `duration` | 3초 | 0.001~30초 |
+    | 입력 | `allow_empty` | false · bool | 부착된 대상이 없을 때도 개방 허용 |
 
     출력 포트는 없습니다.
 
@@ -864,14 +865,14 @@ home 기준 배치 위치로 이동하고 해제 가능한 상태를 기록합�
     - **직접 호출:** Planning Scene 확인, `/gripper_controller/follow_joint_trajectory`,
       `/apply_planning_scene`, `/get_planning_scene`, Octomap 사용 시 대상 제외 서비스.
 
-    - **조건:** 대상 부착과 성공한 `MovePlace`의 `release_ready`가 필요합니다.
+    - **조건:** 대상이 부착된 경우 성공한 배치 이동의 `release_ready`가 필요합니다.
 
     - 기본값은 `OpenGripper`와 같습니다. 임의 위치에서 물체를 놓는 범용 노드가 아닙니다.
 
     **실패를 해석할 때.** 개방 확인 전에 실패하면 부착 해제 단계로 진행하지 않습니다.
     개방 이후 장면 갱신·정리가 실패하면 물리 상태와 계획 장면이 다를 수 있으므로 성공으로 보고하지 않습니다.
     `CheckGraspReady release_previous=true`는 공통 release 로직의 별도 허용 경로이고,
-    일반 `ReleaseObject`는 `MovePlace` 성공 조건을 생략할 수 없습니다.
+    부착 중인 물체는 `allow_empty`가 켜져 있어도 배치 완료 확인이 필요합니다.
 
 </div>
 

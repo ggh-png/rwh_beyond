@@ -12,7 +12,7 @@
 | `behavior_tree` | string | XML 경로. 있으면 mode보다 우선; 빈 값이면 YAML의 해당 기본 트리 |
 | `target_text` | string | 이번 실행의 대상 설명. 빈 값이면 XML·launch·YAML 대상 설정 사용 |
 
-현재 YAML의 기본 pick은 `demo_width.xml`, place는 `place.xml`입니다.
+현재 YAML의 기본 pick은 `demo_multiview.xml`, place는 `place.xml`입니다.
 고정 폭 `demo.xml`은 `behavior_tree`로 명시할 수 있습니다.
 
 ```bash
@@ -94,7 +94,7 @@ SAM·GraspGenX 브릿지의 구조화된 오류와 MoveIt·controller의 원본 
 취소는 BT 작업과 실행 액션에 전달되고 미부착 임시 장면을 정리합니다.
 닫기 시작 이후·부착 이후에는 자동 개방하지 않습니다.
 
-현재 기본 `demo_width.xml`의 준비 노드는 `release_previous=true`입니다.
+기본 `demo_multiview.xml`의 집기 준비 단계는 `release_previous=true`입니다.
 이 트리로 새 pick을 요청하면 기존 부착 대상을 **현재 위치에서 개방·해제**할 수 있습니다.
 지정한 배치 위치에서 놓을 때는 먼저 `mode: 2`를 실행합니다.
 고정 폭 `demo.xml`은 자동 해제하지 않으며 부착 대상이 남으면 새 pick을 거부합니다.
@@ -105,7 +105,7 @@ SAM·GraspGenX 브릿지의 구조화된 오류와 MoveIt·controller의 원본 
 ROS Domain·RMW·DDS 네트워크를 맞추고 `/run_demo` 서버가 하나인지 확인합니다.
 
 Groot 노드 정의는 `rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml`입니다.
-기본 실행 트리는 `demo_width.xml`이며 노드 정의 파일 자체는 실행 트리가 아닙니다.
+기본 실행 트리는 `demo_multiview.xml`이며 노드 정의 파일 자체는 실행 트리가 아닙니다.
 공통 YAML의 `run_demo.enable_groot_monitoring`, `run_demo.groot_server_port`로 모니터링을 설정합니다.
 현재 포트는 5555입니다.
 

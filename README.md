@@ -5,12 +5,12 @@ PiPER 물체 인식·파지·리프트 프로젝트입니다.
 
 - 로봇 PC: 센서·TF·점군·ROS bridge·BT·경로 계획·실물 제어.
 - GPU 서버: SAM 3 분할과 GraspGenX 파지 후보 생성.
-- 심·실물 기본 집기 시나리오: `rwh_beyond_bt/behavior_trees/demo_width.xml`.
+- 심·실물 기본 집기 시나리오: `rwh_beyond_bt/behavior_trees/demo_multiview.xml`.
 - 요청별 대상 지정: `/run_demo` Action의 `target_text`.
 
 **[프로젝트 문서](https://ggh-png.github.io/rwh_beyond/)** · [문서 소스](docs/index.md)
 
-[데모 영상 보기](https://www.youtube.com/watch?v=bAOhPEUKsSQ)
+[기존 데모](https://www.youtube.com/watch?v=bAOhPEUKsSQ) · [추가 데모](https://www.youtube.com/watch?v=mi5bHnUjrWM)
 
 ## 시작하기
 
@@ -61,7 +61,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 닫기·계획용 부착 → 리프트 → 관측 복귀 → home입니다.
 기본 트리의 다음 pick은 남은 대상을 현재 위치에서 개방·해제합니다. 지정 위치에 놓으려면 먼저 `mode: 2`를 요청합니다.
 
-BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 관측 자세는 기본 `demo_width.xml`의 두 `MoveObservation`에서 조정합니다.
+BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 기본 관측·배치 자세는 `bt_motion.joint_poses_file`에서 읽습니다.
 
 ## 현재 동작 범위
 

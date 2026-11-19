@@ -1,6 +1,6 @@
 # 점군 추정 폭으로 닫기
 
-기본 집기 트리 `demo_width.xml`은 분할된 물체 점군에서 닫기 폭을 추정합니다.
+기본 `demo_multiview.xml`과 단일 시점 `demo_width.xml`은 분할된 물체 점군에서 닫기 폭을 추정합니다.
 GraspGenX 응답은 자세와 점수이며 폭은 BT가 계산합니다.
 
 ## 폭 계산과 출력
@@ -37,14 +37,14 @@ close_width = min(grasp_width - grasp_width_closing_inset, gripper_open_width)
 bt_navigator:
   ros__parameters:
     bt_motion:
-      grasp_width_closing_inset: 0.005
+      grasp_width_closing_inset: 0.02
       gripper_open_width: 0.10
       gripper_close_duration: 2.0
 ```
 
 inset은 전체 간격에서 빼는 양이며 허용 범위는 0~0.02m입니다.
-현재 실행 YAML은 0.005m, 코드의 생략 시 기본값은 0.002m입니다.
-추정 폭이 40mm라면 현재 설정의 명령 간격은 35mm입니다.
+공통 YAML 값은 0.02m, 코드의 생략 시 기본값은 0.002m입니다.
+추정 폭이 40mm라면 현재 설정의 명령 간격은 20mm입니다.
 범위를 벗어난 설정은 후보 검사 전에 실패합니다. 수정 후 BT를 재활성화합니다.
 
 ## 실행과 반복 집기
@@ -54,7 +54,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{mode: 1, target_text: "yellow block"}' --feedback
 ```
 
-기본 XML의 `CheckGraspReady release_previous="true"`는 남은 대상을 **현재 위치에서**
+추정 폭 트리의 `CheckGraspReady release_previous="true"`는 남은 대상을 **현재 위치에서**
 개방하고, 개방 피드백 확인 후 부착을 해제합니다. 알 수 없는 부착 물체는 거부하며,
 개방 실패 시 새 집기를 중단합니다. 배치 위치로 이동하는 기능은 `mode: 2`를 사용합니다.
 
@@ -83,6 +83,9 @@ ros2 run rwh_beyond_bt capture_joint_pose front
 ros2 run rwh_beyond_bt capture_joint_pose left
 # 우측 관측 자세로 잡은 뒤
 ros2 run rwh_beyond_bt capture_joint_pose right
+
+# 배치 자세로 잡은 뒤
+ros2 run rwh_beyond_bt capture_joint_pose place
 
 # 등록된 값 확인
 ros2 run rwh_beyond_bt capture_joint_pose --list
@@ -113,8 +116,7 @@ poses: {}
 <MoveJointPose pose_name="front" settle_time="1.0"/>
 ```
 
-집기 XML의 첫 `CheckJointPoses pose_names="front;left;right"`는 세 자세가 모두 등록돼
-있는지 검사합니다. 하나라도 없거나 파일 형식이 잘못되면 home·그리퍼 이동 전에 실패합니다.
+첫 정면 집기는 `front`를 검사합니다. 재시도 분기는 `front`·`left`·`right`를 모두 검사한 후 측면 촬영을 시작합니다.
 정면 집기 실패 시 그리퍼를 열고 left → right 순서로 촬영합니다. 멀티뷰 집기 후에는
 front 관절 자세를 거쳐 home으로 이동합니다. 모든 집기 시도가 실패하면 home 복귀를
 시도합니다.

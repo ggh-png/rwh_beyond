@@ -42,8 +42,8 @@ health 성공은 모델 응답 확인이며 카메라·TF·로봇의 준비까�
 - 닫기 전 실패: 미부착 대상과 임시 장면 설정을 정리하고 후속 모션을 중단합니다.
 - 닫기 시작 이후 또는 부착 후 실패: 자동 개방하지 않습니다. 실제 물체와 Planning Scene을 확인합니다.
 - 지정 배치 위치에 놓기: 부착 상태가 정상이라면 `mode: 2`로 배치를 요청합니다.
-  `MovePlace`가 성공해야 `ReleaseObject`가 개방합니다.
-- 기본 `demo_width.xml`로 다음 pick: `release_previous=true`이므로 남은 대상을
+  저장된 `place` 관절 자세 도착이 확인돼야 `ReleaseObject`가 개방합니다.
+- 기본 `demo_multiview.xml`로 다음 pick: `release_previous=true`이므로 남은 대상을
   **현재 위치에서 개방·해제**할 수 있습니다. 이 동작을 원하지 않으면 사용자 트리에서 false로 설정합니다.
 
 닫기는 시작했지만 Planning Scene 부착이 완료되지 않은 상태나 알 수 없는 부착 물체가 있으면
