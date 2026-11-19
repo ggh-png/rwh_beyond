@@ -11,6 +11,10 @@
       <ReleaseObject opening="0.10"
                      duration="3.0"
                      allow_empty="true"/>
+      <MoveJointPose settle_time=""
+                     poses_file=""
+                     pose_name="front"
+                     release_on_arrival="true"/>
       <MoveHome home_joint_positions=""/>
     </Sequence>
   </BehaviorTree>

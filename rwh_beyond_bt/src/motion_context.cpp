@@ -253,10 +253,10 @@ std::pair<double, double> estimate_aperture(
   const Points & points, const Eigen::Isometry3d & grasp, double maximum, double inset)
 {
   if (points.size() < 100 || !std::isfinite(maximum) || maximum <= 0 || maximum > .10 ||
-    !std::isfinite(inset) || inset < 0 || inset > .005)
+    !std::isfinite(inset) || inset < 0 || inset > .02)
   {
     throw std::invalid_argument(
-        "grasp_width_closing_inset must be in [0, 0.005] m; opening in (0, 0.10]");
+        "grasp_width_closing_inset must be in [0, 0.02] m; opening in (0, 0.10]");
   }
   std::vector<double> x;
   for (auto & p : points) {
@@ -1134,7 +1134,7 @@ Plan MotionContext::select(
     throw std::runtime_error("Observed bounds outside tabletop range");
   }
   Eigen::Vector3d center = (upper + lower) / 2;
-  double inset = number("grasp_width_closing_inset", .002, 0, .005);
+  double inset = number("grasp_width_closing_inset", .002, 0, .02);
   double max_opening = number("gripper_open_width", .10, .001, .10);
   double top_angle = number("grasp_top_down_max_angle_deg", 55, 0, 180);
   double clearance = number("grasp_table_clearance_m", .01, 0, .3);

@@ -67,8 +67,8 @@ bt_navigator:
       # ICP 보정 한도: 물체 중심 이동(m, 0 초과~0.03), 회전(도, 0 초과~15).
       icp_max_translation_m: 0.01
       icp_max_rotation_deg: 5.0
-      # 추정 폭에서 빼는 전체 그리퍼 간격입니다(m). 허용 범위: 0~0.005.
-      grasp_width_closing_inset: 0.005
+      # 추정 폭에서 빼는 전체 그리퍼 간격입니다(m). 허용 범위: 0~0.01.
+      grasp_width_closing_inset: 0.02
       # 파지 위치·높이를 계산할 기준 좌표계입니다.
       base_frame: base_link
       # MoveIt에서 목표 자세와 Cartesian 경로를 계산할 공구 중심(TCP) 링크입니다.
