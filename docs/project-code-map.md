@@ -30,6 +30,6 @@ flowchart LR
 1. **트리 선택.** Navigator가 Goal의 `behavior_tree` 또는 모드별 기본 XML을 선택합니다.
 2. **인식.** `perception_actions.cpp`에서 RGB-D·관절을 캡처하고, SAM 분할 마스크를 깊이 영상에 적용해 객체 점군을 만든 뒤 GraspGenX로 후보를 구합니다. 멀티뷰 경로는 `multiview_actions.cpp`와 `src/multiview.cpp`에서 점군을 융합합니다.
 3. **집기.** `SelectFeasibleGrasp`가 후보 폭과 TCP·IK·경로를 검사합니다. 이후 노드는 Blackboard에 저장된 `GraspPlan`을 받아 접근, 닫기·부착, 리프트, 복귀를 수행합니다.
-4. **배치.** 별도 Goal에서 `place.xml`이 home → 저장된 `place` → 개방·해제 → home을 실행합니다. 부착 중에는 `MoveJointPose`의 도착 확인이 해제 조건입니다.
+4. **배치.** 별도 Goal에서 `place.xml`이 home → 저장된 `place` → 개방·해제 → 저장된 `front` → home을 실행합니다. 부착 중에는 `MoveJointPose`의 도착 확인이 해제 조건입니다.
 
 더 자세한 내용은 [BT 실행 흐름](bt-flows.md), [Blackboard와 플러그인 구조](bt-architecture.md), [데이터와 좌표계](project-data.md)를 참고하세요. 실행 순서·취소·장면 변경은 `rwh_beyond_bt/test/test_motion.cpp`, Navigator 결과 전달은 `rwh_beyond_navigator/test/`에서 확인할 수 있습니다.

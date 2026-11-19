@@ -146,7 +146,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 
 ## 배치·해제 { #place-tree }
 
-`place.xml`은 **home → 저장된 `place` 관절 자세 → 그리퍼 개방·해제 → home**을 실행합니다.
+`place.xml`은 **home → 저장된 `place` 관절 자세 → 그리퍼 개방·해제 → 저장된 `front` → home**을 실행합니다.
 `MoveJointPose release_on_arrival="true"`가 목표 도착을 확인하면 부착된 물체를 해제할 수 있습니다.
 이동 실패·취소 시 해제 노드로 진행하지 않습니다.
 `ReleaseObject`는 목표 0.10m, 3초로 열고 피드백을 확인한 뒤 계획 장면에서 부착을 제거합니다.

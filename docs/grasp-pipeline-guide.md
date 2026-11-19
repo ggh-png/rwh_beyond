@@ -77,8 +77,8 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{mode: 2}' --feedback
 ```
 
-기본 `place.xml`은 home → 저장된 `place` 관절 자세 → 0.10m 개방·해제 → home 순서입니다.
-`place` 자세도 요청 전에 등록합니다. [배치 트리](bt-flows.md#place-tree)
+기본 `place.xml`은 home → 저장된 `place` 관절 자세 → 0.10m 개방·해제 → 저장된 `front` → home 순서입니다.
+배치 요청 전에 `place`와 `front` 자세를 등록합니다. [배치 트리](bt-flows.md#place-tree)
 
 Action 취소는 [Action 인터페이스](bt-operation.md)를 참고하세요. ROS 프로세스 종료는 별도입니다.
 
