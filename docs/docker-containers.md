@@ -3,45 +3,59 @@
 **tar.gz 파일 받기 → 이미지 로드 → 컨테이너 생성 → 시작·접속 → 데이터 확인** 순서로 진행합니다.
 아래 명령은 컨테이너 밖의 **호스트 터미널**에서 실행합니다.
 로봇 PC와 GPU 서버를 분리하면 각 역할에 해당하는 파일과 명령만 사용합니다.
-로봇용 20261119 이미지와 20261117 GPU 모델 아카이브를 다룹니다. 소스 수정·재빌드는
+로봇용 20261119 전체 스냅샷과 20261117 GPU 모델 아카이브를 다룹니다. 소스 수정·재빌드는
 [환경과 빌드](project-containers.md)에서 설명합니다.
 
 
-## 로봇 이미지 20261119에서 Runner와 화면 연결 { #robot-runner-20261119 }
+## 로봇 전체 스냅샷 20261119로 Runner와 화면 연결 { #robot-runner-20261119 }
 
-아카이브를 받은 폴더에서 `docker load -i rwh_beyond_robot_20261119.tar.gz`를 실행합니다.
-이 아카이브의 태그는 `localhost/rwh_beyond_robot:20261119`입니다.
-그래픽 데스크톱 터미널에서 아래 명령을 실행하면 화면을 연결하고 Runner를 시작합니다.
+Docker Engine과 NVIDIA Container Toolkit을 사용하는 노트북에서 검증한 구성입니다.
+배포 파일이 있는 폴더에서 무결성을 확인하고 이미지를 로드합니다.
 
 ```bash
-RWH_XAUTH_FILE="${RWH_XAUTH_FILE:-${XAUTHORITY:-$HOME/.Xauthority}}"
+sha256sum -c rwh_beyond_robot_20261119-bb6e689-full.tar.gz.sha256
+docker load -i rwh_beyond_robot_20261119-bb6e689-full.tar.gz
+```
+
+노트북의 그래픽 데스크톱 터미널에서 아래 명령을 실행합니다.
+
+```bash
+RWH_XAUTH_FILE="${XAUTHORITY:-$HOME/.Xauthority}"
+if [ ! -f "$RWH_XAUTH_FILE" ] || [ ! -r "$RWH_XAUTH_FILE" ]; then
+  RWH_XAUTH_FILE="$(find "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" \
+    -maxdepth 1 -type f -name '.mutter-Xwaylandauth.*' -print -quit)"
+fi
 mkdir -p "$HOME/wsyoon_data"
 
 test -n "${DISPLAY:-}" && test -r "$RWH_XAUTH_FILE" && \
 docker run -d --name rwh_beyond_robot \
+  --gpus all --device /dev/dri --hostname "$(hostname)" \
   --network host --ipc host --init --privileged \
   --restart unless-stopped \
   -e DISPLAY="$DISPLAY" \
   -e XAUTHORITY=/tmp/rwh_beyond.Xauthority \
+  -e QT_QPA_PLATFORM=xcb \
+  -e NVIDIA_DRIVER_CAPABILITIES=all \
+  -e __NV_PRIME_RENDER_OFFLOAD=1 \
+  -e __GLX_VENDOR_LIBRARY_NAME=nvidia \
   -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" \
   -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" \
   -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-  -v "$HOME/wsyoon_data:/root/wsyoon_data" \
+  -v /dev/bus/usb:/dev/bus/usb \
   -v /run/udev:/run/udev:ro \
-  localhost/rwh_beyond_robot:20261119 \
-  ros2 launch ros_runner runner.launch.py \
-    config_yaml:=/root/ros2_ws/src/ros_runner/config/runners.yaml \
-    auto_start:=false
+  -v "$HOME/wsyoon_data:/root/wsyoon_data" \
+  localhost/rwh_beyond_robot:20261119-bb6e689-full
 ```
 
-`auto_start:=false`로 Runner만 준비합니다. RViz와 실물 BT는 해당 프로필을 활성화할 때 시작됩니다.
-이미지 내장 `bt_demo.yaml`에 멀티뷰 기본 트리와 0.02m 보정값이 들어 있습니다.
-이전 배포 폴더의 YAML을 마운트할 경우 현재 이미지 설정에 맞는지 먼저 확인하세요.
+이미지의 기본 명령은 `/root/ros2_ws/src/ros_runner/config/runners.yaml`을 읽고
+`auto_start:=false`로 Runner를 시작합니다. RViz와 실물 BT는 해당 프로필을 활성화할 때 시작됩니다.
+Runner 로그는 `docker logs -f rwh_beyond_robot`로 확인합니다.
 
 컨테이너를 교체할 때는 `docker stop rwh_beyond_robot`와 `docker rm rwh_beyond_robot`를 순서대로 실행합니다.
 기존 컨테이너에 저장한 관절 자세나 설정을 계속 쓰려면 교체 전에 호스트에 복사하세요.
 
-아래 설치 예시는 20261117 배포를 다시 구성할 때 참고할 수 있습니다.
+아래의 20261117 로봇 명령은 이전 배포를 다시 구성할 때 사용합니다.
+GPU 모델 서버에는 20261117 모델 이미지와 아래 서버 명령을 사용합니다.
 
 ## 1. tar 파일 받기 { #deployment-containers }
 
@@ -111,7 +125,7 @@ Docker Engine에서는 `CONTAINER_ENGINE=docker`로 바꿉니다.
 예전 배포 스크립트에는 고정 태그 등록이 없을 수 있으므로 위 `tag` 명령을 먼저 수행하고,
 생성 helper와 `compose.models.yaml`도 고정 이미지 이름을 사용하는지 확인합니다.
 
-## 3. 컨테이너 생성 { #container-one-liners }
+## 3. 20261117 컨테이너 생성 { #container-one-liners }
 
 이미지를 불러온 뒤 아래 명령으로 컨테이너를 생성합니다.
 로봇용은 **로봇 PC 호스트**, 서버용은 **GPU 서버 호스트**에서 실행합니다.
@@ -144,7 +158,7 @@ export RWH_XAUTH_FILE="${XAUTHORITY:-$HOME/.Xauthority}"
 로봇 예시는 `--privileged`로 실물 장치 접근을 허용합니다.
 장치를 개별 전달하는 구성은 아래 helper를 사용합니다.
 로봇은 host network이므로 `-p`를 추가하지 않으며, 모델 서버는 loopback 포트 매핑을 사용합니다.
-로봇 이미지의 기본 명령은 `sleep infinity`여서 생성만으로 runner·로봇 동작을 실행하지 않습니다.
+20261117 로봇 이미지의 기본 명령은 `sleep infinity`여서 생성만으로 runner·로봇 동작을 실행하지 않습니다.
 모델 이미지는 생성 시 모델 서버를 시작합니다.
 
 ## 4. 컨테이너 시작·접속 { #container-shell }
