@@ -3808,7 +3808,8 @@ BehaviorTree.CPP의 제어 노드입니다. 한 자식이 성공해야 다음 �
 </tr>
 </tbody>
 </table>
-<p>파일 경로를 포트로 생략하면 <code>bt_motion.joint_poses_file</code>을 사용합니다. 파일·자세가
+<p>별도 경로는 <code>poses_file</code> 포트나 <code>bt_motion.joint_poses_file</code>로 지정할 수 있습니다.
+기본값으로 캡처는 저장소의 원본을 쓰고, 조회·이동은 빌드에서 설치한 사본을 읽습니다. 파일·자세가
 없을 때 0 관절값으로 대체하지 않습니다. 저장 시 기존 이름은 명시적인 overwrite가
 필요합니다. 모션은 그리퍼를 제어하지 않으며, 계획·실행 실패와 halt는 기존 MotionAction
 진단·취소 처리를 따릅니다.</p>

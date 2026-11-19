@@ -1745,7 +1745,7 @@
 </tr>
 <tr>
 <td>기본 관측·배치 자세를 바꾼다</td>
-<td><code>bt_motion.joint_poses_file</code>의 <code>front</code>, <code>left</code>, <code>right</code>, <code>place</code>. <a href="../width-aware-bt/#multiview">관절 자세 저장</a> 참고.</td>
+<td>저장소의 <code>config/joint_poses.yaml</code>에 <code>front</code>, <code>left</code>, <code>right</code>, <code>place</code>를 저장하고 <code>rwh_beyond_bt</code>를 빌드합니다. <a href="../width-aware-bt/#multiview">관절 자세 저장</a> 참고.</td>
 </tr>
 <tr>
 <td>기본 대상 또는 분할 방식을 바꾼다</td>
@@ -1789,8 +1789,12 @@
 </thead>
 <tbody>
 <tr>
-<td>Navigator가 읽는 XML 또는 저장된 관절 자세</td>
-<td>XML은 다음 요청에서, 자세 파일은 다음 해당 이동에서 다시 읽습니다. 설치본과 편집 파일이 같은지 확인하세요.</td>
+<td>Navigator가 읽는 XML</td>
+<td>다음 요청에서 다시 읽습니다.</td>
+</tr>
+<tr>
+<td>저장된 관절 자세</td>
+<td><code>rwh_beyond_bt</code>를 빌드하면 설치 사본이 갱신됩니다.</td>
 </tr>
 <tr>
 <td>공통 YAML, launch 또는 장치 프로필</td>
