@@ -1,8 +1,8 @@
 repositories:
   agx_arm_ros:
     type: git
-    url: https://github.com/agilexrobotics/agx_arm_ros.git
-    version: ros2
+    url: https://github.com/ggh-png/agx_arm_ros.git
+    version: a456488d8fa58871f8ff51493eb56125266fd0f7
   moma-mj-lab:
     type: git
     url: https://github.com/ggh-png/moma-mj-lab.git
