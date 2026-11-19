@@ -1861,8 +1861,8 @@ GPU 모델 서버와 필요한 네트워크 연결을 먼저 준비합니다.
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="s1">'{mode: 2}'</span><span class="w"> </span>--feedback
 </code></pre></div>
-<p>기본 <code>place.xml</code>은 home → 저장된 <code>place</code> 관절 자세 → 0.10m 개방·해제 → home 순서입니다.
-<code>place</code> 자세도 요청 전에 등록합니다. <a href="../bt-flows/#place-tree">배치 트리</a></p>
+<p>기본 <code>place.xml</code>은 home → 저장된 <code>place</code> 관절 자세 → 0.10m 개방·해제 → 저장된 <code>front</code> → home 순서입니다.
+배치 요청 전에 <code>place</code>와 <code>front</code> 자세를 등록합니다. <a href="../bt-flows/#place-tree">배치 트리</a></p>
 <p>Action 취소는 <a href="../bt-operation/">Action 인터페이스</a>를 참고하세요. ROS 프로세스 종료는 별도입니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>ros2<span class="w"> </span>service<span class="w"> </span>call<span class="w"> </span>/ros_runner/deactivate_bt_demo_sim<span class="w"> </span>std_srvs/srv/Empty<span class="w"> </span><span class="s1">'{}'</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="c1"># 실물 BT를 사용했다면:</span>

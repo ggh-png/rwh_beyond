@@ -1769,7 +1769,7 @@
 <li><strong>트리 선택.</strong> Navigator가 Goal의 <code>behavior_tree</code> 또는 모드별 기본 XML을 선택합니다.</li>
 <li><strong>인식.</strong> <code>perception_actions.cpp</code>에서 RGB-D·관절을 캡처하고, SAM 분할 마스크를 깊이 영상에 적용해 객체 점군을 만든 뒤 GraspGenX로 후보를 구합니다. 멀티뷰 경로는 <code>multiview_actions.cpp</code>와 <code>src/multiview.cpp</code>에서 점군을 융합합니다.</li>
 <li><strong>집기.</strong> <code>SelectFeasibleGrasp</code>가 후보 폭과 TCP·IK·경로를 검사합니다. 이후 노드는 Blackboard에 저장된 <code>GraspPlan</code>을 받아 접근, 닫기·부착, 리프트, 복귀를 수행합니다.</li>
-<li><strong>배치.</strong> 별도 Goal에서 <code>place.xml</code>이 home → 저장된 <code>place</code> → 개방·해제 → home을 실행합니다. 부착 중에는 <code>MoveJointPose</code>의 도착 확인이 해제 조건입니다.</li>
+<li><strong>배치.</strong> 별도 Goal에서 <code>place.xml</code>이 home → 저장된 <code>place</code> → 개방·해제 → 저장된 <code>front</code> → home을 실행합니다. 부착 중에는 <code>MoveJointPose</code>의 도착 확인이 해제 조건입니다.</li>
 </ol>
 <p>더 자세한 내용은 <a href="../bt-flows/">BT 실행 흐름</a>, <a href="../bt-architecture/">Blackboard와 플러그인 구조</a>, <a href="../project-data/">데이터와 좌표계</a>를 참고하세요. 실행 순서·취소·장면 변경은 <code>rwh_beyond_bt/test/test_motion.cpp</code>, Navigator 결과 전달은 <code>rwh_beyond_navigator/test/</code>에서 확인할 수 있습니다.</p>
 

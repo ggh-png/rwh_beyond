@@ -2235,7 +2235,7 @@ YAML 관측 기본값 Z=0.20m·Y=30°보다 XML의 값이 우선합니다.</p>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="s1">'{behavior_tree: "/root/ros2_ws/install/rwh_beyond_bt/share/rwh_beyond_bt/behavior_trees/demo.xml", target_text: "yellow block"}'</span><span class="w"> </span>--feedback
 </code></pre></div>
 <h2 id="place-tree">배치·해제<a class="headerlink" href="#place-tree" title="Permanent link">&para;</a></h2>
-<p><code>place.xml</code>은 <strong>home → 저장된 <code>place</code> 관절 자세 → 그리퍼 개방·해제 → home</strong>을 실행합니다.
+<p><code>place.xml</code>은 <strong>home → 저장된 <code>place</code> 관절 자세 → 그리퍼 개방·해제 → 저장된 <code>front</code> → home</strong>을 실행합니다.
 <code>MoveJointPose release_on_arrival="true"</code>가 목표 도착을 확인하면 부착된 물체를 해제할 수 있습니다.
 이동 실패·취소 시 해제 노드로 진행하지 않습니다.
 <code>ReleaseObject</code>는 목표 0.10m, 3초로 열고 피드백을 확인한 뒤 계획 장면에서 부착을 제거합니다.

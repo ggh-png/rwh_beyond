@@ -1801,7 +1801,7 @@
 <strong>GraspGenX 후보 생성</strong> → <strong>BT가 폭·도달 가능성 검사</strong> → <strong>MoveIt 계획·실행</strong> → <strong>그리퍼 닫기·리프트·복귀</strong></p>
 <p>공통 설정의 기본 트리인 <code>demo_multiview.xml</code>은 저장된 <code>front</code> 자세에서 먼저 시도합니다.
 실패하면 <code>left</code>·<code>right</code> 관측의 점군을 융합해 다시 시도합니다.
-배치 요청은 <code>place.xml</code>을 실행해 저장된 <code>place</code> 자세에서 그리퍼를 엽니다.</p>
+배치 요청은 <code>place.xml</code>을 실행해 저장된 <code>place</code> 자세에서 그리퍼를 연 뒤 <code>front</code>를 거쳐 home으로 돌아갑니다.</p>
 <h2 id="_2">자주 바꾸는 위치<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
