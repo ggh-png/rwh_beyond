@@ -7,7 +7,7 @@
 |---|---|
 | 집기 트리를 바꾼다 | `bt_demo.yaml`의 `default_demo_bt_xml` 또는 요청의 `behavior_tree`. 기본은 `demo_multiview.xml`, 단일 시점 추정 폭은 `demo_width.xml`, 고정 폭은 `demo.xml`. |
 | 이동·촬영·복귀 순서를 바꾼다 | `rwh_beyond_bt/behavior_trees/`의 실행 XML. 노드 입력은 [포트 참조](bt-grasp-stages.md)에서 확인합니다. |
-| 기본 관측·배치 자세를 바꾼다 | `bt_motion.joint_poses_file`의 `front`, `left`, `right`, `place`. [관절 자세 저장](width-aware-bt.md#multiview) 참고. |
+| 기본 관측·배치 자세를 바꾼다 | 저장소의 `config/joint_poses.yaml`에 `front`, `left`, `right`, `place`를 저장하고 `rwh_beyond_bt`를 빌드합니다. [관절 자세 저장](width-aware-bt.md#multiview) 참고. |
 | 기본 대상 또는 분할 방식을 바꾼다 | `bt_perception.target_text`, `selection_policy`. 한 번만 바꿀 때는 Goal의 `target_text`. |
 | 닫기 폭을 바꾼다 | 추정 모드는 `bt_motion.grasp_width_closing_inset`, 고정 모드는 `gripper_close_width`. 공통 열림 상한은 `gripper_open_width`. |
 | 배치 시 개방 폭·시간을 바꾼다 | `place.xml`의 `ReleaseObject` 포트 `opening`, `duration`. 현재 0.10m, 3초. |
@@ -24,7 +24,8 @@
 
 | 수정 대상 | 반영 시점 |
 |---|---|
-| Navigator가 읽는 XML 또는 저장된 관절 자세 | XML은 다음 요청에서, 자세 파일은 다음 해당 이동에서 다시 읽습니다. 설치본과 편집 파일이 같은지 확인하세요. |
+| Navigator가 읽는 XML | 다음 요청에서 다시 읽습니다. |
+| 저장된 관절 자세 | `rwh_beyond_bt`를 빌드하면 설치 사본이 갱신됩니다. |
 | 공통 YAML, launch 또는 장치 프로필 | 해당 파일을 읽는 BT·카메라·MoveIt 등 관련 runner를 재시작합니다. |
 | C++ 또는 ROS 메시지 정의 | 관련 패키지와 호출 측을 다시 빌드한 뒤 재시작합니다. |
 

@@ -6,6 +6,7 @@
   <maintainer email="71277820+ggh-png@users.noreply.github.com">Woosung Yoon</maintainer>
   <license>Apache-2.0</license>
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>ament_index_cpp</depend>
   <depend>behaviortree_cpp</depend>
   <depend>geometry_msgs</depend>
   <depend>moveit_msgs</depend>

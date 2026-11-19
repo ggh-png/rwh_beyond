@@ -93,10 +93,11 @@ ros2 run rwh_beyond_bt capture_joint_pose --list
 ros2 run rwh_beyond_bt capture_joint_pose front --overwrite
 ```
 
-기본 저장 파일은 `/root/.ros/rwh_beyond/joint_poses.yaml`입니다. `joint1~joint6`만 고정
-순서의 rad 단위로 저장하며 그리퍼는 제외합니다. `bt_motion.joint_poses_file`을 바꾸면
-CLI의 `--file /원하는/경로.yaml`도 같은 경로로 지정합니다. 파일을 백업하거나 호스트
-데이터 디렉터리에 연결하면 컨테이너 교체 후에도 보존할 수 있습니다.
+기본 저장 원본은 저장소 루트의 `config/joint_poses.yaml`입니다.
+`joint1~joint6`를 고정 순서의 rad 단위로 저장합니다. 자세 등록·변경 후
+ROS 워크스페이스에서 `colcon build --symlink-install --packages-select rwh_beyond_bt`를
+실행하면 BT가 읽는 패키지의 `share/rwh_beyond_bt/config/joint_poses.yaml`에 사본이 반영됩니다.
+다른 런타임 파일을 직접 읽으려면 `bt_motion.joint_poses_file`에 경로를 지정합니다.
 
 저장 형식은 다음과 같습니다. 아래 빈 목록은 초기 상태이며, 예시 관절값을 임의로
 등록하지 않습니다.

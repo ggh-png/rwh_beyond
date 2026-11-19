@@ -25,7 +25,7 @@ int main(int argc, char ** argv)
   int code = 0;
   try {
     const auto args = rclcpp::remove_ros_arguments(argc, argv);
-    std::string name, path = rwh_beyond_bt::default_joint_poses_file();
+    std::string name, path = rwh_beyond_bt::source_joint_poses_file();
     bool overwrite = false, list = false;
     for (size_t i = 1; i < args.size(); ++i) {
       if (args[i] == "--overwrite") {overwrite = true;} else if (args[i] == "--list") {

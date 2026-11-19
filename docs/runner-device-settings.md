@@ -121,7 +121,7 @@ simulation:
 | PiPER·카메라 runtime | `ros_runner/config/robot_real.yaml` |
 | 공통 TCP / 심 GUI·주기 및 MoveIt 실행 감시 | `robot_common.yaml` / `robot_sim.yaml` |
 | 외부 모델 SSH·포트 | `runners.yaml`의 `inference_connection` |
-| 기본 관측 관절 자세 | `bt_motion.joint_poses_file`의 `front`, `left`, `right` |
+| 기본 관측 관절 자세 | 저장소의 `config/joint_poses.yaml`에 `front`, `left`, `right`를 등록한 뒤 `rwh_beyond_bt` 빌드 |
 | 그리퍼 폭·닫기 시간·후보 수 | `rwh_beyond_bringup/config/bt_demo.yaml` |
 | 접근·리프트 거리 | XML 명시값 우선, 생략 시 `bt_motion` YAML |
 | 실물 카메라 장착 위치·회전 | runner의 `d405.mount` / `d435.mount` |

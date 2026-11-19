@@ -6,3 +6,5 @@ __pycache__/
 .pytest_cache/
 site/
 .venv-docs/
+/config/joint_poses.yaml
+/config/joint_poses.yaml.lock

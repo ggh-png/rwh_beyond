@@ -61,7 +61,7 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 닫기·계획용 부착 → 리프트 → 관측 복귀 → home입니다.
 기본 트리의 다음 pick은 남은 대상을 현재 위치에서 개방·해제합니다. 지정 위치에 놓으려면 먼저 `mode: 2`를 요청합니다.
 
-BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 기본 관측·배치 자세는 `bt_motion.joint_poses_file`에서 읽습니다.
+BT 공통 YAML은 `rwh_beyond_bringup/config/bt_demo.yaml`, 기본 관측·배치 자세는 저장소의 `config/joint_poses.yaml`을 빌드 때 복사한 설치 파일에서 읽습니다.
 
 ## 현재 동작 범위
 

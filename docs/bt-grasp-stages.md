@@ -963,7 +963,8 @@ ros2 run rwh_beyond_bt generate_tree_nodes_xml \
 | `CheckJointPoses` | pose_names(세미콜론 구분), poses_file(선택) | 없음 | 등록 누락·잘못된 형식을 이동 전에 거부 |
 | `MoveJointPose` | pose_name, poses_file(선택), settle_time | 없음 | 저장한 관절 목표로 OMPL 계획·실행·실제 피드백 도착 확인; IK 없음 |
 
-파일 경로를 포트로 생략하면 `bt_motion.joint_poses_file`을 사용합니다. 파일·자세가
+별도 경로는 `poses_file` 포트나 `bt_motion.joint_poses_file`로 지정할 수 있습니다.
+기본값으로 캡처는 저장소의 원본을 쓰고, 조회·이동은 빌드에서 설치한 사본을 읽습니다. 파일·자세가
 없을 때 0 관절값으로 대체하지 않습니다. 저장 시 기존 이름은 명시적인 overwrite가
 필요합니다. 모션은 그리퍼를 제어하지 않으며, 계획·실행 실패와 halt는 기존 MotionAction
 진단·취소 처리를 따릅니다.

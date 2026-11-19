@@ -140,10 +140,10 @@ bt_navigator:
       # 관측 이동 방식입니다. ompl=목표 자세 IK 후 관절 경로, cartesian=TCP 직선 경로.
       # cartesian은 완전한 경로만 실행하며, 실패 시 다른 방식으로 자동 전환하지 않습니다. 변경 후 bt_demo를 재시작합니다.
       observation_motion_mode: cartesian
-      # MoveJointPose가 매 이동 시작 시 아래 YAML의 front/left/right 관절값을 읽습니다.
-      # CaptureJointPose/CLI로 다시 저장하면 다음 이동부터 반영됩니다. XML에 수치를 복사할 필요가 없습니다.
-      # 다른 저장 경로를 쓰면 CLI의 --file과 이 설정을 같은 경로로 맞춥니다.
-      joint_poses_file: /root/.ros/rwh_beyond/joint_poses.yaml
+      # 빈 값이면 rwh_beyond_bt 빌드에서 설치한 config/joint_poses.yaml을 읽습니다.
+      # CaptureJointPose/CLI로 저장한 소스의 config/joint_poses.yaml은 다음 빌드에서 반영됩니다.
+      # 별도 파일을 직접 읽으려면 이 항목에 경로를 지정합니다.
+      joint_poses_file: ""
       # OMPL 관측 목표의 IK 탐색 제한 시간입니다(초, 0.001~10). 기존 0.2초 대신 관측에는 1초를 사용합니다.
       # OMPL 경로 계획 시간과 별개이며, 도달 불가·충돌 자세는 시간을 늘려도 풀리지 않을 수 있습니다.
       moveit_observation_ik_timeout: 1.0

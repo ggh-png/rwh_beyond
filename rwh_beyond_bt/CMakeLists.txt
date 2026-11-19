@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(rwh_beyond_bt)
 
 find_package(ament_cmake REQUIRED)
+find_package(ament_index_cpp REQUIRED)
 find_package(behaviortree_cpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(moveit_msgs REQUIRED)
@@ -42,7 +43,18 @@ target_include_directories(rwh_beyond_joint_pose_store PUBLIC
   $<INSTALL_INTERFACE:include>)
 target_compile_features(rwh_beyond_joint_pose_store PUBLIC cxx_std_17)
 target_link_libraries(rwh_beyond_joint_pose_store yaml-cpp)
-ament_target_dependencies(rwh_beyond_joint_pose_store yaml_cpp_vendor)
+ament_target_dependencies(rwh_beyond_joint_pose_store ament_index_cpp yaml_cpp_vendor)
+
+set(joint_poses_source "${CMAKE_CURRENT_SOURCE_DIR}/../config/joint_poses.yaml")
+set(joint_poses_snapshot "${CMAKE_CURRENT_BINARY_DIR}/joint_poses.yaml")
+target_compile_definitions(rwh_beyond_joint_pose_store PRIVATE
+  RWH_JOINT_POSES_SOURCE="${joint_poses_source}")
+add_custom_target(snapshot_joint_poses ALL
+  COMMAND "${CMAKE_COMMAND}" "-DSOURCE=${joint_poses_source}" "-DSNAPSHOT=${joint_poses_snapshot}"
+    -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/snapshot_joint_poses.cmake"
+  BYPRODUCTS "${joint_poses_snapshot}"
+  VERBATIM)
+install(FILES "${joint_poses_snapshot}" DESTINATION share/${PROJECT_NAME}/config)
 
 add_executable(capture_joint_pose src/capture_joint_pose.cpp)
 target_link_libraries(capture_joint_pose rwh_beyond_joint_pose_store)
@@ -160,5 +172,5 @@ endif()
 
 ament_export_include_directories(include)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${dependencies} Eigen3 yaml_cpp_vendor yaml-cpp)
+ament_export_dependencies(${dependencies} Eigen3 ament_index_cpp yaml_cpp_vendor yaml-cpp)
 ament_package()

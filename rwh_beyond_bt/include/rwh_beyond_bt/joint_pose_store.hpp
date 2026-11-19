@@ -16,6 +16,7 @@ namespace rwh_beyond_bt
 {
 using JointPoses = std::map<std::string, std::vector<double>>;
 std::string default_joint_poses_file();
+std::string source_joint_poses_file();
 JointPoses read_joint_poses(const std::string & path);
 std::vector<double> load_joint_pose(const std::string & path, const std::string & name);
 void save_joint_pose(

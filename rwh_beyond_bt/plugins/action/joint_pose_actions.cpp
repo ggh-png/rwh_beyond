@@ -22,14 +22,18 @@ template<class T> T input(const BT::TreeNode & node, const std::string & port)
   if (!result) {throw std::invalid_argument("Missing/invalid " + port + ": " + result.error());}
   return result.value();
 }
-std::string poses_file(const BT::TreeNode & node, MotionContext & context)
+std::string poses_file(
+  const BT::TreeNode & node, MotionContext & context, bool for_capture = false)
 {
   std::string path;
   if (node.config().input_ports.count("poses_file")) {
     path = input<std::string>(node, "poses_file");
   }
   if (path.empty()) {
-    path = context.parameter<std::string>("joint_poses_file", default_joint_poses_file());
+    path = context.parameter<std::string>("joint_poses_file", "");
+  }
+  if (path.empty()) {
+    return for_capture ? source_joint_poses_file() : default_joint_poses_file();
   }
   return path;
 }
@@ -78,7 +82,7 @@ BT::NodeStatus CaptureJointPoseAction::onRunning()
     for (int i = 1; i <= 6; ++i) {
       positions.push_back(values.at("joint" + std::to_string(i)));
     }
-    save_joint_pose(poses_file(*this, *context_), input<std::string>(*this, "pose_name"), positions,
+    save_joint_pose(poses_file(*this, *context_, true), input<std::string>(*this, "pose_name"), positions,
       input<bool>(*this, "overwrite"));
     setOutput("joint_positions", positions);
     return BT::NodeStatus::SUCCESS;

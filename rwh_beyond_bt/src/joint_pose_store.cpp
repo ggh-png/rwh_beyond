@@ -12,13 +12,13 @@
 #include <fcntl.h>
 
 #include <cmath>
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <regex>
 #include <stdexcept>
 #include <utility>
 
+#include "ament_index_cpp/get_package_share_directory.hpp"
 #include "yaml-cpp/yaml.h"
 
 namespace rwh_beyond_bt
@@ -58,9 +58,13 @@ struct Lock
 
 std::string default_joint_poses_file()
 {
-  const char * home = std::getenv("HOME");
-  if (!home || !*home) {throw std::runtime_error("Set joint_poses_file or HOME");}
-  return std::string(home) + "/.ros/rwh_beyond/joint_poses.yaml";
+  return ament_index_cpp::get_package_share_directory("rwh_beyond_bt") +
+         "/config/joint_poses.yaml";
+}
+
+std::string source_joint_poses_file()
+{
+  return RWH_JOINT_POSES_SOURCE;
 }
 JointPoses read_joint_poses(const std::string & path)
 {

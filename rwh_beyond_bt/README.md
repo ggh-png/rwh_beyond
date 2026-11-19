@@ -75,6 +75,7 @@ YAML 기본 트리 선택값은 변경하지 않습니다.
 
 팔을 원하는 관측 자세에 정지시킨 후 `ros2 run rwh_beyond_bt capture_joint_pose front`를
 실행합니다. left/right도 같은 방식으로 등록합니다. 기본 파일은
-`~/.ros/rwh_beyond/joint_poses.yaml`이며 `--list`로 확인하고 `--overwrite`로 재등록합니다.
+저장소의 `config/joint_poses.yaml`이며 `--list`로 확인하고 `--overwrite`로 재등록합니다.
+자세를 바꾼 뒤 `rwh_beyond_bt`를 빌드하면 BT용 설치 사본에 반영됩니다.
 다중 시점 트리는 CheckJointPoses로 등록을 확인하고 MoveJointPose로 이동합니다.
 TCP IK를 사용하지 않으며, 실제 관절값을 임의로 채워 넣지 않습니다.
