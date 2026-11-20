@@ -1,34 +1,77 @@
 # RunDemo 인터페이스
 
-외부 호출 측은 `/run_demo` (`rwh_beyond_msgs/action/RunDemo`)로 집기 또는 배치를 실행합니다.
-서버는 BT Navigator의 `rwh_beyond_navigator::DemoNavigator`입니다.
-각 단계의 내부 연결은 [실행 흐름](bt-flows.md)과 [플러그인 기능](bt-grasp-stages.md)에 정리했습니다.
+`/run_demo`는 집기 또는 배치를 요청하는 ROS 2 액션입니다.
+타입은 `rwh_beyond_msgs/action/RunDemo`입니다.
+호출 환경에서 `rwh_beyond_msgs`를 빌드하고 `source install/setup.bash`를 실행한 뒤,
+서버와 같은 ROS 도메인에서 호출하세요.
 
-## Goal과 트리 선택
+## 입력 (Goal)
 
-| 필드 | 타입 | 의미 |
+| 필드 | 타입 | 입력값 |
 |---|---|---|
-| `mode` | uint8 | 1=pick, 2=place/release. 생략 시 0이며 기본 pick 선택 |
-| `behavior_tree` | string | XML 경로. 있으면 mode보다 우선; 빈 값이면 YAML의 해당 기본 트리 |
-| `target_text` | string | 이번 실행의 대상 설명. 빈 값이면 XML·launch·YAML 대상 설정 사용 |
+| `mode` | `uint8` | `1`은 집기, `2`는 앞서 집은 물체의 배치·해제. 생략하거나 `0`을 주면 기본 집기. |
+| `target_text` | `string` | 집을 물체의 설명. 예를 들어 `"blue cup"`. 생략하면 설정된 기본 대상을 사용. 이번 요청에만 적용. |
+| `behavior_tree` | `string` | 로봇의 액션 서버가 읽을 수 있는 BT XML 경로. 지정하면 `mode`보다 우선하며, 기본 트리를 쓸 때는 생략. |
 
-현재 YAML의 기본 pick은 `demo_multiview.xml`, place는 `place.xml`입니다.
-고정 폭 `demo.xml`은 `behavior_tree`로 명시할 수 있습니다.
+## CLI 예시
+
+아래 두 명령은 액션 서버에 목표를 보내 로봇 동작을 실행합니다.
 
 ```bash
-# 점군 추정 폭으로 집기·리프트·home 복귀
+# 파란 컵 집기
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{mode: 1, target_text: "blue cup"}' --feedback
 
-# 부착한 물체를 배치·개방·해제하고 home 복귀
+# 앞서 집은 물체 배치·해제
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{mode: 2}' --feedback
 ```
 
-대상 텍스트는 이번 요청에만 적용됩니다. 다음 요청에서 생략하면 이전 요청의 텍스트를 재사용하지 않습니다.
+`--feedback`을 사용하면 진행 중인 `current_stage`와 `current_node`도 볼 수 있습니다.
+
+## 결과 (Result) { #feedback-result }
+
+- **성공**은 ROS Action 상태가 `SUCCEEDED`이고 `error_code`가 `0`일 때입니다. 이 값은 시퀀스 완료를 뜻합니다. 실제 파지 여부는 별도로 판정해야 합니다.
+- **실패했을 때는** `ABORTED` 등 ROS Action 상태와 `error_code`, `error_domain`, `error_name`, `error_source`, `error_msg`를 함께 확인하세요. `failed_stage`와 `failed_node`에는 실패 위치가 담깁니다.
+- **취소**는 ROS Action 상태 `CANCELED`로 구분합니다.
+
+| 필드 | Feedback | Result | 의미 |
+|---|---|---|---|
+| `current_stage`, `current_node` | 사용 | — | 실행 중인 단계·BT 노드 |
+| `failed_stage`, `failed_node` | — | 사용 | 실패한 단계·BT 노드 |
+| `moveit_state` | 사용 | 사용 | 최신 MoveIt 호출·단계 문자열; 해당 호출이 없으면 비어 있을 수 있음 |
+| `backend_stage` | 사용 | 사용 | 최근 백엔드 액션 또는 전송 작업 단계 |
+| `error_code` | 사용 | 사용 | `0`은 오류 없음. 성공 여부는 최종 ROS Action 상태와 함께 확인 |
+| `error_domain` | 사용 | 사용 | 코드의 발생 계통. 예: `bt`, `moveit`, `controller`, `transport`, `navigator` |
+| `error_name`, `error_source`, `error_msg` | 사용 | 사용 | 오류 분류·발생 위치·설명 |
+
+BT는 root Blackboard의 `execution_state`에 최신 진단을 보관합니다. 새 요청과 새 단계
+시작 시 진단을 초기화하고, 실패 기록 이후의 정리 작업이 그 오류를 덮어쓰지 않도록 합니다.
+Navigator의 `onLoop()`는 스냅샷을 Feedback으로 변환하며, 완료 시 Result와 마지막
+Feedback을 만듭니다. ROS Feedback 객체 자체나 오류 이력을 Blackboard에 저장하지 않습니다.
+
+SAM·GraspGenX 브릿지의 구조화된 오류와 MoveIt·controller의 원본 오류 코드는 전달 가능한
+경로에서 domain·source와 함께 보존합니다. 실패 응답에 필수 오류 정보가 없으면
+`INVALID_RESPONSE`로 보고합니다. 숫자만으로는 발생 계통을 구분할 수 없으므로
+`error_domain`, `error_source`, `error_name`, `error_msg`와 ROS Action status를 함께 확인합니다.
+후보별 검사 실패가 누적된 경우에는 원본 MoveIt 오류가 보존될 수 있으며,
+그렇지 않으면 `NO_FEASIBLE_GRASP`로 보고합니다.
+
+프로젝트 오류 상수는 `rwh_beyond_msgs/msg/ErrorCode.msg`에 있습니다.
+진단이 없는 BT 실패·취소는 Navigator가 각각 `-1002 / BT_FAILED`,
+`-1004 / CANCELED`로 보완합니다.
+
+## 기본 트리와 대상 선택
+
+서버는 BT Navigator의 `rwh_beyond_navigator::DemoNavigator`입니다.
+각 단계의 연결은 [실행 흐름](bt-flows.md)과 [플러그인 기능](bt-grasp-stages.md)에 정리했습니다.
+
+현재 YAML의 기본 pick은 `demo_multiview.xml`, place는 `place.xml`입니다.
+고정 폭 `demo.xml`은 `behavior_tree`로 명시할 수 있습니다.
+대상 텍스트를 생략하면 XML·launch·YAML의 대상 설정을 사용합니다.
 전달 경로는 Navigator → Blackboard → SegmentObject → SAM 브릿지입니다.
 현재 인스턴스 선택 정책은 `bt_perception.selection_policy=highest_score`입니다.
-place는 인식을 다시 수행하지 않습니다. Navigation은 이 Action이 수행하지 않습니다.
+place는 인식을 다시 수행하지 않습니다. 이동은 별도 Navigation 인터페이스에서 실행합니다.
 
 ## Groot 저장 XML 자동 정리 { #groot-xml-filter }
 
@@ -57,35 +100,6 @@ Groot가 생략 가능한 숫자 포트를 `opening=""`, `duration=""` 등으로
 실행 중인 트리는 저장만으로 바뀌지 않습니다. 내용이 같으면 같은 사본 경로를 재사용해 기존 트리 캐시를 유지합니다.
 빈 속성을 제거한 경우 로그의 `BT XML filter: removed ... empty attributes`에서 확인할 수 있습니다.
 별도의 수동 정리 스크립트 실행은 필요하지 않습니다.
-
-## Feedback와 Result { #feedback-result }
-
-| 필드 | Feedback | Result | 의미 |
-|---|---|---|---|
-| `current_stage`, `current_node` | 사용 | — | 실행 중인 단계·BT 노드 |
-| `failed_stage`, `failed_node` | — | 사용 | 실패한 단계·BT 노드 |
-| `moveit_state` | 사용 | 사용 | 최신 MoveIt 호출·단계 문자열; 해당 호출이 없으면 비어 있을 수 있음 |
-| `backend_stage` | 사용 | 사용 | 최근 백엔드 액션 또는 전송 작업 단계 |
-| `error_code` | 사용 | 사용 | 0=성공, 그 외 오류 코드 |
-| `error_domain` | 사용 | 사용 | 코드의 발생 계통. 예: `bt`, `moveit`, `controller`, `transport`, `navigator` |
-| `error_name`, `error_source`, `error_msg` | 사용 | 사용 | 오류 분류·발생 위치·설명 |
-
-BT는 root Blackboard의 `execution_state`에 최신 진단을 보관합니다. 새 요청과 새 단계
-시작 시 진단을 초기화하고, 실패 기록 이후의 정리 작업이 그 오류를 덮어쓰지 않도록 합니다.
-Navigator의 `onLoop()`는 스냅샷을 Feedback으로 변환하며, 완료 시 Result와 마지막
-Feedback을 만듭니다. ROS Feedback 객체 자체나 오류 이력을 Blackboard에 저장하지 않습니다.
-
-SAM·GraspGenX 브릿지의 구조화된 오류와 MoveIt·controller의 원본 오류 코드는 전달 가능한
-경로에서 domain·source와 함께 보존합니다. 실패 응답에 필수 오류 정보가 없으면
-`INVALID_RESPONSE`로 보고합니다. 숫자만으로는 발생 계통을 구분할 수 없으므로
-`error_domain`, `error_source`, `error_name`, `error_msg`와 ROS Action status를 함께 확인합니다.
-후보별 검사 실패가 누적된 경우에는 원본 MoveIt 오류가 보존될 수 있으며,
-그렇지 않으면 `NO_FEASIBLE_GRASP`로 보고합니다.
-
-프로젝트 오류 상수는 `rwh_beyond_msgs/msg/ErrorCode.msg`에 있습니다.
-진단이 없는 BT 실패·취소는 Navigator가 각각 `-1002 / BT_FAILED`,
-`-1004 / CANCELED`로 보완합니다.
-`SUCCEEDED`와 `error_code=0`은 시퀀스 완료이며 실제 잡힘 판정 결과가 아닙니다.
 
 ## 취소와 연속 요청
 
