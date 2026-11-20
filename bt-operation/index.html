@@ -1829,10 +1829,12 @@
 
 
 <h1 id="rundemo">RunDemo 인터페이스<a class="headerlink" href="#rundemo" title="Permanent link">&para;</a></h1>
-<p><code>/run_demo</code>는 집기 또는 배치를 요청하는 ROS 2 액션입니다.
-타입은 <code>rwh_beyond_msgs/action/RunDemo</code>입니다.
-호출 환경에서 <code>rwh_beyond_msgs</code>를 빌드하고 <code>source install/setup.bash</code>를 실행한 뒤,
-서버와 같은 ROS 도메인에서 호출하세요.</p>
+<p><code>/run_demo</code>는 집기 또는 배치를 요청하는 ROS 2 액션입니다.</p>
+<ul>
+<li><strong>협업자가 설치할 GitHub 저장소</strong>는 <a href="https://github.com/ggh-png/rwh_beyond_interfaces">ggh-png/rwh_beyond_interfaces</a>입니다. 저장소의 설치 안내에 따라 <code>rwh_beyond_msgs</code>를 빌드하고 <code>source install/setup.bash</code>를 실행하세요.</li>
+<li><strong>CLI와 코드에서 사용하는 ROS 액션 타입</strong>은 <code>rwh_beyond_msgs/action/RunDemo</code>입니다.</li>
+</ul>
+<p>서버와 같은 ROS 도메인에서 <code>ros2 action info /run_demo</code>를 실행해 서버가 보이는지 확인한 뒤 호출하세요.</p>
 <h2 id="goal">입력 (Goal)<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
