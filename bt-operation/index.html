@@ -1932,7 +1932,8 @@ Feedback을 만듭니다. ROS Feedback 객체 자체나 오류 이력을 Blackbo
 지정한 배치 위치에서 놓을 때는 먼저 <code>mode: 2</code>를 실행합니다.
 고정 폭 <code>demo.xml</code>은 자동 해제하지 않으며 부착 대상이 남으면 새 pick을 거부합니다.</p>
 <h2 id="groot2">외부 연동과 Groot2<a class="headerlink" href="#groot2" title="Permanent link">&para;</a></h2>
-<p>호출 측은 같은 버전의 <code>rwh_beyond_msgs</code>를 빌드하고 source합니다.
+<p>호출 측은 <a href="https://github.com/ggh-png/rwh_beyond_interfaces">rwh_beyond_interfaces</a>에서
+프로젝트의 <code>moma-mj-lab.repos</code>에 고정된 리비전을 가져와 <code>rwh_beyond_msgs</code>를 빌드하고 source합니다.
 ROS Domain·RMW·DDS 네트워크를 맞추고 <code>/run_demo</code> 서버가 하나인지 확인합니다.</p>
 <p>Groot 노드 정의는 <code>rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml</code>입니다.
 기본 실행 트리는 <code>demo_multiview.xml</code>이며 노드 정의 파일 자체는 실행 트리가 아닙니다.

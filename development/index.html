@@ -1799,7 +1799,8 @@
 </tbody>
 </table>
 <h2 id="_3">빌드와 자동 검사<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
-<p>ROS 컨테이너에서 실행합니다.</p>
+<p>ROS 컨테이너에서 실행합니다. 인터페이스 패키지가 없으면 워크스페이스 루트에서
+<code>vcs import --recursive --skip-existing src &lt; src/rwh_beyond/moma-mj-lab.repos</code>로 가져옵니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">source</span><span class="w"> </span>/opt/ros/jazzy/setup.bash
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>/root/ros2_ws
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>colcon<span class="w"> </span>build<span class="w"> </span>--symlink-install<span class="w"> </span>--packages-up-to<span class="w"> </span>rwh_beyond_navigator
