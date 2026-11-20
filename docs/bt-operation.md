@@ -1,9 +1,11 @@
 # RunDemo 인터페이스
 
 `/run_demo`는 집기 또는 배치를 요청하는 ROS 2 액션입니다.
-타입은 `rwh_beyond_msgs/action/RunDemo`입니다.
-호출 환경에서 `rwh_beyond_msgs`를 빌드하고 `source install/setup.bash`를 실행한 뒤,
-서버와 같은 ROS 도메인에서 호출하세요.
+
+- **협업자가 설치할 GitHub 저장소**는 [ggh-png/rwh_beyond_interfaces](https://github.com/ggh-png/rwh_beyond_interfaces)입니다. 저장소의 설치 안내에 따라 `rwh_beyond_msgs`를 빌드하고 `source install/setup.bash`를 실행하세요.
+- **CLI와 코드에서 사용하는 ROS 액션 타입**은 `rwh_beyond_msgs/action/RunDemo`입니다.
+
+서버와 같은 ROS 도메인에서 `ros2 action info /run_demo`를 실행해 서버가 보이는지 확인한 뒤 호출하세요.
 
 ## 입력 (Goal)
 
