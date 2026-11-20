@@ -101,7 +101,8 @@ SAM·GraspGenX 브릿지의 구조화된 오류와 MoveIt·controller의 원본 
 
 ## 외부 연동과 Groot2
 
-호출 측은 같은 버전의 `rwh_beyond_msgs`를 빌드하고 source합니다.
+호출 측은 [rwh_beyond_interfaces](https://github.com/ggh-png/rwh_beyond_interfaces)에서
+프로젝트의 `moma-mj-lab.repos`에 고정된 리비전을 가져와 `rwh_beyond_msgs`를 빌드하고 source합니다.
 ROS Domain·RMW·DDS 네트워크를 맞추고 `/run_demo` 서버가 하나인지 확인합니다.
 
 Groot 노드 정의는 `rwh_beyond_bt/node_models/rwh_beyond_tree_nodes.xml`입니다.

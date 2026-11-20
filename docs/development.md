@@ -18,7 +18,8 @@
 
 ## 빌드와 자동 검사
 
-ROS 컨테이너에서 실행합니다.
+ROS 컨테이너에서 실행합니다. 인터페이스 패키지가 없으면 워크스페이스 루트에서
+`vcs import --recursive --skip-existing src < src/rwh_beyond/moma-mj-lab.repos`로 가져옵니다.
 
 ```bash
 source /opt/ros/jazzy/setup.bash

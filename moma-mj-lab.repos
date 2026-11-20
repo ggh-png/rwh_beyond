@@ -1,4 +1,8 @@
 repositories:
+  rwh_beyond_interfaces:
+    type: git
+    url: https://github.com/ggh-png/rwh_beyond_interfaces.git
+    version: 1a29bbe524e70b62ce2ce38639d1923c1218843d
   agx_arm_ros:
     type: git
     url: https://github.com/ggh-png/agx_arm_ros.git
