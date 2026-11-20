@@ -23,7 +23,7 @@ flowchart LR
 | `rwh_beyond_bt` | `behavior_trees/`가 순서를, `plugins/action/`이 각 단계를 정의합니다. `src/motion_context.cpp`에 후보 검사·폭 계산·MoveIt 클라이언트가 있습니다. |
 | `rwh_beyond_sam3_bridge`, `rwh_beyond_graspgenx_bridge` | 각각 `SegmentImage`, `InferGrasps` 액션을 제공하고 GPU 서버에 요청합니다. 공통 영상·점군·프로토콜 변환은 `rwh_beyond_model_utils`에 있습니다. |
 | `rwh_beyond_grasp_pipeline` | 모델 브릿지 launch, 실물 궤적 전송, 계획용 점군 필터를 제공합니다. |
-| `rwh_beyond_msgs` | 외부 액션과 서비스 타입의 원본입니다. `action/`, `srv/`, `msg/`를 확인하세요. |
+| `rwh_beyond_msgs` | 외부 액션·서비스·메시지 타입을 정의합니다. 소스는 [rwh_beyond_interfaces](https://github.com/ggh-png/rwh_beyond_interfaces)에 있습니다. |
 
 ## 집기부터 배치까지
 
