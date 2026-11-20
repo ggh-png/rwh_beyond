@@ -1504,7 +1504,40 @@
   <a href="#goal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Goal과 트리 선택
+        입력 (Goal)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI 예시
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        결과 (Result)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        기본 트리와 대상 선택
       
     </span>
   </a>
@@ -1523,18 +1556,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#feedback-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feedback와 Result
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         취소와 연속 요청
@@ -1713,7 +1735,40 @@
   <a href="#goal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Goal과 트리 선택
+        입력 (Goal)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI 예시
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback-result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        결과 (Result)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        기본 트리와 대상 선택
       
     </span>
   </a>
@@ -1732,18 +1787,7 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#feedback-result" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Feedback와 Result
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
         취소와 연속 요청
@@ -1785,75 +1829,54 @@
 
 
 <h1 id="rundemo">RunDemo 인터페이스<a class="headerlink" href="#rundemo" title="Permanent link">&para;</a></h1>
-<p>외부 호출 측은 <code>/run_demo</code> (<code>rwh_beyond_msgs/action/RunDemo</code>)로 집기 또는 배치를 실행합니다.
-서버는 BT Navigator의 <code>rwh_beyond_navigator::DemoNavigator</code>입니다.
-각 단계의 내부 연결은 <a href="../bt-flows/">실행 흐름</a>과 <a href="../bt-grasp-stages/">플러그인 기능</a>에 정리했습니다.</p>
-<h2 id="goal">Goal과 트리 선택<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
+<p><code>/run_demo</code>는 집기 또는 배치를 요청하는 ROS 2 액션입니다.
+타입은 <code>rwh_beyond_msgs/action/RunDemo</code>입니다.
+호출 환경에서 <code>rwh_beyond_msgs</code>를 빌드하고 <code>source install/setup.bash</code>를 실행한 뒤,
+서버와 같은 ROS 도메인에서 호출하세요.</p>
+<h2 id="goal">입력 (Goal)<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>필드</th>
 <th>타입</th>
-<th>의미</th>
+<th>입력값</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>mode</code></td>
-<td>uint8</td>
-<td>1=pick, 2=place/release. 생략 시 0이며 기본 pick 선택</td>
-</tr>
-<tr>
-<td><code>behavior_tree</code></td>
-<td>string</td>
-<td>XML 경로. 있으면 mode보다 우선; 빈 값이면 YAML의 해당 기본 트리</td>
+<td><code>uint8</code></td>
+<td><code>1</code>은 집기, <code>2</code>는 앞서 집은 물체의 배치·해제. 생략하거나 <code>0</code>을 주면 기본 집기.</td>
 </tr>
 <tr>
 <td><code>target_text</code></td>
-<td>string</td>
-<td>이번 실행의 대상 설명. 빈 값이면 XML·launch·YAML 대상 설정 사용</td>
+<td><code>string</code></td>
+<td>집을 물체의 설명. 예를 들어 <code>"blue cup"</code>. 생략하면 설정된 기본 대상을 사용. 이번 요청에만 적용.</td>
+</tr>
+<tr>
+<td><code>behavior_tree</code></td>
+<td><code>string</code></td>
+<td>로봇의 액션 서버가 읽을 수 있는 BT XML 경로. 지정하면 <code>mode</code>보다 우선하며, 기본 트리를 쓸 때는 생략.</td>
 </tr>
 </tbody>
 </table>
-<p>현재 YAML의 기본 pick은 <code>demo_multiview.xml</code>, place는 <code>place.xml</code>입니다.
-고정 폭 <code>demo.xml</code>은 <code>behavior_tree</code>로 명시할 수 있습니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 점군 추정 폭으로 집기·리프트·home 복귀</span>
+<h2 id="cli">CLI 예시<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h2>
+<p>아래 두 명령은 액션 서버에 목표를 보내 로봇 동작을 실행합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 파란 컵 집기</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s1">'{mode: 1, target_text: "blue cup"}'</span><span class="w"> </span>--feedback
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 부착한 물체를 배치·개방·해제하고 home 복귀</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 앞서 집은 물체 배치·해제</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="s1">'{mode: 2}'</span><span class="w"> </span>--feedback
 </code></pre></div>
-<p>대상 텍스트는 이번 요청에만 적용됩니다. 다음 요청에서 생략하면 이전 요청의 텍스트를 재사용하지 않습니다.
-전달 경로는 Navigator → Blackboard → SegmentObject → SAM 브릿지입니다.
-현재 인스턴스 선택 정책은 <code>bt_perception.selection_policy=highest_score</code>입니다.
-place는 인식을 다시 수행하지 않습니다. Navigation은 이 Action이 수행하지 않습니다.</p>
-<h2 id="groot-xml-filter">Groot 저장 XML 자동 정리<a class="headerlink" href="#groot-xml-filter" title="Permanent link">&para;</a></h2>
-<p>Navigator는 트리 로드 직전에 <code>attr=""</code>처럼 <strong>값이 정확히 빈 문자열인 속성</strong>을 자동으로 제거합니다.
-Groot가 생략 가능한 숫자 포트를 <code>opening=""</code>, <code>duration=""</code> 등으로 저장해도
-해당 포트를 생략한 것으로 처리해 노드 기본값을 사용합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cm">&lt;!-- Groot 저장 파일 --&gt;</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">&lt;OpenGripper</span><span class="w"> </span><span class="na">opening=</span><span class="s">""</span><span class="w"> </span><span class="na">duration=</span><span class="s">""</span><span class="nt">/&gt;</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="cm">&lt;!-- Navigator에 전달하는 실행 사본 --&gt;</span>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">&lt;OpenGripper/&gt;</span>
-</code></pre></div>
+<p><code>--feedback</code>을 사용하면 진행 중인 <code>current_stage</code>와 <code>current_node</code>도 볼 수 있습니다.</p>
+<h2 id="feedback-result">결과 (Result)<a class="headerlink" href="#feedback-result" title="Permanent link">&para;</a></h2>
 <ul>
-<li>기본 pick XML은 navigator lifecycle 설정·활성화 전에 정리합니다.</li>
-<li>pick·place·사용자 <code>behavior_tree</code>는 매 요청의 로드 전에 정리합니다.</li>
-<li>상대 경로 <code>&lt;include path="..."/&gt;</code>와 <code>ros_pkg</code> include도 재귀적으로 정리하고,
-  실행 사본 안의 include 경로를 정리된 파일의 절대 경로로 연결합니다.</li>
-<li>원본 XML과 <code>.bak</code>은 수정·생성하지 않습니다. 전용 임시 디렉터리에 실행 사본을 만들고 navigator 객체 종료 시 정리합니다.</li>
-<li><code>"  "</code>처럼 공백만 있는 값, <code>"0"</code>, <code>"false"</code>, <code>"{capture}"</code>, 요소의 텍스트·주석은 유지합니다.
-  필요한 입력을 빈 값으로 두었다면 속성 제거 뒤에도 필수 입력 검사에서 실패합니다.</li>
-<li>잘못된 XML·누락된 include·순환 include는 로드를 거부하며 실행하지 않습니다.</li>
+<li><strong>성공</strong>은 ROS Action 상태가 <code>SUCCEEDED</code>이고 <code>error_code</code>가 <code>0</code>일 때입니다. 이 값은 시퀀스 완료를 뜻합니다. 실제 파지 여부는 별도로 판정해야 합니다.</li>
+<li><strong>실패했을 때는</strong> <code>ABORTED</code> 등 ROS Action 상태와 <code>error_code</code>, <code>error_domain</code>, <code>error_name</code>, <code>error_source</code>, <code>error_msg</code>를 함께 확인하세요. <code>failed_stage</code>와 <code>failed_node</code>에는 실패 위치가 담깁니다.</li>
+<li><strong>취소</strong>는 ROS Action 상태 <code>CANCELED</code>로 구분합니다.</li>
 </ul>
-<p>원본 또는 include의 내용이 바뀌면 새 실행 사본 경로를 사용하므로
-<code>always_reload_bt_xml=false</code>여도 <strong>다음 요청</strong>에서 저장한 변경을 읽습니다.
-실행 중인 트리는 저장만으로 바뀌지 않습니다. 내용이 같으면 같은 사본 경로를 재사용해 기존 트리 캐시를 유지합니다.
-빈 속성을 제거한 경우 로그의 <code>BT XML filter: removed ... empty attributes</code>에서 확인할 수 있습니다.
-별도의 수동 정리 스크립트 실행은 필요하지 않습니다.</p>
-<h2 id="feedback-result">Feedback와 Result<a class="headerlink" href="#feedback-result" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -1892,7 +1915,7 @@ Groot가 생략 가능한 숫자 포트를 <code>opening=""</code>, <code>durati
 <td><code>error_code</code></td>
 <td>사용</td>
 <td>사용</td>
-<td>0=성공, 그 외 오류 코드</td>
+<td><code>0</code>은 오류 없음. 성공 여부는 최종 ROS Action 상태와 함께 확인</td>
 </tr>
 <tr>
 <td><code>error_domain</code></td>
@@ -1920,9 +1943,41 @@ Feedback을 만듭니다. ROS Feedback 객체 자체나 오류 이력을 Blackbo
 그렇지 않으면 <code>NO_FEASIBLE_GRASP</code>로 보고합니다.</p>
 <p>프로젝트 오류 상수는 <code>rwh_beyond_msgs/msg/ErrorCode.msg</code>에 있습니다.
 진단이 없는 BT 실패·취소는 Navigator가 각각 <code>-1002 / BT_FAILED</code>,
-<code>-1004 / CANCELED</code>로 보완합니다.
-<code>SUCCEEDED</code>와 <code>error_code=0</code>은 시퀀스 완료이며 실제 잡힘 판정 결과가 아닙니다.</p>
-<h2 id="_1">취소와 연속 요청<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<code>-1004 / CANCELED</code>로 보완합니다.</p>
+<h2 id="_1">기본 트리와 대상 선택<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<p>서버는 BT Navigator의 <code>rwh_beyond_navigator::DemoNavigator</code>입니다.
+각 단계의 연결은 <a href="../bt-flows/">실행 흐름</a>과 <a href="../bt-grasp-stages/">플러그인 기능</a>에 정리했습니다.</p>
+<p>현재 YAML의 기본 pick은 <code>demo_multiview.xml</code>, place는 <code>place.xml</code>입니다.
+고정 폭 <code>demo.xml</code>은 <code>behavior_tree</code>로 명시할 수 있습니다.
+대상 텍스트를 생략하면 XML·launch·YAML의 대상 설정을 사용합니다.
+전달 경로는 Navigator → Blackboard → SegmentObject → SAM 브릿지입니다.
+현재 인스턴스 선택 정책은 <code>bt_perception.selection_policy=highest_score</code>입니다.
+place는 인식을 다시 수행하지 않습니다. 이동은 별도 Navigation 인터페이스에서 실행합니다.</p>
+<h2 id="groot-xml-filter">Groot 저장 XML 자동 정리<a class="headerlink" href="#groot-xml-filter" title="Permanent link">&para;</a></h2>
+<p>Navigator는 트리 로드 직전에 <code>attr=""</code>처럼 <strong>값이 정확히 빈 문자열인 속성</strong>을 자동으로 제거합니다.
+Groot가 생략 가능한 숫자 포트를 <code>opening=""</code>, <code>duration=""</code> 등으로 저장해도
+해당 포트를 생략한 것으로 처리해 노드 기본값을 사용합니다.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="cm">&lt;!-- Groot 저장 파일 --&gt;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="nt">&lt;OpenGripper</span><span class="w"> </span><span class="na">opening=</span><span class="s">""</span><span class="w"> </span><span class="na">duration=</span><span class="s">""</span><span class="nt">/&gt;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="cm">&lt;!-- Navigator에 전달하는 실행 사본 --&gt;</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="nt">&lt;OpenGripper/&gt;</span>
+</code></pre></div>
+<ul>
+<li>기본 pick XML은 navigator lifecycle 설정·활성화 전에 정리합니다.</li>
+<li>pick·place·사용자 <code>behavior_tree</code>는 매 요청의 로드 전에 정리합니다.</li>
+<li>상대 경로 <code>&lt;include path="..."/&gt;</code>와 <code>ros_pkg</code> include도 재귀적으로 정리하고,
+  실행 사본 안의 include 경로를 정리된 파일의 절대 경로로 연결합니다.</li>
+<li>원본 XML과 <code>.bak</code>은 수정·생성하지 않습니다. 전용 임시 디렉터리에 실행 사본을 만들고 navigator 객체 종료 시 정리합니다.</li>
+<li><code>"  "</code>처럼 공백만 있는 값, <code>"0"</code>, <code>"false"</code>, <code>"{capture}"</code>, 요소의 텍스트·주석은 유지합니다.
+  필요한 입력을 빈 값으로 두었다면 속성 제거 뒤에도 필수 입력 검사에서 실패합니다.</li>
+<li>잘못된 XML·누락된 include·순환 include는 로드를 거부하며 실행하지 않습니다.</li>
+</ul>
+<p>원본 또는 include의 내용이 바뀌면 새 실행 사본 경로를 사용하므로
+<code>always_reload_bt_xml=false</code>여도 <strong>다음 요청</strong>에서 저장한 변경을 읽습니다.
+실행 중인 트리는 저장만으로 바뀌지 않습니다. 내용이 같으면 같은 사본 경로를 재사용해 기존 트리 캐시를 유지합니다.
+빈 속성을 제거한 경우 로그의 <code>BT XML filter: removed ... empty attributes</code>에서 확인할 수 있습니다.
+별도의 수동 정리 스크립트 실행은 필요하지 않습니다.</p>
+<h2 id="_2">취소와 연속 요청<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
 <p>호출 측 ActionClient의 goal handle에서 <code>cancel_goal_async()</code>를 사용합니다.
 실행 중 목표 교체(preemption)는 지원하지 않습니다. 취소 결과를 받은 뒤 다음 요청을 보냅니다.
 취소는 BT 작업과 실행 액션에 전달되고 미부착 임시 장면을 정리합니다.
