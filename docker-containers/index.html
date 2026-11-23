@@ -588,12 +588,12 @@
   <a href="#robot-runner-20261119" class="md-nav__link">
     <span class="md-ellipsis">
       
-        로봇 전체 스냅샷 20261119로 Runner와 화면 연결
+        amd64 로봇 스냅샷으로 Runner와 화면 연결
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="로봇 전체 스냅샷 20261119로 Runner와 화면 연결">
+    <nav class="md-nav" aria-label="amd64 로봇 스냅샷으로 Runner와 화면 연결">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -608,10 +608,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nvidia-gpu" class="md-nav__link">
+  <a href="#create-robot-snapshot" class="md-nav__link">
     <span class="md-ellipsis">
       
-        엔진별 NVIDIA GPU 연결
+        NVIDIA GPU 컨테이너 생성
       
     </span>
   </a>
@@ -1874,12 +1874,12 @@
   <a href="#robot-runner-20261119" class="md-nav__link">
     <span class="md-ellipsis">
       
-        로봇 전체 스냅샷 20261119로 Runner와 화면 연결
+        amd64 로봇 스냅샷으로 Runner와 화면 연결
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="로봇 전체 스냅샷 20261119로 Runner와 화면 연결">
+    <nav class="md-nav" aria-label="amd64 로봇 스냅샷으로 Runner와 화면 연결">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1894,10 +1894,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#nvidia-gpu" class="md-nav__link">
+  <a href="#create-robot-snapshot" class="md-nav__link">
     <span class="md-ellipsis">
       
-        엔진별 NVIDIA GPU 연결
+        NVIDIA GPU 컨테이너 생성
       
     </span>
   </a>
@@ -2105,16 +2105,19 @@
 <p><strong>tar.gz 파일 받기 → 이미지 로드 → 컨테이너 생성 → 시작·접속 → 데이터 확인</strong> 순서로 진행합니다.
 아래 명령은 컨테이너 밖의 <strong>호스트 터미널</strong>에서 실행합니다.
 로봇 PC와 GPU 서버를 분리하면 각 역할에 해당하는 파일과 명령만 사용합니다.
-로봇용 20261119 전체 스냅샷과 20261117 GPU 모델 아카이브를 다룹니다. 소스 수정·재빌드는
+로봇용 <code>20261123-live</code> 스냅샷과 20261117 GPU 모델 아카이브를 다룹니다. 소스 수정·재빌드는
 <a href="../project-containers/">환경과 빌드</a>에서 설명합니다.</p>
-<h2 id="robot-runner-20261119">로봇 전체 스냅샷 20261119로 Runner와 화면 연결<a class="headerlink" href="#robot-runner-20261119" title="Permanent link">&para;</a></h2>
+<h2 id="robot-runner-20261119">amd64 로봇 스냅샷으로 Runner와 화면 연결<a class="headerlink" href="#robot-runner-20261119" title="Permanent link">&para;</a></h2>
 <p>이 스냅샷은 <code>linux/amd64</code>입니다. Docker Engine을 사용하는 NVIDIA 노트북과
 Podman을 사용하는 NVIDIA 개발 PC에서 실행할 수 있습니다. ARM64 Jetson은
 <a href="https://github.com/ggh-png/ros2-docker/blob/main/docs/docker-containers.md#jetson-robot">별도 로드·생성 절차</a>를 사용합니다.</p>
-<p>배포 파일이 있는 폴더에서 사용할 엔진을 지정하고, 무결성을 확인한 뒤 이미지를 로드합니다.</p>
+<p>아카이브와 <code>.sha256</code> 파일을 <code>~/RWH/beyond/docker</code>에 두고 로드합니다.
+이미 로드했다면 <a href="#create-robot-snapshot">컨테이너 생성</a>으로 이동합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nv">CONTAINER_ENGINE</span><span class="o">=</span>podman<span class="w">  </span><span class="c1"># Docker Engine 호스트에서는 docker</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>sha256sum<span class="w"> </span>-c<span class="w"> </span>rwh_beyond_robot_20261119-bb6e689-full.tar.gz.sha256<span class="w"> </span><span class="o">&amp;&amp;</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$CONTAINER_ENGINE</span><span class="s2">"</span><span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span>rwh_beyond_robot_20261119-bb6e689-full.tar.gz
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nv">archive</span><span class="o">=</span>rwh_beyond_robot_20261123-live-amd64.tar.gz
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/RWH/beyond/docker"</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span>sha256sum<span class="w"> </span>-c<span class="w"> </span><span class="s2">"</span><span class="nv">$archive</span><span class="s2">.sha256"</span><span class="w"> </span><span class="o">&amp;&amp;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$CONTAINER_ENGINE</span><span class="s2">"</span><span class="w"> </span>load<span class="w"> </span>-i<span class="w"> </span><span class="s2">"</span><span class="nv">$archive</span><span class="s2">"</span>
 </code></pre></div>
 <h3 id="x11-auth">X11 인증 파일 준비<a class="headerlink" href="#x11-auth" title="Permanent link">&para;</a></h3>
 <p>호스트의 그래픽 데스크톱 터미널에서 실행합니다. 기존에 지정한 경로, 현재 셸의
@@ -2127,49 +2130,73 @@ Podman을 사용하는 NVIDIA 개발 PC에서 실행할 수 있습니다. ARM64 
 <a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">fi</span>
 <a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nb">test</span><span class="w"> </span>-n<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">DISPLAY</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">test</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">"</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">test</span><span class="w"> </span>-r<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">"</span>
 </code></pre></div>
-<h3 id="nvidia-gpu">엔진별 NVIDIA GPU 연결<a class="headerlink" href="#nvidia-gpu" title="Permanent link">&para;</a></h3>
+<h3 id="create-robot-snapshot">NVIDIA GPU 컨테이너 생성<a class="headerlink" href="#create-robot-snapshot" title="Permanent link">&para;</a></h3>
 <p>Podman에서는 <code>nvidia-ctk cdi list</code>에 <code>nvidia.com/gpu=all</code>이 표시되는지 확인합니다.
 Docker Engine은 NVIDIA Container Toolkit을 사용합니다. <code>docker</code>가 Podman 래퍼라면
 <code>CONTAINER_ENGINE=podman</code>을 선택합니다. <a href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html">NVIDIA CDI 설정</a></p>
+<p>호스트 데스크톱의 Bash에서 아카이브가 있는 폴더로 이동한 뒤 아래 블록을 붙여넣습니다.
+현재 폴더의 <code>config/</code>에 있는 YAML만 읽기 전용으로 연결합니다. 빠진 파일은 이미지에 들어
+있는 기본 설정을 읽으므로 <code>config/</code> 없이 실행할 수 있습니다. <code>20261119-bb6e689-full</code>을
+이미 로드했다면 아래 <code>image</code> 값에 해당 태그를 지정해 같은 명령을 사용할 수 있습니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="o">(</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nb">set</span><span class="w"> </span>-e
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nb">set</span><span class="w"> </span>-euo<span class="w"> </span>pipefail
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nv">engine</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">CONTAINER_ENGINE</span><span class="k">:-</span><span class="nv">podman</span><span class="si">}</span><span class="s2">"</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="s2">"</span><span class="nv">$engine</span><span class="s2">"</span><span class="w"> </span><span class="k">in</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span>podman<span class="o">)</span><span class="w"> </span><span class="nv">gpu</span><span class="o">=(</span>--device<span class="w"> </span>nvidia.com/gpu<span class="o">=</span>all<span class="w"> </span>--security-opt<span class="w"> </span><span class="nv">label</span><span class="o">=</span>disable<span class="o">)</span><span class="w"> </span><span class="p">;;</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span>docker<span class="o">)</span><span class="w"> </span><span class="nv">gpu</span><span class="o">=(</span>--gpus<span class="w"> </span>all<span class="w"> </span>-e<span class="w"> </span><span class="nv">NVIDIA_DRIVER_CAPABILITIES</span><span class="o">=</span>all<span class="o">)</span><span class="w"> </span><span class="p">;;</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">    </span>*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'CONTAINER_ENGINE must be podman or docker'</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="p">;;</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="k">esac</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">DISPLAY</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">RWH_XAUTH_FILE</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-r<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/tmp/.X11-unix<span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'Run from the host desktop with DISPLAY and readable Xauthority.'</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="k">fi</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nv">image</span><span class="o">=</span>localhost/rwh_beyond_robot:20261123-live
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nv">config_dir</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/config"</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nv">runner_config_dir</span><span class="o">=</span>/root/ros2_ws/src/ros_runner/config
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nv">bt_config</span><span class="o">=</span>/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="k">case</span><span class="w"> </span><span class="s2">"</span><span class="nv">$engine</span><span class="s2">"</span><span class="w"> </span><span class="k">in</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span>podman<span class="o">)</span><span class="w"> </span><span class="nv">gpu</span><span class="o">=(</span>--device<span class="w"> </span>nvidia.com/gpu<span class="o">=</span>all<span class="w"> </span>--security-opt<span class="w"> </span><span class="nv">label</span><span class="o">=</span>disable<span class="o">)</span><span class="w"> </span><span class="p">;;</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">    </span>docker<span class="o">)</span><span class="w"> </span><span class="nv">gpu</span><span class="o">=(</span>--gpus<span class="w"> </span>all<span class="w"> </span>-e<span class="w"> </span><span class="nv">NVIDIA_DRIVER_CAPABILITIES</span><span class="o">=</span>all<span class="o">)</span><span class="w"> </span><span class="p">;;</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">    </span>*<span class="o">)</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'CONTAINER_ENGINE must be podman or docker'</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span><span class="p">;</span><span class="w"> </span><span class="nb">exit</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="p">;;</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="k">esac</span>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="nv">devices</span><span class="o">=()</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/dev/bus/usb<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">devices</span><span class="o">+=(</span>-v<span class="w"> </span>/dev/bus/usb:/dev/bus/usb<span class="o">)</span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/run/udev<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">devices</span><span class="o">+=(</span>-v<span class="w"> </span>/run/udev:/run/udev:ro<span class="o">)</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data"</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$engine</span><span class="s2">"</span><span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>rwh_beyond_robot<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">    </span><span class="s2">"</span><span class="si">${</span><span class="nv">gpu</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>--hostname<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>hostname<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span>--network<span class="w"> </span>host<span class="w"> </span>--ipc<span class="w"> </span>host<span class="w"> </span>--init<span class="w"> </span>--privileged<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span>--restart<span class="w"> </span>unless-stopped<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span><span class="s2">"</span><span class="nv">$DISPLAY</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span>/tmp/rwh_beyond.Xauthority<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">QT_QPA_PLATFORM</span><span class="o">=</span>xcb<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">__NV_PRIME_RENDER_OFFLOAD</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">__GLX_VENDOR_LIBRARY_NAME</span><span class="o">=</span>nvidia<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">ROS_DOMAIN_ID</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">ROS_DOMAIN_ID</span><span class="k">:-</span><span class="nv">0</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">:/tmp/rwh_beyond.Xauthority:ro"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">    </span>-v<span class="w"> </span>/tmp/.X11-unix:/tmp/.X11-unix:ro<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data:/root/wsyoon_data"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">    </span><span class="s2">"</span><span class="si">${</span><span class="nv">devices</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">    </span>localhost/rwh_beyond_robot:20261119-bb6e689-full
-<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="o">)</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="nv">xauth_file</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">RWH_XAUTH_FILE</span><span class="k">:-</span><span class="si">${</span><span class="nv">XAUTHORITY</span><span class="k">:-</span><span class="nv">$HOME</span><span class="p">/.Xauthority</span><span class="si">}}</span><span class="s2">"</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="nv">x11_runtime_dir</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">XDG_RUNTIME_DIR</span><span class="k">:-</span><span class="p">/run/user/</span><span class="k">$(</span>id<span class="w"> </span>-u<span class="k">)</span><span class="si">}</span><span class="s2">"</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span><span class="o">(</span><span class="w"> </span>!<span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$xauth_file</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-r<span class="w"> </span><span class="s2">"</span><span class="nv">$xauth_file</span><span class="s2">"</span><span class="w"> </span><span class="o">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>-d<span class="w"> </span><span class="s2">"</span><span class="nv">$x11_runtime_dir</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">    </span><span class="nv">xauth_file</span><span class="o">=</span><span class="s2">"</span><span class="k">$(</span>find<span class="w"> </span><span class="s2">"</span><span class="nv">$x11_runtime_dir</span><span class="s2">"</span><span class="w"> </span>-maxdepth<span class="w"> </span><span class="m">1</span><span class="w"> </span>-type<span class="w"> </span>f<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">      </span>-name<span class="w"> </span><span class="s1">'.mutter-Xwaylandauth.*'</span><span class="w"> </span>-print<span class="w"> </span>-quit<span class="k">)</span><span class="s2">"</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="k">fi</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">DISPLAY</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$xauth_file</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-r<span class="w"> </span><span class="s2">"</span><span class="nv">$xauth_file</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/tmp/.X11-unix<span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">    </span><span class="nb">echo</span><span class="w"> </span><span class="s1">'Run from the host desktop with DISPLAY and readable Xauthority.'</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="k">fi</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">  </span><span class="nv">mounts</span><span class="o">=()</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span>file<span class="w"> </span><span class="k">in</span><span class="w"> </span>runners<span class="w"> </span>robot_common<span class="w"> </span>robot_real<span class="w"> </span>robot_sim<span class="p">;</span><span class="w"> </span><span class="k">do</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$config_dir</span><span class="s2">/</span><span class="nv">$file</span><span class="s2">.yaml"</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">      </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$config_dir</span><span class="s2">/</span><span class="nv">$file</span><span class="s2">.yaml:</span><span class="nv">$runner_config_dir</span><span class="s2">/</span><span class="nv">$file</span><span class="s2">.yaml:ro"</span><span class="o">)</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">    </span><span class="k">fi</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">  </span><span class="k">done</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$config_dir</span><span class="s2">/bt_demo.yaml"</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">    </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$config_dir</span><span class="s2">/bt_demo.yaml:</span><span class="nv">$bt_config</span><span class="s2">:ro"</span><span class="o">)</span>
+<a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="w">  </span><span class="k">fi</span>
+<a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/dev/bus/usb<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span>/dev/bus/usb:/dev/bus/usb<span class="o">)</span>
+<a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/run/udev<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span>/run/udev:/run/udev:ro<span class="o">)</span>
+<a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="w">  </span>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data"</span>
+<a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a>
+<a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">  </span><span class="s2">"</span><span class="nv">$engine</span><span class="s2">"</span><span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--pull<span class="o">=</span>never<span class="w"> </span>--name<span class="w"> </span>rwh_beyond_robot<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="w">    </span><span class="s2">"</span><span class="si">${</span><span class="nv">gpu</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span>--hostname<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>hostname<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">    </span>--network<span class="w"> </span>host<span class="w"> </span>--ipc<span class="w"> </span>host<span class="w"> </span>--init<span class="w"> </span>--privileged<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">    </span>--restart<span class="w"> </span>unless-stopped<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span><span class="s2">"</span><span class="nv">$DISPLAY</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span>/tmp/rwh_beyond.Xauthority<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">QT_QPA_PLATFORM</span><span class="o">=</span>xcb<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">__NV_PRIME_RENDER_OFFLOAD</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-46" name="__codelineno-2-46" href="#__codelineno-2-46"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">__GLX_VENDOR_LIBRARY_NAME</span><span class="o">=</span>nvidia<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-47" name="__codelineno-2-47" href="#__codelineno-2-47"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">ROS_DOMAIN_ID</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">ROS_DOMAIN_ID</span><span class="k">:-</span><span class="nv">0</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-48" name="__codelineno-2-48" href="#__codelineno-2-48"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$xauth_file</span><span class="s2">:/tmp/rwh_beyond.Xauthority:ro"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-49" name="__codelineno-2-49" href="#__codelineno-2-49"></a><span class="w">    </span>-v<span class="w"> </span>/tmp/.X11-unix:/tmp/.X11-unix:ro<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-50" name="__codelineno-2-50" href="#__codelineno-2-50"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data:/root/wsyoon_data"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-2-51" name="__codelineno-2-51" href="#__codelineno-2-51"></a><span class="w">    </span><span class="s2">"</span><span class="si">${</span><span class="nv">mounts</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="s2">"</span><span class="nv">$image</span><span class="s2">"</span>
+<a id="__codelineno-2-52" name="__codelineno-2-52" href="#__codelineno-2-52"></a><span class="o">)</span>
 </code></pre></div>
 <p>이미지의 기본 명령은 <code>/root/ros2_ws/src/ros_runner/config/runners.yaml</code>을 읽고
 <code>auto_start:=false</code>로 Runner를 시작합니다. 이 스냅샷에서 Runner 서비스를 사용하며,
 프로필을 활성화할 때 해당 노드가 시작됩니다.
-Runner 로그는 <code>"$CONTAINER_ENGINE" logs -f rwh_beyond_robot</code>로 확인합니다.</p>
+Runner 로그는 <code>"$CONTAINER_ENGINE" logs -f rwh_beyond_robot</code>로 확인합니다.
+<code>20261123-live</code>에서 비밀번호로 추론 서버에 연결하려면 호스트의 <code>config/runners.yaml</code>을
+준비하고 <code>inference_connection.password</code>를 로컬에서 설정합니다.</p>
 <p>GPU 옵션은 생성 시 적용됩니다. 컨테이너를 교체하기 전에 내부 소스·관절 자세·설정을
 호스트에 복사한 뒤, 같은 엔진에서 기존 컨테이너를 정리하고 새로 생성합니다.</p>
 <h3 id="mujoco-glx">MuJoCo 창이 열리지 않을 때<a class="headerlink" href="#mujoco-glx" title="Permanent link">&para;</a></h3>
@@ -2190,7 +2217,8 @@ GPU 모델 서버에는 20261117 모델 이미지와 아래 서버 명령을 사
 <p>배포 담당자가 제공하는 이미지 아카이브와 설정·스크립트를 받아 <code>~/RWH/beyond</code>에 둡니다.
 현재 배포 원본 위치는 <code>/home/ggh/RWH/beyond</code>이며 다른 PC에서는 해당 폴더를 전달받습니다.
 별도 다운로드 URL이나 레지스트리 게시를 전제로 하지 않습니다.
-<code>config/</code>, <code>scripts/</code>, <code>compose.models.yaml</code>도 함께 준비합니다.
+호스트에서 설정을 덮어쓸 때는 <code>config/</code>를, helper나 Compose를 사용할 때는 <code>scripts/</code>나
+<code>compose.models.yaml</code>을 함께 준비합니다.
 이 배포 폴더는 Git 저장소의 <code>deploy/</code>와 별개입니다.</p>
 <table>
 <thead>
@@ -2289,7 +2317,8 @@ Docker Engine에서는 <code>CONTAINER_ENGINE=docker</code>로 바꿉니다.
 <a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>mkdir<span class="w"> </span>-p<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data"</span>
 </code></pre></div>
 <p>로봇 컨테이너는 아래 명령으로 생성합니다. 실제 장치가 있는 경우 USB·udev를 연결하며,
-Runner·카메라·CAN·BT YAML은 호스트의 <code>config/</code>에서 읽습니다.</p>
+<code>config/</code>에 있는 YAML만 읽기 전용으로 연결합니다. 빠진 파일은 이미지 안의 기본값을 사용합니다.
+이 버전의 CAN·카메라·시뮬레이션 설정은 <code>runners.yaml</code>에 들어 있습니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="o">(</span>
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nb">set</span><span class="w"> </span>-e
 <a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">DISPLAY</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">RWH_XAUTH_FILE</span><span class="k">:-</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-r<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">"</span><span class="w"> </span><span class="o">||</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/tmp/.X11-unix<span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
@@ -2297,29 +2326,26 @@ Runner·카메라·CAN·BT YAML은 호스트의 <code>config/</code>에서 읽�
 <a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
 <a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="k">fi</span>
 <a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="nv">mounts</span><span class="o">=()</span>
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="k">for</span><span class="w"> </span>file<span class="w"> </span><span class="k">in</span><span class="w"> </span>runners<span class="w"> </span>robot_common<span class="w"> </span>robot_real<span class="w"> </span>robot_sim<span class="w"> </span>bt_demo<span class="p">;</span><span class="w"> </span><span class="k">do</span>
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nv">source_file</span><span class="o">=</span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/config/</span><span class="nv">$file</span><span class="s2">.yaml"</span>
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$source_file</span><span class="s2">"</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">      </span><span class="nb">echo</span><span class="w"> </span><span class="s2">"Missing configuration: </span><span class="nv">$source_file</span><span class="s2">"</span><span class="w"> </span>&gt;<span class="p">&amp;</span><span class="m">2</span>
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">      </span><span class="nb">exit</span><span class="w"> </span><span class="m">1</span>
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="k">fi</span>
-<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">    </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$source_file</span><span class="s2">:/opt/rwh_beyond/config/</span><span class="nv">$file</span><span class="s2">.yaml:ro"</span><span class="o">)</span>
-<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="k">done</span>
-<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro"</span><span class="o">)</span>
-<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/dev/bus/usb<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span>/dev/bus/usb:/dev/bus/usb<span class="o">)</span>
-<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/run/udev<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span>/run/udev:/run/udev:ro<span class="o">)</span>
-<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a>
-<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">  </span>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>rwh_beyond_robot<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span>--gpus<span class="w"> </span>all<span class="w"> </span>--hostname<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>hostname<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">    </span>--network<span class="w"> </span>host<span class="w"> </span>--ipc<span class="w"> </span>host<span class="w"> </span>--init<span class="w"> </span>--privileged<span class="w"> </span>--restart<span class="w"> </span>unless-stopped<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span><span class="s2">"</span><span class="nv">$DISPLAY</span><span class="s2">"</span><span class="w"> </span>-e<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span>/tmp/rwh_beyond.Xauthority<span class="w"> </span>-e<span class="w"> </span><span class="nv">QT_QPA_PLATFORM</span><span class="o">=</span>xcb<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">NVIDIA_DRIVER_CAPABILITIES</span><span class="o">=</span>all<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">ROS_DOMAIN_ID</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">ROS_DOMAIN_ID</span><span class="k">:-</span><span class="nv">0</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">:/tmp/rwh_beyond.Xauthority:ro"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">    </span>-v<span class="w"> </span>/tmp/.X11-unix:/tmp/.X11-unix:ro<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data:/root/wsyoon_data"</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">mounts</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-7-29" name="__codelineno-7-29" href="#__codelineno-7-29"></a><span class="w">    </span>rwh_beyond_robot:20261117
-<a id="__codelineno-7-30" name="__codelineno-7-30" href="#__codelineno-7-30"></a><span class="o">)</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/config/runners.yaml"</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro"</span><span class="o">)</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">  </span><span class="k">fi</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="o">[[</span><span class="w"> </span>-f<span class="w"> </span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/config/bt_demo.yaml"</span><span class="w"> </span><span class="o">]]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro"</span><span class="o">)</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="k">fi</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/dev/bus/usb<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span>/dev/bus/usb:/dev/bus/usb<span class="o">)</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="o">[[</span><span class="w"> </span>!<span class="w"> </span>-d<span class="w"> </span>/run/udev<span class="w"> </span><span class="o">]]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nv">mounts</span><span class="o">+=(</span>-v<span class="w"> </span>/run/udev:/run/udev:ro<span class="o">)</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--name<span class="w"> </span>rwh_beyond_robot<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">    </span>--gpus<span class="w"> </span>all<span class="w"> </span>--hostname<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>hostname<span class="k">)</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">    </span>--network<span class="w"> </span>host<span class="w"> </span>--ipc<span class="w"> </span>host<span class="w"> </span>--init<span class="w"> </span>--privileged<span class="w"> </span>--restart<span class="w"> </span>unless-stopped<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">DISPLAY</span><span class="o">=</span><span class="s2">"</span><span class="nv">$DISPLAY</span><span class="s2">"</span><span class="w"> </span>-e<span class="w"> </span><span class="nv">XAUTHORITY</span><span class="o">=</span>/tmp/rwh_beyond.Xauthority<span class="w"> </span>-e<span class="w"> </span><span class="nv">QT_QPA_PLATFORM</span><span class="o">=</span>xcb<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">NVIDIA_DRIVER_CAPABILITIES</span><span class="o">=</span>all<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">    </span>-e<span class="w"> </span><span class="nv">ROS_DOMAIN_ID</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">ROS_DOMAIN_ID</span><span class="k">:-</span><span class="nv">0</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$RWH_XAUTH_FILE</span><span class="s2">:/tmp/rwh_beyond.Xauthority:ro"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">    </span>-v<span class="w"> </span>/tmp/.X11-unix:/tmp/.X11-unix:ro<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">    </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$HOME</span><span class="s2">/wsyoon_data:/root/wsyoon_data"</span><span class="w"> </span><span class="s2">"</span><span class="si">${</span><span class="nv">mounts</span><span class="p">[@]</span><span class="si">}</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">    </span>rwh_beyond_robot:20261117
+<a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="o">)</span>
 </code></pre></div>
 <div class="container-command-table">
 <table>
@@ -2481,7 +2507,7 @@ Podman 환경에서는 <code>docker commit</code>, <code>docker load</code>를 �
 </tr>
 <tr>
 <td>배포 폴더의 <code>config/</code></td>
-<td>runner·BT 설정 파일을 호스트에서 읽기 전용 마운트함</td>
+<td>호스트에서 덮어쓴 Runner·장치·BT 설정을 보존할 때 전달</td>
 </tr>
 <tr>
 <td>배포 폴더의 <code>scripts/</code>, <code>compose.models.yaml</code></td>
@@ -2590,7 +2616,7 @@ helper로 생성한 뒤에도 <a href="#persistent-data">마운트·지도 파�
 이 배포 컨테이너 이름 <code>rwh_beyond_robot</code>은 기존 개발 컨테이너
 <code>moma_mj_lab_1.1.2_hostcan</code>과 다릅니다. 새 컨테이너에도 <code>/root/ros2_ws</code>가 들어 있으며
 기존 호스트의 <code>/work</code> bind mount는 필요하지 않습니다.
-배포 runner는 <code>config/runners.yaml</code>과 함께 세 <code>robot_*.yaml</code> 프로필도 같은 디렉터리에 마운트해야 합니다. 모델 주소는 runner YAML에서, 카메라·CAN은 실물 프로필에서 장비에 맞춥니다.
+20261117 배포에서는 <code>config/runners.yaml</code>에서 모델 주소와 카메라·CAN 설정을 장비에 맞춥니다.
 실행 절차는 <a href="../grasp-pipeline-guide/">빠른 시작</a>을 참고하세요.</p>
 <h3 id="_3">모델 서버 컨테이너<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
 <p>두 모델 이미지와 가중치가 포함된 아카이브를 GPU 호스트에 불러온 뒤 실행합니다.
