@@ -33,6 +33,8 @@
   <exec_depend>nav2_lifecycle_manager</exec_depend>
   <exec_depend>rwh_beyond_bt</exec_depend>
   <exec_depend>rwh_beyond_grasp_pipeline</exec_depend>
+  <exec_depend>rwh_beyond_sam3_bridge</exec_depend>
+  <exec_depend>rwh_beyond_graspgenx_bridge</exec_depend>
   <exec_depend>rwh_beyond_navigator</exec_depend>
   <depend>python3-yaml</depend>
   <export><build_type>ament_python</build_type></export>

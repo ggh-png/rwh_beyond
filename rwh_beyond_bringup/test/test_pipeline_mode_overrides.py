@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from launch import LaunchContext
-from launch.actions import DeclareLaunchArgument
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch_ros.actions import Node as LaunchNode
 from rclpy.context import Context
 from rclpy.node import Node
@@ -21,20 +21,17 @@ def load(path, name):
 
 @pytest.mark.parametrize('mode', ['sim', 'real'])
 def test_mode_overrides_survive_shared_yaml_wildcard(mode):
-    pipeline = load(ROOT/'rwh_beyond_grasp_pipeline/launch/grasp_pipeline.launch.py', 'mode_pipeline')
     demo = load(ROOT/'rwh_beyond_bringup/launch/bt_demo.launch.py', 'mode_demo')
-    shared = str(ROOT/'rwh_beyond_bringup/config/bt_demo.yaml')
     context = LaunchContext()
-    for action in pipeline.generate_launch_description().entities:
+    context.launch_configurations.update(
+        mode=mode, params_file=str(ROOT/'rwh_beyond_bringup/config/bt_demo.yaml'))
+    nodes = []
+    for action in demo.generate_launch_description().entities:
         if isinstance(action, DeclareLaunchArgument):
             action.execute(context)
-    context.launch_configurations.update(mode=mode, use_sim_time=str(mode == 'sim'),
-        params_file=shared, sam3_params_file=shared, graspgenx_params_file=shared)
-    nodes = pipeline.pipeline_nodes(context)
-    for action in demo.generate_launch_description().entities:
-        if isinstance(action, DeclareLaunchArgument) and action.name not in context.launch_configurations:
-            action.execute(context)
-        if isinstance(action, LaunchNode):
+        elif isinstance(action, OpaqueFunction):
+            nodes.extend(action.execute(context))
+        elif isinstance(action, LaunchNode):
             nodes.append(action)
     for launched in nodes:
         launched._perform_substitutions(context)

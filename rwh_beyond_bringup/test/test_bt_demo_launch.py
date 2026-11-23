@@ -1,4 +1,4 @@
-"""Verify the BT demo launch includes the grasp pipeline, but not a simulation."""
+"""Verify the BT demo launch starts both grasp bridges and the BT navigator."""
 
 import importlib.util
 import os
@@ -7,16 +7,22 @@ import unittest
 from unittest.mock import patch
 
 from launch import LaunchContext
-from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, SetLaunchConfiguration
+from launch.actions import DeclareLaunchArgument, GroupAction, IncludeLaunchDescription, OpaqueFunction, SetLaunchConfiguration
 from launch_ros.actions import Node
+from launch_ros.utilities import evaluate_parameters
 import yaml
 
 
-def pipeline_group(entities):
-    return next(group for group in entities if isinstance(group, GroupAction)
-                and any(isinstance(child, IncludeLaunchDescription) and
-                        'grasp_pipeline.launch.py' in child.launch_description_source.location
-                        for child in group.get_sub_entities()))
+def launch_group(entities, filename):
+    for group in entities:
+        if isinstance(group, GroupAction):
+            for action in group.get_sub_entities():
+                if isinstance(action, IncludeLaunchDescription):
+                    source = action.launch_description_source
+                    source.get_launch_description(LaunchContext())
+                    if Path(source.location).name == filename:
+                        return group, action
+    raise AssertionError(f'Launch group not found for {filename}')
 
 
 class BtDemoLaunchTest(unittest.TestCase):
@@ -38,23 +44,7 @@ class BtDemoLaunchTest(unittest.TestCase):
              'camera_type', 'enable_d435', 'd435_serial', 'd435_depth_profile', 'd435_color_profile',
              'd435_mount_parent', 'd435_mount_xyz', 'd435_mount_rpy',
              'd405_mount_parent', 'd405_mount_xyz', 'd405_mount_rpy'})
-        group = pipeline_group(entities)
-        pipeline = next(entity for entity in group.get_sub_entities()
-                        if isinstance(entity, IncludeLaunchDescription))
-        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription)
-                    and 'moveit_rviz.launch.py' in entity.launch_description_source.location)
-        self.assertIsNone(pipeline.condition)
-        context = LaunchContext()
-        context.launch_configurations['mode'] = 'sim'
-        self.assertIn("FindPackageShare(pkg='rwh_beyond_bringup')",
-                      rviz.launch_description_source.location)
-        self.assertIn('moveit_rviz.launch.py', rviz.launch_description_source.location)
-        names = ('segmentation_endpoint', 'endpoint')
-        context.launch_configurations.update({name: f'test_{name}' for name in names})
-        context.launch_configurations['params_file'] = '/tmp/bt.yaml'
-        self.assertEqual(
-            {name: value.perform(context) if hasattr(value, 'perform') else value for name, value in pipeline.launch_arguments},
-            {**{name: f'test_{name}' for name in names}, 'sam3_params_file': '/tmp/bt.yaml', 'graspgenx_params_file': '/tmp/bt.yaml', 'use_sim_time': 'True'})
+        rviz_group, _ = launch_group(entities, 'rviz.launch.py')
         env_vars = {
             'segmentation_endpoint': ('RWH_SEGMENTATION_ENDPOINT', ''),
             'target_text': ('RWH_GRASP_TARGET_TEXT', ''),
@@ -69,9 +59,9 @@ class BtDemoLaunchTest(unittest.TestCase):
                 self.assertEqual(
                     argument_map[name].default_value[0].perform(context), f'env_{name}')
         context.launch_configurations['rviz'] = 'true'
-        self.assertTrue(rviz.condition.evaluate(context))
+        self.assertTrue(rviz_group.condition.evaluate(context))
         context.launch_configurations['rviz'] = 'false'
-        self.assertFalse(rviz.condition.evaluate(context))
+        self.assertFalse(rviz_group.condition.evaluate(context))
         self.assertEqual(''.join(part.perform(context) for part in argument_map['rviz'].default_value),
                          'true')
         self.assertEqual(
@@ -80,30 +70,28 @@ class BtDemoLaunchTest(unittest.TestCase):
              ('nav2_lifecycle_manager', 'lifecycle_manager')],
         )
 
-    def test_shared_yaml_remains_scoped(self):
-        launch_path = Path(__file__).resolve().parents[1] / 'launch' / 'bt_demo.launch.py'
-        spec = importlib.util.spec_from_file_location('bt_demo_scoping', launch_path)
+    def test_direct_bridges_use_shared_yaml_and_optional_endpoints(self):
+        path = Path(__file__).resolve().parents[1] / 'launch' / 'bt_demo.launch.py'
+        spec = importlib.util.spec_from_file_location('bt_bridges', path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        group = pipeline_group(module.generate_launch_description().entities)
+        action, = (entity for entity in module.generate_launch_description().entities
+                   if isinstance(entity, OpaqueFunction))
         context = LaunchContext()
-        context.launch_configurations.update({
-            'mode': 'sim',
-            'params_file': '/tmp/navigator.yaml',
-            'segmentation_endpoint': 'tcp://127.0.0.1:5567',
-            'target_text': 'red box',
-            'endpoint': 'tcp://127.0.0.1:5566',
-        })
-        for action in group.execute(context):
-            if isinstance(action, IncludeLaunchDescription):
-                # IncludeLaunchDescription applies these SetLaunchConfiguration
-                # actions before evaluating the child launch's Node parameters.
-                for name, value in action.launch_arguments:
-                    SetLaunchConfiguration(name, value).execute(context)
-                self.assertEqual(context.launch_configurations['params_file'], '/tmp/navigator.yaml')
-            else:
-                action.execute(context)
-        self.assertEqual(context.launch_configurations['params_file'], '/tmp/navigator.yaml')
+        context.launch_configurations.update(
+            mode='sim', params_file='/tmp/bt.yaml',
+            segmentation_endpoint='tcp://127.0.0.1:5567', endpoint='',
+        )
+        sam3, graspgenx = action.execute(context)
+        self.assertEqual((sam3.node_package, sam3.node_executable),
+                         ('rwh_beyond_sam3_bridge', 'segmentation_action_server'))
+        self.assertEqual((graspgenx.node_package, graspgenx.node_executable),
+                         ('rwh_beyond_graspgenx_bridge', 'inference_action_server'))
+        self.assertEqual(evaluate_parameters(context, sam3._Node__parameters),
+                         (Path('/tmp/bt.yaml'), {'use_sim_time': True},
+                          {'endpoint': 'tcp://127.0.0.1:5567'}))
+        self.assertEqual(evaluate_parameters(context, graspgenx._Node__parameters),
+                         (Path('/tmp/bt.yaml'), {'use_sim_time': True}))
 
     def test_real_mode_starts_physical_bt_with_wall_clock(self):
         path = Path(__file__).resolve().parents[1] / 'launch' / 'bt_demo.launch.py'
@@ -116,21 +104,16 @@ class BtDemoLaunchTest(unittest.TestCase):
         context.launch_configurations['mode'] = 'real'
         for node in entities:
             if isinstance(node, Node): self.assertIsNone(node.condition)
-        include = next(child for child in pipeline_group(entities).get_sub_entities()
-                       if isinstance(child, IncludeLaunchDescription))
-        args = {name: value.perform(context) if hasattr(value, 'perform') else value for name, value in include.launch_arguments}
-        self.assertEqual(args['use_sim_time'], 'False')
-        self.assertNotIn('start_coordinator', args)
-        self.assertNotIn('mode', args)
-        rviz = next(entity for entity in entities if isinstance(entity, IncludeLaunchDescription)
-                    and 'moveit_rviz.launch.py' in entity.launch_description_source.location)
+        rviz_group, rviz = launch_group(entities, 'rviz.launch.py')
         context.launch_configurations['rviz'] = 'true'
-        self.assertTrue(rviz.condition.evaluate(context))
+        self.assertTrue(rviz_group.condition.evaluate(context))
         rviz_args = {name: value.perform(context) if hasattr(value, 'perform') else value
                      for name, value in rviz.launch_arguments}
         self.assertEqual(rviz_args['use_sim_time'], 'false')
+        self.assertEqual(rviz_args['use_moveit'], 'true')
+        self.assertTrue(rviz_args['rviz_config'].endswith('/rwh_beyond_bringup/rviz/depth_planning.rviz'))
         # Evaluate the actual child argument declaration, including its choices.
-        rviz_path = Path(__file__).resolve().parents[1] / 'launch/moveit_rviz.launch.py'
+        rviz_path = Path(__file__).resolve().parents[1] / 'launch/rviz.launch.py'
         rviz_spec = importlib.util.spec_from_file_location('real_rviz_args', rviz_path)
         rviz_module = importlib.util.module_from_spec(rviz_spec)
         rviz_spec.loader.exec_module(rviz_module)
@@ -143,8 +126,7 @@ class BtDemoLaunchTest(unittest.TestCase):
         self.assertEqual(dict(rviz.launch_arguments)['use_sim_time'].perform(context), 'true')
         context.launch_configurations['mode'] = 'real'
         context.launch_configurations['rviz'] = 'false'
-        self.assertFalse(rviz.condition.evaluate(context))
-        from launch_ros.utilities import evaluate_parameters
+        self.assertFalse(rviz_group.condition.evaluate(context))
         navigator = next(n for n in entities if isinstance(n, Node) and n.node_executable == 'bt_navigator')
         params = evaluate_parameters(context, navigator._Node__parameters)[-1]
         self.assertFalse(params['use_sim_time'])
@@ -206,10 +188,7 @@ def test_d435_sensor_include_is_scoped_and_does_not_override_main_rviz():
     for action in entities:
         if isinstance(action,DeclareLaunchArgument):action.execute(context)
     context.launch_configurations.update(mode='real',camera_type='d435',rviz='true')
-    group=next(g for g in entities if isinstance(g,GroupAction) and any(
-        isinstance(a,IncludeLaunchDescription) and 'd435.launch.py' in a.launch_description_source.location
-        for a in g.get_sub_entities()))
-    include=next(a for a in group.get_sub_entities() if isinstance(a,IncludeLaunchDescription))
+    group, include = launch_group(entities, 'd435.launch.py')
     assert include.condition.evaluate(context)
     assert dict(include.launch_arguments)['pipeline_topics']=='true'
     assert dict(include.launch_arguments)['rviz']=='false'
@@ -220,6 +199,5 @@ def test_d435_sensor_include_is_scoped_and_does_not_override_main_rviz():
     assert context.launch_configurations['rviz']=='true'
     context.launch_configurations['start_sensors']='false'
     assert not include.condition.evaluate(context)
-    rviz=next(a for a in entities if isinstance(a,IncludeLaunchDescription) and
-              'moveit_rviz.launch.py' in a.launch_description_source.location)
-    assert dict(rviz.launch_arguments)['camera_type'].perform(context)=='d435'
+    rviz_group, _ = launch_group(entities, 'rviz.launch.py')
+    assert rviz_group.condition.evaluate(context)

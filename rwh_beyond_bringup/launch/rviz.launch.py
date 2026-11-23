@@ -17,10 +17,14 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, EmitEvent, OpaqueFunction, RegisterEventHandler, SetLaunchConfiguration
+from launch.actions import (
+    DeclareLaunchArgument, EmitEvent, GroupAction, IncludeLaunchDescription,
+    OpaqueFunction, RegisterEventHandler, SetLaunchConfiguration,
+)
 from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.events import Shutdown
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 from nav2_common.launch import ReplaceString
@@ -119,23 +123,25 @@ def generate_launch_description():
         ),
     )
 
-    # Create the launch description and populate
-    ld = LaunchDescription()
-
-    # Declare the launch options
-    ld.add_action(declare_namespace_cmd)
-    ld.add_action(declare_use_namespace_cmd)
-    ld.add_action(declare_rviz_config_file_cmd)
-    ld.add_action(declare_use_sim_time_cmd)
-
-    ld.add_action(OpaqueFunction(function=prepare_namespace))
-
-    # Add any conditioned actions
-    ld.add_action(start_rviz_cmd)
-    ld.add_action(start_namespaced_rviz_cmd)
-
-    # Add other nodes and processes we need
-    ld.add_action(exit_event_handler)
-    ld.add_action(exit_event_handler_namespaced)
-
-    return ld
+    use_moveit = LaunchConfiguration('use_moveit')
+    return LaunchDescription([
+        declare_namespace_cmd,
+        declare_use_namespace_cmd,
+        declare_rviz_config_file_cmd,
+        declare_use_sim_time_cmd,
+        DeclareLaunchArgument(
+            'use_moveit', default_value='false', choices=['true', 'false'],
+            description='Load PiPER MoveIt parameters for the grasp visualization',
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(bringup_dir, 'launch', 'moveit_rviz.launch.py')),
+            condition=IfCondition(use_moveit),
+        ),
+        GroupAction(scoped=False, condition=UnlessCondition(use_moveit), actions=[
+            OpaqueFunction(function=prepare_namespace),
+            exit_event_handler,
+            exit_event_handler_namespaced,
+            start_rviz_cmd,
+            start_namespaced_rviz_cmd,
+        ]),
+    ])

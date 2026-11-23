@@ -21,10 +21,10 @@ BT가 분할·점군·파지 결과를 Reliable / Transient Local / Keep Last 1�
 
 ## 실행
 
-심은 `bt_demo_sim`, 실물은 `bt_demo`가 통합 RViz를 실행합니다.
+심은 `bt_demo_sim`, 실물은 `bt_demo`가 `rviz.launch.py`를 통해 통합 RViz를 실행합니다.
 실물 의존 runner인 `piper_moveit`은 RViz를 별도로 시작하지 않습니다.
-기본 설정은 `moma_bringup/config/depth_planning.rviz`입니다.
-추가 결과 전용 뷰어는 다음과 같이 실행할 수 있습니다.
+기본 설정은 `rwh_beyond_bringup/rviz/depth_planning.rviz`이며, `bt_demo.launch.py`의
+`rviz_config` 인자로 바꿀 수 있습니다. 추가 결과 전용 뷰어는 다음과 같이 실행할 수 있습니다.
 
 ```bash
 ros2 launch rwh_beyond_grasp_pipeline grasp_visualization.launch.py
