@@ -3,22 +3,25 @@
 **tar.gz 파일 받기 → 이미지 로드 → 컨테이너 생성 → 시작·접속 → 데이터 확인** 순서로 진행합니다.
 아래 명령은 컨테이너 밖의 **호스트 터미널**에서 실행합니다.
 로봇 PC와 GPU 서버를 분리하면 각 역할에 해당하는 파일과 명령만 사용합니다.
-로봇용 20261119 전체 스냅샷과 20261117 GPU 모델 아카이브를 다룹니다. 소스 수정·재빌드는
+로봇용 `20261123-live` 스냅샷과 20261117 GPU 모델 아카이브를 다룹니다. 소스 수정·재빌드는
 [환경과 빌드](project-containers.md)에서 설명합니다.
 
 
-## 로봇 전체 스냅샷 20261119로 Runner와 화면 연결 { #robot-runner-20261119 }
+## amd64 로봇 스냅샷으로 Runner와 화면 연결 { #robot-runner-20261119 }
 
 이 스냅샷은 `linux/amd64`입니다. Docker Engine을 사용하는 NVIDIA 노트북과
 Podman을 사용하는 NVIDIA 개발 PC에서 실행할 수 있습니다. ARM64 Jetson은
 [별도 로드·생성 절차](https://github.com/ggh-png/ros2-docker/blob/main/docs/docker-containers.md#jetson-robot)를 사용합니다.
 
-배포 파일이 있는 폴더에서 사용할 엔진을 지정하고, 무결성을 확인한 뒤 이미지를 로드합니다.
+아카이브와 `.sha256` 파일을 `~/RWH/beyond/docker`에 두고 로드합니다.
+이미 로드했다면 [컨테이너 생성](#create-robot-snapshot)으로 이동합니다.
 
 ```bash
 CONTAINER_ENGINE=podman  # Docker Engine 호스트에서는 docker
-sha256sum -c rwh_beyond_robot_20261119-bb6e689-full.tar.gz.sha256 &&
-  "$CONTAINER_ENGINE" load -i rwh_beyond_robot_20261119-bb6e689-full.tar.gz
+archive=rwh_beyond_robot_20261123-live-amd64.tar.gz
+cd "$HOME/RWH/beyond/docker" &&
+  sha256sum -c "$archive.sha256" &&
+  "$CONTAINER_ENGINE" load -i "$archive"
 ```
 
 ### X11 인증 파일 준비 { #x11-auth }
@@ -36,32 +39,56 @@ fi
 test -n "${DISPLAY:-}" && test -f "$RWH_XAUTH_FILE" && test -r "$RWH_XAUTH_FILE"
 ```
 
-### 엔진별 NVIDIA GPU 연결
+### NVIDIA GPU 컨테이너 생성 { #create-robot-snapshot }
 
 Podman에서는 `nvidia-ctk cdi list`에 `nvidia.com/gpu=all`이 표시되는지 확인합니다.
 Docker Engine은 NVIDIA Container Toolkit을 사용합니다. `docker`가 Podman 래퍼라면
 `CONTAINER_ENGINE=podman`을 선택합니다. [NVIDIA CDI 설정](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html)
 
+호스트 데스크톱의 Bash에서 아카이브가 있는 폴더로 이동한 뒤 아래 블록을 붙여넣습니다.
+현재 폴더의 `config/`에 있는 YAML만 읽기 전용으로 연결합니다. 빠진 파일은 이미지에 들어
+있는 기본 설정을 읽으므로 `config/` 없이 실행할 수 있습니다. `20261119-bb6e689-full`을
+이미 로드했다면 아래 `image` 값에 해당 태그를 지정해 같은 명령을 사용할 수 있습니다.
+
 ```bash
 (
-  set -e
+  set -euo pipefail
   engine="${CONTAINER_ENGINE:-podman}"
+  image=localhost/rwh_beyond_robot:20261123-live
+  config_dir="$PWD/config"
+  runner_config_dir=/root/ros2_ws/src/ros_runner/config
+  bt_config=/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml
   case "$engine" in
     podman) gpu=(--device nvidia.com/gpu=all --security-opt label=disable) ;;
     docker) gpu=(--gpus all -e NVIDIA_DRIVER_CAPABILITIES=all) ;;
     *) echo 'CONTAINER_ENGINE must be podman or docker' >&2; exit 2 ;;
   esac
-  if [[ -z "${DISPLAY:-}" || ! -f "${RWH_XAUTH_FILE:-}" || ! -r "$RWH_XAUTH_FILE" || ! -d /tmp/.X11-unix ]]; then
+
+  xauth_file="${RWH_XAUTH_FILE:-${XAUTHORITY:-$HOME/.Xauthority}}"
+  x11_runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+  if [[ ( ! -f "$xauth_file" || ! -r "$xauth_file" ) && -d "$x11_runtime_dir" ]]; then
+    xauth_file="$(find "$x11_runtime_dir" -maxdepth 1 -type f \
+      -name '.mutter-Xwaylandauth.*' -print -quit)"
+  fi
+  if [[ -z "${DISPLAY:-}" || ! -f "$xauth_file" || ! -r "$xauth_file" || ! -d /tmp/.X11-unix ]]; then
     echo 'Run from the host desktop with DISPLAY and readable Xauthority.' >&2
     exit 1
   fi
 
-  devices=()
-  [[ ! -d /dev/bus/usb ]] || devices+=(-v /dev/bus/usb:/dev/bus/usb)
-  [[ ! -d /run/udev ]] || devices+=(-v /run/udev:/run/udev:ro)
+  mounts=()
+  for file in runners robot_common robot_real robot_sim; do
+    if [[ -f "$config_dir/$file.yaml" ]]; then
+      mounts+=(-v "$config_dir/$file.yaml:$runner_config_dir/$file.yaml:ro")
+    fi
+  done
+  if [[ -f "$config_dir/bt_demo.yaml" ]]; then
+    mounts+=(-v "$config_dir/bt_demo.yaml:$bt_config:ro")
+  fi
+  [[ ! -d /dev/bus/usb ]] || mounts+=(-v /dev/bus/usb:/dev/bus/usb)
+  [[ ! -d /run/udev ]] || mounts+=(-v /run/udev:/run/udev:ro)
   mkdir -p "$HOME/wsyoon_data"
 
-  "$engine" run -d --name rwh_beyond_robot \
+  "$engine" run -d --pull=never --name rwh_beyond_robot \
     "${gpu[@]}" --hostname "$(hostname)" \
     --network host --ipc host --init --privileged \
     --restart unless-stopped \
@@ -71,11 +98,10 @@ Docker Engine은 NVIDIA Container Toolkit을 사용합니다. `docker`가 Podman
     -e __NV_PRIME_RENDER_OFFLOAD=1 \
     -e __GLX_VENDOR_LIBRARY_NAME=nvidia \
     -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" \
-    -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" \
+    -v "$xauth_file:/tmp/rwh_beyond.Xauthority:ro" \
     -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
     -v "$HOME/wsyoon_data:/root/wsyoon_data" \
-    "${devices[@]}" \
-    localhost/rwh_beyond_robot:20261119-bb6e689-full
+    "${mounts[@]}" "$image"
 )
 ```
 
@@ -83,6 +109,8 @@ Docker Engine은 NVIDIA Container Toolkit을 사용합니다. `docker`가 Podman
 `auto_start:=false`로 Runner를 시작합니다. 이 스냅샷에서 Runner 서비스를 사용하며,
 프로필을 활성화할 때 해당 노드가 시작됩니다.
 Runner 로그는 `"$CONTAINER_ENGINE" logs -f rwh_beyond_robot`로 확인합니다.
+`20261123-live`에서 비밀번호로 추론 서버에 연결하려면 호스트의 `config/runners.yaml`을
+준비하고 `inference_connection.password`를 로컬에서 설정합니다.
 
 GPU 옵션은 생성 시 적용됩니다. 컨테이너를 교체하기 전에 내부 소스·관절 자세·설정을
 호스트에 복사한 뒤, 같은 엔진에서 기존 컨테이너를 정리하고 새로 생성합니다.
@@ -112,7 +140,8 @@ GPU 모델 서버에는 20261117 모델 이미지와 아래 서버 명령을 사
 배포 담당자가 제공하는 이미지 아카이브와 설정·스크립트를 받아 `~/RWH/beyond`에 둡니다.
 현재 배포 원본 위치는 `/home/ggh/RWH/beyond`이며 다른 PC에서는 해당 폴더를 전달받습니다.
 별도 다운로드 URL이나 레지스트리 게시를 전제로 하지 않습니다.
-`config/`, `scripts/`, `compose.models.yaml`도 함께 준비합니다.
+호스트에서 설정을 덮어쓸 때는 `config/`를, helper나 Compose를 사용할 때는 `scripts/`나
+`compose.models.yaml`을 함께 준비합니다.
 이 배포 폴더는 Git 저장소의 `deploy/`와 별개입니다.
 
 | 받을 파일 | 사용할 호스트 | 기존 아카이브에 저장된 태그 |
@@ -193,7 +222,8 @@ mkdir -p "$HOME/wsyoon_data"
 ```
 
 로봇 컨테이너는 아래 명령으로 생성합니다. 실제 장치가 있는 경우 USB·udev를 연결하며,
-Runner·카메라·CAN·BT YAML은 호스트의 `config/`에서 읽습니다.
+`config/`에 있는 YAML만 읽기 전용으로 연결합니다. 빠진 파일은 이미지 안의 기본값을 사용합니다.
+이 버전의 CAN·카메라·시뮬레이션 설정은 `runners.yaml`에 들어 있습니다.
 
 ```bash
 (
@@ -203,15 +233,12 @@ Runner·카메라·CAN·BT YAML은 호스트의 `config/`에서 읽습니다.
     exit 1
   fi
   mounts=()
-  for file in runners robot_common robot_real robot_sim bt_demo; do
-    source_file="$PWD/config/$file.yaml"
-    if [[ ! -f "$source_file" ]]; then
-      echo "Missing configuration: $source_file" >&2
-      exit 1
-    fi
-    mounts+=(-v "$source_file:/opt/rwh_beyond/config/$file.yaml:ro")
-  done
-  mounts+=(-v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro")
+  if [[ -f "$PWD/config/runners.yaml" ]]; then
+    mounts+=(-v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro")
+  fi
+  if [[ -f "$PWD/config/bt_demo.yaml" ]]; then
+    mounts+=(-v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro")
+  fi
   [[ ! -d /dev/bus/usb ]] || mounts+=(-v /dev/bus/usb:/dev/bus/usb)
   [[ ! -d /run/udev ]] || mounts+=(-v /run/udev:/run/udev:ro)
 
@@ -369,7 +396,7 @@ podman save --multi-image-archive rwh_beyond_graspgenx:snapshot rwh_beyond_sam3:
 | 별도 전달 항목 | 이유 |
 |---|---|
 | 호스트 `~/wsyoon_data/` | `/root/wsyoon_data`는 bind mount이므로 지도·저장 데이터를 commit에 포함하지 않음 |
-| 배포 폴더의 `config/` | runner·BT 설정 파일을 호스트에서 읽기 전용 마운트함 |
+| 배포 폴더의 `config/` | 호스트에서 덮어쓴 Runner·장치·BT 설정을 보존할 때 전달 |
 | 배포 폴더의 `scripts/`, `compose.models.yaml` | 컨테이너 생성·연결 옵션을 다시 적용하는 데 사용 |
 | 서버의 cache·logs volume | 이미지가 아닌 별도 volume에 저장됨; 필요한 데이터만 별도 보관 |
 
@@ -452,7 +479,7 @@ Docker에서는 `CONTAINER_ENGINE=docker`로 바꿉니다.
 이 배포 컨테이너 이름 `rwh_beyond_robot`은 기존 개발 컨테이너
 `moma_mj_lab_1.1.2_hostcan`과 다릅니다. 새 컨테이너에도 `/root/ros2_ws`가 들어 있으며
 기존 호스트의 `/work` bind mount는 필요하지 않습니다.
-배포 runner는 `config/runners.yaml`과 함께 세 `robot_*.yaml` 프로필도 같은 디렉터리에 마운트해야 합니다. 모델 주소는 runner YAML에서, 카메라·CAN은 실물 프로필에서 장비에 맞춥니다.
+20261117 배포에서는 `config/runners.yaml`에서 모델 주소와 카메라·CAN 설정을 장비에 맞춥니다.
 실행 절차는 [빠른 시작](grasp-pipeline-guide.md)을 참고하세요.
 
 ### 모델 서버 컨테이너
