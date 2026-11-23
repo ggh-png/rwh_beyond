@@ -9,50 +9,100 @@
 
 ## 로봇 전체 스냅샷 20261119로 Runner와 화면 연결 { #robot-runner-20261119 }
 
-Docker Engine과 NVIDIA Container Toolkit을 사용하는 노트북에서 검증한 구성입니다.
-배포 파일이 있는 폴더에서 무결성을 확인하고 이미지를 로드합니다.
+이 스냅샷은 `linux/amd64`입니다. Docker Engine을 사용하는 NVIDIA 노트북과
+Podman을 사용하는 NVIDIA 개발 PC에서 실행할 수 있습니다. ARM64 Jetson은
+[별도 로드·생성 절차](https://github.com/ggh-png/ros2-docker/blob/main/docs/docker-containers.md#jetson-robot)를 사용합니다.
+
+배포 파일이 있는 폴더에서 사용할 엔진을 지정하고, 무결성을 확인한 뒤 이미지를 로드합니다.
 
 ```bash
-sha256sum -c rwh_beyond_robot_20261119-bb6e689-full.tar.gz.sha256
-docker load -i rwh_beyond_robot_20261119-bb6e689-full.tar.gz
+CONTAINER_ENGINE=podman  # Docker Engine 호스트에서는 docker
+sha256sum -c rwh_beyond_robot_20261119-bb6e689-full.tar.gz.sha256 &&
+  "$CONTAINER_ENGINE" load -i rwh_beyond_robot_20261119-bb6e689-full.tar.gz
 ```
 
-노트북의 그래픽 데스크톱 터미널에서 아래 명령을 실행합니다.
+### X11 인증 파일 준비 { #x11-auth }
+
+호스트의 그래픽 데스크톱 터미널에서 실행합니다. 기존에 지정한 경로, 현재 셸의
+`XAUTHORITY`, 기본 `~/.Xauthority` 순으로 확인하고, 필요하면 Mutter의 Xwayland 인증 파일을 찾습니다.
 
 ```bash
-RWH_XAUTH_FILE="${XAUTHORITY:-$HOME/.Xauthority}"
-if [ ! -f "$RWH_XAUTH_FILE" ] || [ ! -r "$RWH_XAUTH_FILE" ]; then
-  RWH_XAUTH_FILE="$(find "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}" \
+RWH_XAUTH_FILE="${RWH_XAUTH_FILE:-${XAUTHORITY:-$HOME/.Xauthority}}"
+x11_runtime_dir="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+if [[ ( ! -f "$RWH_XAUTH_FILE" || ! -r "$RWH_XAUTH_FILE" ) && -d "$x11_runtime_dir" ]]; then
+  RWH_XAUTH_FILE="$(find "$x11_runtime_dir" \
     -maxdepth 1 -type f -name '.mutter-Xwaylandauth.*' -print -quit)"
 fi
-mkdir -p "$HOME/wsyoon_data"
+test -n "${DISPLAY:-}" && test -f "$RWH_XAUTH_FILE" && test -r "$RWH_XAUTH_FILE"
+```
 
-test -n "${DISPLAY:-}" && test -r "$RWH_XAUTH_FILE" && \
-docker run -d --name rwh_beyond_robot \
-  --gpus all --device /dev/dri --hostname "$(hostname)" \
-  --network host --ipc host --init --privileged \
-  --restart unless-stopped \
-  -e DISPLAY="$DISPLAY" \
-  -e XAUTHORITY=/tmp/rwh_beyond.Xauthority \
-  -e QT_QPA_PLATFORM=xcb \
-  -e NVIDIA_DRIVER_CAPABILITIES=all \
-  -e __NV_PRIME_RENDER_OFFLOAD=1 \
-  -e __GLX_VENDOR_LIBRARY_NAME=nvidia \
-  -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" \
-  -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" \
-  -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
-  -v /dev/bus/usb:/dev/bus/usb \
-  -v /run/udev:/run/udev:ro \
-  -v "$HOME/wsyoon_data:/root/wsyoon_data" \
-  localhost/rwh_beyond_robot:20261119-bb6e689-full
+### 엔진별 NVIDIA GPU 연결
+
+Podman에서는 `nvidia-ctk cdi list`에 `nvidia.com/gpu=all`이 표시되는지 확인합니다.
+Docker Engine은 NVIDIA Container Toolkit을 사용합니다. `docker`가 Podman 래퍼라면
+`CONTAINER_ENGINE=podman`을 선택합니다. [NVIDIA CDI 설정](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/cdi-support.html)
+
+```bash
+(
+  set -e
+  engine="${CONTAINER_ENGINE:-podman}"
+  case "$engine" in
+    podman) gpu=(--device nvidia.com/gpu=all --security-opt label=disable) ;;
+    docker) gpu=(--gpus all -e NVIDIA_DRIVER_CAPABILITIES=all) ;;
+    *) echo 'CONTAINER_ENGINE must be podman or docker' >&2; exit 2 ;;
+  esac
+  if [[ -z "${DISPLAY:-}" || ! -f "${RWH_XAUTH_FILE:-}" || ! -r "$RWH_XAUTH_FILE" || ! -d /tmp/.X11-unix ]]; then
+    echo 'Run from the host desktop with DISPLAY and readable Xauthority.' >&2
+    exit 1
+  fi
+
+  devices=()
+  [[ ! -d /dev/bus/usb ]] || devices+=(-v /dev/bus/usb:/dev/bus/usb)
+  [[ ! -d /run/udev ]] || devices+=(-v /run/udev:/run/udev:ro)
+  mkdir -p "$HOME/wsyoon_data"
+
+  "$engine" run -d --name rwh_beyond_robot \
+    "${gpu[@]}" --hostname "$(hostname)" \
+    --network host --ipc host --init --privileged \
+    --restart unless-stopped \
+    -e DISPLAY="$DISPLAY" \
+    -e XAUTHORITY=/tmp/rwh_beyond.Xauthority \
+    -e QT_QPA_PLATFORM=xcb \
+    -e __NV_PRIME_RENDER_OFFLOAD=1 \
+    -e __GLX_VENDOR_LIBRARY_NAME=nvidia \
+    -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" \
+    -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+    -v "$HOME/wsyoon_data:/root/wsyoon_data" \
+    "${devices[@]}" \
+    localhost/rwh_beyond_robot:20261119-bb6e689-full
+)
 ```
 
 이미지의 기본 명령은 `/root/ros2_ws/src/ros_runner/config/runners.yaml`을 읽고
-`auto_start:=false`로 Runner를 시작합니다. RViz와 실물 BT는 해당 프로필을 활성화할 때 시작됩니다.
-Runner 로그는 `docker logs -f rwh_beyond_robot`로 확인합니다.
+`auto_start:=false`로 Runner를 시작합니다. 이 스냅샷에서 Runner 서비스를 사용하며,
+프로필을 활성화할 때 해당 노드가 시작됩니다.
+Runner 로그는 `"$CONTAINER_ENGINE" logs -f rwh_beyond_robot`로 확인합니다.
 
-컨테이너를 교체할 때는 `docker stop rwh_beyond_robot`와 `docker rm rwh_beyond_robot`를 순서대로 실행합니다.
-기존 컨테이너에 저장한 관절 자세나 설정을 계속 쓰려면 교체 전에 호스트에 복사하세요.
+GPU 옵션은 생성 시 적용됩니다. 컨테이너를 교체하기 전에 내부 소스·관절 자세·설정을
+호스트에 복사한 뒤, 같은 엔진에서 기존 컨테이너를 정리하고 새로 생성합니다.
+
+### MuJoCo 창이 열리지 않을 때 { #mujoco-glx }
+
+`piper_sim`의 로그에 `No GLXFBConfigs returned` 또는 `Failed to find a suitable GLXFBConfig`가
+나오면 X11 인증과 NVIDIA GLX 라이브러리 전달을 확인합니다. Podman에서는
+`--device nvidia.com/gpu=all`로 드라이버 라이브러리와 GPU를 연결합니다. GPU 장치 파일이나
+`DISPLAY`가 보여도 GLX 드라이버가 연결됐는지는 별도로 확인해야 합니다.
+
+MuJoCo 창으로 PiPER 시뮬레이션을 실행할 때는 `robot_sim.yaml`의
+`robot_settings.ros__parameters.simulation.gui`를 `true`로 두고 `piper_sim`을 활성화합니다.
+화면 없이 관절·카메라·MoveIt을 실행할 때는 `gui: false`를 사용합니다.
+전체 집기·배치 데모인 `bt_demo_sim`에는 SAM 3·GraspGenX 연결도 필요합니다.
+
+```bash
+"$CONTAINER_ENGINE" exec -it rwh_beyond_robot /opt/rwh_beyond/entrypoint.sh \
+  ros2 service call /ros_runner/activate_piper_sim std_srvs/srv/Empty '{}'
+```
 
 아래의 20261117 로봇 명령은 이전 배포를 다시 구성할 때 사용합니다.
 GPU 모델 서버에는 20261117 모델 이미지와 아래 서버 명령을 사용합니다.
@@ -133,23 +183,55 @@ Docker Engine에서는 `CONTAINER_ENGINE=docker`로 바꿉니다.
 현재 개발 PC처럼 Docker 명령이 Podman wrapper인 환경에서는
 [배포 helper 사용 방법](#robot-helper)을 따릅니다.
 
-로봇 PC에서는 배포 폴더로 이동하고, 호스트 데이터 디렉터리와 X11 인증 파일을 준비합니다.
-`XAUTHORITY`가 없는 환경은 실제 X11 인증 파일을 `RWH_XAUTH_FILE`에 지정합니다.
+로봇 PC에서는 [X11 인증 파일 준비](#x11-auth)를 실행하고, 배포 폴더와 호스트 데이터 디렉터리를 준비합니다.
 
 ```bash
 # 배포 파일과 설정이 있는 디렉터리로 이동
 cd ~/RWH/beyond
 # 지도·데이터를 보관할 호스트 디렉터리 준비
 mkdir -p "$HOME/wsyoon_data"
-# GUI 연결에 사용할 호스트 X11 인증 파일 경로 지정
-export RWH_XAUTH_FILE="${XAUTHORITY:-$HOME/.Xauthority}"
+```
+
+로봇 컨테이너는 아래 명령으로 생성합니다. 실제 장치가 있는 경우 USB·udev를 연결하며,
+Runner·카메라·CAN·BT YAML은 호스트의 `config/`에서 읽습니다.
+
+```bash
+(
+  set -e
+  if [[ -z "${DISPLAY:-}" || ! -f "${RWH_XAUTH_FILE:-}" || ! -r "$RWH_XAUTH_FILE" || ! -d /tmp/.X11-unix ]]; then
+    echo 'Run from the host desktop with DISPLAY and readable Xauthority.' >&2
+    exit 1
+  fi
+  mounts=()
+  for file in runners robot_common robot_real robot_sim bt_demo; do
+    source_file="$PWD/config/$file.yaml"
+    if [[ ! -f "$source_file" ]]; then
+      echo "Missing configuration: $source_file" >&2
+      exit 1
+    fi
+    mounts+=(-v "$source_file:/opt/rwh_beyond/config/$file.yaml:ro")
+  done
+  mounts+=(-v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro")
+  [[ ! -d /dev/bus/usb ]] || mounts+=(-v /dev/bus/usb:/dev/bus/usb)
+  [[ ! -d /run/udev ]] || mounts+=(-v /run/udev:/run/udev:ro)
+
+  docker run -d --name rwh_beyond_robot \
+    --gpus all --hostname "$(hostname)" \
+    --network host --ipc host --init --privileged --restart unless-stopped \
+    -e DISPLAY="$DISPLAY" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -e QT_QPA_PLATFORM=xcb \
+    -e NVIDIA_DRIVER_CAPABILITIES=all \
+    -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" \
+    -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" \
+    -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
+    -v "$HOME/wsyoon_data:/root/wsyoon_data" "${mounts[@]}" \
+    rwh_beyond_robot:20261117
+)
 ```
 
 <div class="container-command-table" markdown="1">
 
 | 이미지 이름 | 명령어 |
 |---|---|
-| **BEYOND Robot** | `# GPU·장치·지도 데이터를 연결해 로봇 대기 컨테이너 생성`<br/>`docker run -d --name rwh_beyond_robot --gpus all --network host --ipc host --init --privileged --restart unless-stopped -e DISPLAY="$DISPLAY" -e NVIDIA_DRIVER_CAPABILITIES=all -e ROS_DOMAIN_ID="${ROS_DOMAIN_ID:-0}" -e XAUTHORITY=/tmp/rwh_beyond.Xauthority -v "$RWH_XAUTH_FILE:/tmp/rwh_beyond.Xauthority:ro" -v "$HOME/wsyoon_data:/root/wsyoon_data" -v "$PWD/config/runners.yaml:/opt/rwh_beyond/config/runners.yaml:ro" -v "$PWD/config/robot_common.yaml:/opt/rwh_beyond/config/robot_common.yaml:ro" -v "$PWD/config/robot_real.yaml:/opt/rwh_beyond/config/robot_real.yaml:ro" -v "$PWD/config/robot_sim.yaml:/opt/rwh_beyond/config/robot_sim.yaml:ro" -v "$PWD/config/bt_demo.yaml:/root/ros2_ws/src/rwh_beyond/rwh_beyond_bringup/config/bt_demo.yaml:ro" -v /tmp/.X11-unix:/tmp/.X11-unix:ro -v /run/udev:/run/udev:ro rwh_beyond_robot:20261117` |
 | **GraspGenX 서버** | `# GPU·5566 포트를 연결해 GraspGenX 서버 생성·실행`<br/>`docker run -d --name rwh_beyond_graspgenx --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5566:5566 -v rwh_beyond_graspgenx_cache:/data/cache -v rwh_beyond_graspgenx_logs:/data/logs rwh_beyond_graspgenx:20261117` |
 | **SAM 3 서버** | `# GPU·5567 포트를 연결해 SAM 3 서버 생성·실행`<br/>`docker run -d --name rwh_beyond_sam3 --restart unless-stopped --shm-size 256m --gpus all -p 127.0.0.1:5567:5567 -v rwh_beyond_sam3_cache:/data/cache -v rwh_beyond_sam3_logs:/data/logs rwh_beyond_sam3:20261117` |
 
@@ -303,7 +385,9 @@ GPU·USB·X11·host network·포트·데이터 마운트 같은 **컨테이너 �
 
 ### 로봇 컨테이너 { #robot-helper }
 
-현재 호스트의 Podman에서는:
+GUI를 연결하려면 먼저 [X11 인증 파일 준비](#x11-auth)를 실행하고
+`export XAUTHORITY="$RWH_XAUTH_FILE"`로 helper에 전달합니다.
+Podman에서는 CDI 장치도 `nvidia-ctk cdi list`로 확인합니다.
 
 ```bash
 # 배포 파일과 설정이 있는 디렉터리로 이동
