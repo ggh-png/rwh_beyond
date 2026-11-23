@@ -1690,10 +1690,10 @@
 <p><code>debug_max_candidates</code>는 표시 개수만 제한합니다. 모델 원점과 TCP는 다르므로 후보 화살표와
 선택 TCP의 위치가 다를 수 있습니다. 새 관측 시 이전 표시 일부를 초기화합니다.</p>
 <h2 id="_1">실행<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
-<p>심은 <code>bt_demo_sim</code>, 실물은 <code>bt_demo</code>가 통합 RViz를 실행합니다.
+<p>심은 <code>bt_demo_sim</code>, 실물은 <code>bt_demo</code>가 <code>rviz.launch.py</code>를 통해 통합 RViz를 실행합니다.
 실물 의존 runner인 <code>piper_moveit</code>은 RViz를 별도로 시작하지 않습니다.
-기본 설정은 <code>moma_bringup/config/depth_planning.rviz</code>입니다.
-추가 결과 전용 뷰어는 다음과 같이 실행할 수 있습니다.</p>
+기본 설정은 <code>rwh_beyond_bringup/rviz/depth_planning.rviz</code>이며, <code>bt_demo.launch.py</code>의
+<code>rviz_config</code> 인자로 바꿀 수 있습니다. 추가 결과 전용 뷰어는 다음과 같이 실행할 수 있습니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ros2<span class="w"> </span>launch<span class="w"> </span>rwh_beyond_grasp_pipeline<span class="w"> </span>grasp_visualization.launch.py
 </code></pre></div>
 <p>직접 display를 추가하면 Fixed Frame은 <code>base_link</code>, 이미지에는 preview/overlay,
