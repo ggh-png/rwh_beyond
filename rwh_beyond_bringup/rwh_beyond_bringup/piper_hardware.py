@@ -12,7 +12,8 @@ import yaml
 from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory, get_package_prefix
-from launch.actions import GroupAction, IncludeLaunchDescription
+from launch.actions import GroupAction, IncludeLaunchDescription, OpaqueFunction, RegisterEventHandler
+from launch.event_handlers import OnShutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node, PushRosNamespace
@@ -157,6 +158,39 @@ def controller_parameters(namespace, effector_type):
             'state_interfaces': ['position', 'velocity'],
             'allow_nonzero_velocity_at_trajectory_end': False}}
     return result, list(controllers)
+
+
+def simulation_nodes(context):
+    """Use the same PiPER planning configuration with simulated sensors and clock."""
+    value = lambda name: LaunchConfiguration(name).perform(context)
+    settings_path = value('params_file')
+    params = moveit_parameters(
+        value('tcp_offset'), camera_model=True, nominal_camera_tf=True,
+        point_cloud_topic='/camera/depth/color/points', octomap=value('octomap') == 'true',
+        params_file=settings_path)
+    params['use_sim_time'] = True
+    motion = yaml.safe_load(Path(settings_path).read_text())['bt_navigator']['ros__parameters']['bt_motion']
+    close = {name: float(motion[name]) for name in ('gripper_close_width', 'gripper_close_duration')}
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml',
+                                     prefix='piper_sim_moveit_', delete=False) as config_file:
+        yaml.safe_dump({'move_group': {'ros__parameters': params},
+                        'moma_mujoco_bridge': {'ros__parameters': close}}, config_file)
+        config_path = Path(config_file.name)
+    share = Path(get_package_share_directory('moma_bringup'))
+    arguments = {name: value(name) for name in (
+        'gui', 'tcp_offset', 'camera_rate', 'gripper_contact_force_threshold', 'rviz_config', 'feedback_topic')}
+    planning_depth = 'sensors' in params
+    arguments.update(moveit='true', rviz=value('use_rviz'), moveit_baseline_file=str(config_path),
+                     scene_source='depth' if planning_depth else 'none',
+                     octomap=str(planning_depth).lower(),
+                     point_cloud_topic=params['depth_cloud']['point_cloud_topic'])
+
+    def remove_config(_context):
+        config_path.unlink(missing_ok=True)
+
+    return [RegisterEventHandler(OnShutdown(on_shutdown=[OpaqueFunction(function=remove_config)])),
+            IncludeLaunchDescription(PythonLaunchDescriptionSource(str(share / 'launch/simulation.launch.py')),
+                                     launch_arguments=arguments.items())]
 
 
 def hardware_nodes(context):

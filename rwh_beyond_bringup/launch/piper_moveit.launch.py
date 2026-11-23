@@ -1,11 +1,18 @@
-"""Real PiPER CAN driver with the simulation MoveIt planning baseline."""
+"""Launch PiPER MoveIt with the physical or MuJoCo backend."""
 from pathlib import Path
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.substitutions import LaunchConfiguration
 
-from rwh_beyond_bringup.piper_hardware import DEFAULT_TCP, hardware_nodes
+from rwh_beyond_bringup.piper_hardware import DEFAULT_TCP, hardware_nodes, simulation_nodes
+
+
+def piper_nodes(context):
+    if LaunchConfiguration('mode').perform(context) == 'sim':
+        return simulation_nodes(context)
+    return hardware_nodes(context)
 
 
 def generate_launch_description():
@@ -34,6 +41,10 @@ def generate_launch_description():
                             'config/depth_planning.rviz')),
     )
     return LaunchDescription([
+        DeclareLaunchArgument('mode', default_value='real', choices=['real', 'sim']),
+        DeclareLaunchArgument('gui', default_value='true'),
+        DeclareLaunchArgument('camera_rate', default_value='5.0'),
+        DeclareLaunchArgument('gripper_contact_force_threshold', default_value='1.0'),
         *[DeclareLaunchArgument(name, default_value=default) for name, default in defaults],
-        OpaqueFunction(function=hardware_nodes),
+        OpaqueFunction(function=piper_nodes),
     ])

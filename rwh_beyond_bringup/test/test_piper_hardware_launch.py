@@ -30,36 +30,56 @@ def defaults(module):
     return context
 
 
-def test_hardware_matches_simulation_parameters_except_clock():
+@pytest.mark.parametrize('octomap', (True, False))
+def test_beyond_backends_share_planning_parameters(tmp_path, octomap):
+    import yaml
+
+    share = Path(get_package_share_directory('rwh_beyond_bringup'))
+    launcher = load(share / 'launch/piper_moveit.launch.py', 'parity_piper')
     simulator = load(Path(get_package_share_directory('moma_bringup')) /
                      'launch/simulation.launch.py', 'parity_sim')
-    context = defaults(simulator)
-    context.launch_configurations.update(moveit='true', gui='false', rviz='false')
-    node = next(n for n in simulator.nodes(context) if n.node_executable == 'move_group')
-    expected = evaluate_parameters(context, node._Node__parameters)[0]
-    params = moveit_parameters(DEFAULT_TCP, camera_model=True)
+    settings = yaml.safe_load((share / 'config/bt_demo.yaml').read_text())
+    settings['/**']['ros__parameters']['octomap_enabled'] = octomap
+    settings['bt_navigator']['ros__parameters']['bt_motion']['gripper_close_duration'] = 2.75
+    execution = settings['move_group']['ros__parameters']['trajectory_execution']
+    execution['allowed_goal_duration_margin'] = 21.0
+    path = tmp_path / 'shared.yaml'
+    path.write_text(yaml.safe_dump(settings))
+    context = defaults(launcher)
+    context.launch_configurations.update(mode='sim', gui='false', use_rviz='false',
+                                         params_file=str(path))
+    actions = launcher.piper_nodes(context)
+    include = next(action for action in actions if isinstance(action, IncludeLaunchDescription))
+    launch_arguments = dict(include.launch_arguments)
+    baseline = Path(launch_arguments['moveit_baseline_file'])
+    try:
+        sim_context = defaults(simulator)
+        sim_context.launch_configurations.update(launch_arguments)
+        nodes = simulator.nodes(sim_context)
+        move_group = next(node for node in nodes if node.node_executable == 'move_group')
+        actual = evaluate_parameters(sim_context, move_group._Node__parameters)[0]
+        bridge = next(node for node in nodes if node.node_executable == 'bridge_node')
+        controller = evaluate_parameters(sim_context, bridge._Node__parameters)[0]
+    finally:
+        baseline.unlink(missing_ok=True)
+
+    real = moveit_parameters(DEFAULT_TCP, camera_model=True, params_file=str(path))
     for key in ('robot_description', 'robot_description_semantic'):
-        params[key] = ParameterValue(params[key], value_type=str)
-    actual = evaluate_parameters(context, normalize_parameters([params]))[0]
-    assert actual.pop('use_sim_time') is False
-    assert expected.pop('use_sim_time') is True
-    assert actual.pop('trajectory_execution.allowed_start_tolerance') == math.radians(10.0)
-    expected.pop('trajectory_execution.allowed_start_tolerance', None)
-    # Hardware execution timing is configured separately from simulation.
-    actual.pop('trajectory_execution.allowed_execution_duration_scaling')
-    actual.pop('trajectory_execution.allowed_goal_duration_margin')
-    expected.pop('trajectory_execution.allowed_execution_duration_scaling', None)
-    expected.pop('trajectory_execution.allowed_goal_duration_margin', None)
-    # Real Octomap can be disabled independently in the shared BT configuration.
-    if 'sensors' not in actual:
-        expected.pop('sensors', None)
-    # Hardware OMPL tuning is explicitly owned by the shared YAML.
-    assert actual.pop('ompl.arm.enforce_joint_model_state_space') is True
-    assert actual.pop('ompl.arm.longest_valid_segment_fraction') == .005
-    assert actual.pop('ompl.arm.planner_configs') == ('RRTConnect', 'RRTstar')
-    assert actual.pop('ompl.arm.default_planner_config') == 'RRTConnect'
-    expected.pop('ompl.arm.default_planner_config', None)
+        real[key] = ParameterValue(real[key], value_type=str)
+    expected = evaluate_parameters(sim_context, normalize_parameters([real]))[0]
+    assert actual.pop('use_sim_time') is True
+    assert expected.pop('use_sim_time') is False
     assert actual == expected
+    assert actual['trajectory_execution.allowed_goal_duration_margin'] == 21.0
+    assert ('sensors' in actual) is octomap
+    assert actual['depth_cloud.point_cloud_topic'] == '/camera/depth/color/points'
+    assert controller['arm_velocity_limits'] == tuple(
+        expected[f'robot_description_planning.joint_limits.joint{i}.max_velocity']
+        for i in range(1, 7))
+    assert controller['arm_start_tolerance'] == expected['trajectory_execution.allowed_start_tolerance']
+    assert controller['camera_rate'] == 5.0
+    assert controller['gripper_close_width'] == .04
+    assert controller['gripper_close_duration'] == 2.75
 
 
 def test_camera_mount_is_not_assumed_and_robot_bounds_are_preserved():

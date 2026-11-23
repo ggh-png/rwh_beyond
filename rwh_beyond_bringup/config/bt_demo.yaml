@@ -302,10 +302,10 @@ graspgenx_bridge:
     max_depth_pixels: 2073600
     # 센서 입력 타임스탬프 사이에 허용하는 시간 차이입니다(초).
     sensor_sync_tolerance: 0.1
-# 실물 move_group에 전달할 OMPL·실행 감시 설정입니다. piper_moveit을 재시작해야 적용됩니다.
+# 실물·시뮬레이션 move_group의 OMPL·실행 감시 설정입니다. 사용 중인 PiPER 프로필을 재시작해야 적용됩니다.
 # 위 bt_motion은 BT 요청별 설정이며 bt_demo를 다시 시작해야 반영됩니다. XML 선택값은 별도로 유지합니다.
 move_group:
-  # 이 설정은 실물 MoveIt launch가 읽어 move_group에 직접 전달합니다.
+  # 두 모드에서 PiPER MoveIt launch가 이 설정을 읽습니다.
   ros__parameters:
     # OMPL 팔 계획 그룹 설정입니다. move_group에 직접 전달하며 piper_moveit 재시작 후 적용합니다.
     ompl:

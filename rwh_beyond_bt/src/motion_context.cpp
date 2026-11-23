@@ -409,7 +409,7 @@ Joints MotionContext::feedback()
 State MotionContext::state(const Cancel & cancel)
 {
   feedback();
-  if (!simulation && limits_.empty()) {
+  if (limits_.empty()) {
     rcl_interfaces::srv::GetParameters::Request request;
     request.names = {"robot_description"};
     auto response = call<rcl_interfaces::srv::GetParameters>(description_, request, cancel);
