@@ -105,10 +105,18 @@ Docker Engine은 NVIDIA Container Toolkit을 사용합니다. `docker`가 Podman
 )
 ```
 
-이미지의 기본 명령은 `/root/ros2_ws/src/ros_runner/config/runners.yaml`을 읽고
-`auto_start:=false`로 Runner를 시작합니다. 이 스냅샷에서 Runner 서비스를 사용하며,
-프로필을 활성화할 때 해당 노드가 시작됩니다.
-Runner 로그는 `"$CONTAINER_ENGINE" logs -f rwh_beyond_robot`로 확인합니다.
+컨테이너는 `run -d`로 시작하고 Runner 노드는 `auto_start:=false`로 `unconfigured` 상태에서
+대기합니다. 아래 명령으로 처음 한 번 `configure`할 때
+`/root/ros2_ws/src/ros_runner/config/runners.yaml`을 읽습니다. `activate`하면 기본 YAML에서
+`on_launch: true`인 `runtime_setup`이 장치와 추론 연결을 점검합니다. `piper_sim`과
+`bt_demo_sim`은 각 프로필을 별도로 활성화할 때 실행됩니다.
+
+```bash
+"${CONTAINER_ENGINE:-podman}" exec rwh_beyond_robot /opt/rwh_beyond/entrypoint.sh \
+  bash -ec 'ros2 lifecycle set /ros_runner configure && ros2 lifecycle set /ros_runner activate'
+```
+
+Runner 로그는 `"${CONTAINER_ENGINE:-podman}" logs -f rwh_beyond_robot`로 확인합니다.
 `20261123-live`에서 비밀번호로 추론 서버에 연결하려면 호스트의 `config/runners.yaml`을
 준비하고 `inference_connection.password`를 로컬에서 설정합니다.
 
@@ -128,7 +136,7 @@ MuJoCo 창으로 PiPER 시뮬레이션을 실행할 때는 `robot_sim.yaml`의
 전체 집기·배치 데모인 `bt_demo_sim`에는 SAM 3·GraspGenX 연결도 필요합니다.
 
 ```bash
-"$CONTAINER_ENGINE" exec -it rwh_beyond_robot /opt/rwh_beyond/entrypoint.sh \
+"${CONTAINER_ENGINE:-podman}" exec -it rwh_beyond_robot /opt/rwh_beyond/entrypoint.sh \
   ros2 service call /ros_runner/activate_piper_sim std_srvs/srv/Empty '{}'
 ```
 
