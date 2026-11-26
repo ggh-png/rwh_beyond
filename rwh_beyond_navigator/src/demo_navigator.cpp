@@ -1,5 +1,11 @@
+#include <chrono>
+#include <cstdlib>
+#include <ctime>
+#include <filesystem>
 #include <functional>
+#include <iomanip>
 #include <memory>
+#include <sstream>
 #include <string>
 
 #include "ament_index_cpp/get_package_share_directory.hpp"
@@ -13,6 +19,29 @@ namespace rwh_beyond_navigator
 {
 using rwh_beyond_bt::ErrorCode;
 using rwh_beyond_bt::execution_diagnostic;
+
+namespace
+{
+std::string create_exchange_request(const std::filesystem::path & root)
+{
+  std::filesystem::create_directories(root);
+  const auto now = std::chrono::time_point_cast<std::chrono::seconds>(
+    std::chrono::system_clock::now());
+  for (auto second = now; ; second += std::chrono::seconds(1)) {
+    const auto stamp = std::chrono::system_clock::to_time_t(second);
+    std::tm local{};
+    if (!localtime_r(&stamp, &local)) {
+      throw std::runtime_error("Could not format file exchange timestamp");
+    }
+    std::ostringstream id;
+    id << std::put_time(&local, "%Y%m%d%H%M%S");
+    if (std::filesystem::create_directory(root / id.str())) {
+      return id.str();
+    }
+  }
+}
+}  // namespace
+
 
 class DemoNavigator
   : public nav2_core::BehaviorTreeNavigator<rwh_beyond_msgs::action::RunDemo>
@@ -47,6 +76,10 @@ public:
     if (!node->has_parameter("default_place_bt_xml")) {
       node->declare_parameter("default_place_bt_xml", default_place_path);
     }
+    if (!node->has_parameter("file_local_root")) {
+      node->declare_parameter("file_local_root", "/root/wsyoon_data/beyond_demo/com_msgs");
+    }
+    exchange_root_ = node->get_parameter("file_local_root").as_string();
     default_pick_bt_ = node->get_parameter("default_demo_bt_xml").as_string();
     default_place_bt_ = node->get_parameter("default_place_bt_xml").as_string();
     return filtered_tree(default_pick_bt_);
@@ -92,6 +125,7 @@ public:
     auto board = bt_action_server_->getBlackboard();
     rwh_beyond_bt::reset_diagnostics(board);
     board->rootBlackboard()->set("target_text", goal->target_text);
+    board->rootBlackboard()->set("exchange_request_id", std::string{});
     std::string tree = goal->behavior_tree;
     if (tree.empty()) {
       const auto mode = goal->mode == 0 ? ActionT::Goal::MODE_PICK : goal->mode;
@@ -111,6 +145,31 @@ public:
       }
     } catch (const std::exception & error) {
       return reject_request(ErrorCode::INVALID_TREE, "INVALID_TREE", error.what());
+    }
+    if (goal->mode == ActionT::Goal::MODE_PICK) {
+      const auto * transport = std::getenv("RWH_FILE_TRANSPORT");
+      if (transport && std::string(transport) == "direct") {
+        return reject_request(ErrorCode::INVALID_INPUT, "INVALID_INPUT",
+          "File inference requires inference_transport: ssh or shared in runners.yaml");
+      }
+      try {
+        auto root = exchange_root_;
+        if (root.rfind("~/", 0) == 0) {
+          const auto * home = std::getenv("HOME");
+          if (!home) {
+            throw std::runtime_error("HOME is unavailable for file_local_root");
+          }
+          root = std::string(home) + root.substr(1);
+        }
+        if (!std::filesystem::path(root).is_absolute()) {
+          throw std::invalid_argument("file_local_root must be absolute or start with ~/");
+        }
+        const auto id = create_exchange_request(root);
+        board->rootBlackboard()->set("exchange_request_id", id);
+        RCLCPP_INFO(logger_, "Inference file exchange request: %s", id.c_str());
+      } catch (const std::exception & error) {
+        return reject_request(ErrorCode::INVALID_INPUT, "INVALID_INPUT", error.what());
+      }
     }
     return true;
   }
@@ -224,6 +283,7 @@ private:
   XmlTreeFilter xml_filter_;
   std::string default_pick_bt_;
   std::string default_place_bt_;
+  std::string exchange_root_;
 };
 
 }  // namespace rwh_beyond_navigator

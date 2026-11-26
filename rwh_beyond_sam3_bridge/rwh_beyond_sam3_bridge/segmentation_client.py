@@ -6,11 +6,11 @@ from rwh_beyond_model_utils.zmq_client import request, ProtocolError
 
 from rwh_beyond_model_utils.rgb_converter import rgb_array
 
-def segment_image(endpoint, rgb, depth=None, text='', box=(), point=(), policy='unique', timeout=60., canceled=lambda:False, allow_mock=False):
+def segment_image(endpoint, rgb, depth=None, text='', box=(), point=(), policy='unique', timeout=60., canceled=lambda:False, allow_mock=False, rpc=request):
     if depth is None:
         depth = rgb  # RGB-only SAM Action retains the original image header.
     array=rgb_array(rgb,depth)
-    result=request(endpoint,dict(action='segment',rgb=array,text=text,box=list(box),selection_point=list(point),selection_policy=policy),timeout,canceled)
+    result=rpc(endpoint,dict(action='segment',rgb=array,text=text,box=list(box),selection_point=list(point),selection_policy=policy),timeout,canceled)
     if result.get('backend')!='sam3' or result.get('mock') is not False:
         if not (allow_mock and result.get('backend')=='mock' and result.get('mock') is True):
             raise ProtocolError('Real SAM 3 segmentation required; no automatic fallback')

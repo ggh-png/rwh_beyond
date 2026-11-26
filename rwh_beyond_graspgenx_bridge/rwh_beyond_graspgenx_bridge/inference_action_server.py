@@ -12,6 +12,7 @@ from std_srvs.srv import Trigger
 from rwh_beyond_msgs.action import InferGrasps, SegmentImage
 from rwh_beyond_msgs.msg import GraspCandidate
 from rwh_beyond_model_utils.cloud_converter import cloud_xyz
+from rwh_beyond_model_utils.file_exchange import Exchange, frame_header
 from rwh_beyond_model_utils.depth_converter import depth_xyz
 from rwh_beyond_sam3_bridge.action_client import segment_via_action
 from rwh_beyond_model_utils.pose_converter import validate_candidates, quaternion_xyzw
@@ -24,6 +25,7 @@ class InferenceActionServer(Node):
                             ('allow_mock_segmentation', False), ('min_points', 100), ('max_points', 200000), ('max_grasps', 1000),
                             ('max_depth_pixels', 2073600), ('sensor_sync_tolerance', 0.1)]:
             self.declare_parameter(name, value)
+        self.exchange = Exchange(self)
         self.endpoint = self.get_parameter('endpoint').value
         self.timeout = float(self.get_parameter('timeout').value)
         self.minimum = self.get_parameter('min_points').value
@@ -68,6 +70,8 @@ class InferenceActionServer(Node):
             goal = handle.request
             if not goal.gripper_name.strip() or not 1 <= goal.num_grasps <= self.max_grasps or not 1 <= goal.top_k <= goal.num_grasps:
                 raise ValueError('gripper_name required; 1 <= top_k <= num_grasps <= max_grasps')
+            if goal.exchange_request_id and goal.input_mode != InferGrasps.Goal.POINT_CLOUD:
+                raise ValueError('File exchange requires a segmented point cloud')
             segmentation_mock = False
             if goal.input_mode != InferGrasps.Goal.RGBD and goal.rgb_image.data:
                 raise ValueError('rgb_image requires RGBD mode')
@@ -103,8 +107,12 @@ class InferenceActionServer(Node):
                 header = copy.deepcopy(goal.depth_image.header)
             else:
                 raise ValueError('unknown input_mode')
-            feedback('waiting_for_inference')
-            response = request(self.endpoint, dict(action='infer', point_cloud=xyz,
+            rpc = request
+            if goal.exchange_request_id:
+                rpc = self.exchange.request(goal.exchange_request_id, goal.exchange_view,
+                                            frame_header(header))
+            feedback('waiting_for_grasp_file' if goal.exchange_request_id else 'waiting_for_inference')
+            response = rpc(self.endpoint, dict(action='infer', point_cloud=xyz,
                 gripper_name=goal.gripper_name, num_grasps=goal.num_grasps,
                 grasp_threshold=-1.0, topk_num_grasps=goal.top_k), self.timeout,
                 lambda: handle.is_cancel_requested or not rclpy.ok())

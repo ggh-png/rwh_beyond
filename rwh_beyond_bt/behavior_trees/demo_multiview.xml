@@ -109,6 +109,7 @@
                      capture="{capture}"
                      timeout="10.0"/>
         <SegmentObject capture="{capture}"
+                       exchange_view="left"
                        target_text=""
                        server_timeout=""
                        mask="{object_mask}"
@@ -124,6 +125,7 @@
                      capture="{capture}"
                      timeout="10.0"/>
         <SegmentObject capture="{capture}"
+                       exchange_view="right"
                        target_text=""
                        server_timeout=""
                        mask="{object_mask}"
@@ -142,6 +144,7 @@
                     timeout="30.0"
                     once="false"/>
       <InferGrasps cloud="{object_cloud}"
+                   exchange_view="fused"
                    candidates="{grasps}"
                    server_timeout=""
                    server_name=""/>
@@ -243,6 +246,7 @@
                   type="bool">Skip after successful initialization for this node instance</input_port>
     </Action>
     <Action ID="InferGrasps">
+      <input_port name="exchange_view" default="front" type="std::string"/>
       <input_port name="cloud"
                   type="sensor_msgs::msg::PointCloud2_&lt;std::allocator&lt;void&gt; &gt;"/>
       <output_port name="candidates"
@@ -296,6 +300,7 @@
                   type="double">Voxel edge length in meters</input_port>
     </Action>
     <Action ID="SegmentObject">
+      <input_port name="exchange_view" default="front" type="std::string"/>
       <input_port name="capture"
                   type="std::shared_ptr&lt;rwh_beyond_bt::RgbdObservation const&gt;"/>
       <input_port name="target_text"

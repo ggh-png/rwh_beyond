@@ -15,6 +15,7 @@ from rwh_beyond_msgs.action import SegmentImage
 from rwh_beyond_model_utils.zmq_client import (
     ProtocolError, RequestCanceled, ServerError, request,
 )
+from rwh_beyond_model_utils.file_exchange import Exchange, frame_header
 from .segmentation_client import segment_image
 
 
@@ -24,6 +25,7 @@ class SegmentationActionServer(Node):
         self.declare_parameter('endpoint', 'tcp://127.0.0.1:5567')
         self.declare_parameter('timeout', 60.0)
         self.declare_parameter('allow_mock', False)
+        self.exchange = Exchange(self)
         self.lock = threading.Lock()
         self.group = ReentrantCallbackGroup()
         self.server = ActionServer(
@@ -51,7 +53,13 @@ class SegmentationActionServer(Node):
         result = SegmentImage.Result()
         try:
             goal = handle.request
-            handle.publish_feedback(SegmentImage.Feedback(stage='segmenting_on_sam3'))
+            rpc = request
+            stage = 'segmenting_on_sam3'
+            if goal.exchange_request_id:
+                rpc = self.exchange.request(goal.exchange_request_id, goal.exchange_view,
+                                            frame_header(goal.rgb_image.header))
+                stage = 'waiting_for_sam_file'
+            handle.publish_feedback(SegmentImage.Feedback(stage=stage))
             mask, score, count, mock = segment_image(
                 self.get_parameter('endpoint').value, goal.rgb_image,
                 text=goal.target_text,
@@ -60,7 +68,7 @@ class SegmentationActionServer(Node):
                 policy=goal.selection_policy or 'unique',
                 timeout=float(self.get_parameter('timeout').value),
                 canceled=lambda: handle.is_cancel_requested or not rclpy.ok(),
-                allow_mock=self.get_parameter('allow_mock').value)
+                allow_mock=self.get_parameter('allow_mock').value, rpc=rpc)
             if handle.is_cancel_requested:
                 raise RequestCanceled('segmentation canceled before publication')
             result.object_mask = mask

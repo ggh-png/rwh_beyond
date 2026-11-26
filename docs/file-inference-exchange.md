@@ -3,7 +3,7 @@
 로봇 컨테이너와 GPU 서버가 이미지·점군·추론 결과를 파일로 주고받는 설정입니다. 로봇에서 모델 포트에 접근하기 어려운 환경에서도 SSH로 서버에 접속할 수 있으면 사용할 수 있습니다.
 
 !!! note "적용 버전"
-    이 페이지는 파일 추론 기능이 빌드된 개발 환경을 기준으로 합니다. 기존 `v2.0.0`과 `legacy-real-2026-11-26`의 `mode: 1`은 기존 모델 연결로 집기를 실행합니다.
+    이 페이지는 파일 추론이 포함된 갱신된 `v2.0.0` 기준입니다. 먼저 기존 체크아웃의 태그와 의존성을 갱신하세요. 갱신 전 `v2.0.0`과 `legacy-real-2026-11-26`에서 `mode: 1`은 기존 모델 연결로 집기를 실행합니다.
 
 ## 호출 모드
 
@@ -15,24 +15,23 @@
 
 파일 교환은 SAM 3·GraspGenX의 요청과 결과를 운반합니다. 카메라 촬영, 마스크와 깊이의 결합, 좌우 점군 융합, MoveIt 계획은 로봇에서 진행합니다.
 
-## 1. 로봇 컨테이너 경로와 전송 설정
+## 1. Runner에서 전송 방식 선택
 
-`rwh_beyond_bringup/config/bt_demo.yaml`의 `/**` 공통 ROS 파라미터에 설정합니다.
+`ros_runner/config/runners.yaml`에서 `inference_transport` 한 항목을 설정합니다.
 
 ```yaml
-/**:
-  ros__parameters:
-    file_transport: ssh
-    file_local_root: /root/wsyoon_data/beyond_demo/com_msgs
-    file_remote_root: ~/beyond_demo/com_msgs
-    file_ssh_target: ""
-    file_ssh_port: 0
-    file_poll_seconds: 0.5
+inference_transport: ssh
 ```
 
-`file_ssh_target`이 비어 있고 포트가 `0`이면 Runner의 `inference_connection`에 설정된 SSH 대상과 포트를 사용합니다. SSH 호스트 키는 컨테이너에서 확인할 수 있어야 합니다. 기존 Runner 대상과 포트를 사용할 경우 로컬 Runner의 비밀번호 인증도 지원합니다. 별도 SSH 대상을 지정할 때는 키 또는 agent를 사용합니다.
+| 값 | Runner 동작 | 호출 모드 |
+|---|---|---|
+| `direct` | 기존 모델 연결을 시작할 때 점검합니다. 필요하면 Runner가 기존 SSH 터널을 관리합니다. | `mode: 0` 또는 생략 |
+| `ssh` | 직접 모델 연결 점검과 자동 터널을 건너뛰고, 요청·응답 파일을 SSH로 전달합니다. | `mode: 1` |
+| `shared` | 직접 연결 점검과 자동 터널을 건너뛰고, 로봇과 서버가 각자의 폴더를 읽고 씁니다. 공유 마운트 또는 별도 전송 도구가 파일을 연결합니다. | `mode: 1` |
 
-양쪽에서 같은 공유 디렉터리를 볼 수 있으면 `file_transport: shared`를 사용하고, 로봇의 `file_local_root`와 서버 워커의 `--root`에서 그 디렉터리를 가리키도록 설정합니다.
+`ssh`는 Runner의 기존 `inference_connection`에 지정된 SSH 대상·포트·인증 설정을 사용합니다. 컨테이너에서 SSH 호스트 키를 확인할 수 있어야 합니다. `shared`는 SSH 설정 없이 사용할 수 있습니다. 방식을 바꾼 뒤 사용하는 BT Runner를 다시 활성화합니다.
+
+## 2. 로봇과 서버의 기록 경로
 
 ### 호스트에 기록 보관 { #host-records }
 
@@ -53,24 +52,6 @@ if [ ! -e "$HOME/beyond_demo/com_msgs" ] && [ ! -L "$HOME/beyond_demo/com_msgs" 
   ln -s "$HOME/wsyoon_data/beyond_demo/com_msgs" "$HOME/beyond_demo/com_msgs"
 fi
 ```
-
-## 2. Runner 시작 점검 설정
-
-`ros_runner/config/runners.yaml`에서 직접 모델 연결을 점검할 프로필을 지정합니다. 기본값은 `real`, `sim`, `monitor` 모두 `direct`입니다.
-
-아래 예시는 실물의 직접 점검을 유지하면서 시뮬레이션을 파일 전용으로 시작하는 설정입니다.
-
-```yaml
-inference_startup_check:
-  real: direct
-  sim: disabled
-  monitor: disabled
-```
-
-- `real`과 `sim`은 해당 BT 데모가 시작할 때 직접 모델 연결을 점검합니다.
-- `monitor`는 백그라운드 모델 점검과 Runner의 자동 SSH 터널을 제어합니다. 기존 직접 연결도 함께 쓸 경우 `monitor: direct`로 유지할 수 있습니다.
-
-설정 변경 뒤 사용하는 BT Runner를 다시 활성화합니다. `runtime_setup` 모니터는 설정을 주기적으로 다시 읽습니다.
 
 ## 3. GPU 서버에서 파일 워커 시작
 
@@ -97,7 +78,9 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
   '{mode: 1, target_text: "Coca-Cola can"}' --feedback
 ```
 
-요청 폴더는 `20261126T051824Z-<요청ID>`처럼 **UTC 초 단위 시각과 요청 ID**를 사용합니다. 정면 집기는 `front/`, 다중 시점 재시도는 같은 요청 아래 `left/`, `right/`, `fused/`에 기록합니다.
+파일 모드의 액션 요청이 승인되면 로봇이 동작 트리를 실행하기 전에 요청 폴더 하나를 만듭니다. 폴더 이름은 `20261125143230`처럼 **로봇 컨테이너 시간대의 초 단위 시각**을 사용합니다. 같은 초의 이름이 이미 있으면 다음 빈 초를 사용합니다. GPU 서버는 첫 전송이 도착하면 같은 이름의 폴더를 만듭니다.
+
+정면 파일은 아래 표의 이름을 사용합니다. 다중 시점으로 재시도하면 `left_tx_image.png`, `right_rx_mask.png`, `fused_rx_grasp_data.json`처럼 파일명 앞에 시점을 붙여 같은 폴더에 저장합니다.
 
 | 파일 | 내용 |
 |---|---|
@@ -109,4 +92,4 @@ ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
 
 로봇은 `*.ready.json`을 마지막에 보내고, 서버는 결과 파일을 쓴 뒤 `*.result.json`을 기록합니다. 실패하거나 취소된 요청도 남기므로 두 파일을 비교해 어느 단계에서 멈췄는지 확인할 수 있습니다. 사용자 정의 BT에서 분할 또는 파지를 반복할 때는 단계별 `exchange_view` 값을 구분합니다.
 
-실제 SAM 3·GraspGenX를 사용한 MuJoCo 캔 집기에서 멀티뷰 경로가 `SUCCEEDED`로 끝났고, 호스트에서 네 시점 폴더를 확인했습니다. 실물 집기는 이 설정으로 검증하지 않았습니다.
+실제 SAM 3·GraspGenX를 사용한 MuJoCo 캔 집기에서 멀티뷰 경로가 `SUCCEEDED`로 끝났고, 호스트에서 여러 시점의 요청·응답을 확인했습니다. 실물 집기는 이 설정으로 검증하지 않았습니다.

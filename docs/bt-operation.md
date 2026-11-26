@@ -22,7 +22,7 @@
 ```bash
 # 파란 컵 집기
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
-  '{mode: 1, target_text: "blue cup"}' --feedback
+  '{mode: 0, target_text: "blue cup"}' --feedback
 
 # 앞서 집은 물체 배치·해제
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \

@@ -16,7 +16,7 @@
 
 | 요청 | 실행 XML | 동작 |
 |---|---|---|
-| `mode: 1` 또는 생략한 `mode: 0` | YAML의 `default_demo_bt_xml`: 현재 `demo_multiview.xml` | 점군 추정 폭으로 집기·리프트·복귀 |
+| `mode: 0` (기본) 또는 `mode: 1` (파일 추론) | YAML의 `default_demo_bt_xml`: 현재 `demo_multiview.xml` | 점군 추정 폭으로 집기·리프트·복귀 |
 | `mode: 2` | YAML의 `default_place_bt_xml`: 현재 `place.xml` | 들고 있는 물체 배치·해제·복귀 |
 | `behavior_tree`에 경로 지정 | 지정 XML; mode보다 우선 | 사용자 지정 흐름, 예: 고정 폭 `demo.xml` |
 

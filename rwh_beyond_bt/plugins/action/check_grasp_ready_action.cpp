@@ -15,8 +15,13 @@ BT::PortsList CheckGraspReadyAction::providedPorts()
 {return motion_ports({"release_previous"});}
 
 void CheckGraspReadyAction::prepare()
-{repeat_ = required<bool>("release_previous");}
+{
+  repeat_ = required<bool>("release_previous");
+  std::string exchange_id;
+  check_direct_models_ = !config().blackboard->rootBlackboard()->get(
+    "exchange_request_id", exchange_id) || exchange_id.empty();
+}
 
 void CheckGraspReadyAction::perform()
-{context_->check_ready(repeat_, cancel_);}
+{context_->check_ready(repeat_, check_direct_models_, cancel_);}
 }  // namespace rwh_beyond_bt

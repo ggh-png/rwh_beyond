@@ -363,6 +363,7 @@ BT::PortsList SegmentObjectAction::providedPorts()
 {
   return providedBasicPorts({BT::InputPort<Observation>("capture"),
              BT::InputPort<std::string>("target_text", "", "Optional target description"),
+             BT::InputPort<std::string>("exchange_view", "front", "File exchange view"),
              BT::OutputPort<sensor_msgs::msg::Image>("mask")});
 }
 BT::NodeStatus SegmentObjectAction::tick()
@@ -407,6 +408,11 @@ void SegmentObjectAction::on_tick()
   const auto capture = required<Observation>(*this, "capture");
   if (!capture) {throw std::invalid_argument("Empty RGB-D capture");}
   goal_ = Action::Goal();
+  if (config().blackboard->rootBlackboard()->get(
+      "exchange_request_id", goal_.exchange_request_id) && !goal_.exchange_request_id.empty())
+  {
+    goal_.exchange_view = required<std::string>(*this, "exchange_view");
+  }
   goal_.rgb_image = capture->rgb;
   goal_.target_text = required<std::string>(*this, "target_text");
   std::string requested;
@@ -453,6 +459,7 @@ InferGraspsAction::InferGraspsAction(
 BT::PortsList InferGraspsAction::providedPorts()
 {
   return providedBasicPorts({BT::InputPort<sensor_msgs::msg::PointCloud2>("cloud"),
+             BT::InputPort<std::string>("exchange_view", "front", "File exchange view"),
              BT::OutputPort<std::vector<rwh_beyond_msgs::msg::GraspCandidate>>("candidates")});
 }
 BT::NodeStatus InferGraspsAction::tick()
@@ -494,6 +501,11 @@ void InferGraspsAction::on_tick()
   begin_stage(config().blackboard, "infer_grasps", name());
   deadline_ = std::chrono::steady_clock::now() + std::chrono::seconds(70);
   goal_ = Action::Goal();
+  if (config().blackboard->rootBlackboard()->get(
+      "exchange_request_id", goal_.exchange_request_id) && !goal_.exchange_request_id.empty())
+  {
+    goal_.exchange_view = required<std::string>(*this, "exchange_view");
+  }
   goal_.input_mode = Action::Goal::POINT_CLOUD;
   goal_.object_cloud = required<sensor_msgs::msg::PointCloud2>(*this, "cloud");
   goal_.gripper_name = "piper_hand";

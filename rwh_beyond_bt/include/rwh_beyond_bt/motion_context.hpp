@@ -134,7 +134,7 @@ public:
   Joints feedback();
   State state(const Cancel & cancel);
   void ensure_backend(const Cancel & cancel);
-  void check_ready(bool release_previous, const Cancel & cancel);
+  void check_ready(bool release_previous, bool check_direct_models, const Cancel & cancel);
   geometry_msgs::msg::Pose fk(const State & state, const Cancel & cancel);
   State ik(
     const geometry_msgs::msg::Pose & pose, const State & start, const Cancel & cancel,

@@ -464,7 +464,7 @@ void MotionContext::ensure_backend(const Cancel & cancel)
     }
   }
 }
-void MotionContext::check_ready(bool repeat, const Cancel & cancel)
+void MotionContext::check_ready(bool repeat, bool check_direct_models, const Cancel & cancel)
 {
   wait(
     [&]() {
@@ -483,12 +483,14 @@ void MotionContext::check_ready(bool repeat, const Cancel & cancel)
     throw ActionFailure(ErrorCode::PAYLOAD_PRESENT, "bt", "PAYLOAD_PRESENT", "CheckGraspReady",
         "Target remains attached; place/release before picking");
   }
-  for (auto & client : {sam_, model_}) {
-    auto result = call<std_srvs::srv::Trigger>(client, std_srvs::srv::Trigger::Request(), cancel,
-        10);
-    if (!result->success) {
-      throw ActionFailure(ErrorCode::HEALTH_CHECK_FAILED, "transport", "HEALTH_CHECK_FAILED",
-        client->get_service_name(), result->message);
+  if (check_direct_models) {
+    for (auto & client : {sam_, model_}) {
+      auto result = call<std_srvs::srv::Trigger>(client, std_srvs::srv::Trigger::Request(), cancel,
+          10);
+      if (!result->success) {
+        throw ActionFailure(ErrorCode::HEALTH_CHECK_FAILED, "transport", "HEALTH_CHECK_FAILED",
+          client->get_service_name(), result->message);
+      }
     }
   }
   wait(

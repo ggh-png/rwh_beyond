@@ -23,6 +23,7 @@ private:
   void prepare() override;
   void perform() override;
   bool repeat_{false};
+  bool check_direct_models_{true};
 };
 }  // namespace rwh_beyond_bt
 #endif  // RWH_BEYOND_BT__PLUGINS__ACTION__CHECK_GRASP_READY_ACTION_HPP_

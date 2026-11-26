@@ -19,17 +19,19 @@ def grasp_bridge_nodes(context, simulation):
     use_sim_time = ParameterValue(simulation, value_type=bool)
     segmentation_endpoint = LaunchConfiguration('segmentation_endpoint').perform(context)
     grasp_endpoint = LaunchConfiguration('endpoint').perform(context)
+    transport = os.environ.get('RWH_FILE_TRANSPORT')
+    exchange = [{'file_transport': transport}] if transport else []
     return [
         Node(
             package='rwh_beyond_sam3_bridge', executable='segmentation_action_server',
             name='sam3_bridge', namespace='', output='screen',
-            parameters=[params_file, {'use_sim_time': use_sim_time},
+            parameters=[params_file, {'use_sim_time': use_sim_time}, *exchange,
                         *([{'endpoint': segmentation_endpoint}] if segmentation_endpoint else [])],
         ),
         Node(
             package='rwh_beyond_graspgenx_bridge', executable='inference_action_server',
             name='graspgenx_bridge', namespace='', output='screen',
-            parameters=[params_file, {'use_sim_time': use_sim_time},
+            parameters=[params_file, {'use_sim_time': use_sim_time}, *exchange,
                         *([{'endpoint': grasp_endpoint}] if grasp_endpoint else [])],
         ),
     ]

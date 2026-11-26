@@ -14,5 +14,7 @@ setup(
     install_requires=['setuptools'], extras_require={'test': ['pytest']}, zip_safe=True,
     maintainer='Woosung Yoon', maintainer_email='71277820+ggh-png@users.noreply.github.com',
     description='Shared CPU data conversion and model transport utilities', license='Apache-2.0',
-    entry_points={'console_scripts': []},
+    entry_points={'console_scripts': [
+        'file_exchange_worker = rwh_beyond_model_utils.file_exchange_worker:main',
+    ]},
 )
