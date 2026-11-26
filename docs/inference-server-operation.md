@@ -221,3 +221,5 @@ ros2 service call /graspgenx/health std_srvs/srv/Trigger '{}'
 운영 장애는 컨테이너 상태 → 모델 로그 → 서버 health → 터널 → ROS health 순서로 좁힙니다.
 
 [빠른 시작](grasp-pipeline-guide.md) · [모델별 ROS 인터페이스](model-bridges.md)
+
+로봇과 모델 서버 사이에서 파일로 추론 데이터를 교환하려면 [SSH 파일 추론 설정](file-inference-exchange.md)을 참고하세요.

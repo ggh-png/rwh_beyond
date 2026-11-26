@@ -312,6 +312,7 @@ docker exec -it rwh_beyond_sam3 bash
 
 | 호스트 경로 | 컨테이너 경로 | 용도 |
 |---|---|---|
+| `~/wsyoon_data/beyond_demo/com_msgs` | `/root/wsyoon_data/beyond_demo/com_msgs` | [파일 추론 모드](file-inference-exchange.md#host-records)의 요청·응답 기록 |
 | `/home/ggh/wsyoon_data/map/map.yaml` | `/root/wsyoon_data/map/map.yaml` | navigation의 기본 지도 YAML |
 | `/home/ggh/wsyoon_data/map/` 안의 지도 이미지 | `/root/wsyoon_data/map/` 안의 지도 이미지 | YAML의 `image:`가 참조하는 파일 |
 | `/home/ggh/wsyoon_data/maps/` | `/root/wsyoon_data/maps/` | map_save의 날짜별 저장 디렉터리 |

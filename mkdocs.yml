@@ -36,6 +36,7 @@ nav:
           - 컨테이너 생성: docker-containers.md
           - 환경과 빌드: project-containers.md
           - GPU 추론 서버: inference-server-operation.md
+          - SSH 파일 추론: file-inference-exchange.md
           - 실물 PiPER 준비: piper-hardware-moveit.md
   - 코드 구조:
       - 코드를 따라 읽기: project-code-map.md
