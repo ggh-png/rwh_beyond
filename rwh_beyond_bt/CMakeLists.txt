@@ -21,12 +21,13 @@ find_package(yaml-cpp REQUIRED)
 find_package(shape_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(rcl_interfaces REQUIRED)
+find_package(std_msgs REQUIRED)
 find_package(std_srvs REQUIRED)
 find_package(rwh_beyond_msgs REQUIRED)
 
 set(dependencies
   behaviortree_cpp geometry_msgs moveit_msgs nav2_behavior_tree rclcpp
-  rclcpp_action rwh_beyond_msgs sensor_msgs std_srvs control_msgs trajectory_msgs tf2_ros urdf shape_msgs rcl_interfaces visualization_msgs)
+  rclcpp_action rwh_beyond_msgs sensor_msgs std_msgs std_srvs control_msgs trajectory_msgs tf2_ros urdf shape_msgs rcl_interfaces visualization_msgs)
 
 add_library(${PROJECT_NAME}_common SHARED
   src/diagnostics.cpp)

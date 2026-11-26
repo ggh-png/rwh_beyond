@@ -24,7 +24,7 @@ void MovePlaceAction::perform()
   auto & ctx = *context_;
   ctx.release_ready = false;
   ctx.prepare_motion(cancel_);
-  if (!ctx.attached) {
+  if (!ctx.simulation && !ctx.attached) {
     throw ActionFailure(ErrorCode::NO_PAYLOAD, "bt", "NO_PAYLOAD", "MovePlace",
             "Place requires an attached target");
   }

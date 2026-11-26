@@ -14,7 +14,7 @@
                     once="false"/>
       <MoveHome home_joint_positions=""/>
       <OpenGripper opening=""
-                   duration=""/>
+                   duration="0.5"/>
       <MoveJointPose poses_file=""
                      pose_name="front"/>
       <CaptureRgbd observation_id="{observation}"
@@ -43,7 +43,7 @@
                            pregrasp="{pregrasp}"
                            mask="{object_mask}"
                            selected_plan="{grasp_plan}"
-                           pregrasp_distance="0.10"
+                           pregrasp_distance="0.2"
                            grasp_pose="{grasp_pose}"
                            capture="{capture}"
                            fusion=""
@@ -54,7 +54,7 @@
       <MoveToPregrasp plan="{grasp_plan}"/>
       <ApproachGrasp plan="{grasp_plan}"/>
       <AttachObject plan="{grasp_plan}"/>
-      <LiftObject plan="{grasp_plan}"/>
+      <!-- <LiftObject plan="{grasp_plan}"/> -->
       <MoveHome home_joint_positions=""/>
     </Sequence>
   </BehaviorTree>
@@ -68,7 +68,7 @@
                            pregrasp="{pregrasp}"
                            mask="{object_mask}"
                            selected_plan="{grasp_plan}"
-                           pregrasp_distance="0.10"
+                           pregrasp_distance="0.2"
                            grasp_pose="{grasp_pose}"
                            capture="{capture}"
                            fusion="{fusion}"
@@ -79,9 +79,9 @@
       <MoveToPregrasp plan="{grasp_plan}"/>
       <ApproachGrasp plan="{grasp_plan}"/>
       <AttachObject plan="{grasp_plan}"/>
-      <LiftObject plan="{grasp_plan}"/>
-      <MoveJointPose poses_file=""
-                     pose_name="front"/>
+      <!-- <LiftObject plan="{grasp_plan}"/> -->
+      <!-- <MoveJointPose poses_file=""
+                     pose_name="front"/> -->
       <MoveHome home_joint_positions=""/>
     </Sequence>
   </BehaviorTree>
@@ -98,7 +98,7 @@
                     timeout="30.0"
                     once="false"/>
       <OpenGripper opening=""
-                   duration=""/>
+                   duration="0.5"/>
       <ResetObjectCloudFusion fusion="{fusion}"
                               max_centroid_distance="0.08"
                               voxel_size="0.003"/>
@@ -161,7 +161,7 @@
         <MoveHome home_joint_positions=""/>
         <ForceFailure>
           <OpenGripper opening=""
-                       duration=""/>
+                       duration="0.5"/>
         </ForceFailure>
       </Sequence>
     </RecoveryNode>

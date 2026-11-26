@@ -21,7 +21,7 @@ void LiftObjectAction::perform()
 {
   auto & ctx = *context_;
   phase(GraspPlan::Phase::ATTACHED);
-  if (!ctx.attached) {
+  if (!ctx.simulation && !ctx.attached) {
     throw ActionFailure(ErrorCode::NO_PAYLOAD, "bt", "NO_PAYLOAD", registrationName(),
             "No payload attachment for lift");
   }

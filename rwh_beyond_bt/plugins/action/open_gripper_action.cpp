@@ -16,6 +16,11 @@ BT::PortsList OpenGripperAction::providedPorts()
 
 void OpenGripperAction::perform()
 {
+  if (context_->simulation) {
+    context_->prepare_motion(cancel_);
+    context_->release(opening_, duration_, false, cancel_);
+    return;
+  }
   if (context_->attached) {
     throw ActionFailure(ErrorCode::PAYLOAD_PRESENT, "bt", "PAYLOAD_PRESENT", registrationName(),
             "Refusing automatic opening of attached payload");

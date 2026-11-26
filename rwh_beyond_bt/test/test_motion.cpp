@@ -5,6 +5,7 @@
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <cstring>
@@ -29,7 +30,16 @@ protected:
   static void TearDownTestSuite() {rclcpp::shutdown();}
   void SetUp() override
   {
-    server = std::make_shared<rclcpp::Node>("moveit_mock");
+    server = std::make_shared<rclcpp::Node>("move_group");
+    std::string description = "<robot name=\"test_arm\"><link name=\"link0\"/>";
+    for (int index = 1; index <= 6; ++index) {
+      auto parent = std::to_string(index - 1);
+      auto joint = std::to_string(index);
+      description += "<link name=\"link" + joint + "\"/><joint name=\"joint" + joint +
+        "\" type=\"revolute\"><parent link=\"link" + parent + "\"/><child link=\"link" +
+        joint + "\"/><limit lower=\"-3\" upper=\"3\" effort=\"1\" velocity=\"1\"/></joint>";
+    }
+    server->declare_parameter("robot_description", description + "</robot>");
     client = std::make_shared<rclcpp::Node>("motion_bt_test");
     client->declare_parameter("octomap_enabled", false);
     board = BT::Blackboard::create(); board->set("node", client);
@@ -51,8 +61,14 @@ protected:
         moveit_msgs::srv::ApplyPlanningScene::Response::SharedPtr response) {
           ++applies;
           world.allowed_collision_matrix = request->scene.allowed_collision_matrix;
-          if (!request->scene.world.collision_objects.empty()) {
-            world.world.collision_objects = request->scene.world.collision_objects;
+          for (const auto & object : request->scene.world.collision_objects) {
+            auto & objects = world.world.collision_objects;
+            objects.erase(std::remove_if(objects.begin(), objects.end(), [&](const auto & entry) {
+                return entry.id == object.id;
+              }), objects.end());
+            if (object.operation != moveit_msgs::msg::CollisionObject::REMOVE) {
+              objects.push_back(object);
+            }
           }
           if (!request->scene.robot_state.attached_collision_objects.empty()) {
             if (request->scene.robot_state.attached_collision_objects[0].object.operation == 1) {
@@ -168,6 +184,17 @@ protected:
     board.reset(); context.reset(); executor.cancel(); spinner.join();
     std::filesystem::remove_all(pose_directory);
   }
+  void use_verified_physical_transport()
+  {
+    context->simulation = false;
+    hardware_health = server->create_service<std_srvs::srv::Trigger>(
+      "grasp/hardware_transport_ready",
+      [](std_srvs::srv::Trigger::Request::SharedPtr,
+      std_srvs::srv::Trigger::Response::SharedPtr response) {
+        response->success = true;
+        response->message = "physical_feedback_transport";
+      });
+  }
   static Trajectory trajectory(const State & start, const State & end)
   {
     Trajectory result;
@@ -251,6 +278,7 @@ protected:
   std::thread spinner;
   rclcpp::TimerBase::SharedPtr timer;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr publisher;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr hardware_health;
   rclcpp::Service<moveit_msgs::srv::GetPlanningScene>::SharedPtr scene_server;
   rclcpp::Service<moveit_msgs::srv::ApplyPlanningScene>::SharedPtr apply_server;
   rclcpp::Service<moveit_msgs::srv::GetPositionFK>::SharedPtr fk_server;
@@ -278,6 +306,24 @@ TEST_F(DirectMotion, SelectPlanApproachCloseAttachAndLiftCallMoveItDirectly)
   EXPECT_NEAR(plan->pregrasp.position.z, .52, 1e-6);
   EXPECT_GT(plan->observed_width, plan->close_width);
 }
+TEST_F(DirectMotion, ZeroPregraspPlansDirectlyAndClosesWithoutAnApproachTrajectory)
+{
+  capture();
+  client->declare_parameter("bt_motion.pregrasp_distance", 0.0);
+  auto xml = selection;
+  xml.insert(xml.find("/>"), " pregrasp_distance=\"0.0\"");
+  ASSERT_EQ(run("<Sequence>" + xml +
+    "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
+    "<AttachObject plan=\"{plan}\"/></Sequence>"), BT::NodeStatus::SUCCESS);
+  auto plan = board->get<Plan>("plan");
+  EXPECT_FALSE(plan->has_approach);
+  EXPECT_NEAR(plan->pregrasp.position.z, plan->grasp.position.z, 1e-6);
+  EXPECT_EQ(cartesians, 1);  // The lift feasibility check still runs.
+  EXPECT_EQ(executions, 1);
+  EXPECT_EQ(closes, 1);
+  EXPECT_TRUE(context->attached);
+}
+
 TEST_F(DirectMotion, CarryHomePlaceReleaseAndReturnUseDirectClients)
 {
   capture();
@@ -332,8 +378,9 @@ TEST_F(DirectMotion, MovedArmAndReorderedPlanNeverExecute)
   EXPECT_EQ(run("<MoveToPregrasp plan=\"{plan}\"/>"), BT::NodeStatus::FAILURE);
   EXPECT_EQ(executions, 0);
 }
-TEST_F(DirectMotion, InterruptedCloseRetainsPayloadAndRefusesAutomaticOpening)
+TEST_F(DirectMotion, PhysicalInterruptedCloseRetainsPayloadAndRefusesAutomaticOpening)
 {
+  use_verified_physical_transport();
   capture(); fail_close = true;
   EXPECT_EQ(run("<Sequence>" + selection +
     "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
@@ -342,6 +389,41 @@ TEST_F(DirectMotion, InterruptedCloseRetainsPayloadAndRefusesAutomaticOpening)
   EXPECT_TRUE(context->attached); EXPECT_TRUE(context->scene_active);
   EXPECT_EQ(run("<OpenGripper/>"), BT::NodeStatus::FAILURE); EXPECT_EQ(closes, 1);
 }
+TEST_F(DirectMotion, SimulationCanOpenAndRetryAfterInterruptedClose)
+{
+  capture(); fail_close = true;
+  ASSERT_EQ(run("<Sequence>" + selection +
+    "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
+    "<AttachObject plan=\"{plan}\"/></Sequence>"), BT::NodeStatus::FAILURE);
+  ASSERT_TRUE(context->attached);
+  fail_close = false;
+  EXPECT_EQ(run("<OpenGripper/>"), BT::NodeStatus::SUCCESS);
+  EXPECT_FALSE(context->attached);
+  EXPECT_FALSE(context->scene_active);
+}
+
+TEST_F(DirectMotion, SimulationResetRemovesOldPlanningSceneAttachment)
+{
+  capture();
+  ASSERT_EQ(run("<Sequence>" + selection +
+    "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
+    "<AttachObject plan=\"{plan}\"/></Sequence>"), BT::NodeStatus::SUCCESS);
+  ASSERT_TRUE(context->attached);
+  auto reset = server->create_publisher<std_msgs::msg::UInt64>(
+    "simulation/reset_id", rclcpp::QoS(1).reliable().transient_local());
+  std_msgs::msg::UInt64 event;
+  event.data = 1;
+  reset->publish(event);
+  auto cancel = std::make_shared<std::atomic_bool>(false);
+  ASSERT_NO_THROW(context->wait([&]() {
+    context->prepare_motion(cancel);
+    return !context->attached;
+  }, 2, cancel));
+  EXPECT_FALSE(context->scene_active);
+  EXPECT_TRUE(world.robot_state.attached_collision_objects.empty());
+  EXPECT_TRUE(world.world.collision_objects.empty());
+}
+
 TEST_F(DirectMotion, HaltCancelsTheMoveItExecutionGoal)
 {
   capture(); ASSERT_EQ(run(selection), BT::NodeStatus::SUCCESS);
@@ -430,6 +512,14 @@ TEST_F(DirectMotion, ReleaseCanOpenAnEmptyGripperWhenAllowed)
   EXPECT_EQ(closes, 1);
   EXPECT_FALSE(context->attached);
 }
+TEST_F(DirectMotion, SimulationCanPlaceAndReleaseWithoutAnAttachment)
+{
+  EXPECT_EQ(run("<Sequence><MovePlace x=\"0.20\" z=\"0.15\"/><ReleaseObject/></Sequence>"),
+    BT::NodeStatus::SUCCESS);
+  EXPECT_EQ(closes, 1);
+  EXPECT_FALSE(context->attached);
+}
+
 TEST_F(DirectMotion, SavedPlacementPosePermitsReleaseOnlyWhenExplicitlyEnabled)
 {
   capture();
@@ -437,6 +527,7 @@ TEST_F(DirectMotion, SavedPlacementPosePermitsReleaseOnlyWhenExplicitlyEnabled)
     "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
     "<AttachObject plan=\"{plan}\"/><LiftObject plan=\"{plan}\"/></Sequence>"),
     BT::NodeStatus::SUCCESS);
+  use_verified_physical_transport();
   save_joint_pose(pose_file, "place", std::vector<double>(6, .1));
   ASSERT_EQ(run("<MoveJointPose pose_name=\"place\" settle_time=\"0\"/>"), BT::NodeStatus::SUCCESS);
   EXPECT_FALSE(context->release_ready);
@@ -456,6 +547,7 @@ TEST_F(DirectMotion, FailedSavedPlacementPoseCannotAuthorizeRelease)
     "<MoveToPregrasp plan=\"{plan}\"/><ApproachGrasp plan=\"{plan}\"/>"
     "<AttachObject plan=\"{plan}\"/><LiftObject plan=\"{plan}\"/></Sequence>"),
     BT::NodeStatus::SUCCESS);
+  use_verified_physical_transport();
   save_joint_pose(pose_file, "place", std::vector<double>(6, .1));
   context->release_ready = true;
   wrong_goal = true;

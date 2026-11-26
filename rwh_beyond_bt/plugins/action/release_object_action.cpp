@@ -20,7 +20,7 @@ void ReleaseObjectAction::prepare()
 void ReleaseObjectAction::perform()
 {
   context_->prepare_motion(cancel_);
-  if (allow_empty_ && !context_->attached) {
+  if (!context_->simulation && allow_empty_ && !context_->attached) {
     context_->gripper(opening_, duration_, false, cancel_);
     return;
   }

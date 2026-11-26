@@ -4,7 +4,7 @@ from pathlib import Path
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import EnvironmentVariable, LaunchConfiguration, PythonExpression
 
 from rwh_beyond_bringup.piper_hardware import DEFAULT_TCP, hardware_nodes, simulation_nodes
 
@@ -16,9 +16,13 @@ def piper_nodes(context):
 
 
 def generate_launch_description():
+    speed_default = EnvironmentVariable(
+        'RWH_PIPER_SPEED_PERCENT',
+        default_value=PythonExpression(["100 if '", LaunchConfiguration('mode'), "' == 'sim' else 10"]),
+    )
     defaults = (
         ('namespace', ''), ('can_port', 'can0'), ('effector_type', 'agx_gripper'),
-        ('auto_enable', 'false'), ('speed_percent', '10'), ('auto_control_gate', 'true'),
+        ('auto_enable', 'false'), ('speed_percent', speed_default), ('auto_control_gate', 'true'),
         ('fast_mode', 'false'), ('pub_rate', '200'), ('enable_timeout', '5.0'),
         ('gripper_default_effort', '1.0'),
         ('log_level', 'info'), ('fw_version', ''), ('tcp_offset', DEFAULT_TCP),

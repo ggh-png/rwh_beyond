@@ -47,7 +47,7 @@ def test_beyond_backends_share_planning_parameters(tmp_path, octomap):
     path.write_text(yaml.safe_dump(settings))
     context = defaults(launcher)
     context.launch_configurations.update(mode='sim', gui='false', use_rviz='false',
-                                         params_file=str(path))
+                                         params_file=str(path), speed_percent='70')
     actions = launcher.piper_nodes(context)
     include = next(action for action in actions if isinstance(action, IncludeLaunchDescription))
     launch_arguments = dict(include.launch_arguments)
@@ -63,13 +63,16 @@ def test_beyond_backends_share_planning_parameters(tmp_path, octomap):
     finally:
         baseline.unlink(missing_ok=True)
 
-    real = moveit_parameters(DEFAULT_TCP, camera_model=True, params_file=str(path))
+    real = moveit_parameters(DEFAULT_TCP, camera_model=True, params_file=str(path),
+                             speed_percent=70)
     for key in ('robot_description', 'robot_description_semantic'):
         real[key] = ParameterValue(real[key], value_type=str)
     expected = evaluate_parameters(sim_context, normalize_parameters([real]))[0]
     assert actual.pop('use_sim_time') is True
     assert expected.pop('use_sim_time') is False
     assert actual == expected
+    assert all(actual[f'robot_description_planning.joint_limits.joint{i}.max_velocity']
+               == pytest.approx(2.1) for i in range(1, 7))
     assert actual['trajectory_execution.allowed_goal_duration_margin'] == 21.0
     assert ('sensors' in actual) is octomap
     assert actual['depth_cloud.point_cloud_topic'] == '/camera/depth/color/points'

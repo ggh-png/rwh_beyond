@@ -20,7 +20,9 @@ void ApproachGraspAction::prepare()
 void ApproachGraspAction::perform()
 {
   phase(GraspPlan::Phase::PREGRASP);
-  context_->execute_cartesian(input_plan_->grasp, input_plan_->wrist, cancel_);
+  if (input_plan_->has_approach) {
+    context_->execute_cartesian(input_plan_->grasp, input_plan_->wrist, cancel_);
+  }
   input_plan_->phase = GraspPlan::Phase::APPROACHED;
 }
 }  // namespace rwh_beyond_bt

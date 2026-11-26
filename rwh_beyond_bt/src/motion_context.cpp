@@ -288,6 +288,13 @@ MotionContext::MotionContext(rclcpp::Node::SharedPtr parent)
         joints_ = *msg; received_ = std::chrono::steady_clock::now();
       }
     }, options);
+  if (simulation) {
+    simulation_reset_sub_ = node->create_subscription<std_msgs::msg::UInt64>(
+      "simulation/reset_id", rclcpp::QoS(1).reliable().transient_local(),
+      [this](std_msgs::msg::UInt64::ConstSharedPtr message) {
+        simulation_reset_.store(message->data);
+      }, options);
+  }
   cloud_sub_ = node->create_subscription<sensor_msgs::msg::PointCloud2>(
     "camera/depth/filtered_points", rclcpp::SensorDataQoS(),
     [this](sensor_msgs::msg::PointCloud2::ConstSharedPtr msg) {
@@ -469,10 +476,10 @@ void MotionContext::check_ready(bool repeat, const Cancel & cancel)
                                                                         }, 5, cancel);
   ensure_backend(cancel);
   prepare_motion(cancel);
-  if (attached && repeat) {
+  if (!simulation && attached && repeat) {
     release(number("gripper_open_width", .10, .001, .10), 3, true, cancel);
   }
-  if (attached) {
+  if (!simulation && attached) {
     throw ActionFailure(ErrorCode::PAYLOAD_PRESENT, "bt", "PAYLOAD_PRESENT", "CheckGraspReady",
         "Target remains attached; place/release before picking");
   }
@@ -854,17 +861,28 @@ void MotionContext::prepare_motion(const Cancel & cancel)
   ensure_backend(cancel);
   auto current = scene(PC::ROBOT_STATE_ATTACHED_OBJECTS | PC::WORLD_OBJECT_NAMES, cancel);
   bool found = false;
-  for (auto & item : current.robot_state.attached_collision_objects) {
-    if (item.object.id != TARGET) {throw std::runtime_error("Unknown attached object");}
-    found = true;
+  for (const auto & item : current.robot_state.attached_collision_objects) {
+    if (item.object.id == TARGET) {
+      found = true;
+    } else if (!simulation) {
+      throw std::runtime_error("Unknown attached object");
+    }
   }
-  if (attached && !found) {
+  const auto reset = simulation_reset_.load();
+  if (simulation && reset != handled_simulation_reset_) {
+    // A simulation reset opens the fingers and respawns the objects.
+    attached = found;
+    detach_target(cancel);
+    found = false;
+  }
+  if (!simulation && attached && !found) {
     throw std::runtime_error(
         "Payload collision attachment missing (or close was interrupted); "
         "inspect gripper before retry");
   }
   attached = found;
   if (!attached) {cleanup(cancel);}
+  handled_simulation_reset_ = reset;
   for (auto & item : current.world.collision_objects) {
     if (item.id == "observed_support_table") {
       moveit_msgs::msg::PlanningScene update;
@@ -875,18 +893,31 @@ void MotionContext::prepare_motion(const Cancel & cancel)
 }
 void MotionContext::release(double opening, double duration, bool repeat, const Cancel & cancel)
 {
-  if (!attached || (!repeat && !release_ready)) {
+  if (!simulation && (!attached || (!repeat && !release_ready))) {
     throw ActionFailure(ErrorCode::RELEASE_NOT_READY, "bt", "RELEASE_NOT_READY", "ReleaseObject",
         "Release requires attached payload and successful place");
   }
   gripper(opening, duration, false, cancel);
-  moveit_msgs::msg::PlanningScene update;
-  moveit_msgs::msg::AttachedCollisionObject detached;
-  detached.object.id = TARGET; detached.object.operation = Object::REMOVE;
-  update.robot_state.attached_collision_objects.push_back(detached); apply(update, cancel);
-  attached = false; release_ready = false; scene_active = true;
+  detach_target(cancel);
+}
+
+void MotionContext::detach_target(const Cancel & cancel)
+{
+  if (attached) {
+    moveit_msgs::msg::PlanningScene update;
+    moveit_msgs::msg::AttachedCollisionObject detached;
+    detached.link_name = tcp;
+    detached.object.id = TARGET;
+    detached.object.operation = Object::REMOVE;
+    update.robot_state.attached_collision_objects.push_back(detached);
+    apply(update, cancel);
+    scene_active = true;
+  }
+  attached = false;
+  release_ready = false;
   cleanup(cancel);
 }
+
 Eigen::Isometry3d MotionContext::camera_pose_at(const Observation & capture, const Cancel & cancel)
 {
   if (!capture) {throw std::invalid_argument("Missing TF reference capture");}
@@ -998,7 +1029,11 @@ Plan MotionContext::select(
 {
   SelectionTiming timing{node->get_logger()};
   candidate_error.reset();
-  if (attached || scene_active) {throw std::runtime_error("Previous target still active");}
+  if (simulation) {
+    detach_target(cancel);
+  } else if (attached || scene_active) {
+    throw std::runtime_error("Previous target still active");
+  }
   selected.reset();
   validate_capture(capture);
   if (cloud.header != capture->depth.header || mask.header != cloud.header || candidates.empty()) {
@@ -1142,7 +1177,7 @@ Plan MotionContext::select(
   bool height_filter = parameter<bool>("grasp_height_filter_enabled", false);
   double height_low = number("grasp_height_above_object_min_m", 0, 0, .5);
   double height_high = number("grasp_height_above_object_max_m", 0, height_low, .5);
-  if (!std::isfinite(pre_distance) || pre_distance < .02 || pre_distance > .2 ||
+  if (!std::isfinite(pre_distance) || pre_distance < 0.0 || pre_distance > .2 ||
     !std::isfinite(lift_distance) || lift_distance < .065 || lift_distance > .2)
   {
     throw std::invalid_argument("Invalid pregrasp/lift distance");
@@ -1245,6 +1280,7 @@ Plan MotionContext::select(
         return !scene(PC::OCTOMAP, cancel).world.octomap.octomap.data.empty();
         }, 15, cancel);
   }
+  const bool has_approach = pre_distance > 0.0;
   std::map<std::string, int> rejected;
   for (auto & variant : variants) {
     ++timing.variants;
@@ -1288,25 +1324,27 @@ Plan MotionContext::select(
       wrist_ok &= q >= c.position - c.tolerance_below && q <= c.position + c.tolerance_above;
     }
     if (!wrist_ok) {++rejected["wrist_goal"]; continue;}
-    auto approach = timed_call(timing.cartesian, timing.cartesian_calls,
-        [&]() {return cartesian(matrix_pose(tcp_goal), goal, cancel);});
-    if (approach->error_code.val != 1 || !std::isfinite(approach->fraction) ||
-      approach->fraction < .999 || !trajectory_valid(approach->solution, wrist))
-    {
-      if (approach->error_code.val != 1) {
-        candidate_error = moveit_failure(approach->error_code, "/compute_cartesian_path");
-      }
-      ++rejected["approach_path"]; continue;
-    }
     State grasp_state = goal;
-    auto & j = approach->solution.joint_trajectory;
-    Joints end;
-    for (size_t i = 0; i < j.joint_names.size(); ++i) {
-      end[j.joint_names[i]] = j.points.back().positions[i];
-    }
-    for (size_t i = 0; i < grasp_state.joint_state.name.size(); ++i) {
-      if (end.count(grasp_state.joint_state.name[i])) {
-        grasp_state.joint_state.position[i] = end.at(grasp_state.joint_state.name[i]);
+    if (has_approach) {
+      auto approach = timed_call(timing.cartesian, timing.cartesian_calls,
+          [&]() {return cartesian(matrix_pose(tcp_goal), goal, cancel);});
+      if (approach->error_code.val != 1 || !std::isfinite(approach->fraction) ||
+        approach->fraction < .999 || !trajectory_valid(approach->solution, wrist))
+      {
+        if (approach->error_code.val != 1) {
+          candidate_error = moveit_failure(approach->error_code, "/compute_cartesian_path");
+        }
+        ++rejected["approach_path"]; continue;
+      }
+      auto & j = approach->solution.joint_trajectory;
+      Joints end;
+      for (size_t i = 0; i < j.joint_names.size(); ++i) {
+        end[j.joint_names[i]] = j.points.back().positions[i];
+      }
+      for (size_t i = 0; i < grasp_state.joint_state.name.size(); ++i) {
+        if (end.count(grasp_state.joint_state.name[i])) {
+          grasp_state.joint_state.position[i] = end.at(grasp_state.joint_state.name[i]);
+        }
       }
     }
     auto lift_pose = matrix_pose(tcp_goal); lift_pose.position.z += lift_distance;
@@ -1326,6 +1364,7 @@ Plan MotionContext::select(
     selected = std::make_shared<GraspPlan>();
     selected->capture = capture; selected->grasp = matrix_pose(tcp_goal);
     selected->pregrasp = matrix_pose(pre);
+    selected->has_approach = has_approach;
     selected->trajectory = trajectory; selected->wrist = wrist; selected->close_width = close;
     selected->observed_width = width; selected->lift_distance = lift_distance;
     publish_selection(selected);

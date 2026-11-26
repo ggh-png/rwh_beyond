@@ -10,6 +10,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdint>
 #include <future>
 #include <functional>
 #include <map>
@@ -37,6 +38,7 @@
 #include "moveit_msgs/srv/get_position_fk.hpp"
 #include "moveit_msgs/srv/get_cartesian_path.hpp"
 #include "control_msgs/action/follow_joint_trajectory.hpp"
+#include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/trigger.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include "rcl_interfaces/srv/get_parameters.hpp"
@@ -61,6 +63,7 @@ struct GraspPlan
   Trajectory trajectory;
   Constraints wrist;
   double observed_width{0}, close_width{0}, lift_distance{0.08};
+  bool has_approach{true};
   Phase phase{Phase::SELECTED};
 };
 using Plan = std::shared_ptr<GraspPlan>;
@@ -163,6 +166,7 @@ public:
   void publish_selection(const Plan & plan);
 
 private:
+  void detach_target(const Cancel & cancel);
   rclcpp::CallbackGroup::SharedPtr group_;
   rclcpp::executors::SingleThreadedExecutor executor_;
   std::thread spinner_;
@@ -171,6 +175,9 @@ private:
   std::chrono::steady_clock::time_point received_{};
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_sub_;
   rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr cloud_sub_;
+  rclcpp::Subscription<std_msgs::msg::UInt64>::SharedPtr simulation_reset_sub_;
+  std::atomic<uint64_t> simulation_reset_{0};
+  uint64_t handled_simulation_reset_{0};
   uint64_t cloud_seq_{0};
   int64_t cloud_stamp_{0};
   std::unique_ptr<tf2_ros::Buffer> buffer_;

@@ -68,20 +68,21 @@ bt_navigator:
       icp_max_translation_m: 0.01
       icp_max_rotation_deg: 5.0
       # 추정 폭에서 빼는 전체 그리퍼 간격입니다(m). 허용 범위: 0~0.02.
-      grasp_width_closing_inset: 0.01
+      grasp_width_closing_inset: 0.02
       # 파지 위치·높이를 계산할 기준 좌표계입니다.
       base_frame: base_link
       # MoveIt에서 목표 자세와 Cartesian 경로를 계산할 공구 중심(TCP) 링크입니다.
       tcp_link: tcp_link
       # 최종 파지 자세에서 접근축 반대 방향으로 떨어진 사전 접근 거리입니다(m).
-      pregrasp_distance: 0.1
+      # 0이면 최종 파지 자세까지 한 번에 계획합니다.
+      pregrasp_distance: 0.0
       # 파지 후 베이스 +Z 방향으로 들어 올리는 거리입니다(m).
       lift_distance: 0.08
       # 모델 파지 좌표계에서 TCP 좌표계로 변환하는 평행 이동 [X, Y, Z]입니다(m).
       model_to_tcp_xyz:
       - 0.0
       - 0.0
-      - 0.13
+      - 0.16 # 0.13
       # 모델 파지 좌표계에서 TCP 좌표계로 변환하는 회전 [roll, pitch, yaw]입니다(rad).
       model_to_tcp_rpy:
       - 0.0
@@ -128,9 +129,9 @@ bt_navigator:
       # 실물 관절 피드백의 최신 상태 판정에 사용하는 제한 시간입니다(초).
       hardware_feedback_timeout: 1.0
       # 관측·홈·사전 접근·배치 우회 등 일반 관절 계획의 최대 속도 배율입니다(0 초과~1 이하).
-      moveit_velocity_scaling_factor: 0.5
+      moveit_velocity_scaling_factor: 0.7
       # 일반 계획의 최대 가속도 배율입니다(0 초과~1 이하).
-      moveit_acceleration_scaling_factor: 0.5
+      moveit_acceleration_scaling_factor: 1.0
       # 파지 접근·리프트·직선 배치의 Cartesian 경로 속도 배율입니다. 관측 이동에는 적용하지 않습니다(0 초과~1 이하).
       moveit_cartesian_velocity_scaling_factor: 0.5
       # Cartesian 경로의 가속도 배율입니다(0 초과~1 이하).
@@ -173,7 +174,7 @@ bt_navigator:
       # 고정 폭 BT의 그리퍼 닫기 목표 간격입니다(m). 폭 추정 BT는 선택한 후보의 가변 폭을 사용합니다.
       gripper_close_width: 0.04
       # 그리퍼 닫기 명령의 목표 동작 시간입니다(초).
-      gripper_close_duration: 2.0
+      gripper_close_duration: 1.0
       # 실물 팔의 관절 목표 도달 판정에 사용하는 위치 허용 오차입니다(rad).
       physical_position_tolerance: 0.03
     # 노드 간 생존 확인(bond)의 하트비트 시간 초과 판정을 비활성화합니다.

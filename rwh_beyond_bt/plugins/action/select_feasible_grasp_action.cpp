@@ -28,7 +28,7 @@ void SelectFeasibleGraspAction::prepare()
   cloud_ = required<sensor_msgs::msg::PointCloud2>("cloud");
   candidates_ = required<std::vector<rwh_beyond_msgs::msg::GraspCandidate>>("candidates");
   estimated_ = required<bool>("use_estimated_width");
-  pre_ = scalar("pregrasp_distance", context_->number("pregrasp_distance", .1, .02, .2), .02,
+  pre_ = scalar("pregrasp_distance", context_->number("pregrasp_distance", .1, 0.0, .2), 0.0,
       .2);
   lift_ = scalar("lift_distance", context_->number("lift_distance", .08, .065, .2), .065, .2);
 }

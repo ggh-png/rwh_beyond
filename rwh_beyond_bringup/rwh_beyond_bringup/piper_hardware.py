@@ -23,6 +23,8 @@ from .camera_mount import mount_mappings, validate_mount_parent
 
 
 DEFAULT_TCP = '[0.0,0.0,0.1425,0.0,0.0,0.0]'
+# AgileX piper_sdk MotorAngleLimitMaxSpdSet (CAN 0x474), J1–J6.
+PIPER_CAN_MAX_JOINT_SPEED_RAD_S = 3.0
 
 
 def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=False,
@@ -30,8 +32,8 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
                       nominal_camera_tf=True, camera_type='d405',
                       d435_mount_parent='', d435_mount_xyz='', d435_mount_rpy='',
                       d405_mount_parent='', d405_mount_xyz='', d405_mount_rpy='',
-                      params_file=None):
-    """Match simulation planning parameters, using physical time and feedback."""
+                      params_file=None, speed_percent=None):
+    """Build shared planning parameters with an optional PiPER controller speed cap."""
     offset = ast.literal_eval(tcp_offset)
     if (not isinstance(offset, (list, tuple)) or len(offset) != 6 or
             not all(isinstance(x, (int, float)) and math.isfinite(x) for x in offset)):
@@ -96,6 +98,14 @@ def moveit_parameters(tcp_offset, effector_type='agx_gripper', camera_model=Fals
         raise ValueError('planning_start_bounds_tolerance_deg must be in (0, 180] degrees')
     start_tolerance = math.radians(start_tolerance)
     params = config.to_dict()
+    if speed_percent is not None:
+        if type(speed_percent) is not int or not 1 <= speed_percent <= 100:
+            raise ValueError('speed_percent must be an integer in [1, 100]')
+        speed_cap = PIPER_CAN_MAX_JOINT_SPEED_RAD_S * speed_percent / 100
+        limits = params['robot_description_planning']['joint_limits']
+        for index in range(1, 7):
+            joint = limits[f'joint{index}']
+            joint['max_velocity'] = min(float(joint['max_velocity']), speed_cap)
     ompl_settings = shared_settings.get('move_group', {}).get('ros__parameters', {}).get('ompl', {})
     planner_overrides = ompl_settings.get('planner_configs', {})
     if not isinstance(planner_overrides, dict):
@@ -167,7 +177,7 @@ def simulation_nodes(context):
     params = moveit_parameters(
         value('tcp_offset'), camera_model=True, nominal_camera_tf=True,
         point_cloud_topic='/camera/depth/color/points', octomap=value('octomap') == 'true',
-        params_file=settings_path)
+        params_file=settings_path, speed_percent=int(value('speed_percent')))
     params['use_sim_time'] = True
     motion = yaml.safe_load(Path(settings_path).read_text())['bt_navigator']['ros__parameters']['bt_motion']
     close = {name: float(motion[name]) for name in ('gripper_close_width', 'gripper_close_duration')}
@@ -208,7 +218,7 @@ def hardware_nodes(context):
         d405_mount_xyz=value('d405_mount_xyz'), d405_mount_rpy=value('d405_mount_rpy'),
         d435_mount_parent=value('d435_mount_parent'),
         d435_mount_xyz=value('d435_mount_xyz'), d435_mount_rpy=value('d435_mount_rpy'),
-        params_file=value('params_file'))
+        params_file=value('params_file'), speed_percent=int(value('speed_percent')))
     description = ParameterValue(params['robot_description'], value_type=str)
     params['robot_description'] = description
     params['robot_description_semantic'] = ParameterValue(
