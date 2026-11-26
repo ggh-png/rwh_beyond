@@ -1894,7 +1894,7 @@
 <p>아래 두 명령은 액션 서버에 목표를 보내 로봇 동작을 실행합니다.</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 파란 컵 집기</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s1">'{mode: 1, target_text: "blue cup"}'</span><span class="w"> </span>--feedback
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s1">'{mode: 0, target_text: "blue cup"}'</span><span class="w"> </span>--feedback
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 앞서 집은 물체 배치·해제</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
