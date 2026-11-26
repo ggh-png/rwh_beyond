@@ -10,12 +10,12 @@ repositories:
   moma-mj-lab:
     type: git
     url: https://github.com/ggh-png/moma-mj-lab.git
-    version: master
+    version: c96ccb1af2e095ce123607262f9adb37706f257f
   ros_runner:
     type: git
     url: https://github.com/ggh-png/ros_runner.git
-    version: main
+    version: 98dccd82cd4ba05ad6eeb3131430306e6526c7bb
   realsense-ros:
     type: git
     url: https://github.com/realsenseai/realsense-ros.git
-    version: 4.58.4
+    version: v4.58.4
