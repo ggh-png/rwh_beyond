@@ -21,6 +21,7 @@ PiPER 물체 인식·파지·리프트 프로젝트입니다.
 5. [코드 안내](docs/project-code-map.md) · [테스트와 개발](docs/development.md)
 
 ROS workspace는 `/root/ros2_ws`, 의존 저장소는 `moma-mj-lab.repos`에서 관리합니다.
+릴리즈 환경은 `moma-mj-lab.repos`를 사용합니다. MuJoCo와 러너의 개발 브랜치를 따라가려면 `moma-mj-lab.latest.repos`를 사용합니다.
 `rwh_beyond_msgs`는 [rwh_beyond_interfaces](https://github.com/ggh-png/rwh_beyond_interfaces)에서 가져옵니다.
 새 워크스페이스에서 의존 저장소를 가져오기 전에 해당 GitHub 저장소에 접근할 수 있는 계정으로 인증하세요.
 기반 ROS·GPU·장치 환경을 준비한 뒤 빌드합니다.

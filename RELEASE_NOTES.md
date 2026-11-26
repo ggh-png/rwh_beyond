@@ -1,3 +1,17 @@
+# v2.0.0 — 2026-11-26
+
+- Pin the BEYOND dependency releases in `moma-mj-lab.repos` and keep a development manifest in `moma-mj-lab.latest.repos`.
+- Share the PiPER speed setting between the real and simulation profiles, with an optional simulation override.
+- Add a full-size labeled can to MuJoCo and vary both object poses on viewer reset. Clear stale simulated grasp state on reset.
+- Support a zero-distance pregrasp and tune the default joint and Cartesian motion scales. The default multiview tree currently uses a 0.20 m pregrasp on both branches and returns home after closing.
+- Preserve the real robot's payload guards. Configure local inference credentials before running the released runner.
+
+## Validation
+
+The MuJoCo left/right observation sequence passed ten transitions with a joint velocity scale of 0.7 and acceleration scale of 1.0. A Coca-Cola can pick completed after resetting to the default scene. Verify hardware speed, grasp depth, and the return path on the deployed arm before enabling physical operation.
+
+Two existing regression tests remain failing: standalone RViz and simulation report different arm planning limits, and the default wrist pose shows too few box pixels for the RGB-D geometry test. Both failures were reproduced on the preceding revisions.
+
 # v1.0.0 — 2026-11-12
 
 - Add RunDemo mode 1 (pick), mode 2 (guarded place/release), and legacy mode 0 support.

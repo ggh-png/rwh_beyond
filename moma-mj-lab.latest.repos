@@ -1,0 +1,21 @@
+repositories:
+  rwh_beyond_interfaces:
+    type: git
+    url: https://github.com/ggh-png/rwh_beyond_interfaces.git
+    version: 1a29bbe524e70b62ce2ce38639d1923c1218843d
+  agx_arm_ros:
+    type: git
+    url: https://github.com/ggh-png/agx_arm_ros.git
+    version: piper-deploy-20261119
+  moma-mj-lab:
+    type: git
+    url: https://github.com/ggh-png/moma-mj-lab.git
+    version: master
+  ros_runner:
+    type: git
+    url: https://github.com/ggh-png/ros_runner.git
+    version: main
+  realsense-ros:
+    type: git
+    url: https://github.com/realsenseai/realsense-ros.git
+    version: v4.58.4
