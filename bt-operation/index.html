@@ -1876,7 +1876,7 @@
 <tr>
 <td><code>mode</code></td>
 <td><code>uint8</code></td>
-<td><code>1</code>은 집기, <code>2</code>는 앞서 집은 물체의 배치·해제. 생략하거나 <code>0</code>을 주면 기본 집기.</td>
+<td><code>0</code> 또는 생략은 직접 추론 집기, <code>1</code>은 파일 추론 집기, <code>2</code>는 앞서 집은 물체의 배치·해제.</td>
 </tr>
 <tr>
 <td><code>target_text</code></td>
@@ -1886,15 +1886,15 @@
 <tr>
 <td><code>behavior_tree</code></td>
 <td><code>string</code></td>
-<td>로봇의 액션 서버가 읽을 수 있는 BT XML 경로. 지정하면 <code>mode</code>보다 우선하며, 기본 트리를 쓸 때는 생략.</td>
+<td>로봇의 액션 서버가 읽을 수 있는 BT XML 경로. 지정하면 기본 트리 대신 이 XML을 사용합니다. 추론 방식은 <code>mode</code>로 선택합니다.</td>
 </tr>
 </tbody>
 </table>
 <h2 id="cli">CLI 예시<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h2>
-<p>아래 두 명령은 액션 서버에 목표를 보내 로봇 동작을 실행합니다.</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 파란 컵 집기</span>
+<p>Runner의 <code>inference_transport</code>가 <code>ssh</code> 또는 <code>shared</code>이면 집기에 <code>mode: 1</code>을 사용합니다. <code>direct</code>에서는 <code>mode: 0</code>을 사용합니다. <a href="../file-inference-exchange/">파일 추론 설정</a></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 파일 추론으로 파란 컵 집기</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s1">'{mode: 0, target_text: "blue cup"}'</span><span class="w"> </span>--feedback
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="s1">'{mode: 1, target_text: "blue cup"}'</span><span class="w"> </span>--feedback
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># 앞서 집은 물체 배치·해제</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>ros2<span class="w"> </span>action<span class="w"> </span>send_goal<span class="w"> </span>/run_demo<span class="w"> </span>rwh_beyond_msgs/action/RunDemo<span class="w"> </span><span class="se">\</span>
