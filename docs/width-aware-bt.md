@@ -49,9 +49,11 @@ inset은 전체 간격에서 빼는 양이며 허용 범위는 0~0.02m입니다.
 
 ## 실행과 반복 집기
 
+Runner가 `ssh` 또는 `shared`를 사용하면 아래와 같이 호출합니다. `direct`로 설정한 경우에는 `mode: 0`을 사용합니다.
+
 ```bash
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
-  '{mode: 0, target_text: "yellow block"}' --feedback
+  '{mode: 1, target_text: "yellow block"}' --feedback
 ```
 
 추정 폭 트리의 `CheckGraspReady release_previous="true"`는 남은 대상을 **현재 위치에서**

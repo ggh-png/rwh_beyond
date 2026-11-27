@@ -29,7 +29,7 @@ inference_transport: ssh
 | `ssh` | 직접 모델 연결 점검과 자동 터널을 건너뛰고, 요청·응답 파일을 SSH로 전달합니다. | `mode: 1` |
 | `shared` | 직접 연결 점검과 자동 터널을 건너뛰고, 로봇과 서버가 각자의 폴더를 읽고 씁니다. 공유 마운트 또는 별도 전송 도구가 파일을 연결합니다. | `mode: 1` |
 
-`ssh`는 Runner의 기존 `inference_connection`에 지정된 SSH 대상·포트·인증 설정을 사용합니다. 컨테이너에서 SSH 호스트 키를 확인할 수 있어야 합니다. `shared`는 SSH 설정 없이 사용할 수 있습니다. 방식을 바꾼 뒤 사용하는 BT Runner를 다시 활성화합니다.
+`ssh`는 Runner의 기존 `inference_connection`에 지정된 SSH 대상·포트·인증 설정을 사용합니다. 컨테이너에서 SSH 호스트 키를 확인할 수 있어야 합니다. `shared`는 SSH 설정 없이 사용할 수 있습니다. 방식을 바꾼 뒤 사용하는 BT Runner를 다시 활성화합니다. Runner 설정과 집기 호출 모드가 맞지 않으면 액션은 실행 전에 `INVALID_MODE`를 반환합니다.
 
 ## 2. 로봇과 서버의 기록 경로
 

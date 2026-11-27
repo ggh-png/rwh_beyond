@@ -53,7 +53,7 @@ def request(endpoint, payload, timeout=60.0, canceled=lambda: False):
                     raise RequestCanceled('client canceled; remote inference may still be running')
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
-                    raise TimeoutError('GraspGenX request deadline exceeded')
+                    raise TimeoutError('Model request deadline exceeded')
                 if socket.poll(min(50, max(1, int(remaining * 1000))), event):
                     if event == zmq.POLLOUT:
                         socket.send(packed, flags=zmq.NOBLOCK)

@@ -126,6 +126,17 @@ public:
     rwh_beyond_bt::reset_diagnostics(board);
     board->rootBlackboard()->set("target_text", goal->target_text);
     board->rootBlackboard()->set("exchange_request_id", std::string{});
+    const auto * configured_transport = std::getenv("RWH_FILE_TRANSPORT");
+    const std::string transport = configured_transport ? configured_transport : "";
+    if (goal->mode == 0 && (transport == "ssh" || transport == "shared")) {
+      return reject_request(ErrorCode::INVALID_MODE, "INVALID_MODE",
+        "inference_transport=" + transport + " requires RunDemo mode: 1 for file inference. "
+        "Use inference_transport=direct for RunDemo mode: 0.");
+    }
+    if (goal->mode == ActionT::Goal::MODE_PICK && transport == "direct") {
+      return reject_request(ErrorCode::INVALID_MODE, "INVALID_MODE",
+        "RunDemo mode: 1 requires inference_transport: ssh or shared in runners.yaml.");
+    }
     std::string tree = goal->behavior_tree;
     if (tree.empty()) {
       const auto mode = goal->mode == 0 ? ActionT::Goal::MODE_PICK : goal->mode;
@@ -147,11 +158,6 @@ public:
       return reject_request(ErrorCode::INVALID_TREE, "INVALID_TREE", error.what());
     }
     if (goal->mode == ActionT::Goal::MODE_PICK) {
-      const auto * transport = std::getenv("RWH_FILE_TRANSPORT");
-      if (transport && std::string(transport) == "direct") {
-        return reject_request(ErrorCode::INVALID_INPUT, "INVALID_INPUT",
-          "File inference requires inference_transport: ssh or shared in runners.yaml");
-      }
       try {
         auto root = exchange_root_;
         if (root.rfind("~/", 0) == 0) {

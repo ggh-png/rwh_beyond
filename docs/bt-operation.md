@@ -11,18 +11,18 @@
 
 | 필드 | 타입 | 입력값 |
 |---|---|---|
-| `mode` | `uint8` | `1`은 집기, `2`는 앞서 집은 물체의 배치·해제. 생략하거나 `0`을 주면 기본 집기. |
+| `mode` | `uint8` | `0` 또는 생략은 직접 추론 집기, `1`은 파일 추론 집기, `2`는 앞서 집은 물체의 배치·해제. |
 | `target_text` | `string` | 집을 물체의 설명. 예를 들어 `"blue cup"`. 생략하면 설정된 기본 대상을 사용. 이번 요청에만 적용. |
-| `behavior_tree` | `string` | 로봇의 액션 서버가 읽을 수 있는 BT XML 경로. 지정하면 `mode`보다 우선하며, 기본 트리를 쓸 때는 생략. |
+| `behavior_tree` | `string` | 로봇의 액션 서버가 읽을 수 있는 BT XML 경로. 지정하면 기본 트리 대신 이 XML을 사용합니다. 추론 방식은 `mode`로 선택합니다. |
 
 ## CLI 예시
 
-아래 두 명령은 액션 서버에 목표를 보내 로봇 동작을 실행합니다.
+Runner의 `inference_transport`가 `ssh` 또는 `shared`이면 집기에 `mode: 1`을 사용합니다. `direct`에서는 `mode: 0`을 사용합니다. [파일 추론 설정](file-inference-exchange.md)
 
 ```bash
-# 파란 컵 집기
+# 파일 추론으로 파란 컵 집기
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
-  '{mode: 0, target_text: "blue cup"}' --feedback
+  '{mode: 1, target_text: "blue cup"}' --feedback
 
 # 앞서 집은 물체 배치·해제
 ros2 action send_goal /run_demo rwh_beyond_msgs/action/RunDemo \
